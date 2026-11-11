@@ -1,0 +1,35 @@
+# Corridor definition. ALL station names/coords are PLACEHOLDERS — Phase 1 must verify
+# against the Dubai Pulse metro stations dataset (canonical names) and fix them.
+corridor_name: Sheikh Zayed Road / Trade Centre
+timezone: Asia/Dubai
+stations:
+  - {id: MAX, name_en: "Max (formerly Jafiliya) [VERIFY]", line: Red, lat: 25.2335, lon: 55.2920}
+  - {id: WTC, name_en: "World Trade Centre [VERIFY]",       line: Red, lat: 25.2253, lon: 55.2855}
+  - {id: EMT, name_en: "Emirates Towers [VERIFY]",          line: Red, lat: 25.2175, lon: 55.2797}
+  - {id: FIC, name_en: "Financial Centre [VERIFY]",         line: Red, lat: 25.2115, lon: 55.2752}
+  - {id: BKD, name_en: "Burj Khalifa/Dubai Mall [VERIFY]",  line: Red, lat: 25.2011, lon: 55.2696}
+  - {id: BBY, name_en: "Business Bay [VERIFY]",             line: Red, lat: 25.1912, lon: 55.2603}
+# Walking minutes between neighbouring stations (assumption; refine with OSM in Phase 1)
+neighbours: {MAX: [WTC], WTC: [MAX, EMT], EMT: [WTC, FIC], FIC: [EMT, BKD], BKD: [FIC, BBY], BBY: [BKD]}
+capacity:
+  # ASSUMPTIONS until replaced with D3 capacity dataset + GTFS headways
+  train_capacity: 700          # passengers per train [ASSUMPTION – replace from capacity dataset]
+  boardable_share: 0.35        # share of a train's capacity available at one station
+  headway_min: {peak: 4, offpeak: 6, night: 8}   # [ASSUMPTION – replace from GTFS]
+  min_headway_min: 2.5         # lower bound for extra_trains [ASSUMPTION]
+  overcap_threshold: 0.85
+event_model:                   # parametric overlay (docs/05 §5.2) – all ASSUMPTIONS, calibrate in Phase 2
+  metro_share: 0.45
+  return_factor: 1.0
+  arrival_offset_min: -60
+  arrival_sigma_min: 45
+  exit_offset_min: 20
+  exit_sigma_min: 30
+  walk_tau_min: 8
+interventions:
+  bus_capacity: 80
+  bus_trips_per_hour: 3
+  robotaxi_occupancy: 1.6
+  robotaxi_trips_per_hour: 2
+  cost_proxy: {extra_trains_per_train_hour: 3.0, shuttle_bus_hour: 1.0, robotaxi_vehicle_hour: 0.4, staggered_exit: 2.0, wayfinding_redirect: 0.5}
+  ranking_lambda: 20

@@ -1,0 +1,29 @@
+<html><head><meta charset="utf-8"><style>
+body{margin:0;width:1530px;height:1000px;background:#FAF8F5;font-family:Inter,Carlito,sans-serif;color:#1B1F2A;padding:44px;box-sizing:border-box}
+h1{font-size:40px;margin:0 0 30px}
+.g{display:grid;grid-template-columns:repeat(5,1fr);gap:22px;align-items:stretch}
+.b{background:#fff;border-radius:18px;box-shadow:0 10px 32px rgba(27,31,42,.08);padding:22px;position:relative}
+.b h3{font-size:24px;margin:6px 0 10px} .b p{font-size:17px;color:#4A5060;line-height:1.45;margin:0}
+.n{width:38px;height:38px;border-radius:50%;background:#1D4ED8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px}
+.arrow{position:absolute;right:-20px;top:50%;font-size:28px;color:#1D4ED8}
+.h{margin-top:28px;display:flex;gap:22px}
+.hb{flex:1;border-radius:18px;padding:22px;background:#EEF2FF;border:2px solid #1D4ED8}
+.hb h3{margin:0 0 8px;font-size:25px;color:#1D4ED8} .hb p{margin:0;font-size:18px;line-height:1.45}
+.e{flex:1;border-radius:18px;padding:22px;background:#fff;box-shadow:0 10px 32px rgba(27,31,42,.08)} .e h3{margin:0 0 8px;font-size:25px} .e p{margin:0;font-size:18px;color:#4A5060;line-height:1.45}
+.foot{position:absolute;bottom:34px;left:44px;font-size:16px;color:#8A8F9C}
+</style></head><body>
+<div style="zoom:1.32"><h1>EventFlow Twin · architecture</h1>
+<div class="g">
+<div class="b"><div class="n">1</div><h3>Open data</h3><p>RTA metro ridership, stations & capacity (Dubai Pulse), GTFS timetables, OpenStreetMap, event calendar</p><div class="arrow">→</div></div>
+<div class="b"><div class="n">2</div><h3>Forecast</h3><p>LightGBM quantile model for hourly entries/exits + transparent event-surge model (arrival & exit peaks)</p><div class="arrow">→</div></div>
+<div class="b"><div class="n">3</div><h3>Detect hotspots</h3><p>Capacity from timetables; flags station-hours above 85% load</p><div class="arrow">→</div></div>
+<div class="b"><div class="n">4</div><h3>AI agents</h3><p>LangGraph agents propose intervention bundles from a fixed menu; JSON-schema checked</p><div class="arrow">→</div></div>
+<div class="b"><div class="n">5</div><h3>Simulate & rank</h3><p>Deterministic simulator scores each bundle: over-capacity hours, excess riders, cost</p></div>
+</div>
+<div class="h">
+<div class="hb"><h3>6 · Human approval</h3><p>The planner approves or rejects each option; the twin re-simulates and logs every decision. “Human leads, AI enables”.</p></div>
+<div class="e"><h3>Trust by design</h3><p>LLM never computes numbers · automatic number-verification · prompt-injection tests · no personal data (station-hour aggregates)</p></div>
+<div class="e"><h3>Interface</h3><p>FastAPI + Next.js 3D map (deck.gl) · Arabic / English · works fully offline at the booth</p></div>
+</div></div>
+<div class="foot">Research prototype · SP Jain School of Global Management, Dubai</div>
+</body></html>

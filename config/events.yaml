@@ -1,0 +1,15 @@
+# Event calendar. Historical events MUST have a verified source_url (Phase 2). Never invent dates.
+events:
+  - id: dfw2026_d1
+    name: "Dubai Future Week 2026 – Day 1 (demo scenario)"
+    venue: "Emirates Towers & Museum of the Future"
+    lat: 25.2178
+    lon: 55.2823
+    date: "2026-11-18"
+    start: "09:30"
+    end: "18:00"
+    attendance: 15000          # ASSUMPTION for demo scenario
+    is_assumption: true
+    source_url: "https://www.dubaifutureweek.com/en"
+  # Add historical events inside your ridership window here, e.g. New Year's Eve, GITEX week,
+  # each with verified date/time and source_url, is_assumption: false

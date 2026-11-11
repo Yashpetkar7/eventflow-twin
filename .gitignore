@@ -1,0 +1,22 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.next/
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+data/processed/*.parquet
+*.pdf
+*.zip
+.DS_Store
+# private notes / template material — never commit
+RTA.docx
+*.docx
+submission/tools/University_Nomination_Template*
+# local tooling
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+eval/results/*.tmp
