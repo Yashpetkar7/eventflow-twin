@@ -34,7 +34,9 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
     "contract": ("Re-export OpenAPI + fixtures + TS types (contract/)", [
         [PY, "scripts/export_contract.py"],
         ["npx", "-y", "openapi-typescript@7", "contract/openapi.json", "-o", "contract/api-types.ts"],
+        ["npx", "-y", "openapi-typescript@7", "contract/openapi.json", "-o", "apps/web/src/lib/api-types.ts"],
     ]),
+    "geo": ("Rebuild the web map geometry from GTFS", [[PY, "scripts/build_geo.py"]]),
     "api": ("Run FastAPI on :8000", [[PY, "-m", "uvicorn", "apps.api.eventflow.main:app", "--reload", "--port", "8000"]]),
     "web": ("Run Next.js on :3000", [["npm", "run", "dev"]]),
 }

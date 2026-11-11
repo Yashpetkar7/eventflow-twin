@@ -1,0 +1,34 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Map design tokens (tokens.css) into Tailwind utilities: bg-surface, text-ink-2, border-line, … */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-sand: var(--sand);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-risk: var(--risk);
+  --font-sans: var(--font-geist-sans), var(--font-latin);
+  --radius-card: var(--radius-card);
+}
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); }
+
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.num { font-variant-numeric: tabular-nums; }
+.badge-synthetic { background: #F1E7D3; color: #7A5A1E; }
+.badge-assumption { background: var(--accent-soft); color: var(--accent); }
+
+/* Visible keyboard focus everywhere (WCAG 2.4.7) */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+input[type="range"] { accent-color: var(--accent); }

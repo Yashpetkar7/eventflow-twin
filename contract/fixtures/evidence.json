@@ -1,8 +1,8 @@
 {
   "eval": {
     "forecast": {
-      "file": "forecast_20261111-1822.json",
-      "timestamp": "2026-11-11T18:22:07",
+      "file": "forecast_20261111-1827.json",
+      "timestamp": "2026-11-11T18:27:13",
       "metrics": {
         "naive_mase": 0.9904697257002599,
         "naive_smape": 0.09010145844168332,
@@ -28,13 +28,13 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows"
     },
     "simulator": {
-      "file": "simulator_20261111-182209.json",
-      "timestamp": "2026-11-11T18:22:09",
+      "file": "simulator_20261111-182650.json",
+      "timestamp": "2026-11-11T18:26:50",
       "metrics": {
         "property_pass_rate": 1.0,
         "conservation_error_max": 0.0
       },
-      "n": 93,
+      "n": 139,
       "split": "properties",
       "is_synthetic": true,
       "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows"

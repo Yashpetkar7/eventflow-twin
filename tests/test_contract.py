@@ -26,7 +26,10 @@ def test_version_file():
 
 
 def test_api_types_generated():
-    assert "SimSummary" in (CONTRACT / "api-types.ts").read_text(encoding="utf-8")
+    ts = (CONTRACT / "api-types.ts").read_text(encoding="utf-8")
+    assert "SimSummary" in ts
+    web = CONTRACT.parent / "apps/web/src/lib/api-types.ts"
+    assert web.read_text(encoding="utf-8") == ts, "web types out of date: python tasks.py contract"
 
 
 @pytest.mark.parametrize("name,model", [

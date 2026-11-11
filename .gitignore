@@ -9,6 +9,8 @@ data/raw/*
 !data/raw/MANIFEST.md
 data/interim/*
 data/processed/*.parquet
+data/processed/decisions_log.jsonl
+data/processed/runs/
 *.pdf
 *.zip
 .DS_Store

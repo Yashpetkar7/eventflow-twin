@@ -34,3 +34,9 @@ def test_historical_events_have_sources():
         assert ev.get("source_url"), ev["id"]
         if ev["attendance"] and ev.get("is_assumption") is not True:
             assert ev.get("sources"), f"{ev['id']}: non-assumption attendance needs sources"
+
+
+def test_config_read_as_utf8():
+    """Windows defaults to cp1252; the en dash in event names must survive (was rendered as 'â€“')."""
+    assert any("–" in e["name"] for e in events())
+    assert not any("â€" in e["name"] for e in events())
