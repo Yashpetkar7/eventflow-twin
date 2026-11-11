@@ -1,5 +1,11 @@
 """Rolling-origin backtest: seasonal-naive (t-168h) vs LightGBM quantile model.
-Writes eval/results/forecast_<ts>.json (output contract in docs/08)."""
+Writes eval/results/forecast_<ts>.json (output contract in docs/08).
+
+Forecast setting: at each fold origin we predict the next 7 days hourly (horizon 1–168 h). Every feature must
+therefore be known at the origin. Only lags >= 168 h are used (lag168, lag336 and the mean of the same hour over
+the four weeks ending t-168h). Lags such as t-24h would use actuals from inside the test week (leakage) and
+make the model look better than it is, so they are deliberately excluded.
+"""
 from __future__ import annotations
 import argparse, datetime as dt, json, subprocess, sys
 from pathlib import Path
@@ -16,23 +22,29 @@ def load_panel(mode: str) -> pd.DataFrame:
     df = pd.read_parquet(p).sort_values(["station_id", "ts"]).reset_index(drop=True)
     if "is_synthetic" not in df:
         df["is_synthetic"] = False
+    # Row-based shifts below assume a gap-free hourly series per station; refuse silently-wrong lags.
+    gaps = df.groupby("station_id")["ts"].diff().dropna() != pd.Timedelta(hours=1)
+    if gaps.any():
+        raise SystemExit(f"{int(gaps.sum())} non-hourly steps in the panel; reindex to a full hourly grid first.")
     return df
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["hour"] = df.ts.dt.hour
-    df["dow"] = df.ts.dt.dayofweek
+    df["dow"] = df.ts.dt.day_of_week
     # UAE weekend regime: Fri–Sat before 2022-01-01, Sat–Sun after
     post = df.ts >= pd.Timestamp("2022-01-01")
     df["weekend"] = np.where(post, df.dow >= 5, df.dow.isin([4, 5])).astype(int)
     g = df.groupby("station_id")["entries"]
-    df["lag24"] = g.shift(24)
     df["lag168"] = g.shift(168)
-    df["roll7_samehour"] = df.groupby(["station_id", "hour"])["entries"].transform(lambda s: s.shift(1).rolling(7, min_periods=3).mean())
+    df["lag336"] = g.shift(336)
+    # same hour, mean over weeks t-1w … t-4w (all >= 168 h back, so known at a 7-day-ahead origin)
+    df["mean_samehour_4w"] = sum(g.shift(168 * k) for k in range(1, 5)) / 4
     df["station_code"] = df.station_id.astype("category").cat.codes
     return df
 
-FEATS = ["hour", "dow", "weekend", "lag24", "lag168", "roll7_samehour", "station_code", "event_flag"]
+FEATS = ["hour", "dow", "weekend", "lag168", "lag336", "mean_samehour_4w", "station_code", "event_flag"]
+HORIZON_NOTE = "7-day-ahead hourly; features use only lags >= 168h (no within-horizon leakage)"
 
 def mase(y, yhat, scale):
     return float(np.mean(np.abs(y - yhat)) / scale) if scale > 0 else float("nan")
@@ -58,7 +70,7 @@ def main():
     df = add_features(load_panel(a.mode))
     if "event_flag" not in df:
         df["event_flag"] = 0
-    df = df.dropna(subset=["lag168", "roll7_samehour"]).reset_index(drop=True)
+    df = df.dropna(subset=["lag168", "lag336", "mean_samehour_4w"]).reset_index(drop=True)
     end = df.ts.max().normalize() + pd.Timedelta(days=1)
     folds = 2 if a.fast else 4
     fold_metrics = []
@@ -93,12 +105,12 @@ def main():
     out = {"suite": "forecast", "git_sha": git_sha(), "timestamp": dt.datetime.now().isoformat(timespec="seconds"),
            "models": {"forecast": a.model, "baseline": "seasonal_naive_168h"},
            "dataset_version": f"{a.mode}:{df.ts.min().date()}..{df.ts.max().date()}",
-           "is_synthetic": bool(df.is_synthetic.any()), "metrics": metrics, "n": test_fold["n"], "split": "test",
+           "is_synthetic": bool(df.is_synthetic.any()), "horizon": HORIZON_NOTE, "features": FEATS, "metrics": metrics, "n": test_fold["n"], "split": "test",
            "folds": fold_metrics}
     res_dir = ROOT / "eval/results"
     res_dir.mkdir(parents=True, exist_ok=True)
     p = res_dir / f"forecast_{dt.datetime.now():%Y%m%d-%H%M}.json"
-    p.write_text(json.dumps(out, indent=2))
+    p.write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(json.dumps(metrics, indent=2))
     print(f"written {p}  (SYNTHETIC={out['is_synthetic']})")
 

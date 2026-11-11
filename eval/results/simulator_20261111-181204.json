@@ -1,0 +1,17 @@
+{
+  "suite": "simulator",
+  "git_sha": "8156fd4-dirty",
+  "timestamp": "2026-11-11T18:12:04",
+  "models": {
+    "simulator": "deterministic-15min-queue"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
+  "is_synthetic": true,
+  "metrics": {
+    "property_pass_rate": 1.0,
+    "conservation_error_max": 0.0
+  },
+  "n": 93,
+  "split": "properties",
+  "failures": []
+}

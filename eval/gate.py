@@ -14,16 +14,19 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "latency.p95_seconds_max": ("latency", "p95_seconds", "max"),
 }
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def latest(suite):
-    files = sorted(glob.glob(f"eval/results/{suite}_*.json"))
-    return json.load(open(files[-1])) if files else None
+    files = sorted(glob.glob(os.path.join(ROOT, "eval", "results", f"{suite}_*.json")))
+    return json.load(open(files[-1], encoding="utf-8")) if files else None
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--thresholds", default="eval/thresholds.yaml")
     ap.add_argument("--summary", default=None)
     a = ap.parse_args()
-    th = yaml.safe_load(open(a.thresholds))
+    th = yaml.safe_load(open(a.thresholds, encoding="utf-8"))
+    required = set(th.get("required_suites", []))
     rows, failed = [], False
     for key, (suite, metric, kind) in RULES.items():
         section, name = key.split(".")
@@ -32,7 +35,10 @@ def main():
         limit = th[section][name]
         res = latest(suite)
         if res is None or metric not in res.get("metrics", {}):
-            rows.append((key, "missing", limit, "SKIP")); continue
+            # A required suite with no result is a failure, not a pass: "no evidence" must never look green.
+            status = "FAIL (missing)" if suite in required else "SKIP"
+            failed |= suite in required
+            rows.append((key, "missing", limit, status)); continue
         val = res["metrics"][metric]
         ok = val >= limit if kind == "min" else val <= limit
         failed |= not ok
@@ -40,7 +46,7 @@ def main():
     table = "| check | value | limit | status |\n|---|---|---|---|\n" + "\n".join(f"| {r[0]} | {r[1]} | {r[2]} | {r[3]} |" for r in rows)
     print(table)
     if a.summary:
-        with open(a.summary, "a") as f: f.write("## Eval gate\n\n" + table + "\n")
+        with open(a.summary, "a", encoding="utf-8") as f: f.write("## Eval gate\n\n" + table + "\n")
     sys.exit(1 if failed else 0)
 
 if __name__ == "__main__":

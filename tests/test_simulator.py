@@ -1,45 +1,149 @@
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from apps.api.eventflow.config import corridor, events
-from apps.api.eventflow.event_model import overlay
-from apps.api.eventflow.simulate import simulate, _spread
+"""Simulator property tests (docs/05 §5.4, docs/08 simulator suite)."""
+import random
 
-STATIONS = [s["id"] for s in corridor()["stations"]]
+import pytest
 
-def demo_demand():
-    ev = overlay(events()[0])
-    return {s: {"base": [500.0] * 24, "event": list(ev[s]["entries"])} for s in STATIONS}
+from apps.api.eventflow.interventions import InterventionError
+from apps.api.eventflow.simulate import capacity_table, simulate, stagger
+from conftest import N, STATIONS
 
-def total(rows):
-    return sum(r["demand"] for r in rows)
+EVENING = list(range(16, 22))
 
-def test_noop_equals_baseline():
-    d = demo_demand()
-    assert simulate(d).summary == simulate(d, []).summary
 
-def test_redirect_conserves_demand():
-    d = demo_demand()
-    base = simulate(d)
-    moved = simulate(d, [{"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "FIC", "share": 0.3}}])
-    assert abs(total(base.rows) - total(moved.rows)) < 1.0
+def total_demand(res):
+    return sum(r["demand"] for r in res.rows)
 
-def test_more_trains_never_increases_peak():
-    d = demo_demand()
-    base = simulate(d)
-    more = simulate(d, [{"type": "extra_trains", "params": {"headway_min": 3, "hours": list(range(16, 21))}}])
-    assert more.summary["peak_lf"] <= base.summary["peak_lf"]
-    assert more.summary["cost_proxy"] > 0
 
-def test_spread_conserves_total():
-    s = [0.0] * 24; s[18] = 1000.0
-    assert abs(sum(_spread(s, 120)) - 1000.0) < 1e-6
+def test_noop_equals_baseline_exactly(demand):
+    assert simulate(demand).summary == simulate(demand, []).summary
+    assert simulate(demand).rows == simulate(demand, None).rows
 
-def test_staggered_exit_reduces_peak():
-    d = demo_demand()
-    assert simulate(d, [{"type": "staggered_exit", "params": {"spread_minutes": 60}}]).summary["peak_lf"] <= simulate(d).summary["peak_lf"]
 
-def test_robotaxi_diversion_accounted():
-    d = demo_demand()
-    r = simulate(d, [{"type": "robotaxi_staging", "params": {"station": "EMT", "vehicles": 20, "hours": [18, 19]}}])
-    assert abs(total(simulate(d).rows) - total(r.rows) - r.diverted_off_metro) < 1.0
+def test_simulate_is_pure(demand):
+    snapshot = {s: {k: list(v) for k, v in d.items()} for s, d in demand.items()}
+    simulate(demand, [{"type": "staggered_exit", "params": {"spread_minutes": 60}}])
+    assert demand == snapshot
+
+
+def test_rejects_wrong_resolution():
+    with pytest.raises(ValueError):
+        simulate({"EMT": {"base": [1.0] * 24, "event": [0.0] * 24}})
+
+
+@pytest.mark.parametrize("iv", [
+    {"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "FIC", "share": 0.3}},
+    {"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "BBY", "buses": 10, "hours": EVENING}},
+    {"type": "staggered_exit", "params": {"spread_minutes": 45}},
+    {"type": "extra_trains", "params": {"headway_min": 3, "hours": EVENING}},
+])
+def test_demand_conserved(heavy_demand, iv):
+    base, res = simulate(heavy_demand), simulate(heavy_demand, [iv])
+    assert res.summary["total_demand"] == pytest.approx(base.summary["total_demand"], abs=0.5)
+
+
+def test_robotaxi_diversion_accounted(heavy_demand):
+    base = simulate(heavy_demand)
+    res = simulate(heavy_demand, [{"type": "robotaxi_staging", "params": {"station": "EMT", "vehicles": 40, "hours": EVENING}}])
+    assert res.diverted_off_metro > 0
+    assert base.summary["total_demand"] - res.summary["total_demand"] == pytest.approx(res.diverted_off_metro, abs=0.5)
+
+
+def test_queue_conserves_passengers(heavy_demand):
+    """Everyone either boards or is still queued: Σ served + end queue = Σ demand."""
+    res = simulate(heavy_demand)
+    served = 0.0
+    for s in STATIONS:
+        q = 0.0
+        for r in [r for r in res.rows if r["station_id"] == s]:
+            offered = r["demand"] + q
+            served += min(offered, r["capacity"])
+            q = max(0.0, offered - r["capacity"])
+    assert served + res.summary["end_of_day_queue"] == pytest.approx(res.summary["total_demand"], abs=2.0)
+
+
+@pytest.mark.parametrize("hw", [5, 4, 3, 2.5])
+def test_more_trains_monotone(heavy_demand, hw):
+    base = simulate(heavy_demand)
+    more = simulate(heavy_demand, [{"type": "extra_trains", "params": {"headway_min": hw, "hours": EVENING}}])
+    for k in ("peak_lf", "excess_pax", "overcap_station_hours", "max_wait_min"):
+        assert more.summary[k] <= base.summary[k]
+
+
+def test_extra_trains_slower_than_timetable_is_noop(demand):
+    res = simulate(demand, [{"type": "extra_trains", "params": {"headway_min": 10, "hours": EVENING}}])
+    assert res.summary == {**simulate(demand).summary, "cost_proxy": 0.0}
+
+
+@pytest.mark.parametrize("minutes", [15, 20, 30, 45, 60, 90])
+def test_stagger_any_spread_has_effect_and_conserves(minutes):
+    s = [0.0] * N
+    s[72] = 1000.0                                   # 18:00 bin
+    out = stagger(s, minutes, N // 24)
+    assert sum(out) == pytest.approx(1000.0)
+    assert max(out) < 1000.0                          # 20 and 45 min used to round to no effect
+
+
+def test_stagger_keeps_mass_at_midnight():
+    s = [0.0] * N
+    s[-1] = 500.0
+    assert sum(stagger(s, 90, N // 24)) == pytest.approx(500.0)
+
+
+def test_staggered_exit_reduces_peak(heavy_demand):
+    base = simulate(heavy_demand)
+    res = simulate(heavy_demand, [{"type": "staggered_exit", "params": {"spread_minutes": 30}}])
+    assert res.summary["peak_lf"] < base.summary["peak_lf"]
+
+
+def test_shuttle_never_creates_hotspot_at_destination(heavy_demand):
+    res = simulate(heavy_demand, [{"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "BBY", "buses": 30, "hours": EVENING}}])
+    base = {(r["station_id"], r["bin"]): r for r in simulate(heavy_demand).rows}
+    cap = capacity_table(STATIONS)
+    for r in res.rows:
+        if r["station_id"] == "BBY" and r["demand"] > base[("BBY", r["bin"])]["demand"] + 0.05:
+            assert r["demand"] <= 0.85 * cap["BBY"][r["bin"]] + 0.1
+
+
+def test_shuttle_moves_nothing_without_crowding():
+    flat = {s: {"base": [10.0] * N, "event": [0.0] * N} for s in STATIONS}
+    res = simulate(flat, [{"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "FIC", "buses": 5, "hours": EVENING}}])
+    assert res.effects[0]["moved_pax"] == 0.0
+
+
+def test_bundle_order_does_not_matter(heavy_demand):
+    a = {"type": "staggered_exit", "params": {"spread_minutes": 30}}
+    b = {"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "BBY", "buses": 8, "hours": EVENING}}
+    c = {"type": "extra_trains", "params": {"headway_min": 3, "hours": EVENING}}
+    assert simulate(heavy_demand, [a, b, c]).summary == simulate(heavy_demand, [c, b, a]).summary
+
+
+def test_lf_bounds_and_nonnegative(heavy_demand):
+    rng = random.Random(0)
+    for _ in range(20):
+        ivs = rng.sample([
+            {"type": "staggered_exit", "params": {"spread_minutes": rng.choice([15, 30, 60])}},
+            {"type": "extra_trains", "params": {"headway_min": rng.choice([2.5, 3, 4]), "hours": EVENING}},
+            {"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "WTC", "share": 0.2}},
+            {"type": "robotaxi_staging", "params": {"station": "WTC", "vehicles": 20, "hours": EVENING}},
+        ], k=rng.randint(1, 4))
+        res = simulate(heavy_demand, ivs)
+        assert all(r["demand"] >= 0 and r["load_factor"] >= 0 and r["queue"] >= 0 for r in res.rows)
+        assert res.summary["cost_proxy"] >= 0
+
+
+@pytest.mark.parametrize("iv", [
+    {"type": "teleport", "params": {}},
+    {"type": "extra_trains", "params": {"headway_min": 1, "hours": [18]}},
+    {"type": "extra_trains", "params": {"headway_min": 3, "hours": [25]}},
+    {"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "EMT", "buses": 2, "hours": [18]}},
+    {"type": "shuttle_bus", "params": {"from_station": "XXX", "to_station": "FIC", "buses": 2, "hours": [18]}},
+    {"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "FIC", "buses": 999, "hours": [18]}},
+    {"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "BBY", "share": 0.2}},
+    {"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "FIC", "share": 0.9}},
+    {"type": "staggered_exit", "params": {"spread_minutes": 5}},
+    {"type": "robotaxi_staging", "params": {"station": "EMT", "vehicles": 0, "hours": [18]}},
+    {"type": "extra_trains", "params": {"headway_min": 3, "hours": [18], "surprise": 1}},
+])
+def test_invalid_interventions_rejected(demand, iv):
+    with pytest.raises(InterventionError):
+        simulate(demand, [iv])

@@ -1,0 +1,26 @@
+{
+  "suite": "simulator",
+  "git_sha": "8156fd4-dirty",
+  "timestamp": "2026-11-11T18:12:02",
+  "models": {
+    "simulator": "deterministic-15min-queue"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
+  "is_synthetic": true,
+  "metrics": {
+    "property_pass_rate": 0.9139784946236559,
+    "conservation_error_max": 539.3000000000029
+  },
+  "n": 93,
+  "split": "properties",
+  "failures": [
+    "conservation@15000#3",
+    "conservation@15000#4",
+    "conservation@25000#3",
+    "conservation@25000#4",
+    "conservation@25000#6",
+    "conservation@40000#3",
+    "conservation@40000#4",
+    "conservation@40000#6"
+  ]
+}

@@ -1,0 +1,12 @@
+# Pinned versions verified on Windows 11 / Python 3.11 (11 Nov 2026). Ranges live in requirements-min.txt.
+fastapi==0.162.4
+httpx==0.28.1
+lightgbm==4.7.0
+numpy==2.4.6
+pandas==3.1.1
+pyarrow==26.0.1
+pydantic==2.14.3
+pytest==9.2.0
+PyYAML==6.0.3
+scikit-learn==1.9.1
+uvicorn==0.54.0

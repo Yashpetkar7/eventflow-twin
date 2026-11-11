@@ -2,6 +2,7 @@
 # against the Dubai Pulse metro stations dataset (canonical names) and fix them.
 corridor_name: Sheikh Zayed Road / Trade Centre
 timezone: Asia/Dubai
+bins_per_hour: 4               # simulator + event overlay resolution (15-min bins); UI aggregates to hours
 stations:
   - {id: MAX, name_en: "Max (formerly Jafiliya) [VERIFY]", line: Red, lat: 25.2335, lon: 55.2920}
   - {id: WTC, name_en: "World Trade Centre [VERIFY]",       line: Red, lat: 25.2253, lon: 55.2855}
@@ -9,7 +10,8 @@ stations:
   - {id: FIC, name_en: "Financial Centre [VERIFY]",         line: Red, lat: 25.2115, lon: 55.2752}
   - {id: BKD, name_en: "Burj Khalifa/Dubai Mall [VERIFY]",  line: Red, lat: 25.2011, lon: 55.2696}
   - {id: BBY, name_en: "Business Bay [VERIFY]",             line: Red, lat: 25.1912, lon: 55.2603}
-# Walking minutes between neighbouring stations (assumption; refine with OSM in Phase 1)
+# Walkable neighbouring stations (assumption; refine with OSM in Phase 1). wayfinding_redirect may only
+# send people to a station listed here.
 neighbours: {MAX: [WTC], WTC: [MAX, EMT], EMT: [WTC, FIC], FIC: [EMT, BKD], BKD: [FIC, BBY], BBY: [BKD]}
 capacity:
   # ASSUMPTIONS until replaced with D3 capacity dataset + GTFS headways
@@ -26,6 +28,7 @@ event_model:                   # parametric overlay (docs/05 §5.2) – all ASSU
   exit_offset_min: 20
   exit_sigma_min: 30
   walk_tau_min: 8
+  attendance_band: [0.75, 1.25]  # p10/p90 multipliers on the event surge (attendance uncertainty) [ASSUMPTION]
 interventions:
   bus_capacity: 80
   bus_trips_per_hour: 3
@@ -33,3 +36,9 @@ interventions:
   robotaxi_trips_per_hour: 2
   cost_proxy: {extra_trains_per_train_hour: 3.0, shuttle_bus_hour: 1.0, robotaxi_vehicle_hour: 0.4, staggered_exit: 2.0, wayfinding_redirect: 0.5}
   ranking_lambda: 20
+  # Hard parameter bounds; requests outside these are rejected (HTTP 422), never silently clipped.
+  bounds:
+    max_buses: 30
+    max_robotaxi_vehicles: 60
+    max_redirect_share: 0.5
+    stagger_minutes: [15, 90]

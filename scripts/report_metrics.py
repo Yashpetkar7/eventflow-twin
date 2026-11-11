@@ -35,7 +35,7 @@ def latest_results(repo: str) -> dict:
     out = {}
     for suite, f in by_suite.items():
         try:
-            data = json.load(open(f))
+            data = json.load(open(f, encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
         out[suite] = {"file": os.path.relpath(f, repo), "metrics": data.get("metrics", {}), "n": data.get("n"),
@@ -59,7 +59,7 @@ def code_stats(repo: str) -> dict:
         if not lang:
             continue
         try:
-            with open(os.path.join(repo, f), errors="ignore") as fh:
+            with open(os.path.join(repo, f), encoding="utf-8", errors="ignore") as fh:
                 lines[lang] += sum(1 for ln in fh if ln.strip())
         except OSError:
             pass
@@ -72,7 +72,7 @@ def deployments(repo: str) -> list[str]:
     p = os.path.join(repo, "DEPLOYMENTS.md")
     if not os.path.exists(p):
         return []
-    return re.findall(r"https?://[^\s)>\]]+", open(p).read())
+    return re.findall(r"https?://[^\s)>\]]+", open(p, encoding="utf-8").read())
 
 
 def to_markdown(facts: dict) -> str:
@@ -116,7 +116,7 @@ def main() -> None:
     for path, content in ((a.out, to_markdown(facts)), (a.json, json.dumps(facts, indent=2))):
         full = os.path.join(repo, path)
         os.makedirs(os.path.dirname(full), exist_ok=True)
-        with open(full, "w") as fh:
+        with open(full, "w", encoding="utf-8") as fh:
             fh.write(content)
     print(to_markdown(facts))
 

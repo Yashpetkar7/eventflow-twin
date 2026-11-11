@@ -1,4 +1,7 @@
 # Gate thresholds for EventFlow Twin. Changing any value requires an entry in docs/09_DECISIONS.md.
+# Suites listed here FAIL the gate when their results are missing. Stream B adds agents/redteam/safety/latency
+# to this list as soon as those suites exist.
+required_suites: [forecast, simulator]
 forecast:
   lgbm_mase_max: 1.0
   lgbm_coverage80_min: 0.70
