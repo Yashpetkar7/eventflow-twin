@@ -35,6 +35,9 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `exhibit/` | Booth plan, 90-second demo script, A1 poster copy, jury Q&A | Day 6–7 |
 | `apps/`, `scripts/`, `eval/`, `config/` | Starter code scaffold (runs today on synthetic data) | Build |
 
+## Team status and plan
+See **`docs/TEAM_PLAN.md`** (streams, ownership rules, checkpoints, open issues). On Windows use `python tasks.py <task>` instead of `make <task>` (same targets).
+
 ## Quick start (15 minutes)
 
 ```bash
