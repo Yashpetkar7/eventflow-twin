@@ -1,5 +1,5 @@
 {
-  "run_id": "fc_01a61a16fb99",
+  "run_id": "fc_c036201c7666",
   "model": "empirical-weekday-quantiles + parametric-event-overlay (v1)",
   "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
   "is_synthetic": true,
@@ -1596,6 +1596,6 @@
   ],
   "source": {
     "tool": "forecast",
-    "run_id": "fc_01a61a16fb99"
+    "run_id": "fc_c036201c7666"
   }
 }

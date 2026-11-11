@@ -1,5 +1,27 @@
 # Event calendar. Historical events MUST have a verified source_url (Phase 2). Never invent dates.
+# `profile` selects the arrival/departure timing assumptions in corridor.yaml event_model.profiles.
 events:
+  - id: gitex2025_d1
+    name: "GITEX Global 2025 – Day 1 (Mon 13 Oct 2025)"
+    venue: "Dubai World Trade Centre"
+    # Coordinates: Dubai World Trade Centre as listed on Wikipedia (25.227611, 55.288778)
+    lat: 25.227611
+    lon: 55.288778
+    date: "2025-10-13"            # event ran 13–17 Oct 2025 (5 days) — Dubai Media Office, 12 Oct 2025
+    start: "10:00"                # expo hours 10:00–17:00 (gitex.com visitor info; consistent across 2025 listings)
+    end: "17:00"
+    # Dubai Media Office: GITEX Global 2025 "expected to attract upwards of 200,000 visitors" over 5 days.
+    # 200,000 / 5 = 40,000 per day, assuming visitors spread evenly across days and each visit counted once.
+    attendance: 40000             # DERIVED ASSUMPTION from the official expected total
+    is_assumption: true
+    profile: exhibition
+    source_url: "https://mediaoffice.ae/en/news/2025/october/12-10/rta"
+    sources:
+      - "https://mediaoffice.ae/en/news/2025/october/12-10/rta"
+      - "https://www.gitex.com/News/gitex-global-2025-closes-a-landmark-45th-edition-with-record-international-participation-and-outcomedriven-dialogues"
+      - "https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre"
+    note: "Historical event on the corridor; calibration target once metro ridership for Oct 2025 is ingested. GITEX 2026 moved to Expo City (7–11 Dec 2026), off this corridor."
+
   - id: dfw2026_d1
     name: "Dubai Future Week 2026 – Day 1 (demo scenario)"
     venue: "Emirates Towers & Museum of the Future"
@@ -8,8 +30,7 @@ events:
     date: "2026-11-18"
     start: "09:30"
     end: "18:00"
-    attendance: 15000          # ASSUMPTION for demo scenario
+    attendance: 15000          # ASSUMPTION for demo scenario (no published figure)
     is_assumption: true
+    profile: default
     source_url: "https://www.dubaifutureweek.com/en"
-  # Add historical events inside your ridership window here, e.g. New Year's Eve, GITEX week,
-  # each with verified date/time and source_url, is_assumption: false

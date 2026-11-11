@@ -22,7 +22,9 @@ def _forecast(c, **kw):
 def test_health_stations_events(client):
     assert client.get("/healthz").json()["ok"]
     assert {s["id"] for s in client.get("/stations").json()} >= {"EMT", "WTC"}
-    assert client.get("/events").json()[0]["id"] == "dfw2026_d1"
+    evs = {e["id"]: e for e in client.get("/events").json()}
+    assert {"gitex2025_d1", "dfw2026_d1"} <= set(evs)
+    assert evs["gitex2025_d1"]["profile"] == "exhibition" and evs["gitex2025_d1"]["sources"]
 
 
 def test_forecast_shape_and_band(client):

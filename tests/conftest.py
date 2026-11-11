@@ -16,7 +16,7 @@ N = 24 * bins_per_hour()
 
 def make_demand(base_per_bin: float = 125.0, event_scale: float = 1.0) -> dict:
     """Flat background + the demo event's exit surge, in 15-min bins."""
-    ev = overlay(events()[0], scale=event_scale)
+    ev = overlay(next(e for e in events() if e["id"] == "dfw2026_d1"), scale=event_scale)
     return {s: {"base": [base_per_bin] * N, "event": list(ev[s]["entries"])} for s in STATIONS}
 
 

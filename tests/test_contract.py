@@ -31,6 +31,8 @@ def test_api_types_generated():
 
 @pytest.mark.parametrize("name,model", [
     ("forecast_dfw2026_d1.json", ForecastResponse),
+    ("forecast_gitex2025_d1.json", ForecastResponse),
+    ("simulate_baseline_gitex2025_d1.json", SimulateResponse),
     ("forecast_dfw2026_d1_attendance40000.json", ForecastResponse),
     ("simulate_baseline_attendance40000.json", SimulateResponse),
     ("simulate_baseline.json", SimulateResponse),

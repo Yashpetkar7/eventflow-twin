@@ -1,0 +1,6962 @@
+{
+  "run_id": "sim_a66229553ee9",
+  "source_forecast": "fc_3e083e1abe70",
+  "is_synthetic": true,
+  "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.778,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.0,
+    "total_demand": 114795.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2539.5,
+    "bins_per_hour": 4
+  },
+  "baseline_summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.778,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.0,
+    "total_demand": 114795.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2539.5,
+    "bins_per_hour": 4
+  },
+  "delta": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.0,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+  },
+  "effects": [],
+  "diverted_off_metro": 0.0,
+  "rows": [
+    {
+      "station_id": "MAX",
+      "bin": 0,
+      "time": "00:00",
+      "demand": 13.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 1,
+      "time": "00:15",
+      "demand": 13.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 2,
+      "time": "00:30",
+      "demand": 13.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 3,
+      "time": "00:45",
+      "demand": 13.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 4,
+      "time": "01:00",
+      "demand": 13.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 5,
+      "time": "01:15",
+      "demand": 13.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 6,
+      "time": "01:30",
+      "demand": 13.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 7,
+      "time": "01:45",
+      "demand": 13.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 8,
+      "time": "02:00",
+      "demand": 13.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 9,
+      "time": "02:15",
+      "demand": 13.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 10,
+      "time": "02:30",
+      "demand": 13.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 11,
+      "time": "02:45",
+      "demand": 13.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 12,
+      "time": "03:00",
+      "demand": 13.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 13,
+      "time": "03:15",
+      "demand": 13.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 14,
+      "time": "03:30",
+      "demand": 13.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 15,
+      "time": "03:45",
+      "demand": 13.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 16,
+      "time": "04:00",
+      "demand": 14.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 17,
+      "time": "04:15",
+      "demand": 14.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 18,
+      "time": "04:30",
+      "demand": 14.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 19,
+      "time": "04:45",
+      "demand": 14.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 20,
+      "time": "05:00",
+      "demand": 15.1,
+      "capacity": 735.0,
+      "load_factor": 0.021,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 21,
+      "time": "05:15",
+      "demand": 15.1,
+      "capacity": 735.0,
+      "load_factor": 0.021,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 22,
+      "time": "05:30",
+      "demand": 15.1,
+      "capacity": 735.0,
+      "load_factor": 0.021,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 23,
+      "time": "05:45",
+      "demand": 15.1,
+      "capacity": 735.0,
+      "load_factor": 0.021,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 24,
+      "time": "06:00",
+      "demand": 72.3,
+      "capacity": 1470.0,
+      "load_factor": 0.049,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 25,
+      "time": "06:15",
+      "demand": 72.3,
+      "capacity": 1470.0,
+      "load_factor": 0.049,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 26,
+      "time": "06:30",
+      "demand": 72.3,
+      "capacity": 1470.0,
+      "load_factor": 0.049,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 27,
+      "time": "06:45",
+      "demand": 72.3,
+      "capacity": 1470.0,
+      "load_factor": 0.049,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 28,
+      "time": "07:00",
+      "demand": 204.8,
+      "capacity": 1470.0,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 29,
+      "time": "07:15",
+      "demand": 204.8,
+      "capacity": 1470.0,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 30,
+      "time": "07:30",
+      "demand": 204.8,
+      "capacity": 1470.0,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 31,
+      "time": "07:45",
+      "demand": 204.8,
+      "capacity": 1470.0,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 32,
+      "time": "08:00",
+      "demand": 288.5,
+      "capacity": 2205.0,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 33,
+      "time": "08:15",
+      "demand": 288.5,
+      "capacity": 2205.0,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 34,
+      "time": "08:30",
+      "demand": 288.5,
+      "capacity": 2205.0,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 35,
+      "time": "08:45",
+      "demand": 288.5,
+      "capacity": 2205.0,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 36,
+      "time": "09:00",
+      "demand": 230.1,
+      "capacity": 2082.5,
+      "load_factor": 0.111,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 37,
+      "time": "09:15",
+      "demand": 230.1,
+      "capacity": 2082.5,
+      "load_factor": 0.111,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 38,
+      "time": "09:30",
+      "demand": 230.1,
+      "capacity": 2082.5,
+      "load_factor": 0.111,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 39,
+      "time": "09:45",
+      "demand": 230.1,
+      "capacity": 2082.5,
+      "load_factor": 0.111,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 40,
+      "time": "10:00",
+      "demand": 120.3,
+      "capacity": 1715.0,
+      "load_factor": 0.07,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 41,
+      "time": "10:15",
+      "demand": 120.3,
+      "capacity": 1715.0,
+      "load_factor": 0.07,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 42,
+      "time": "10:30",
+      "demand": 120.3,
+      "capacity": 1715.0,
+      "load_factor": 0.07,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 43,
+      "time": "10:45",
+      "demand": 120.3,
+      "capacity": 1715.0,
+      "load_factor": 0.07,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 44,
+      "time": "11:00",
+      "demand": 86.9,
+      "capacity": 1102.5,
+      "load_factor": 0.079,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 45,
+      "time": "11:15",
+      "demand": 87.0,
+      "capacity": 1102.5,
+      "load_factor": 0.079,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 46,
+      "time": "11:30",
+      "demand": 87.3,
+      "capacity": 1102.5,
+      "load_factor": 0.079,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 47,
+      "time": "11:45",
+      "demand": 87.8,
+      "capacity": 1102.5,
+      "load_factor": 0.08,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 48,
+      "time": "12:00",
+      "demand": 91.4,
+      "capacity": 980.0,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 49,
+      "time": "12:15",
+      "demand": 93.2,
+      "capacity": 980.0,
+      "load_factor": 0.095,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 50,
+      "time": "12:30",
+      "demand": 96.5,
+      "capacity": 980.0,
+      "load_factor": 0.099,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 51,
+      "time": "12:45",
+      "demand": 102.0,
+      "capacity": 980.0,
+      "load_factor": 0.104,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 52,
+      "time": "13:00",
+      "demand": 119.7,
+      "capacity": 980.0,
+      "load_factor": 0.122,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 53,
+      "time": "13:15",
+      "demand": 132.9,
+      "capacity": 980.0,
+      "load_factor": 0.136,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 54,
+      "time": "13:30",
+      "demand": 152.1,
+      "capacity": 980.0,
+      "load_factor": 0.155,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 55,
+      "time": "13:45",
+      "demand": 178.5,
+      "capacity": 980.0,
+      "load_factor": 0.182,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 56,
+      "time": "14:00",
+      "demand": 212.2,
+      "capacity": 1102.5,
+      "load_factor": 0.192,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 57,
+      "time": "14:15",
+      "demand": 255.6,
+      "capacity": 1102.5,
+      "load_factor": 0.232,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 58,
+      "time": "14:30",
+      "demand": 306.8,
+      "capacity": 1102.5,
+      "load_factor": 0.278,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 59,
+      "time": "14:45",
+      "demand": 363.6,
+      "capacity": 1102.5,
+      "load_factor": 0.33,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 60,
+      "time": "15:00",
+      "demand": 446.4,
+      "capacity": 1102.5,
+      "load_factor": 0.405,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 61,
+      "time": "15:15",
+      "demand": 502.9,
+      "capacity": 1102.5,
+      "load_factor": 0.456,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 62,
+      "time": "15:30",
+      "demand": 551.6,
+      "capacity": 1102.5,
+      "load_factor": 0.5,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 63,
+      "time": "15:45",
+      "demand": 587.4,
+      "capacity": 1102.5,
+      "load_factor": 0.533,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 64,
+      "time": "16:00",
+      "demand": 657.7,
+      "capacity": 1837.5,
+      "load_factor": 0.358,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 65,
+      "time": "16:15",
+      "demand": 657.7,
+      "capacity": 1837.5,
+      "load_factor": 0.358,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 66,
+      "time": "16:30",
+      "demand": 638.7,
+      "capacity": 1837.5,
+      "load_factor": 0.348,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 67,
+      "time": "16:45",
+      "demand": 602.8,
+      "capacity": 1837.5,
+      "load_factor": 0.328,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 68,
+      "time": "17:00",
+      "demand": 648.6,
+      "capacity": 2450.0,
+      "load_factor": 0.265,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 69,
+      "time": "17:15",
+      "demand": 592.1,
+      "capacity": 2450.0,
+      "load_factor": 0.242,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 70,
+      "time": "17:30",
+      "demand": 533.1,
+      "capacity": 2450.0,
+      "load_factor": 0.218,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 71,
+      "time": "17:45",
+      "demand": 476.3,
+      "capacity": 2450.0,
+      "load_factor": 0.194,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 72,
+      "time": "18:00",
+      "demand": 441.4,
+      "capacity": 1960.0,
+      "load_factor": 0.225,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 73,
+      "time": "18:15",
+      "demand": 398.1,
+      "capacity": 1960.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 74,
+      "time": "18:30",
+      "demand": 363.3,
+      "capacity": 1960.0,
+      "load_factor": 0.185,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 75,
+      "time": "18:45",
+      "demand": 336.8,
+      "capacity": 1960.0,
+      "load_factor": 0.172,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 76,
+      "time": "19:00",
+      "demand": 257.9,
+      "capacity": 1837.5,
+      "load_factor": 0.14,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 77,
+      "time": "19:15",
+      "demand": 244.7,
+      "capacity": 1837.5,
+      "load_factor": 0.133,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 78,
+      "time": "19:30",
+      "demand": 236.0,
+      "capacity": 1837.5,
+      "load_factor": 0.128,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 79,
+      "time": "19:45",
+      "demand": 230.5,
+      "capacity": 1837.5,
+      "load_factor": 0.125,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 80,
+      "time": "20:00",
+      "demand": 128.9,
+      "capacity": 1592.5,
+      "load_factor": 0.081,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 81,
+      "time": "20:15",
+      "demand": 127.0,
+      "capacity": 1592.5,
+      "load_factor": 0.08,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 82,
+      "time": "20:30",
+      "demand": 125.9,
+      "capacity": 1592.5,
+      "load_factor": 0.079,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 83,
+      "time": "20:45",
+      "demand": 125.4,
+      "capacity": 1592.5,
+      "load_factor": 0.079,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 84,
+      "time": "21:00",
+      "demand": 48.5,
+      "capacity": 857.5,
+      "load_factor": 0.057,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 85,
+      "time": "21:15",
+      "demand": 48.4,
+      "capacity": 857.5,
+      "load_factor": 0.056,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 86,
+      "time": "21:30",
+      "demand": 48.3,
+      "capacity": 857.5,
+      "load_factor": 0.056,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 87,
+      "time": "21:45",
+      "demand": 48.3,
+      "capacity": 857.5,
+      "load_factor": 0.056,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 88,
+      "time": "22:00",
+      "demand": 12.5,
+      "capacity": 735.0,
+      "load_factor": 0.017,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 89,
+      "time": "22:15",
+      "demand": 12.5,
+      "capacity": 735.0,
+      "load_factor": 0.017,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 90,
+      "time": "22:30",
+      "demand": 12.5,
+      "capacity": 735.0,
+      "load_factor": 0.017,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 91,
+      "time": "22:45",
+      "demand": 12.5,
+      "capacity": 735.0,
+      "load_factor": 0.017,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 92,
+      "time": "23:00",
+      "demand": 2.5,
+      "capacity": 367.5,
+      "load_factor": 0.007,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 93,
+      "time": "23:15",
+      "demand": 2.5,
+      "capacity": 367.5,
+      "load_factor": 0.007,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 94,
+      "time": "23:30",
+      "demand": 2.5,
+      "capacity": 367.5,
+      "load_factor": 0.007,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "MAX",
+      "bin": 95,
+      "time": "23:45",
+      "demand": 2.5,
+      "capacity": 367.5,
+      "load_factor": 0.007,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 0,
+      "time": "00:00",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 1,
+      "time": "00:15",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 2,
+      "time": "00:30",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 3,
+      "time": "00:45",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 4,
+      "time": "01:00",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 5,
+      "time": "01:15",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 6,
+      "time": "01:30",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 7,
+      "time": "01:45",
+      "demand": 17.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 8,
+      "time": "02:00",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 9,
+      "time": "02:15",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 10,
+      "time": "02:30",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 11,
+      "time": "02:45",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 12,
+      "time": "03:00",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 13,
+      "time": "03:15",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 14,
+      "time": "03:30",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 15,
+      "time": "03:45",
+      "demand": 17.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 16,
+      "time": "04:00",
+      "demand": 19.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 17,
+      "time": "04:15",
+      "demand": 19.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 18,
+      "time": "04:30",
+      "demand": 19.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 19,
+      "time": "04:45",
+      "demand": 19.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 20,
+      "time": "05:00",
+      "demand": 18.9,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 21,
+      "time": "05:15",
+      "demand": 18.9,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 22,
+      "time": "05:30",
+      "demand": 18.9,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 23,
+      "time": "05:45",
+      "demand": 18.9,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 24,
+      "time": "06:00",
+      "demand": 91.8,
+      "capacity": 1470.0,
+      "load_factor": 0.062,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 25,
+      "time": "06:15",
+      "demand": 91.8,
+      "capacity": 1470.0,
+      "load_factor": 0.062,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 26,
+      "time": "06:30",
+      "demand": 91.8,
+      "capacity": 1470.0,
+      "load_factor": 0.062,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 27,
+      "time": "06:45",
+      "demand": 91.8,
+      "capacity": 1470.0,
+      "load_factor": 0.062,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 28,
+      "time": "07:00",
+      "demand": 258.3,
+      "capacity": 1470.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 29,
+      "time": "07:15",
+      "demand": 258.3,
+      "capacity": 1470.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 30,
+      "time": "07:30",
+      "demand": 258.3,
+      "capacity": 1470.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 31,
+      "time": "07:45",
+      "demand": 258.3,
+      "capacity": 1470.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 32,
+      "time": "08:00",
+      "demand": 386.0,
+      "capacity": 2205.0,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 33,
+      "time": "08:15",
+      "demand": 386.0,
+      "capacity": 2205.0,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 34,
+      "time": "08:30",
+      "demand": 386.0,
+      "capacity": 2205.0,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 35,
+      "time": "08:45",
+      "demand": 386.0,
+      "capacity": 2205.0,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 36,
+      "time": "09:00",
+      "demand": 292.4,
+      "capacity": 2205.0,
+      "load_factor": 0.133,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 37,
+      "time": "09:15",
+      "demand": 292.4,
+      "capacity": 2205.0,
+      "load_factor": 0.133,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 38,
+      "time": "09:30",
+      "demand": 292.4,
+      "capacity": 2205.0,
+      "load_factor": 0.133,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 39,
+      "time": "09:45",
+      "demand": 292.4,
+      "capacity": 2205.0,
+      "load_factor": 0.133,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 40,
+      "time": "10:00",
+      "demand": 160.0,
+      "capacity": 1715.0,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 41,
+      "time": "10:15",
+      "demand": 160.0,
+      "capacity": 1715.0,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 42,
+      "time": "10:30",
+      "demand": 160.0,
+      "capacity": 1715.0,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 43,
+      "time": "10:45",
+      "demand": 160.1,
+      "capacity": 1715.0,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 44,
+      "time": "11:00",
+      "demand": 107.3,
+      "capacity": 980.0,
+      "load_factor": 0.11,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 45,
+      "time": "11:15",
+      "demand": 107.5,
+      "capacity": 980.0,
+      "load_factor": 0.11,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 46,
+      "time": "11:30",
+      "demand": 108.0,
+      "capacity": 980.0,
+      "load_factor": 0.11,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 47,
+      "time": "11:45",
+      "demand": 108.9,
+      "capacity": 980.0,
+      "load_factor": 0.111,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 48,
+      "time": "12:00",
+      "demand": 114.2,
+      "capacity": 1102.5,
+      "load_factor": 0.104,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 49,
+      "time": "12:15",
+      "demand": 117.4,
+      "capacity": 1102.5,
+      "load_factor": 0.107,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 50,
+      "time": "12:30",
+      "demand": 123.0,
+      "capacity": 1102.5,
+      "load_factor": 0.112,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 51,
+      "time": "12:45",
+      "demand": 132.4,
+      "capacity": 1102.5,
+      "load_factor": 0.12,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 52,
+      "time": "13:00",
+      "demand": 157.9,
+      "capacity": 1102.5,
+      "load_factor": 0.143,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 53,
+      "time": "13:15",
+      "demand": 180.5,
+      "capacity": 1102.5,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 54,
+      "time": "13:30",
+      "demand": 213.1,
+      "capacity": 1102.5,
+      "load_factor": 0.193,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 55,
+      "time": "13:45",
+      "demand": 258.3,
+      "capacity": 1102.5,
+      "load_factor": 0.234,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 56,
+      "time": "14:00",
+      "demand": 319.3,
+      "capacity": 980.0,
+      "load_factor": 0.326,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 57,
+      "time": "14:15",
+      "demand": 393.3,
+      "capacity": 980.0,
+      "load_factor": 0.401,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 58,
+      "time": "14:30",
+      "demand": 480.6,
+      "capacity": 980.0,
+      "load_factor": 0.49,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 59,
+      "time": "14:45",
+      "demand": 577.6,
+      "capacity": 980.0,
+      "load_factor": 0.589,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 60,
+      "time": "15:00",
+      "demand": 712.0,
+      "capacity": 1225.0,
+      "load_factor": 0.581,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 61,
+      "time": "15:15",
+      "demand": 808.3,
+      "capacity": 1225.0,
+      "load_factor": 0.66,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 62,
+      "time": "15:30",
+      "demand": 891.4,
+      "capacity": 1225.0,
+      "load_factor": 0.728,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 63,
+      "time": "15:45",
+      "demand": 952.6,
+      "capacity": 1225.0,
+      "load_factor": 0.778,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 64,
+      "time": "16:00",
+      "demand": 1056.7,
+      "capacity": 1837.5,
+      "load_factor": 0.575,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 65,
+      "time": "16:15",
+      "demand": 1056.7,
+      "capacity": 1837.5,
+      "load_factor": 0.575,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 66,
+      "time": "16:30",
+      "demand": 1024.2,
+      "capacity": 1837.5,
+      "load_factor": 0.557,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 67,
+      "time": "16:45",
+      "demand": 963.0,
+      "capacity": 1837.5,
+      "load_factor": 0.524,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 68,
+      "time": "17:00",
+      "demand": 969.6,
+      "capacity": 2327.5,
+      "load_factor": 0.417,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 69,
+      "time": "17:15",
+      "demand": 873.3,
+      "capacity": 2327.5,
+      "load_factor": 0.375,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 70,
+      "time": "17:30",
+      "demand": 772.6,
+      "capacity": 2327.5,
+      "load_factor": 0.332,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 71,
+      "time": "17:45",
+      "demand": 675.6,
+      "capacity": 2327.5,
+      "load_factor": 0.29,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 72,
+      "time": "18:00",
+      "demand": 646.7,
+      "capacity": 2082.5,
+      "load_factor": 0.311,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 73,
+      "time": "18:15",
+      "demand": 572.7,
+      "capacity": 2082.5,
+      "load_factor": 0.275,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 74,
+      "time": "18:30",
+      "demand": 513.4,
+      "capacity": 2082.5,
+      "load_factor": 0.247,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 75,
+      "time": "18:45",
+      "demand": 468.3,
+      "capacity": 2082.5,
+      "load_factor": 0.225,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 76,
+      "time": "19:00",
+      "demand": 342.7,
+      "capacity": 1837.5,
+      "load_factor": 0.187,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 77,
+      "time": "19:15",
+      "demand": 320.2,
+      "capacity": 1837.5,
+      "load_factor": 0.174,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 78,
+      "time": "19:30",
+      "demand": 305.4,
+      "capacity": 1837.5,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 79,
+      "time": "19:45",
+      "demand": 296.0,
+      "capacity": 1837.5,
+      "load_factor": 0.161,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 80,
+      "time": "20:00",
+      "demand": 167.1,
+      "capacity": 1592.5,
+      "load_factor": 0.105,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 81,
+      "time": "20:15",
+      "demand": 163.8,
+      "capacity": 1592.5,
+      "load_factor": 0.103,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 82,
+      "time": "20:30",
+      "demand": 162.1,
+      "capacity": 1592.5,
+      "load_factor": 0.102,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 83,
+      "time": "20:45",
+      "demand": 161.1,
+      "capacity": 1592.5,
+      "load_factor": 0.101,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 84,
+      "time": "21:00",
+      "demand": 65.5,
+      "capacity": 857.5,
+      "load_factor": 0.076,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 85,
+      "time": "21:15",
+      "demand": 65.3,
+      "capacity": 857.5,
+      "load_factor": 0.076,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 86,
+      "time": "21:30",
+      "demand": 65.2,
+      "capacity": 857.5,
+      "load_factor": 0.076,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 87,
+      "time": "21:45",
+      "demand": 65.2,
+      "capacity": 857.5,
+      "load_factor": 0.076,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 88,
+      "time": "22:00",
+      "demand": 16.5,
+      "capacity": 735.0,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 89,
+      "time": "22:15",
+      "demand": 16.5,
+      "capacity": 735.0,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 90,
+      "time": "22:30",
+      "demand": 16.5,
+      "capacity": 735.0,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 91,
+      "time": "22:45",
+      "demand": 16.5,
+      "capacity": 735.0,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 92,
+      "time": "23:00",
+      "demand": 3.0,
+      "capacity": 367.5,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 93,
+      "time": "23:15",
+      "demand": 3.0,
+      "capacity": 367.5,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 94,
+      "time": "23:30",
+      "demand": 3.0,
+      "capacity": 367.5,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "WTC",
+      "bin": 95,
+      "time": "23:45",
+      "demand": 3.0,
+      "capacity": 367.5,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 0,
+      "time": "00:00",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 1,
+      "time": "00:15",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 2,
+      "time": "00:30",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 3,
+      "time": "00:45",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 4,
+      "time": "01:00",
+      "demand": 19.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 5,
+      "time": "01:15",
+      "demand": 19.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 6,
+      "time": "01:30",
+      "demand": 19.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 7,
+      "time": "01:45",
+      "demand": 19.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 8,
+      "time": "02:00",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 9,
+      "time": "02:15",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 10,
+      "time": "02:30",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 11,
+      "time": "02:45",
+      "demand": 19.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 12,
+      "time": "03:00",
+      "demand": 19.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 13,
+      "time": "03:15",
+      "demand": 19.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 14,
+      "time": "03:30",
+      "demand": 19.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 15,
+      "time": "03:45",
+      "demand": 19.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 16,
+      "time": "04:00",
+      "demand": 22.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 17,
+      "time": "04:15",
+      "demand": 22.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 18,
+      "time": "04:30",
+      "demand": 22.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 19,
+      "time": "04:45",
+      "demand": 22.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 20,
+      "time": "05:00",
+      "demand": 19.6,
+      "capacity": 857.5,
+      "load_factor": 0.023,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 21,
+      "time": "05:15",
+      "demand": 19.6,
+      "capacity": 857.5,
+      "load_factor": 0.023,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 22,
+      "time": "05:30",
+      "demand": 19.6,
+      "capacity": 857.5,
+      "load_factor": 0.023,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 23,
+      "time": "05:45",
+      "demand": 19.6,
+      "capacity": 857.5,
+      "load_factor": 0.023,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 24,
+      "time": "06:00",
+      "demand": 101.1,
+      "capacity": 1470.0,
+      "load_factor": 0.069,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 25,
+      "time": "06:15",
+      "demand": 101.1,
+      "capacity": 1470.0,
+      "load_factor": 0.069,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 26,
+      "time": "06:30",
+      "demand": 101.1,
+      "capacity": 1470.0,
+      "load_factor": 0.069,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 27,
+      "time": "06:45",
+      "demand": 101.1,
+      "capacity": 1470.0,
+      "load_factor": 0.069,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 28,
+      "time": "07:00",
+      "demand": 280.3,
+      "capacity": 1470.0,
+      "load_factor": 0.191,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 29,
+      "time": "07:15",
+      "demand": 280.3,
+      "capacity": 1470.0,
+      "load_factor": 0.191,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 30,
+      "time": "07:30",
+      "demand": 280.3,
+      "capacity": 1470.0,
+      "load_factor": 0.191,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 31,
+      "time": "07:45",
+      "demand": 280.3,
+      "capacity": 1470.0,
+      "load_factor": 0.191,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 32,
+      "time": "08:00",
+      "demand": 407.9,
+      "capacity": 2327.5,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 33,
+      "time": "08:15",
+      "demand": 407.9,
+      "capacity": 2327.5,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 34,
+      "time": "08:30",
+      "demand": 407.9,
+      "capacity": 2327.5,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 35,
+      "time": "08:45",
+      "demand": 407.9,
+      "capacity": 2327.5,
+      "load_factor": 0.175,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 36,
+      "time": "09:00",
+      "demand": 327.6,
+      "capacity": 2205.0,
+      "load_factor": 0.149,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 37,
+      "time": "09:15",
+      "demand": 327.6,
+      "capacity": 2205.0,
+      "load_factor": 0.149,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 38,
+      "time": "09:30",
+      "demand": 327.6,
+      "capacity": 2205.0,
+      "load_factor": 0.149,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 39,
+      "time": "09:45",
+      "demand": 327.6,
+      "capacity": 2205.0,
+      "load_factor": 0.149,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 40,
+      "time": "10:00",
+      "demand": 170.1,
+      "capacity": 1837.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 41,
+      "time": "10:15",
+      "demand": 170.1,
+      "capacity": 1837.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 42,
+      "time": "10:30",
+      "demand": 170.1,
+      "capacity": 1837.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 43,
+      "time": "10:45",
+      "demand": 170.1,
+      "capacity": 1837.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 44,
+      "time": "11:00",
+      "demand": 119.6,
+      "capacity": 980.0,
+      "load_factor": 0.122,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 45,
+      "time": "11:15",
+      "demand": 119.7,
+      "capacity": 980.0,
+      "load_factor": 0.122,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 46,
+      "time": "11:30",
+      "demand": 119.7,
+      "capacity": 980.0,
+      "load_factor": 0.122,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 47,
+      "time": "11:45",
+      "demand": 119.8,
+      "capacity": 980.0,
+      "load_factor": 0.122,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 48,
+      "time": "12:00",
+      "demand": 129.2,
+      "capacity": 1102.5,
+      "load_factor": 0.117,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 49,
+      "time": "12:15",
+      "demand": 129.5,
+      "capacity": 1102.5,
+      "load_factor": 0.117,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 50,
+      "time": "12:30",
+      "demand": 130.2,
+      "capacity": 1102.5,
+      "load_factor": 0.118,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 51,
+      "time": "12:45",
+      "demand": 131.3,
+      "capacity": 1102.5,
+      "load_factor": 0.119,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 52,
+      "time": "13:00",
+      "demand": 140.6,
+      "capacity": 980.0,
+      "load_factor": 0.143,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 53,
+      "time": "13:15",
+      "demand": 143.2,
+      "capacity": 980.0,
+      "load_factor": 0.146,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 54,
+      "time": "13:30",
+      "demand": 146.9,
+      "capacity": 980.0,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 55,
+      "time": "13:45",
+      "demand": 152.1,
+      "capacity": 980.0,
+      "load_factor": 0.155,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 56,
+      "time": "14:00",
+      "demand": 160.6,
+      "capacity": 980.0,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 57,
+      "time": "14:15",
+      "demand": 169.1,
+      "capacity": 980.0,
+      "load_factor": 0.173,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 58,
+      "time": "14:30",
+      "demand": 179.2,
+      "capacity": 980.0,
+      "load_factor": 0.183,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 59,
+      "time": "14:45",
+      "demand": 190.3,
+      "capacity": 980.0,
+      "load_factor": 0.194,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 60,
+      "time": "15:00",
+      "demand": 242.5,
+      "capacity": 1225.0,
+      "load_factor": 0.198,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 61,
+      "time": "15:15",
+      "demand": 253.6,
+      "capacity": 1225.0,
+      "load_factor": 0.207,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 62,
+      "time": "15:30",
+      "demand": 263.2,
+      "capacity": 1225.0,
+      "load_factor": 0.215,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 63,
+      "time": "15:45",
+      "demand": 270.2,
+      "capacity": 1225.0,
+      "load_factor": 0.221,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 64,
+      "time": "16:00",
+      "demand": 341.1,
+      "capacity": 1837.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 65,
+      "time": "16:15",
+      "demand": 341.1,
+      "capacity": 1837.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 66,
+      "time": "16:30",
+      "demand": 337.3,
+      "capacity": 1837.5,
+      "load_factor": 0.184,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 67,
+      "time": "16:45",
+      "demand": 330.3,
+      "capacity": 1837.5,
+      "load_factor": 0.18,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 68,
+      "time": "17:00",
+      "demand": 436.5,
+      "capacity": 2450.0,
+      "load_factor": 0.178,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 69,
+      "time": "17:15",
+      "demand": 425.4,
+      "capacity": 2450.0,
+      "load_factor": 0.174,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 70,
+      "time": "17:30",
+      "demand": 413.8,
+      "capacity": 2450.0,
+      "load_factor": 0.169,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 71,
+      "time": "17:45",
+      "demand": 402.7,
+      "capacity": 2450.0,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 72,
+      "time": "18:00",
+      "demand": 442.4,
+      "capacity": 2082.5,
+      "load_factor": 0.212,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 73,
+      "time": "18:15",
+      "demand": 433.8,
+      "capacity": 2082.5,
+      "load_factor": 0.208,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 74,
+      "time": "18:30",
+      "demand": 427.0,
+      "capacity": 2082.5,
+      "load_factor": 0.205,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 75,
+      "time": "18:45",
+      "demand": 421.8,
+      "capacity": 2082.5,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 76,
+      "time": "19:00",
+      "demand": 323.2,
+      "capacity": 1837.5,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 77,
+      "time": "19:15",
+      "demand": 320.6,
+      "capacity": 1837.5,
+      "load_factor": 0.174,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 78,
+      "time": "19:30",
+      "demand": 318.9,
+      "capacity": 1837.5,
+      "load_factor": 0.174,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 79,
+      "time": "19:45",
+      "demand": 317.8,
+      "capacity": 1837.5,
+      "load_factor": 0.173,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 80,
+      "time": "20:00",
+      "demand": 184.7,
+      "capacity": 1592.5,
+      "load_factor": 0.116,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 81,
+      "time": "20:15",
+      "demand": 184.3,
+      "capacity": 1592.5,
+      "load_factor": 0.116,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 82,
+      "time": "20:30",
+      "demand": 184.1,
+      "capacity": 1592.5,
+      "load_factor": 0.116,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 83,
+      "time": "20:45",
+      "demand": 184.0,
+      "capacity": 1592.5,
+      "load_factor": 0.116,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 84,
+      "time": "21:00",
+      "demand": 69.5,
+      "capacity": 735.0,
+      "load_factor": 0.095,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 85,
+      "time": "21:15",
+      "demand": 69.5,
+      "capacity": 735.0,
+      "load_factor": 0.095,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 86,
+      "time": "21:30",
+      "demand": 69.5,
+      "capacity": 735.0,
+      "load_factor": 0.095,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 87,
+      "time": "21:45",
+      "demand": 69.5,
+      "capacity": 735.0,
+      "load_factor": 0.095,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 88,
+      "time": "22:00",
+      "demand": 18.5,
+      "capacity": 735.0,
+      "load_factor": 0.025,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 89,
+      "time": "22:15",
+      "demand": 18.5,
+      "capacity": 735.0,
+      "load_factor": 0.025,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 90,
+      "time": "22:30",
+      "demand": 18.5,
+      "capacity": 735.0,
+      "load_factor": 0.025,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 91,
+      "time": "22:45",
+      "demand": 18.5,
+      "capacity": 735.0,
+      "load_factor": 0.025,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 92,
+      "time": "23:00",
+      "demand": 3.3,
+      "capacity": 367.5,
+      "load_factor": 0.009,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 93,
+      "time": "23:15",
+      "demand": 3.3,
+      "capacity": 367.5,
+      "load_factor": 0.009,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 94,
+      "time": "23:30",
+      "demand": 3.3,
+      "capacity": 367.5,
+      "load_factor": 0.009,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "EMT",
+      "bin": 95,
+      "time": "23:45",
+      "demand": 3.3,
+      "capacity": 367.5,
+      "load_factor": 0.009,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 0,
+      "time": "00:00",
+      "demand": 20.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 1,
+      "time": "00:15",
+      "demand": 20.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 2,
+      "time": "00:30",
+      "demand": 20.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 3,
+      "time": "00:45",
+      "demand": 20.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 4,
+      "time": "01:00",
+      "demand": 19.9,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 5,
+      "time": "01:15",
+      "demand": 19.9,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 6,
+      "time": "01:30",
+      "demand": 19.9,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 7,
+      "time": "01:45",
+      "demand": 19.9,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 8,
+      "time": "02:00",
+      "demand": 21.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 9,
+      "time": "02:15",
+      "demand": 21.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 10,
+      "time": "02:30",
+      "demand": 21.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 11,
+      "time": "02:45",
+      "demand": 21.5,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 12,
+      "time": "03:00",
+      "demand": 21.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 13,
+      "time": "03:15",
+      "demand": 21.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 14,
+      "time": "03:30",
+      "demand": 21.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 15,
+      "time": "03:45",
+      "demand": 21.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 16,
+      "time": "04:00",
+      "demand": 23.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 17,
+      "time": "04:15",
+      "demand": 23.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 18,
+      "time": "04:30",
+      "demand": 23.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 19,
+      "time": "04:45",
+      "demand": 23.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 20,
+      "time": "05:00",
+      "demand": 22.6,
+      "capacity": 735.0,
+      "load_factor": 0.031,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 21,
+      "time": "05:15",
+      "demand": 22.6,
+      "capacity": 735.0,
+      "load_factor": 0.031,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 22,
+      "time": "05:30",
+      "demand": 22.6,
+      "capacity": 735.0,
+      "load_factor": 0.031,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 23,
+      "time": "05:45",
+      "demand": 22.6,
+      "capacity": 735.0,
+      "load_factor": 0.031,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 24,
+      "time": "06:00",
+      "demand": 109.9,
+      "capacity": 1470.0,
+      "load_factor": 0.075,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 25,
+      "time": "06:15",
+      "demand": 109.9,
+      "capacity": 1470.0,
+      "load_factor": 0.075,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 26,
+      "time": "06:30",
+      "demand": 109.9,
+      "capacity": 1470.0,
+      "load_factor": 0.075,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 27,
+      "time": "06:45",
+      "demand": 109.9,
+      "capacity": 1470.0,
+      "load_factor": 0.075,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 28,
+      "time": "07:00",
+      "demand": 298.3,
+      "capacity": 1470.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 29,
+      "time": "07:15",
+      "demand": 298.3,
+      "capacity": 1470.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 30,
+      "time": "07:30",
+      "demand": 298.3,
+      "capacity": 1470.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 31,
+      "time": "07:45",
+      "demand": 298.3,
+      "capacity": 1470.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 32,
+      "time": "08:00",
+      "demand": 447.1,
+      "capacity": 2327.5,
+      "load_factor": 0.192,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 33,
+      "time": "08:15",
+      "demand": 447.1,
+      "capacity": 2327.5,
+      "load_factor": 0.192,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 34,
+      "time": "08:30",
+      "demand": 447.1,
+      "capacity": 2327.5,
+      "load_factor": 0.192,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 35,
+      "time": "08:45",
+      "demand": 447.1,
+      "capacity": 2327.5,
+      "load_factor": 0.192,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 36,
+      "time": "09:00",
+      "demand": 366.0,
+      "capacity": 2205.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 37,
+      "time": "09:15",
+      "demand": 366.0,
+      "capacity": 2205.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 38,
+      "time": "09:30",
+      "demand": 366.0,
+      "capacity": 2205.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 39,
+      "time": "09:45",
+      "demand": 366.0,
+      "capacity": 2205.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 40,
+      "time": "10:00",
+      "demand": 197.6,
+      "capacity": 1715.0,
+      "load_factor": 0.115,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 41,
+      "time": "10:15",
+      "demand": 197.6,
+      "capacity": 1715.0,
+      "load_factor": 0.115,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 42,
+      "time": "10:30",
+      "demand": 197.6,
+      "capacity": 1715.0,
+      "load_factor": 0.115,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 43,
+      "time": "10:45",
+      "demand": 197.6,
+      "capacity": 1715.0,
+      "load_factor": 0.115,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 44,
+      "time": "11:00",
+      "demand": 129.9,
+      "capacity": 1102.5,
+      "load_factor": 0.118,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 45,
+      "time": "11:15",
+      "demand": 129.9,
+      "capacity": 1102.5,
+      "load_factor": 0.118,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 46,
+      "time": "11:30",
+      "demand": 129.9,
+      "capacity": 1102.5,
+      "load_factor": 0.118,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 47,
+      "time": "11:45",
+      "demand": 129.9,
+      "capacity": 1102.5,
+      "load_factor": 0.118,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 48,
+      "time": "12:00",
+      "demand": 132.8,
+      "capacity": 1102.5,
+      "load_factor": 0.12,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 49,
+      "time": "12:15",
+      "demand": 132.9,
+      "capacity": 1102.5,
+      "load_factor": 0.121,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 50,
+      "time": "12:30",
+      "demand": 133.0,
+      "capacity": 1102.5,
+      "load_factor": 0.121,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 51,
+      "time": "12:45",
+      "demand": 133.2,
+      "capacity": 1102.5,
+      "load_factor": 0.121,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 52,
+      "time": "13:00",
+      "demand": 147.7,
+      "capacity": 980.0,
+      "load_factor": 0.151,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 53,
+      "time": "13:15",
+      "demand": 148.2,
+      "capacity": 980.0,
+      "load_factor": 0.151,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 54,
+      "time": "13:30",
+      "demand": 148.9,
+      "capacity": 980.0,
+      "load_factor": 0.152,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 55,
+      "time": "13:45",
+      "demand": 149.9,
+      "capacity": 980.0,
+      "load_factor": 0.153,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 56,
+      "time": "14:00",
+      "demand": 162.8,
+      "capacity": 1102.5,
+      "load_factor": 0.148,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 57,
+      "time": "14:15",
+      "demand": 164.5,
+      "capacity": 1102.5,
+      "load_factor": 0.149,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 58,
+      "time": "14:30",
+      "demand": 166.4,
+      "capacity": 1102.5,
+      "load_factor": 0.151,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 59,
+      "time": "14:45",
+      "demand": 168.5,
+      "capacity": 1102.5,
+      "load_factor": 0.153,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 60,
+      "time": "15:00",
+      "demand": 199.3,
+      "capacity": 1102.5,
+      "load_factor": 0.181,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 61,
+      "time": "15:15",
+      "demand": 201.4,
+      "capacity": 1102.5,
+      "load_factor": 0.183,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 62,
+      "time": "15:30",
+      "demand": 203.2,
+      "capacity": 1102.5,
+      "load_factor": 0.184,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 63,
+      "time": "15:45",
+      "demand": 204.6,
+      "capacity": 1102.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 64,
+      "time": "16:00",
+      "demand": 296.3,
+      "capacity": 1837.5,
+      "load_factor": 0.161,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 65,
+      "time": "16:15",
+      "demand": 296.3,
+      "capacity": 1837.5,
+      "load_factor": 0.161,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 66,
+      "time": "16:30",
+      "demand": 295.6,
+      "capacity": 1837.5,
+      "load_factor": 0.161,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 67,
+      "time": "16:45",
+      "demand": 294.2,
+      "capacity": 1837.5,
+      "load_factor": 0.16,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 68,
+      "time": "17:00",
+      "demand": 414.5,
+      "capacity": 2572.5,
+      "load_factor": 0.161,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 69,
+      "time": "17:15",
+      "demand": 412.4,
+      "capacity": 2572.5,
+      "load_factor": 0.16,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 70,
+      "time": "17:30",
+      "demand": 410.2,
+      "capacity": 2572.5,
+      "load_factor": 0.159,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 71,
+      "time": "17:45",
+      "demand": 408.0,
+      "capacity": 2572.5,
+      "load_factor": 0.159,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 72,
+      "time": "18:00",
+      "demand": 464.0,
+      "capacity": 2082.5,
+      "load_factor": 0.223,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 73,
+      "time": "18:15",
+      "demand": 462.3,
+      "capacity": 2082.5,
+      "load_factor": 0.222,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 74,
+      "time": "18:30",
+      "demand": 461.0,
+      "capacity": 2082.5,
+      "load_factor": 0.221,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 75,
+      "time": "18:45",
+      "demand": 460.0,
+      "capacity": 2082.5,
+      "load_factor": 0.221,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 76,
+      "time": "19:00",
+      "demand": 361.9,
+      "capacity": 1837.5,
+      "load_factor": 0.197,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 77,
+      "time": "19:15",
+      "demand": 361.4,
+      "capacity": 1837.5,
+      "load_factor": 0.197,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 78,
+      "time": "19:30",
+      "demand": 361.1,
+      "capacity": 1837.5,
+      "load_factor": 0.197,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 79,
+      "time": "19:45",
+      "demand": 360.9,
+      "capacity": 1837.5,
+      "load_factor": 0.196,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 80,
+      "time": "20:00",
+      "demand": 203.5,
+      "capacity": 1592.5,
+      "load_factor": 0.128,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 81,
+      "time": "20:15",
+      "demand": 203.5,
+      "capacity": 1592.5,
+      "load_factor": 0.128,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 82,
+      "time": "20:30",
+      "demand": 203.4,
+      "capacity": 1592.5,
+      "load_factor": 0.128,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 83,
+      "time": "20:45",
+      "demand": 203.4,
+      "capacity": 1592.5,
+      "load_factor": 0.128,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 84,
+      "time": "21:00",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 85,
+      "time": "21:15",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 86,
+      "time": "21:30",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 87,
+      "time": "21:45",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 88,
+      "time": "22:00",
+      "demand": 19.0,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 89,
+      "time": "22:15",
+      "demand": 19.0,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 90,
+      "time": "22:30",
+      "demand": 19.0,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 91,
+      "time": "22:45",
+      "demand": 19.0,
+      "capacity": 857.5,
+      "load_factor": 0.022,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 92,
+      "time": "23:00",
+      "demand": 3.9,
+      "capacity": 367.5,
+      "load_factor": 0.011,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 93,
+      "time": "23:15",
+      "demand": 3.9,
+      "capacity": 367.5,
+      "load_factor": 0.011,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 94,
+      "time": "23:30",
+      "demand": 3.9,
+      "capacity": 367.5,
+      "load_factor": 0.011,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "FIC",
+      "bin": 95,
+      "time": "23:45",
+      "demand": 3.9,
+      "capacity": 367.5,
+      "load_factor": 0.011,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 0,
+      "time": "00:00",
+      "demand": 31.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 1,
+      "time": "00:15",
+      "demand": 31.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 2,
+      "time": "00:30",
+      "demand": 31.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 3,
+      "time": "00:45",
+      "demand": 31.0,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 4,
+      "time": "01:00",
+      "demand": 29.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 5,
+      "time": "01:15",
+      "demand": 29.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 6,
+      "time": "01:30",
+      "demand": 29.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 7,
+      "time": "01:45",
+      "demand": 29.6,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 8,
+      "time": "02:00",
+      "demand": 31.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 9,
+      "time": "02:15",
+      "demand": 31.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 10,
+      "time": "02:30",
+      "demand": 31.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 11,
+      "time": "02:45",
+      "demand": 31.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 12,
+      "time": "03:00",
+      "demand": 30.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 13,
+      "time": "03:15",
+      "demand": 30.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 14,
+      "time": "03:30",
+      "demand": 30.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 15,
+      "time": "03:45",
+      "demand": 30.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 16,
+      "time": "04:00",
+      "demand": 33.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 17,
+      "time": "04:15",
+      "demand": 33.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 18,
+      "time": "04:30",
+      "demand": 33.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 19,
+      "time": "04:45",
+      "demand": 33.2,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 20,
+      "time": "05:00",
+      "demand": 33.0,
+      "capacity": 857.5,
+      "load_factor": 0.038,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 21,
+      "time": "05:15",
+      "demand": 33.0,
+      "capacity": 857.5,
+      "load_factor": 0.038,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 22,
+      "time": "05:30",
+      "demand": 33.0,
+      "capacity": 857.5,
+      "load_factor": 0.038,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 23,
+      "time": "05:45",
+      "demand": 33.0,
+      "capacity": 857.5,
+      "load_factor": 0.038,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 24,
+      "time": "06:00",
+      "demand": 158.1,
+      "capacity": 1470.0,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 25,
+      "time": "06:15",
+      "demand": 158.1,
+      "capacity": 1470.0,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 26,
+      "time": "06:30",
+      "demand": 158.1,
+      "capacity": 1470.0,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 27,
+      "time": "06:45",
+      "demand": 158.1,
+      "capacity": 1470.0,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 28,
+      "time": "07:00",
+      "demand": 450.5,
+      "capacity": 1470.0,
+      "load_factor": 0.306,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 29,
+      "time": "07:15",
+      "demand": 450.5,
+      "capacity": 1470.0,
+      "load_factor": 0.306,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 30,
+      "time": "07:30",
+      "demand": 450.5,
+      "capacity": 1470.0,
+      "load_factor": 0.306,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 31,
+      "time": "07:45",
+      "demand": 450.5,
+      "capacity": 1470.0,
+      "load_factor": 0.306,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 32,
+      "time": "08:00",
+      "demand": 655.0,
+      "capacity": 2327.5,
+      "load_factor": 0.281,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 33,
+      "time": "08:15",
+      "demand": 655.0,
+      "capacity": 2327.5,
+      "load_factor": 0.281,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 34,
+      "time": "08:30",
+      "demand": 655.0,
+      "capacity": 2327.5,
+      "load_factor": 0.281,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 35,
+      "time": "08:45",
+      "demand": 655.0,
+      "capacity": 2327.5,
+      "load_factor": 0.281,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 36,
+      "time": "09:00",
+      "demand": 498.1,
+      "capacity": 2327.5,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 37,
+      "time": "09:15",
+      "demand": 498.1,
+      "capacity": 2327.5,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 38,
+      "time": "09:30",
+      "demand": 498.1,
+      "capacity": 2327.5,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 39,
+      "time": "09:45",
+      "demand": 498.1,
+      "capacity": 2327.5,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 40,
+      "time": "10:00",
+      "demand": 284.8,
+      "capacity": 1715.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 41,
+      "time": "10:15",
+      "demand": 284.8,
+      "capacity": 1715.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 42,
+      "time": "10:30",
+      "demand": 284.8,
+      "capacity": 1715.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 43,
+      "time": "10:45",
+      "demand": 284.8,
+      "capacity": 1715.0,
+      "load_factor": 0.166,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 44,
+      "time": "11:00",
+      "demand": 195.6,
+      "capacity": 1102.5,
+      "load_factor": 0.177,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 45,
+      "time": "11:15",
+      "demand": 195.6,
+      "capacity": 1102.5,
+      "load_factor": 0.177,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 46,
+      "time": "11:30",
+      "demand": 195.6,
+      "capacity": 1102.5,
+      "load_factor": 0.177,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 47,
+      "time": "11:45",
+      "demand": 195.6,
+      "capacity": 1102.5,
+      "load_factor": 0.177,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 48,
+      "time": "12:00",
+      "demand": 199.4,
+      "capacity": 980.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 49,
+      "time": "12:15",
+      "demand": 199.4,
+      "capacity": 980.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 50,
+      "time": "12:30",
+      "demand": 199.4,
+      "capacity": 980.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 51,
+      "time": "12:45",
+      "demand": 199.4,
+      "capacity": 980.0,
+      "load_factor": 0.203,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 52,
+      "time": "13:00",
+      "demand": 210.1,
+      "capacity": 980.0,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 53,
+      "time": "13:15",
+      "demand": 210.1,
+      "capacity": 980.0,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 54,
+      "time": "13:30",
+      "demand": 210.2,
+      "capacity": 980.0,
+      "load_factor": 0.214,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 55,
+      "time": "13:45",
+      "demand": 210.3,
+      "capacity": 980.0,
+      "load_factor": 0.215,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 56,
+      "time": "14:00",
+      "demand": 220.1,
+      "capacity": 1102.5,
+      "load_factor": 0.2,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 57,
+      "time": "14:15",
+      "demand": 220.3,
+      "capacity": 1102.5,
+      "load_factor": 0.2,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 58,
+      "time": "14:30",
+      "demand": 220.4,
+      "capacity": 1102.5,
+      "load_factor": 0.2,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 59,
+      "time": "14:45",
+      "demand": 220.6,
+      "capacity": 1102.5,
+      "load_factor": 0.2,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 60,
+      "time": "15:00",
+      "demand": 268.6,
+      "capacity": 1225.0,
+      "load_factor": 0.219,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 61,
+      "time": "15:15",
+      "demand": 268.7,
+      "capacity": 1225.0,
+      "load_factor": 0.219,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 62,
+      "time": "15:30",
+      "demand": 268.9,
+      "capacity": 1225.0,
+      "load_factor": 0.22,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 63,
+      "time": "15:45",
+      "demand": 269.0,
+      "capacity": 1225.0,
+      "load_factor": 0.22,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 64,
+      "time": "16:00",
+      "demand": 415.8,
+      "capacity": 1837.5,
+      "load_factor": 0.226,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 65,
+      "time": "16:15",
+      "demand": 415.8,
+      "capacity": 1837.5,
+      "load_factor": 0.226,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 66,
+      "time": "16:30",
+      "demand": 415.8,
+      "capacity": 1837.5,
+      "load_factor": 0.226,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 67,
+      "time": "16:45",
+      "demand": 415.6,
+      "capacity": 1837.5,
+      "load_factor": 0.226,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 68,
+      "time": "17:00",
+      "demand": 574.0,
+      "capacity": 2450.0,
+      "load_factor": 0.234,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 69,
+      "time": "17:15",
+      "demand": 573.8,
+      "capacity": 2450.0,
+      "load_factor": 0.234,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 70,
+      "time": "17:30",
+      "demand": 573.6,
+      "capacity": 2450.0,
+      "load_factor": 0.234,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 71,
+      "time": "17:45",
+      "demand": 573.4,
+      "capacity": 2450.0,
+      "load_factor": 0.234,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 72,
+      "time": "18:00",
+      "demand": 644.9,
+      "capacity": 2205.0,
+      "load_factor": 0.292,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 73,
+      "time": "18:15",
+      "demand": 644.7,
+      "capacity": 2205.0,
+      "load_factor": 0.292,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 74,
+      "time": "18:30",
+      "demand": 644.6,
+      "capacity": 2205.0,
+      "load_factor": 0.292,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 75,
+      "time": "18:45",
+      "demand": 644.5,
+      "capacity": 2205.0,
+      "load_factor": 0.292,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 76,
+      "time": "19:00",
+      "demand": 492.6,
+      "capacity": 1837.5,
+      "load_factor": 0.268,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 77,
+      "time": "19:15",
+      "demand": 492.6,
+      "capacity": 1837.5,
+      "load_factor": 0.268,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 78,
+      "time": "19:30",
+      "demand": 492.5,
+      "capacity": 1837.5,
+      "load_factor": 0.268,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 79,
+      "time": "19:45",
+      "demand": 492.5,
+      "capacity": 1837.5,
+      "load_factor": 0.268,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 80,
+      "time": "20:00",
+      "demand": 296.9,
+      "capacity": 1592.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 81,
+      "time": "20:15",
+      "demand": 296.9,
+      "capacity": 1592.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 82,
+      "time": "20:30",
+      "demand": 296.9,
+      "capacity": 1592.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 83,
+      "time": "20:45",
+      "demand": 296.9,
+      "capacity": 1592.5,
+      "load_factor": 0.186,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 84,
+      "time": "21:00",
+      "demand": 112.0,
+      "capacity": 857.5,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 85,
+      "time": "21:15",
+      "demand": 112.0,
+      "capacity": 857.5,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 86,
+      "time": "21:30",
+      "demand": 112.0,
+      "capacity": 857.5,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 87,
+      "time": "21:45",
+      "demand": 112.0,
+      "capacity": 857.5,
+      "load_factor": 0.131,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 88,
+      "time": "22:00",
+      "demand": 30.3,
+      "capacity": 857.5,
+      "load_factor": 0.035,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 89,
+      "time": "22:15",
+      "demand": 30.3,
+      "capacity": 857.5,
+      "load_factor": 0.035,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 90,
+      "time": "22:30",
+      "demand": 30.3,
+      "capacity": 857.5,
+      "load_factor": 0.035,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 91,
+      "time": "22:45",
+      "demand": 30.3,
+      "capacity": 857.5,
+      "load_factor": 0.035,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 92,
+      "time": "23:00",
+      "demand": 5.0,
+      "capacity": 367.5,
+      "load_factor": 0.014,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 93,
+      "time": "23:15",
+      "demand": 5.0,
+      "capacity": 367.5,
+      "load_factor": 0.014,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 94,
+      "time": "23:30",
+      "demand": 5.0,
+      "capacity": 367.5,
+      "load_factor": 0.014,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BKD",
+      "bin": 95,
+      "time": "23:45",
+      "demand": 5.0,
+      "capacity": 367.5,
+      "load_factor": 0.014,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 0,
+      "time": "00:00",
+      "demand": 23.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 1,
+      "time": "00:15",
+      "demand": 23.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 2,
+      "time": "00:30",
+      "demand": 23.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 3,
+      "time": "00:45",
+      "demand": 23.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 4,
+      "time": "01:00",
+      "demand": 22.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 5,
+      "time": "01:15",
+      "demand": 22.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 6,
+      "time": "01:30",
+      "demand": 22.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 7,
+      "time": "01:45",
+      "demand": 22.4,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 8,
+      "time": "02:00",
+      "demand": 22.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 9,
+      "time": "02:15",
+      "demand": 22.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 10,
+      "time": "02:30",
+      "demand": 22.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 11,
+      "time": "02:45",
+      "demand": 22.1,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 12,
+      "time": "03:00",
+      "demand": 22.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 13,
+      "time": "03:15",
+      "demand": 22.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 14,
+      "time": "03:30",
+      "demand": 22.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 15,
+      "time": "03:45",
+      "demand": 22.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 16,
+      "time": "04:00",
+      "demand": 26.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 17,
+      "time": "04:15",
+      "demand": 26.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 18,
+      "time": "04:30",
+      "demand": 26.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 19,
+      "time": "04:45",
+      "demand": 26.8,
+      "capacity": 0.0,
+      "load_factor": 0.0,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 20,
+      "time": "05:00",
+      "demand": 25.2,
+      "capacity": 857.5,
+      "load_factor": 0.029,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 21,
+      "time": "05:15",
+      "demand": 25.2,
+      "capacity": 857.5,
+      "load_factor": 0.029,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 22,
+      "time": "05:30",
+      "demand": 25.2,
+      "capacity": 857.5,
+      "load_factor": 0.029,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 23,
+      "time": "05:45",
+      "demand": 25.2,
+      "capacity": 857.5,
+      "load_factor": 0.029,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 24,
+      "time": "06:00",
+      "demand": 117.8,
+      "capacity": 1470.0,
+      "load_factor": 0.08,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 25,
+      "time": "06:15",
+      "demand": 117.8,
+      "capacity": 1470.0,
+      "load_factor": 0.08,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 26,
+      "time": "06:30",
+      "demand": 117.8,
+      "capacity": 1470.0,
+      "load_factor": 0.08,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 27,
+      "time": "06:45",
+      "demand": 117.8,
+      "capacity": 1470.0,
+      "load_factor": 0.08,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 28,
+      "time": "07:00",
+      "demand": 350.3,
+      "capacity": 1470.0,
+      "load_factor": 0.238,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 29,
+      "time": "07:15",
+      "demand": 350.3,
+      "capacity": 1470.0,
+      "load_factor": 0.238,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 30,
+      "time": "07:30",
+      "demand": 350.3,
+      "capacity": 1470.0,
+      "load_factor": 0.238,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 31,
+      "time": "07:45",
+      "demand": 350.3,
+      "capacity": 1470.0,
+      "load_factor": 0.238,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 32,
+      "time": "08:00",
+      "demand": 485.1,
+      "capacity": 2450.0,
+      "load_factor": 0.198,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 33,
+      "time": "08:15",
+      "demand": 485.1,
+      "capacity": 2450.0,
+      "load_factor": 0.198,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 34,
+      "time": "08:30",
+      "demand": 485.1,
+      "capacity": 2450.0,
+      "load_factor": 0.198,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 35,
+      "time": "08:45",
+      "demand": 485.1,
+      "capacity": 2450.0,
+      "load_factor": 0.198,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 36,
+      "time": "09:00",
+      "demand": 380.4,
+      "capacity": 2327.5,
+      "load_factor": 0.163,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 37,
+      "time": "09:15",
+      "demand": 380.4,
+      "capacity": 2327.5,
+      "load_factor": 0.163,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 38,
+      "time": "09:30",
+      "demand": 380.4,
+      "capacity": 2327.5,
+      "load_factor": 0.163,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 39,
+      "time": "09:45",
+      "demand": 380.4,
+      "capacity": 2327.5,
+      "load_factor": 0.163,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 40,
+      "time": "10:00",
+      "demand": 199.1,
+      "capacity": 1837.5,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 41,
+      "time": "10:15",
+      "demand": 199.1,
+      "capacity": 1837.5,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 42,
+      "time": "10:30",
+      "demand": 199.1,
+      "capacity": 1837.5,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 43,
+      "time": "10:45",
+      "demand": 199.1,
+      "capacity": 1837.5,
+      "load_factor": 0.108,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 44,
+      "time": "11:00",
+      "demand": 146.9,
+      "capacity": 980.0,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 45,
+      "time": "11:15",
+      "demand": 146.9,
+      "capacity": 980.0,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 46,
+      "time": "11:30",
+      "demand": 146.9,
+      "capacity": 980.0,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 47,
+      "time": "11:45",
+      "demand": 146.9,
+      "capacity": 980.0,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 48,
+      "time": "12:00",
+      "demand": 153.3,
+      "capacity": 1102.5,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 49,
+      "time": "12:15",
+      "demand": 153.3,
+      "capacity": 1102.5,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 50,
+      "time": "12:30",
+      "demand": 153.3,
+      "capacity": 1102.5,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 51,
+      "time": "12:45",
+      "demand": 153.3,
+      "capacity": 1102.5,
+      "load_factor": 0.139,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 52,
+      "time": "13:00",
+      "demand": 170.6,
+      "capacity": 1102.5,
+      "load_factor": 0.155,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 53,
+      "time": "13:15",
+      "demand": 170.6,
+      "capacity": 1102.5,
+      "load_factor": 0.155,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 54,
+      "time": "13:30",
+      "demand": 170.6,
+      "capacity": 1102.5,
+      "load_factor": 0.155,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 55,
+      "time": "13:45",
+      "demand": 170.6,
+      "capacity": 1102.5,
+      "load_factor": 0.155,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 56,
+      "time": "14:00",
+      "demand": 172.3,
+      "capacity": 980.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 57,
+      "time": "14:15",
+      "demand": 172.3,
+      "capacity": 980.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 58,
+      "time": "14:30",
+      "demand": 172.3,
+      "capacity": 980.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 59,
+      "time": "14:45",
+      "demand": 172.3,
+      "capacity": 980.0,
+      "load_factor": 0.176,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 60,
+      "time": "15:00",
+      "demand": 201.6,
+      "capacity": 1347.5,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 61,
+      "time": "15:15",
+      "demand": 201.6,
+      "capacity": 1347.5,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 62,
+      "time": "15:30",
+      "demand": 201.6,
+      "capacity": 1347.5,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 63,
+      "time": "15:45",
+      "demand": 201.6,
+      "capacity": 1347.5,
+      "load_factor": 0.15,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 64,
+      "time": "16:00",
+      "demand": 300.6,
+      "capacity": 1837.5,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 65,
+      "time": "16:15",
+      "demand": 300.6,
+      "capacity": 1837.5,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 66,
+      "time": "16:30",
+      "demand": 300.6,
+      "capacity": 1837.5,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 67,
+      "time": "16:45",
+      "demand": 300.6,
+      "capacity": 1837.5,
+      "load_factor": 0.164,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 68,
+      "time": "17:00",
+      "demand": 461.6,
+      "capacity": 2450.0,
+      "load_factor": 0.188,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 69,
+      "time": "17:15",
+      "demand": 461.6,
+      "capacity": 2450.0,
+      "load_factor": 0.188,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 70,
+      "time": "17:30",
+      "demand": 461.5,
+      "capacity": 2450.0,
+      "load_factor": 0.188,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 71,
+      "time": "17:45",
+      "demand": 461.5,
+      "capacity": 2450.0,
+      "load_factor": 0.188,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 72,
+      "time": "18:00",
+      "demand": 485.7,
+      "capacity": 2205.0,
+      "load_factor": 0.22,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 73,
+      "time": "18:15",
+      "demand": 485.6,
+      "capacity": 2205.0,
+      "load_factor": 0.22,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 74,
+      "time": "18:30",
+      "demand": 485.6,
+      "capacity": 2205.0,
+      "load_factor": 0.22,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 75,
+      "time": "18:45",
+      "demand": 485.6,
+      "capacity": 2205.0,
+      "load_factor": 0.22,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 76,
+      "time": "19:00",
+      "demand": 401.3,
+      "capacity": 1837.5,
+      "load_factor": 0.218,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 77,
+      "time": "19:15",
+      "demand": 401.3,
+      "capacity": 1837.5,
+      "load_factor": 0.218,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 78,
+      "time": "19:30",
+      "demand": 401.3,
+      "capacity": 1837.5,
+      "load_factor": 0.218,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 79,
+      "time": "19:45",
+      "demand": 401.3,
+      "capacity": 1837.5,
+      "load_factor": 0.218,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 80,
+      "time": "20:00",
+      "demand": 217.4,
+      "capacity": 1715.0,
+      "load_factor": 0.127,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 81,
+      "time": "20:15",
+      "demand": 217.4,
+      "capacity": 1715.0,
+      "load_factor": 0.127,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 82,
+      "time": "20:30",
+      "demand": 217.4,
+      "capacity": 1715.0,
+      "load_factor": 0.127,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 83,
+      "time": "20:45",
+      "demand": 217.4,
+      "capacity": 1715.0,
+      "load_factor": 0.127,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 84,
+      "time": "21:00",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 85,
+      "time": "21:15",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 86,
+      "time": "21:30",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 87,
+      "time": "21:45",
+      "demand": 79.4,
+      "capacity": 857.5,
+      "load_factor": 0.093,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 88,
+      "time": "22:00",
+      "demand": 20.9,
+      "capacity": 735.0,
+      "load_factor": 0.028,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 89,
+      "time": "22:15",
+      "demand": 20.9,
+      "capacity": 735.0,
+      "load_factor": 0.028,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 90,
+      "time": "22:30",
+      "demand": 20.9,
+      "capacity": 735.0,
+      "load_factor": 0.028,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 91,
+      "time": "22:45",
+      "demand": 20.9,
+      "capacity": 735.0,
+      "load_factor": 0.028,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 92,
+      "time": "23:00",
+      "demand": 4.0,
+      "capacity": 490.0,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 93,
+      "time": "23:15",
+      "demand": 4.0,
+      "capacity": 490.0,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 94,
+      "time": "23:30",
+      "demand": 4.0,
+      "capacity": 490.0,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    },
+    {
+      "station_id": "BBY",
+      "bin": 95,
+      "time": "23:45",
+      "demand": 4.0,
+      "capacity": 490.0,
+      "load_factor": 0.008,
+      "queue": 0.0,
+      "wait_min": 0.0
+    }
+  ],
+  "hourly": [
+    {
+      "station_id": "MAX",
+      "hour": 0,
+      "demand": 54.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 1,
+      "demand": 52.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 2,
+      "demand": 53.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 3,
+      "demand": 55.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 4,
+      "demand": 57.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 5,
+      "demand": 60.5,
+      "capacity": 2940.0,
+      "peak_lf": 0.021,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 6,
+      "demand": 289.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.049,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 7,
+      "demand": 819.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.139,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 8,
+      "demand": 1154.0,
+      "capacity": 8820.0,
+      "peak_lf": 0.131,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 9,
+      "demand": 920.5,
+      "capacity": 8330.0,
+      "peak_lf": 0.111,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 10,
+      "demand": 481.1,
+      "capacity": 6860.0,
+      "peak_lf": 0.07,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 11,
+      "demand": 348.9,
+      "capacity": 4410.0,
+      "peak_lf": 0.08,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 12,
+      "demand": 383.1,
+      "capacity": 3920.0,
+      "peak_lf": 0.104,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 13,
+      "demand": 583.2,
+      "capacity": 3920.0,
+      "peak_lf": 0.182,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 14,
+      "demand": 1138.2,
+      "capacity": 4410.0,
+      "peak_lf": 0.33,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 15,
+      "demand": 2088.3,
+      "capacity": 4410.0,
+      "peak_lf": 0.533,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 16,
+      "demand": 2557.0,
+      "capacity": 7350.0,
+      "peak_lf": 0.358,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 17,
+      "demand": 2250.2,
+      "capacity": 9800.0,
+      "peak_lf": 0.265,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 18,
+      "demand": 1539.6,
+      "capacity": 7840.0,
+      "peak_lf": 0.225,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 19,
+      "demand": 969.1,
+      "capacity": 7350.0,
+      "peak_lf": 0.14,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 20,
+      "demand": 507.2,
+      "capacity": 6370.0,
+      "peak_lf": 0.081,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 21,
+      "demand": 193.4,
+      "capacity": 3430.0,
+      "peak_lf": 0.057,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 22,
+      "demand": 50.0,
+      "capacity": 2940.0,
+      "peak_lf": 0.017,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "MAX",
+      "hour": 23,
+      "demand": 10.0,
+      "capacity": 1470.0,
+      "peak_lf": 0.007,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 0,
+      "demand": 68.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 1,
+      "demand": 68.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 2,
+      "demand": 69.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 3,
+      "demand": 69.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 4,
+      "demand": 77.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 5,
+      "demand": 75.5,
+      "capacity": 3430.0,
+      "peak_lf": 0.022,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 6,
+      "demand": 367.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.062,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 7,
+      "demand": 1033.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.176,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 8,
+      "demand": 1544.0,
+      "capacity": 8820.0,
+      "peak_lf": 0.175,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 9,
+      "demand": 1169.5,
+      "capacity": 8820.0,
+      "peak_lf": 0.133,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 10,
+      "demand": 640.1,
+      "capacity": 6860.0,
+      "peak_lf": 0.093,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 11,
+      "demand": 431.8,
+      "capacity": 3920.0,
+      "peak_lf": 0.111,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 12,
+      "demand": 487.1,
+      "capacity": 4410.0,
+      "peak_lf": 0.12,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 13,
+      "demand": 809.8,
+      "capacity": 4410.0,
+      "peak_lf": 0.234,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 14,
+      "demand": 1770.9,
+      "capacity": 3920.0,
+      "peak_lf": 0.589,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 15,
+      "demand": 3364.3,
+      "capacity": 4900.0,
+      "peak_lf": 0.778,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 16,
+      "demand": 4100.5,
+      "capacity": 7350.0,
+      "peak_lf": 0.575,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 17,
+      "demand": 3291.1,
+      "capacity": 9310.0,
+      "peak_lf": 0.417,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 18,
+      "demand": 2201.1,
+      "capacity": 8330.0,
+      "peak_lf": 0.311,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 19,
+      "demand": 1264.3,
+      "capacity": 7350.0,
+      "peak_lf": 0.187,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 20,
+      "demand": 654.1,
+      "capacity": 6370.0,
+      "peak_lf": 0.105,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 21,
+      "demand": 261.2,
+      "capacity": 3430.0,
+      "peak_lf": 0.076,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 22,
+      "demand": 66.0,
+      "capacity": 2940.0,
+      "peak_lf": 0.022,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "WTC",
+      "hour": 23,
+      "demand": 12.0,
+      "capacity": 1470.0,
+      "peak_lf": 0.008,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 0,
+      "demand": 76.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 1,
+      "demand": 78.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 2,
+      "demand": 76.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 3,
+      "demand": 77.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 4,
+      "demand": 89.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 5,
+      "demand": 78.5,
+      "capacity": 3430.0,
+      "peak_lf": 0.023,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 6,
+      "demand": 404.5,
+      "capacity": 5880.0,
+      "peak_lf": 0.069,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 7,
+      "demand": 1121.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.191,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 8,
+      "demand": 1631.5,
+      "capacity": 9310.0,
+      "peak_lf": 0.175,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 9,
+      "demand": 1310.5,
+      "capacity": 8820.0,
+      "peak_lf": 0.149,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 10,
+      "demand": 680.5,
+      "capacity": 7350.0,
+      "peak_lf": 0.093,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 11,
+      "demand": 478.9,
+      "capacity": 3920.0,
+      "peak_lf": 0.122,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 12,
+      "demand": 520.1,
+      "capacity": 4410.0,
+      "peak_lf": 0.119,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 13,
+      "demand": 582.8,
+      "capacity": 3920.0,
+      "peak_lf": 0.155,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 14,
+      "demand": 699.2,
+      "capacity": 3920.0,
+      "peak_lf": 0.194,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 15,
+      "demand": 1029.5,
+      "capacity": 4900.0,
+      "peak_lf": 0.221,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 16,
+      "demand": 1349.8,
+      "capacity": 7350.0,
+      "peak_lf": 0.186,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 17,
+      "demand": 1678.4,
+      "capacity": 9800.0,
+      "peak_lf": 0.178,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 18,
+      "demand": 1725.0,
+      "capacity": 8330.0,
+      "peak_lf": 0.212,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 19,
+      "demand": 1280.4,
+      "capacity": 7350.0,
+      "peak_lf": 0.176,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 20,
+      "demand": 737.0,
+      "capacity": 6370.0,
+      "peak_lf": 0.116,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 21,
+      "demand": 278.1,
+      "capacity": 2940.0,
+      "peak_lf": 0.095,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 22,
+      "demand": 74.0,
+      "capacity": 2940.0,
+      "peak_lf": 0.025,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "EMT",
+      "hour": 23,
+      "demand": 13.0,
+      "capacity": 1470.0,
+      "peak_lf": 0.009,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 0,
+      "demand": 82.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 1,
+      "demand": 79.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 2,
+      "demand": 86.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 3,
+      "demand": 84.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 4,
+      "demand": 94.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 5,
+      "demand": 90.5,
+      "capacity": 2940.0,
+      "peak_lf": 0.031,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 6,
+      "demand": 439.5,
+      "capacity": 5880.0,
+      "peak_lf": 0.075,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 7,
+      "demand": 1193.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.203,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 8,
+      "demand": 1788.5,
+      "capacity": 9310.0,
+      "peak_lf": 0.192,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 9,
+      "demand": 1464.0,
+      "capacity": 8820.0,
+      "peak_lf": 0.166,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 10,
+      "demand": 790.5,
+      "capacity": 6860.0,
+      "peak_lf": 0.115,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 11,
+      "demand": 519.6,
+      "capacity": 4410.0,
+      "peak_lf": 0.118,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 12,
+      "demand": 532.0,
+      "capacity": 4410.0,
+      "peak_lf": 0.121,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 13,
+      "demand": 594.7,
+      "capacity": 3920.0,
+      "peak_lf": 0.153,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 14,
+      "demand": 662.2,
+      "capacity": 4410.0,
+      "peak_lf": 0.153,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 15,
+      "demand": 808.4,
+      "capacity": 4410.0,
+      "peak_lf": 0.186,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 16,
+      "demand": 1182.3,
+      "capacity": 7350.0,
+      "peak_lf": 0.161,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 17,
+      "demand": 1645.1,
+      "capacity": 10290.0,
+      "peak_lf": 0.161,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 18,
+      "demand": 1847.3,
+      "capacity": 8330.0,
+      "peak_lf": 0.223,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 19,
+      "demand": 1445.4,
+      "capacity": 7350.0,
+      "peak_lf": 0.197,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 20,
+      "demand": 813.8,
+      "capacity": 6370.0,
+      "peak_lf": 0.128,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 21,
+      "demand": 317.5,
+      "capacity": 3430.0,
+      "peak_lf": 0.093,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 22,
+      "demand": 76.0,
+      "capacity": 3430.0,
+      "peak_lf": 0.022,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "FIC",
+      "hour": 23,
+      "demand": 15.5,
+      "capacity": 1470.0,
+      "peak_lf": 0.011,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 0,
+      "demand": 124.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 1,
+      "demand": 118.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 2,
+      "demand": 124.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 3,
+      "demand": 123.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 4,
+      "demand": 133.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 5,
+      "demand": 132.0,
+      "capacity": 3430.0,
+      "peak_lf": 0.038,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 6,
+      "demand": 632.5,
+      "capacity": 5880.0,
+      "peak_lf": 0.108,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 7,
+      "demand": 1802.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.306,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 8,
+      "demand": 2620.0,
+      "capacity": 9310.0,
+      "peak_lf": 0.281,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 9,
+      "demand": 1992.5,
+      "capacity": 9310.0,
+      "peak_lf": 0.214,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 10,
+      "demand": 1139.0,
+      "capacity": 6860.0,
+      "peak_lf": 0.166,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 11,
+      "demand": 782.5,
+      "capacity": 4410.0,
+      "peak_lf": 0.177,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 12,
+      "demand": 797.6,
+      "capacity": 3920.0,
+      "peak_lf": 0.203,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 13,
+      "demand": 840.6,
+      "capacity": 3920.0,
+      "peak_lf": 0.215,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 14,
+      "demand": 881.4,
+      "capacity": 4410.0,
+      "peak_lf": 0.2,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 15,
+      "demand": 1075.2,
+      "capacity": 4900.0,
+      "peak_lf": 0.22,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 16,
+      "demand": 1663.1,
+      "capacity": 7350.0,
+      "peak_lf": 0.226,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 17,
+      "demand": 2294.8,
+      "capacity": 9800.0,
+      "peak_lf": 0.234,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 18,
+      "demand": 2578.8,
+      "capacity": 8820.0,
+      "peak_lf": 0.292,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 19,
+      "demand": 1970.2,
+      "capacity": 7350.0,
+      "peak_lf": 0.268,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 20,
+      "demand": 1187.5,
+      "capacity": 6370.0,
+      "peak_lf": 0.186,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 21,
+      "demand": 448.0,
+      "capacity": 3430.0,
+      "peak_lf": 0.131,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 22,
+      "demand": 121.0,
+      "capacity": 3430.0,
+      "peak_lf": 0.035,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BKD",
+      "hour": 23,
+      "demand": 20.0,
+      "capacity": 1470.0,
+      "peak_lf": 0.014,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 0,
+      "demand": 92.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 1,
+      "demand": 89.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 2,
+      "demand": 88.5,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 3,
+      "demand": 91.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 4,
+      "demand": 107.0,
+      "capacity": 0.0,
+      "peak_lf": 0.0,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 5,
+      "demand": 101.0,
+      "capacity": 3430.0,
+      "peak_lf": 0.029,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 6,
+      "demand": 471.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.08,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 7,
+      "demand": 1401.0,
+      "capacity": 5880.0,
+      "peak_lf": 0.238,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 8,
+      "demand": 1940.5,
+      "capacity": 9800.0,
+      "peak_lf": 0.198,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 9,
+      "demand": 1521.5,
+      "capacity": 9310.0,
+      "peak_lf": 0.163,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 10,
+      "demand": 796.5,
+      "capacity": 7350.0,
+      "peak_lf": 0.108,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 11,
+      "demand": 587.5,
+      "capacity": 3920.0,
+      "peak_lf": 0.15,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 12,
+      "demand": 613.0,
+      "capacity": 4410.0,
+      "peak_lf": 0.139,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 13,
+      "demand": 682.5,
+      "capacity": 4410.0,
+      "peak_lf": 0.155,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 14,
+      "demand": 689.1,
+      "capacity": 3920.0,
+      "peak_lf": 0.176,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 15,
+      "demand": 806.3,
+      "capacity": 5390.0,
+      "peak_lf": 0.15,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 16,
+      "demand": 1202.3,
+      "capacity": 7350.0,
+      "peak_lf": 0.164,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 17,
+      "demand": 1846.2,
+      "capacity": 9800.0,
+      "peak_lf": 0.188,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 18,
+      "demand": 1942.6,
+      "capacity": 8820.0,
+      "peak_lf": 0.22,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 19,
+      "demand": 1605.0,
+      "capacity": 7350.0,
+      "peak_lf": 0.218,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 20,
+      "demand": 869.5,
+      "capacity": 6860.0,
+      "peak_lf": 0.127,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 21,
+      "demand": 317.5,
+      "capacity": 3430.0,
+      "peak_lf": 0.093,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 22,
+      "demand": 83.5,
+      "capacity": 2940.0,
+      "peak_lf": 0.028,
+      "overcap_bins": 0
+    },
+    {
+      "station_id": "BBY",
+      "hour": 23,
+      "demand": 16.0,
+      "capacity": 1960.0,
+      "peak_lf": 0.008,
+      "overcap_bins": 0
+    }
+  ],
+  "source": {
+    "tool": "simulate",
+    "run_id": "sim_a66229553ee9"
+  }
+}

@@ -45,6 +45,16 @@ def to_min(hhmm: str) -> int:
     return int(h) * 60 + int(m)
 
 
+def timing_params(event: dict) -> dict:
+    """Event-model parameters with the event's timing profile applied (corridor.yaml event_model.profiles)."""
+    em = dict(corridor()["event_model"])
+    profile = event.get("profile", "default")
+    profiles = em.pop("profiles", {}) or {}
+    if profile not in profiles:
+        raise ValueError(f"event {event.get('id')}: unknown profile '{profile}' (known: {sorted(profiles)})")
+    return {**em, **(profiles[profile] or {})}
+
+
 def overlay(event: dict, *, bins_per_hour: int | None = None, attendance: float | None = None,
             end: str | None = None, scale: float = 1.0) -> dict[str, dict[str, list[float]]]:
     """Extra trips caused by `event`: {station_id: {"entries": [n_bins], "exits": [n_bins]}}.
@@ -52,7 +62,7 @@ def overlay(event: dict, *, bins_per_hour: int | None = None, attendance: float 
     `attendance` / `end` override the event's values (live what-if sliders); `scale` multiplies the whole
     surge (used for the p10/p90 attendance band). Totals are conserved exactly: Σ entries = trips_out.
     """
-    em = corridor()["event_model"]
+    em = timing_params(event)
     bph = bins_per_hour or corridor().get("bins_per_hour", 4)
     att = float(event["attendance"] if attendance is None else attendance) * scale
     trips_in = att * em["metro_share"]

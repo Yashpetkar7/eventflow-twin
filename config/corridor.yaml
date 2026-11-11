@@ -35,6 +35,11 @@ event_model:                   # parametric overlay (docs/05 §5.2) – all ASSU
   exit_sigma_min: 30
   walk_tau_min: 8
   attendance_band: [0.75, 1.25]  # p10/p90 multipliers on the event surge (attendance uncertainty) [ASSUMPTION]
+  # Timing profiles per event type (override the defaults above). All ASSUMPTIONS until calibrated on ridership.
+  # exhibition: visitors arrive across the morning and leave across the afternoon, with a bump at closing time.
+  profiles:
+    default: {}
+    exhibition: {arrival_offset_min: 75, arrival_sigma_min: 90, exit_offset_min: -45, exit_sigma_min: 75}
 interventions:
   bus_capacity: 80
   bus_trips_per_hour: 3

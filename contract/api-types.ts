@@ -250,6 +250,15 @@ export interface components {
             is_synthetic: boolean;
             /** Source Url */
             source_url?: string | null;
+            /**
+             * Profile
+             * @default default
+             */
+            profile: string;
+            /** Sources */
+            sources?: string[];
+            /** Note */
+            note?: string | null;
         };
         /** ExtraTrains */
         ExtraTrains: {

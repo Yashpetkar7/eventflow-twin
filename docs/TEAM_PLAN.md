@@ -8,6 +8,18 @@ The official RTA GTFS (Sep–Dec 2021) is now the capacity source (`config/capac
 Real headways at Emirates Towers on a weekday evening are ~2.6–3.5 min, not the 4-min placeholder. Result:
 **DFW Day 1 at the assumed 15,000 visitors no longer overloads any station** (EMT peak LF 0.61). Crowding starts
 ≈ 25k and is clear at 40k (LF 1.31, 10-min waits). We did not tune assumptions to bring the hotspot back.
+**Added (DECISIONS #22–24): GITEX Global 2025 Day 1** at Dubai World Trade Centre (13 Oct 2025, 10:00–17:00; sourced),
+40,000 visitors/day derived from the official "upwards of 200,000" over 5 days. At kit defaults WTC peaks at LF 0.78 —
+so we publish *when* it breaks instead of tuning (`python scripts/sensitivity.py`):
+
+| first over-capacity at … visitors | free space on arriving trains 15% | 20% | 25% | 30% | 35% (default) |
+|---|---|---|---|---|---|
+| GITEX 2025 (metro share 45%) | 15,000 | 22,500 | 30,000 | 37,500 | 45,000 |
+| DFW 2026 (metro share 45%) | 7,500 | 12,500 | 15,000 | 20,000 | 25,000 |
+
+Story for the booth: *"With the sourced 40,000 GITEX visitors a day, World Trade Centre crosses the comfort line if
+trains arrive with less than ~30% free space — exactly the number ridership data will pin down."*
+
 Decide together:
 1. **Demo scenario.** Options: a sourced attendance figure for DFW; a bigger verified event (GITEX at DWTC, New
    Year's Eve at Burj Khalifa/Dubai Mall — both real, both in historical ridership); or keep DFW and make the

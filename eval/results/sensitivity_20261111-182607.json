@@ -1,0 +1,260 @@
+{
+  "suite": "sensitivity",
+  "git_sha": "6b9a7ff-dirty",
+  "timestamp": "2026-11-11T18:26:07",
+  "models": {
+    "simulator": "deterministic-15min-queue",
+    "capacity": "gtfs"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
+  "is_synthetic": true,
+  "metrics": {
+    "break_attendance_default__gitex2025_d1": 45000,
+    "break_attendance_default__dfw2026_d1": 25000
+  },
+  "n": 30,
+  "split": "scenario-grid",
+  "grid": [
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.35,
+      "boardable_share": 0.15,
+      "break_attendance": 20000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.35,
+      "boardable_share": 0.2,
+      "break_attendance": 30000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.35,
+      "boardable_share": 0.25,
+      "break_attendance": 40000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.35,
+      "boardable_share": 0.3,
+      "break_attendance": 50000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.35,
+      "boardable_share": 0.35,
+      "break_attendance": 57500,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.45,
+      "boardable_share": 0.15,
+      "break_attendance": 15000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.45,
+      "boardable_share": 0.2,
+      "break_attendance": 22500,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.45,
+      "boardable_share": 0.25,
+      "break_attendance": 30000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.45,
+      "boardable_share": 0.3,
+      "break_attendance": 37500,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.45,
+      "boardable_share": 0.35,
+      "break_attendance": 45000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.55,
+      "boardable_share": 0.15,
+      "break_attendance": 12500,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.55,
+      "boardable_share": 0.2,
+      "break_attendance": 20000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.55,
+      "boardable_share": 0.25,
+      "break_attendance": 25000,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.55,
+      "boardable_share": 0.3,
+      "break_attendance": 32500,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "gitex2025_d1",
+      "assumed_attendance": 40000,
+      "metro_share": 0.55,
+      "boardable_share": 0.35,
+      "break_attendance": 37500,
+      "first_hotspot": "WTC 15:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.35,
+      "boardable_share": 0.15,
+      "break_attendance": 10000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.35,
+      "boardable_share": 0.2,
+      "break_attendance": 15000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.35,
+      "boardable_share": 0.25,
+      "break_attendance": 20000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.35,
+      "boardable_share": 0.3,
+      "break_attendance": 25000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.35,
+      "boardable_share": 0.35,
+      "break_attendance": 32500,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.45,
+      "boardable_share": 0.15,
+      "break_attendance": 7500,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.45,
+      "boardable_share": 0.2,
+      "break_attendance": 12500,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.45,
+      "boardable_share": 0.25,
+      "break_attendance": 15000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.45,
+      "boardable_share": 0.3,
+      "break_attendance": 20000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.45,
+      "boardable_share": 0.35,
+      "break_attendance": 25000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.55,
+      "boardable_share": 0.15,
+      "break_attendance": 7500,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.55,
+      "boardable_share": 0.2,
+      "break_attendance": 10000,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.55,
+      "boardable_share": 0.25,
+      "break_attendance": 12500,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.55,
+      "boardable_share": 0.3,
+      "break_attendance": 17500,
+      "first_hotspot": "EMT 18:00"
+    },
+    {
+      "event_id": "dfw2026_d1",
+      "assumed_attendance": 15000,
+      "metro_share": 0.55,
+      "boardable_share": 0.35,
+      "break_attendance": 20000,
+      "first_hotspot": "EMT 18:00"
+    }
+  ],
+  "note": "break_attendance = smallest attendance (2,500 steps) with any 15-min bin over the comfort threshold"
+}

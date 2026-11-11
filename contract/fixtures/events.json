@@ -1,5 +1,26 @@
 [
   {
+    "id": "gitex2025_d1",
+    "name": "GITEX Global 2025 – Day 1 (Mon 13 Oct 2025)",
+    "venue": "Dubai World Trade Centre",
+    "lat": 25.227611,
+    "lon": 55.288778,
+    "date": "2025-10-13",
+    "start": "10:00",
+    "end": "17:00",
+    "attendance": 40000,
+    "is_assumption": true,
+    "is_synthetic": false,
+    "source_url": "https://mediaoffice.ae/en/news/2025/october/12-10/rta",
+    "profile": "exhibition",
+    "sources": [
+      "https://mediaoffice.ae/en/news/2025/october/12-10/rta",
+      "https://www.gitex.com/News/gitex-global-2025-closes-a-landmark-45th-edition-with-record-international-participation-and-outcomedriven-dialogues",
+      "https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre"
+    ],
+    "note": "Historical event on the corridor; calibration target once metro ridership for Oct 2025 is ingested. GITEX 2026 moved to Expo City (7–11 Dec 2026), off this corridor."
+  },
+  {
     "id": "dfw2026_d1",
     "name": "Dubai Future Week 2026 – Day 1 (demo scenario)",
     "venue": "Emirates Towers & Museum of the Future",
@@ -11,6 +32,9 @@
     "attendance": 15000,
     "is_assumption": true,
     "is_synthetic": false,
-    "source_url": "https://www.dubaifutureweek.com/en"
+    "source_url": "https://www.dubaifutureweek.com/en",
+    "profile": "default",
+    "sources": [],
+    "note": null
   }
 ]

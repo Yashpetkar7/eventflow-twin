@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.1.0"   # 1.1.0: SimSummary.no_service_pax (GTFS timetable has closed hours)
+CONTRACT_VERSION = "1.2.0"   # 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile, Event.sources, Event.note
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -42,6 +42,9 @@ class Event(BaseModel):
     is_assumption: bool = False
     is_synthetic: bool = False
     source_url: str | None = None
+    profile: str = "default"
+    sources: list[str] = Field(default_factory=list)
+    note: str | None = None
 
 
 # ---------- forecast ----------

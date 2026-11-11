@@ -1,8 +1,8 @@
 {
   "eval": {
     "forecast": {
-      "file": "forecast_20261111-1812.json",
-      "timestamp": "2026-11-11T18:12:00",
+      "file": "forecast_20261111-1822.json",
+      "timestamp": "2026-11-11T18:22:07",
       "metrics": {
         "naive_mase": 0.9904697257002599,
         "naive_smape": 0.09010145844168332,
@@ -15,9 +15,21 @@
       "is_synthetic": true,
       "dataset_version": "synthetic:2026-08-03..2026-09-27"
     },
+    "sensitivity": {
+      "file": "sensitivity_20261111-182607.json",
+      "timestamp": "2026-11-11T18:26:07",
+      "metrics": {
+        "break_attendance_default__gitex2025_d1": 45000,
+        "break_attendance_default__dfw2026_d1": 25000
+      },
+      "n": 30,
+      "split": "scenario-grid",
+      "is_synthetic": true,
+      "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows"
+    },
     "simulator": {
-      "file": "simulator_20261111-181204.json",
-      "timestamp": "2026-11-11T18:12:04",
+      "file": "simulator_20261111-182209.json",
+      "timestamp": "2026-11-11T18:22:09",
       "metrics": {
         "property_pass_rate": 1.0,
         "conservation_error_max": 0.0
@@ -32,8 +44,8 @@
     "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
     "is_synthetic": true,
     "file": "station_hour_synthetic.parquet",
-    "config_hash": "dc6207ede8"
+    "config_hash": "90b5743fcd"
   },
   "decisions_logged": 0,
-  "contract": "1.1.0"
+  "contract": "1.2.0"
 }

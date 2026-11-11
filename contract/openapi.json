@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "paths": {
     "/healthz": {
@@ -450,6 +450,29 @@
               }
             ],
             "title": "Source Url"
+          },
+          "profile": {
+            "type": "string",
+            "title": "Profile",
+            "default": "default"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
           }
         },
         "type": "object",

@@ -1,6 +1,6 @@
 """Simulator property suite → eval/results/simulator_<ts>.json (docs/08).
 
-Runs the invariants on the real demo forecast (DFW Day 1 at several attendance levels) rather than on toy
+Runs the invariants on the real scenario forecasts (DFW Day 1 and GITEX 2025 Day 1 at several attendance levels) rather than on toy
 inputs, so a broken simulator fails the gate. Usage: python -m eval.suites.simulator
 """
 from __future__ import annotations
@@ -33,21 +33,23 @@ def run() -> dict:
     def check(name: str, ok: bool, err: float = 0.0) -> None:
         checks.append((name, bool(ok), float(err)))
 
-    for att in (15000, 25000, 40000):
-        fc = build_forecast("dfw2026_d1", attendance=att)
+    scenarios = [("dfw2026_d1", 15000), ("dfw2026_d1", 25000), ("dfw2026_d1", 40000),
+                 ("gitex2025_d1", 40000), ("gitex2025_d1", 60000)]
+    for eid, att in scenarios:
+        fc = build_forecast(eid, attendance=att)
         d, wd = fc["demand"], fc["weekday"]
         base = simulate(d, weekday=wd)
-        check(f"noop_equality@{att}", simulate(d, [], weekday=wd).summary == base.summary)
+        check(f"noop_equality@{eid}/{att}", simulate(d, [], weekday=wd).summary == base.summary)
         for i, bundle in enumerate(BUNDLES[1:], 1):
             res = simulate(d, bundle, weekday=wd)
             err = abs(base.summary["total_demand"] - res.summary["total_demand"] - res.diverted_off_metro)
-            check(f"conservation@{att}#{i}", err <= TOL, err)
-            check(f"nonnegative@{att}#{i}", all(r["demand"] >= 0 and r["queue"] >= 0 for r in res.rows))
-            check(f"order_independent@{att}#{i}",
+            check(f"conservation@{eid}/{att}#{i}", err <= TOL, err)
+            check(f"nonnegative@{eid}/{att}#{i}", all(r["demand"] >= 0 and r["queue"] >= 0 for r in res.rows))
+            check(f"order_independent@{eid}/{att}#{i}",
                   simulate(d, list(reversed(bundle)), weekday=wd).summary == res.summary)
         for hw in (5, 4, 3, 2.5):
             more = simulate(d, [{"type": "extra_trains", "params": {"headway_min": hw, "hours": EVENING}}], weekday=wd)
-            check(f"monotone_trains@{att}/hw{hw}",
+            check(f"monotone_trains@{eid}/{att}/hw{hw}",
                   all(more.summary[k] <= base.summary[k] for k in ("peak_lf", "excess_pax", "max_wait_min")))
     for minutes, pos in itertools.product((15, 20, 30, 45, 60, 90), (0, 40, 72, 95)):
         s = [0.0] * 96
