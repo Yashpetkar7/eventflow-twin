@@ -5,8 +5,14 @@ Demand per station-bin is split into a 'base' part and an 'event' part so a stag
 event surge. Over-capacity passengers are not lost: a deterministic fluid queue carries anyone who could not
 board into the next bin, which yields the platform-wait metrics.
 
+Capacity: scheduled trains per hour per direction from the official RTA GTFS timetable
+(config/capacity_gtfs.yaml; `capacity.source: assumption` falls back to headway_min). With a share p of boarders
+heading in direction 0, the station's effective boarding capacity is set by the busier-relative direction:
+    cap_dir(s,b)  = trains_dir_in_bin × train_capacity × boardable_share
+    cap(s,b)      = min(cap_dir0 / p, cap_dir1 / (1 − p))
+Bins with no scheduled service (metro closed) put their demand in `no_service_pax`; they are never queued.
+
 Definitions (per station s, bin b; all assumptions live in config/corridor.yaml):
-    cap(s,b)      = trains_in_bin × train_capacity × boardable_share
     load_factor   = demand / cap (docs/05 definition); over-capacity if load_factor > overcap_threshold
     offered(s,b)  = demand(s,b) + queue carried in from b-1
     served(s,b)   = min(offered, cap);  queue_out = offered − served   (feeds the wait metrics only)
@@ -17,10 +23,13 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 import numpy as np
 
-from .config import corridor
+import yaml
+
+from .config import ROOT, corridor
 from .interventions import (ExtraTrains, RobotaxiStaging, ShuttleBus, StaggeredExit, WayfindingRedirect,
                             validate_interventions)
 
@@ -39,22 +48,51 @@ def headway_for_hour(h: int, hw: dict) -> float:
     return hw["night"]
 
 
+@lru_cache(maxsize=1)
+def gtfs_table() -> dict | None:
+    p = ROOT / "config/capacity_gtfs.yaml"
+    return yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+def scheduled_tph(station: str, hour: int, weekday: int) -> tuple[float, float]:
+    """Scheduled trains per hour (direction 0, direction 1) at a station."""
+    cap = corridor()["capacity"]
+    table = gtfs_table() if cap.get("source", "assumption") == "gtfs" else None
+    if table:
+        daytype = cap["gtfs_daytype_for_weekday"][weekday]
+        dirs = table["trains_per_hour"][daytype][station]
+        return float(dirs["dir0"][hour]), float(dirs["dir1"][hour])
+    t = 60.0 / headway_for_hour(hour, cap["headway_min"])
+    return t, t
+
+
 def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], float] | None = None,
-                   bph: int | None = None) -> dict[str, list[float]]:
-    """Boardable capacity per station per bin. `headway_override` is keyed by (line, hour)."""
+                   bph: int | None = None, weekday: int = 2) -> tuple[dict[str, list[float]], float]:
+    """Effective boarding capacity per station per bin, plus train trips added by `headway_override`
+    (keyed by (line, hour); a direction never gets fewer trains than scheduled). Added trips are counted once
+    per line and direction (trains serve every station on the line)."""
     cfg = corridor()
     cap, bph = cfg["capacity"], bph or bins_per_hour()
     line_of = {s["id"]: s["line"] for s in cfg["stations"]}
-    bin_min = 60 / bph
+    p = float(cap.get("direction_split", 0.5))
+    seat = cap["train_capacity"] * cap["boardable_share"]
+    override = headway_override or {}
+    added: dict[tuple[str, int], float] = {}
     out = {}
     for s in stations:
         row = []
-        for b in range(24 * bph):
-            h = b // bph
-            hw = (headway_override or {}).get((line_of.get(s, "Red"), h), headway_for_hour(h, cap["headway_min"]))
-            row.append(bin_min / hw * cap["train_capacity"] * cap["boardable_share"])
+        for h in range(24):
+            t0, t1 = scheduled_tph(s, h, weekday)
+            key = (line_of.get(s, "Red"), h)
+            if key in override:
+                floor = 60.0 / override[key]
+                n0, n1 = max(t0, floor), max(t1, floor)
+                added[key] = max(added.get(key, 0.0), (n0 - t0) + (n1 - t1))
+                t0, t1 = n0, n1
+            c0, c1 = t0 / bph * seat, t1 / bph * seat
+            row += [min(c0 / p, c1 / (1 - p))] * bph
         out[s] = row
-    return out
+    return out, sum(added.values())
 
 
 def hourly_to_bins(series: list[float], bph: int | None = None) -> list[float]:
@@ -109,7 +147,7 @@ def _hours_to_bins(hours: list[int], bph: int) -> list[int]:
     return [h * bph + j for h in sorted(set(hours)) for j in range(bph)]
 
 
-def simulate(demand: Demand, interventions: list | None = None) -> SimResult:
+def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2) -> SimResult:
     """Pure function: same inputs → same outputs. Raises InterventionError on invalid interventions."""
     cfg = corridor()
     cap_cfg, iv_cfg = cfg["capacity"], cfg["interventions"]
@@ -140,17 +178,10 @@ def simulate(demand: Demand, interventions: list | None = None) -> SimResult:
             for h in iv.params.hours:
                 key = (iv.params.line, h)
                 hw_override[key] = min(hw_override.get(key, float("inf")), iv.params.headway_min)
-    added_trains = 0.0
-    for (line, h), new_hw in list(hw_override.items()):
-        base_hw = headway_for_hour(h, cap_cfg["headway_min"])
-        if new_hw >= base_hw:
-            del hw_override[(line, h)]           # no improvement → no change, no cost
-            continue
-        added_trains += 60 / new_hw - 60 / base_hw
+    cap, added_trains = capacity_table(stations, hw_override, bph, weekday)
     if any(isinstance(iv, ExtraTrains) for iv in ivs):
         cost += added_trains * iv_cfg["cost_proxy"]["extra_trains_per_train_hour"]
         effects.append({"type": "extra_trains", "added_train_trips": round(added_trains, 1)})
-    cap = capacity_table(stations, hw_override, bph)
 
     # Pass 2 — move or divert demand (targeted at crowding, never creating a new hotspot for shuttles).
     for iv in ivs:
@@ -182,17 +213,26 @@ def simulate(demand: Demand, interventions: list | None = None) -> SimResult:
     # Queue + metrics.
     rows, hourly = [], []
     overcap_bins, excess, peak_lf, max_wait, delay_pax_min, end_queue, total_dem = 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    no_service = 0.0
     for s in stations:
         q = 0.0
         hour_acc: dict[int, dict] = {}
         for b in range(n):
             dem, c = _total(d, s, b), cap[s][b]
+            total_dem += dem
+            if c <= 0:                       # metro closed: not queued, reported separately
+                no_service += dem + q
+                q = 0.0
+                rows.append({"station_id": s, "bin": b, "time": f"{int(b * bin_min) // 60:02d}:{int(b * bin_min) % 60:02d}",
+                             "demand": round(dem, 1), "capacity": 0.0, "load_factor": 0.0, "queue": 0.0, "wait_min": 0.0})
+                acc = hour_acc.setdefault(b // bph, {"demand": 0.0, "capacity": 0.0, "peak_lf": 0.0, "overcap_bins": 0})
+                acc["demand"] += dem
+                continue
             offered = dem + q
             served = min(offered, c)
             q = offered - served
             lf = dem / c if c else 0.0
             wait = q / c * bin_min if c else 0.0
-            total_dem += dem
             overcap_bins += lf > thr
             excess += max(0.0, dem - thr * c)
             peak_lf, max_wait = max(peak_lf, lf), max(max_wait, wait)
@@ -218,6 +258,7 @@ def simulate(demand: Demand, interventions: list | None = None) -> SimResult:
         "cost_proxy": round(cost, 2),
         "total_demand": round(total_dem, 1),
         "end_of_day_queue": round(end_queue, 1),
+        "no_service_pax": round(no_service, 1),
         "bins_per_hour": bph,
     }
     return SimResult(rows=rows, hourly=hourly, summary=summary, effects=effects, diverted_off_metro=round(diverted, 1))

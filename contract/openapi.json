@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "paths": {
     "/healthz": {
@@ -1081,6 +1081,11 @@
             "type": "number",
             "title": "End Of Day Queue"
           },
+          "no_service_pax": {
+            "type": "number",
+            "title": "No Service Pax",
+            "description": "Demand in bins with no scheduled metro service (not queued)"
+          },
           "bins_per_hour": {
             "type": "integer",
             "title": "Bins Per Hour"
@@ -1096,6 +1101,7 @@
           "cost_proxy",
           "total_demand",
           "end_of_day_queue",
+          "no_service_pax",
           "bins_per_hour"
         ],
         "title": "SimSummary"

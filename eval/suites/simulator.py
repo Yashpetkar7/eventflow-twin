@@ -35,18 +35,18 @@ def run() -> dict:
 
     for att in (15000, 25000, 40000):
         fc = build_forecast("dfw2026_d1", attendance=att)
-        d = fc["demand"]
-        base = simulate(d)
-        check(f"noop_equality@{att}", simulate(d, []).summary == base.summary)
+        d, wd = fc["demand"], fc["weekday"]
+        base = simulate(d, weekday=wd)
+        check(f"noop_equality@{att}", simulate(d, [], weekday=wd).summary == base.summary)
         for i, bundle in enumerate(BUNDLES[1:], 1):
-            res = simulate(d, bundle)
+            res = simulate(d, bundle, weekday=wd)
             err = abs(base.summary["total_demand"] - res.summary["total_demand"] - res.diverted_off_metro)
             check(f"conservation@{att}#{i}", err <= TOL, err)
             check(f"nonnegative@{att}#{i}", all(r["demand"] >= 0 and r["queue"] >= 0 for r in res.rows))
             check(f"order_independent@{att}#{i}",
-                  simulate(d, list(reversed(bundle))).summary == res.summary)
+                  simulate(d, list(reversed(bundle)), weekday=wd).summary == res.summary)
         for hw in (5, 4, 3, 2.5):
-            more = simulate(d, [{"type": "extra_trains", "params": {"headway_min": hw, "hours": EVENING}}])
+            more = simulate(d, [{"type": "extra_trains", "params": {"headway_min": hw, "hours": EVENING}}], weekday=wd)
             check(f"monotone_trains@{att}/hw{hw}",
                   all(more.summary[k] <= base.summary[k] for k in ("peak_lf", "excess_pax", "max_wait_min")))
     for minutes, pos in itertools.product((15, 20, 30, 45, 60, 90), (0, 40, 72, 95)):

@@ -55,10 +55,14 @@ def test_queue_conserves_passengers(heavy_demand):
     for s in STATIONS:
         q = 0.0
         for r in [r for r in res.rows if r["station_id"] == s]:
+            if r["capacity"] == 0:                 # closed: counted in no_service_pax, queue cleared
+                q = 0.0
+                continue
             offered = r["demand"] + q
             served += min(offered, r["capacity"])
             q = max(0.0, offered - r["capacity"])
-    assert served + res.summary["end_of_day_queue"] == pytest.approx(res.summary["total_demand"], abs=2.0)
+    s_ = res.summary
+    assert served + s_["end_of_day_queue"] + s_["no_service_pax"] == pytest.approx(s_["total_demand"], abs=2.0)
 
 
 @pytest.mark.parametrize("hw", [5, 4, 3, 2.5])
@@ -98,7 +102,7 @@ def test_staggered_exit_reduces_peak(heavy_demand):
 def test_shuttle_never_creates_hotspot_at_destination(heavy_demand):
     res = simulate(heavy_demand, [{"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "BBY", "buses": 30, "hours": EVENING}}])
     base = {(r["station_id"], r["bin"]): r for r in simulate(heavy_demand).rows}
-    cap = capacity_table(STATIONS)
+    cap, _ = capacity_table(STATIONS)
     for r in res.rows:
         if r["station_id"] == "BBY" and r["demand"] > base[("BBY", r["bin"])]["demand"] + 0.05:
             assert r["demand"] <= 0.85 * cap["BBY"][r["bin"]] + 0.1

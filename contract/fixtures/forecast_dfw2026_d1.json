@@ -1,5 +1,5 @@
 {
-  "run_id": "fc_a6a7dfa41587",
+  "run_id": "fc_01a61a16fb99",
   "model": "empirical-weekday-quantiles + parametric-event-overlay (v1)",
   "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
   "is_synthetic": true,
@@ -81,9 +81,9 @@
       "entries_p10": 238.1,
       "entries_p50": 280.0,
       "entries_p90": 311.7,
-      "exits_p10": 255.2,
-      "exits_p50": 269.9,
-      "exits_p90": 308.6,
+      "exits_p10": 255.4,
+      "exits_p50": 270.2,
+      "exits_p90": 309.0,
       "event_entries_p50": 0.0
     },
     {
@@ -92,9 +92,9 @@
       "entries_p10": 719.3,
       "entries_p50": 785.5,
       "entries_p90": 862.5,
-      "exits_p10": 721.9,
-      "exits_p50": 787.0,
-      "exits_p90": 869.7,
+      "exits_p10": 724.9,
+      "exits_p50": 790.9,
+      "exits_p90": 874.6,
       "event_entries_p50": 0.0
     },
     {
@@ -103,9 +103,9 @@
       "entries_p10": 1066.0,
       "entries_p50": 1145.0,
       "entries_p90": 1318.5,
-      "exits_p10": 1014.4,
-      "exits_p50": 1148.6,
-      "exits_p90": 1207.7,
+      "exits_p10": 1021.6,
+      "exits_p50": 1158.2,
+      "exits_p90": 1219.7,
       "event_entries_p50": 0.0
     },
     {
@@ -114,9 +114,9 @@
       "entries_p10": 783.6,
       "entries_p50": 830.5,
       "entries_p90": 915.8,
-      "exits_p10": 790.6,
-      "exits_p50": 883.5,
-      "exits_p90": 940.9,
+      "exits_p10": 793.6,
+      "exits_p50": 887.4,
+      "exits_p90": 945.8,
       "event_entries_p50": 0.0
     },
     {
@@ -125,9 +125,9 @@
       "entries_p10": 455.3,
       "entries_p50": 467.5,
       "entries_p90": 544.6,
-      "exits_p10": 447.7,
-      "exits_p50": 474.4,
-      "exits_p90": 505.3,
+      "exits_p10": 447.9,
+      "exits_p50": 474.7,
+      "exits_p90": 505.7,
       "event_entries_p50": 0.0
     },
     {
@@ -199,35 +199,35 @@
     {
       "station_id": "MAX",
       "hour": 17,
-      "entries_p10": 879.6,
-      "entries_p50": 954.8,
-      "entries_p90": 1158.4,
+      "entries_p10": 882.2,
+      "entries_p50": 958.4,
+      "entries_p90": 1162.9,
       "exits_p10": 856.3,
       "exits_p50": 990.5,
       "exits_p90": 1055.5,
-      "event_entries_p50": 25.3
+      "event_entries_p50": 28.9
     },
     {
       "station_id": "MAX",
       "hour": 18,
-      "entries_p10": 1142.5,
-      "entries_p50": 1237.0,
-      "entries_p90": 1405.7,
+      "entries_p10": 1152.6,
+      "entries_p50": 1250.5,
+      "entries_p90": 1422.6,
       "exits_p10": 1028.0,
       "exits_p50": 1119.5,
       "exits_p90": 1165.6,
-      "event_entries_p50": 96.0
+      "event_entries_p50": 109.5
     },
     {
       "station_id": "MAX",
       "hour": 19,
-      "entries_p10": 863.9,
-      "entries_p50": 915.7,
-      "entries_p90": 980.7,
+      "entries_p10": 864.6,
+      "entries_p50": 916.6,
+      "entries_p90": 981.9,
       "exits_p10": 802.1,
       "exits_p50": 877.5,
       "exits_p90": 1001.6,
-      "event_entries_p50": 6.7
+      "event_entries_p50": 7.6
     },
     {
       "station_id": "MAX",
@@ -345,9 +345,9 @@
       "entries_p10": 340.8,
       "entries_p50": 383.0,
       "entries_p90": 425.4,
-      "exits_p10": 333.8,
-      "exits_p50": 352.9,
-      "exits_p90": 408.6,
+      "exits_p10": 333.4,
+      "exits_p50": 352.3,
+      "exits_p90": 407.9,
       "event_entries_p50": 0.0
     },
     {
@@ -356,9 +356,9 @@
       "entries_p10": 930.3,
       "entries_p50": 1035.5,
       "entries_p90": 1112.4,
-      "exits_p10": 1033.8,
-      "exits_p50": 1214.3,
-      "exits_p90": 1366.9,
+      "exits_p10": 1027.6,
+      "exits_p50": 1206.0,
+      "exits_p90": 1356.7,
       "event_entries_p50": 0.0
     },
     {
@@ -367,9 +367,9 @@
       "entries_p10": 1305.1,
       "entries_p50": 1446.5,
       "entries_p90": 1533.0,
-      "exits_p10": 1836.8,
-      "exits_p50": 2064.5,
-      "exits_p90": 2367.6,
+      "exits_p10": 1821.8,
+      "exits_p50": 2044.5,
+      "exits_p90": 2342.6,
       "event_entries_p50": 0.0
     },
     {
@@ -378,9 +378,9 @@
       "entries_p10": 1078.9,
       "entries_p50": 1171.5,
       "entries_p90": 1337.3,
-      "exits_p10": 1139.8,
-      "exits_p50": 1380.3,
-      "exits_p90": 1539.7,
+      "exits_p10": 1133.6,
+      "exits_p50": 1372.0,
+      "exits_p90": 1529.5,
       "event_entries_p50": 0.0
     },
     {
@@ -389,9 +389,9 @@
       "entries_p10": 549.8,
       "entries_p50": 612.5,
       "entries_p90": 693.3,
-      "exits_p10": 535.7,
-      "exits_p50": 583.9,
-      "exits_p90": 643.3,
+      "exits_p10": 535.3,
+      "exits_p50": 583.3,
+      "exits_p90": 642.6,
       "event_entries_p50": 0.0
     },
     {
@@ -452,46 +452,46 @@
     {
       "station_id": "WTC",
       "hour": 16,
-      "entries_p10": 786.1,
-      "entries_p50": 877.7,
+      "entries_p10": 786.0,
+      "entries_p50": 877.6,
       "entries_p90": 1015.4,
       "exits_p10": 793.0,
       "exits_p50": 856.0,
       "exits_p90": 911.9,
-      "event_entries_p50": 1.2
+      "event_entries_p50": 1.1
     },
     {
       "station_id": "WTC",
       "hour": 17,
-      "entries_p10": 1405.4,
-      "entries_p50": 1622.7,
-      "entries_p90": 1773.6,
+      "entries_p10": 1399.8,
+      "entries_p50": 1615.2,
+      "entries_p90": 1764.3,
       "exits_p10": 1145.8,
       "exits_p50": 1237.5,
       "exits_p90": 1345.2,
-      "event_entries_p50": 239.2
+      "event_entries_p50": 231.7
     },
     {
       "station_id": "WTC",
       "hour": 18,
-      "entries_p10": 2028.1,
-      "entries_p50": 2396.3,
-      "entries_p90": 2772.7,
+      "entries_p10": 2007.0,
+      "entries_p50": 2368.1,
+      "entries_p90": 2737.5,
       "exits_p10": 1285.5,
       "exits_p50": 1422.0,
       "exits_p90": 1581.6,
-      "event_entries_p50": 907.3
+      "event_entries_p50": 879.1
     },
     {
       "station_id": "WTC",
       "hour": 19,
-      "entries_p10": 1073.5,
-      "entries_p50": 1253.5,
-      "entries_p90": 1425.1,
+      "entries_p10": 1072.0,
+      "entries_p50": 1251.6,
+      "entries_p90": 1422.7,
       "exits_p10": 1045.5,
       "exits_p50": 1152.5,
       "exits_p90": 1322.3,
-      "event_entries_p50": 63.0
+      "event_entries_p50": 61.1
     },
     {
       "station_id": "WTC",
@@ -609,9 +609,9 @@
       "entries_p10": 379.7,
       "entries_p50": 408.0,
       "entries_p90": 438.0,
-      "exits_p10": 406.5,
-      "exits_p50": 444.2,
-      "exits_p90": 510.4,
+      "exits_p10": 407.1,
+      "exits_p50": 445.0,
+      "exits_p90": 511.4,
       "event_entries_p50": 0.0
     },
     {
@@ -620,9 +620,9 @@
       "entries_p10": 1080.1,
       "entries_p50": 1164.0,
       "entries_p90": 1251.5,
-      "exits_p10": 1743.9,
-      "exits_p50": 2061.4,
-      "exits_p90": 2398.5,
+      "exits_p10": 1752.4,
+      "exits_p50": 2072.7,
+      "exits_p90": 2412.6,
       "event_entries_p50": 0.0
     },
     {
@@ -631,9 +631,9 @@
       "entries_p10": 1525.7,
       "entries_p50": 1608.5,
       "entries_p90": 1702.0,
-      "exits_p10": 3098.4,
-      "exits_p50": 3800.7,
-      "exits_p90": 4599.6,
+      "exits_p10": 3119.0,
+      "exits_p50": 3828.1,
+      "exits_p90": 4633.9,
       "event_entries_p50": 0.0
     },
     {
@@ -642,9 +642,9 @@
       "entries_p10": 1164.7,
       "entries_p50": 1300.0,
       "entries_p90": 1413.2,
-      "exits_p10": 1840.6,
-      "exits_p50": 2155.4,
-      "exits_p90": 2421.3,
+      "exits_p10": 1849.1,
+      "exits_p50": 2166.7,
+      "exits_p90": 2435.4,
       "event_entries_p50": 0.0
     },
     {
@@ -653,9 +653,9 @@
       "entries_p10": 641.7,
       "entries_p50": 690.5,
       "entries_p90": 731.9,
-      "exits_p10": 690.4,
-      "exits_p50": 729.7,
-      "exits_p90": 778.0,
+      "exits_p10": 691.0,
+      "exits_p50": 730.5,
+      "exits_p90": 779.0,
       "event_entries_p50": 0.0
     },
     {
@@ -716,9 +716,9 @@
     {
       "station_id": "EMT",
       "hour": 16,
-      "entries_p10": 883.9,
+      "entries_p10": 884.0,
       "entries_p50": 1021.2,
-      "entries_p90": 1097.1,
+      "entries_p90": 1097.2,
       "exits_p10": 853.3,
       "exits_p50": 989.5,
       "exits_p90": 1057.8,
@@ -727,35 +727,35 @@
     {
       "station_id": "EMT",
       "hour": 17,
-      "entries_p10": 1915.9,
-      "entries_p50": 2292.9,
-      "entries_p90": 2658.4,
+      "entries_p10": 1923.5,
+      "entries_p50": 2303.0,
+      "entries_p90": 2671.1,
       "exits_p10": 1292.0,
       "exits_p50": 1418.5,
       "exits_p90": 1611.8,
-      "event_entries_p50": 860.4
+      "event_entries_p50": 870.5
     },
     {
       "station_id": "EMT",
       "hour": 18,
-      "entries_p10": 3965.7,
-      "entries_p50": 4862.9,
-      "entries_p90": 5923.7,
+      "entries_p10": 3994.7,
+      "entries_p50": 4901.5,
+      "entries_p90": 5972.0,
       "exits_p10": 1377.1,
       "exits_p50": 1569.5,
       "exits_p90": 1709.6,
-      "event_entries_p50": 3263.9
+      "event_entries_p50": 3302.5
     },
     {
       "station_id": "EMT",
       "hour": 19,
-      "entries_p10": 1389.4,
-      "entries_p50": 1535.3,
-      "entries_p90": 1633.0,
+      "entries_p10": 1391.4,
+      "entries_p50": 1538.0,
+      "entries_p90": 1636.3,
       "exits_p10": 1172.7,
       "exits_p50": 1227.5,
       "exits_p90": 1351.6,
-      "event_entries_p50": 226.8
+      "event_entries_p50": 229.5
     },
     {
       "station_id": "EMT",
@@ -873,9 +873,9 @@
       "entries_p10": 435.2,
       "entries_p50": 444.5,
       "entries_p90": 503.1,
-      "exits_p10": 406.9,
-      "exits_p50": 437.8,
-      "exits_p90": 469.4,
+      "exits_p10": 406.5,
+      "exits_p50": 437.2,
+      "exits_p90": 468.7,
       "event_entries_p50": 0.0
     },
     {
@@ -884,9 +884,9 @@
       "entries_p10": 1173.8,
       "entries_p50": 1238.0,
       "entries_p90": 1355.1,
-      "exits_p10": 1288.3,
-      "exits_p50": 1386.2,
-      "exits_p90": 1536.9,
+      "exits_p10": 1282.1,
+      "exits_p50": 1377.9,
+      "exits_p90": 1526.5,
       "event_entries_p50": 0.0
     },
     {
@@ -895,9 +895,9 @@
       "entries_p10": 1577.5,
       "entries_p50": 1746.5,
       "entries_p90": 1870.7,
-      "exits_p10": 1994.1,
-      "exits_p50": 2234.2,
-      "exits_p90": 2474.7,
+      "exits_p10": 1979.0,
+      "exits_p50": 2214.0,
+      "exits_p90": 2449.4,
       "event_entries_p50": 0.0
     },
     {
@@ -906,9 +906,9 @@
       "entries_p10": 1281.4,
       "entries_p50": 1428.5,
       "entries_p90": 1528.6,
-      "exits_p10": 1271.2,
-      "exits_p50": 1534.2,
-      "exits_p90": 1770.1,
+      "exits_p10": 1265.0,
+      "exits_p50": 1525.9,
+      "exits_p90": 1759.7,
       "event_entries_p50": 0.0
     },
     {
@@ -917,9 +917,9 @@
       "entries_p10": 687.0,
       "entries_p50": 800.0,
       "entries_p90": 824.5,
-      "exits_p10": 693.9,
-      "exits_p50": 746.3,
-      "exits_p90": 818.1,
+      "exits_p10": 693.5,
+      "exits_p50": 745.7,
+      "exits_p90": 817.4,
       "event_entries_p50": 0.0
     },
     {
@@ -982,7 +982,7 @@
       "hour": 16,
       "entries_p10": 1020.7,
       "entries_p50": 1072.9,
-      "entries_p90": 1182.0,
+      "entries_p90": 1181.9,
       "exits_p10": 965.4,
       "exits_p50": 1087.0,
       "exits_p90": 1171.9,
@@ -991,35 +991,35 @@
     {
       "station_id": "FIC",
       "hour": 17,
-      "entries_p10": 1582.7,
-      "entries_p50": 1737.6,
-      "entries_p90": 1957.7,
+      "entries_p10": 1577.0,
+      "entries_p50": 1730.1,
+      "entries_p90": 1948.3,
       "exits_p10": 1327.4,
       "exits_p50": 1463.0,
       "exits_p90": 1651.7,
-      "event_entries_p50": 192.6
+      "event_entries_p50": 185.1
     },
     {
       "station_id": "FIC",
       "hour": 18,
-      "entries_p10": 2214.2,
-      "entries_p50": 2541.3,
-      "entries_p90": 2956.5,
+      "entries_p10": 2192.8,
+      "entries_p50": 2512.8,
+      "entries_p90": 2920.8,
       "exits_p10": 1634.4,
       "exits_p50": 1745.0,
       "exits_p90": 1803.8,
-      "event_entries_p50": 730.8
+      "event_entries_p50": 702.3
     },
     {
       "station_id": "FIC",
       "hour": 19,
-      "entries_p10": 1294.5,
-      "entries_p50": 1432.8,
-      "entries_p90": 1560.0,
+      "entries_p10": 1293.0,
+      "entries_p50": 1430.8,
+      "entries_p90": 1557.5,
       "exits_p10": 1338.7,
       "exits_p50": 1426.5,
       "exits_p90": 1532.1,
-      "event_entries_p50": 50.8
+      "event_entries_p50": 48.8
     },
     {
       "station_id": "FIC",
@@ -1139,7 +1139,7 @@
       "entries_p90": 713.7,
       "exits_p10": 570.6,
       "exits_p50": 613.2,
-      "exits_p90": 623.3,
+      "exits_p90": 623.4,
       "event_entries_p50": 0.0
     },
     {
@@ -1148,9 +1148,9 @@
       "entries_p10": 1668.3,
       "entries_p50": 1807.5,
       "entries_p90": 2065.1,
-      "exits_p10": 1557.7,
-      "exits_p50": 1694.2,
-      "exits_p90": 1867.5,
+      "exits_p10": 1558.7,
+      "exits_p50": 1695.5,
+      "exits_p90": 1869.1,
       "event_entries_p50": 0.0
     },
     {
@@ -1159,9 +1159,9 @@
       "entries_p10": 2498.7,
       "entries_p50": 2583.5,
       "entries_p90": 2794.8,
-      "exits_p10": 2350.9,
-      "exits_p50": 2569.1,
-      "exits_p90": 2814.4,
+      "exits_p10": 2353.2,
+      "exits_p50": 2572.2,
+      "exits_p90": 2818.3,
       "event_entries_p50": 0.0
     },
     {
@@ -1170,9 +1170,9 @@
       "entries_p10": 1790.5,
       "entries_p50": 2006.0,
       "entries_p90": 2301.5,
-      "exits_p10": 1739.6,
-      "exits_p50": 1806.7,
-      "exits_p90": 1975.7,
+      "exits_p10": 1740.6,
+      "exits_p50": 1808.0,
+      "exits_p90": 1977.3,
       "event_entries_p50": 0.0
     },
     {
@@ -1183,7 +1183,7 @@
       "entries_p90": 1236.9,
       "exits_p10": 974.5,
       "exits_p50": 1050.7,
-      "exits_p90": 1148.4,
+      "exits_p90": 1148.5,
       "event_entries_p50": 0.0
     },
     {
@@ -1255,35 +1255,35 @@
     {
       "station_id": "BKD",
       "hour": 17,
-      "entries_p10": 2114.1,
-      "entries_p50": 2411.6,
-      "entries_p90": 2583.2,
+      "entries_p10": 2115.0,
+      "entries_p50": 2412.7,
+      "entries_p90": 2584.6,
       "exits_p10": 2060.9,
       "exits_p50": 2174.5,
       "exits_p90": 2349.2,
-      "event_entries_p50": 15.1
+      "event_entries_p50": 16.2
     },
     {
       "station_id": "BKD",
       "hour": 18,
-      "entries_p10": 2353.0,
-      "entries_p50": 2665.8,
-      "entries_p90": 2758.7,
+      "entries_p10": 2356.2,
+      "entries_p50": 2670.1,
+      "entries_p90": 2764.1,
       "exits_p10": 2289.7,
       "exits_p50": 2640.5,
       "exits_p90": 2795.7,
-      "event_entries_p50": 57.3
+      "event_entries_p50": 61.6
     },
     {
       "station_id": "BKD",
       "hour": 19,
-      "entries_p10": 1945.3,
-      "entries_p50": 2088.5,
-      "entries_p90": 2291.0,
+      "entries_p10": 1945.5,
+      "entries_p50": 2088.8,
+      "entries_p90": 2291.4,
       "exits_p10": 1830.2,
       "exits_p50": 2023.0,
       "exits_p90": 2173.5,
-      "event_entries_p50": 4.0
+      "event_entries_p50": 4.3
     },
     {
       "station_id": "BKD",
@@ -1414,7 +1414,7 @@
       "entries_p90": 1473.4,
       "exits_p10": 1165.8,
       "exits_p50": 1303.4,
-      "exits_p90": 1451.3,
+      "exits_p90": 1451.4,
       "event_entries_p50": 0.0
     },
     {
@@ -1423,9 +1423,9 @@
       "entries_p10": 1756.9,
       "entries_p50": 1832.5,
       "entries_p90": 1933.6,
-      "exits_p10": 1739.1,
-      "exits_p50": 1868.7,
-      "exits_p90": 2126.9,
+      "exits_p10": 1739.2,
+      "exits_p50": 1868.8,
+      "exits_p90": 2127.1,
       "event_entries_p50": 0.0
     },
     {
@@ -1436,7 +1436,7 @@
       "entries_p90": 1595.9,
       "exits_p10": 1357.7,
       "exits_p50": 1422.9,
-      "exits_p90": 1503.4,
+      "exits_p90": 1503.5,
       "event_entries_p50": 0.0
     },
     {
@@ -1520,23 +1520,23 @@
       "station_id": "BBY",
       "hour": 17,
       "entries_p10": 1620.4,
-      "entries_p50": 1694.3,
-      "entries_p90": 1871.5,
+      "entries_p50": 1694.4,
+      "entries_p90": 1871.6,
       "exits_p10": 1562.0,
       "exits_p50": 1708.5,
       "exits_p90": 1877.0,
-      "event_entries_p50": 0.8
+      "event_entries_p50": 0.9
     },
     {
       "station_id": "BBY",
       "hour": 18,
-      "entries_p10": 1824.5,
-      "entries_p50": 1940.1,
-      "entries_p90": 2028.7,
+      "entries_p10": 1824.6,
+      "entries_p50": 1940.2,
+      "entries_p90": 2028.9,
       "exits_p10": 1621.8,
       "exits_p50": 1812.5,
       "exits_p90": 2099.6,
-      "event_entries_p50": 3.1
+      "event_entries_p50": 3.2
     },
     {
       "station_id": "BBY",
@@ -1596,6 +1596,6 @@
   ],
   "source": {
     "tool": "forecast",
-    "run_id": "fc_a6a7dfa41587"
+    "run_id": "fc_01a61a16fb99"
   }
 }

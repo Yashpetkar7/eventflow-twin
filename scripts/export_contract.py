@@ -2,7 +2,8 @@
 
 The web app builds against these fixtures until the live API is wired in, so front end and back end can be
 built in parallel. Fixtures are produced by the REAL code paths (no hand-typed numbers). The agent-plan fixture
-is assembled deterministically from real /simulate results and is labelled as a fixture, not agent output.
+is assembled deterministically from real /simulate results and is labelled as a fixture, not agent output. It uses the attendance-40000 what-if of the DFW scenario because at
+the assumed 15000 the real (GTFS) timetable shows no crowding, which would make an empty plan.
 
     python scripts/export_contract.py
     npx -y openapi-typescript@7 contract/openapi.json -o contract/api-types.ts
@@ -57,9 +58,10 @@ def main_() -> None:
     dump("events.json", c.get("/events").json())
     fc = c.post("/forecast", json={"event_id": "dfw2026_d1"}).json()
     dump("forecast_dfw2026_d1.json", fc)
-    dump("forecast_dfw2026_d1_attendance30000.json",
-         c.post("/forecast", json={"event_id": "dfw2026_d1", "attendance": 30000}).json())
     dump("simulate_baseline.json", c.post("/simulate", json={"forecast_run_id": fc["run_id"]}).json())
+    fc = c.post("/forecast", json={"event_id": "dfw2026_d1", "attendance": 40000}).json()
+    dump("forecast_dfw2026_d1_attendance40000.json", fc)
+    dump("simulate_baseline_attendance40000.json", c.post("/simulate", json={"forecast_run_id": fc["run_id"]}).json())
 
     sims = []
     for title, ivs in CANDIDATES:
@@ -70,8 +72,9 @@ def main_() -> None:
 
     run = main.get_run(fc["run_id"])
     from apps.api.eventflow.simulate import simulate
-    base_res = simulate(run["demand"])
-    scored = sorted(((score(base_res, simulate(run["demand"], ivs)), t, ivs, s) for t, ivs, s in sims),
+    base_res = simulate(run["demand"], weekday=run["weekday"])
+    scored = sorted(((score(base_res, simulate(run["demand"], ivs, weekday=run["weekday"])), t, ivs, s)
+                     for t, ivs, s in sims),
                     key=lambda x: (-x[0], x[3]["summary"]["overcap_station_hours"]))
     base = sims[0][2]["baseline_summary"]
     options = [{"rank": i, "title": t, "interventions": ivs, "summary": s["summary"], "delta": s["delta"],

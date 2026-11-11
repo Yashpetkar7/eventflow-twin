@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.0.0"
+CONTRACT_VERSION = "1.1.0"   # 1.1.0: SimSummary.no_service_pax (GTFS timetable has closed hours)
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -114,6 +114,7 @@ class SimSummary(BaseModel):
     cost_proxy: float
     total_demand: float
     end_of_day_queue: float
+    no_service_pax: float = Field(description="Demand in bins with no scheduled metro service (not queued)")
     bins_per_hour: int
 
 

@@ -6,6 +6,7 @@ node_modules/
 .next/
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/MANIFEST.md
 data/interim/*
 data/processed/*.parquet
 *.pdf

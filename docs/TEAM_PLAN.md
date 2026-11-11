@@ -3,6 +3,19 @@
 Status at 11 Nov 2026 evening. Target: demo-ready **17 Nov** (works for both exhibit periods). Owners for streams
 A/B/C are **to be agreed on the team call**; the proposal is at the bottom.
 
+## 0. Update 11 Nov evening — real timetable changes the demo story (read first)
+The official RTA GTFS (Sep–Dec 2021) is now the capacity source (`config/capacity_gtfs.yaml`, DECISIONS #18–21).
+Real headways at Emirates Towers on a weekday evening are ~2.6–3.5 min, not the 4-min placeholder. Result:
+**DFW Day 1 at the assumed 15,000 visitors no longer overloads any station** (EMT peak LF 0.61). Crowding starts
+≈ 25k and is clear at 40k (LF 1.31, 10-min waits). We did not tune assumptions to bring the hotspot back.
+Decide together:
+1. **Demo scenario.** Options: a sourced attendance figure for DFW; a bigger verified event (GITEX at DWTC, New
+   Year's Eve at Burj Khalifa/Dubai Mall — both real, both in historical ridership); or keep DFW and make the
+   attendance slider the story ("at what crowd size does EMT break?").
+2. **Through-load.** `boardable_share` 0.35 is the softest assumption: trains reach EMT already loaded. Ridership
+   origin–destination data lets Stream A compute on-board load per segment and replace it.
+3. The ranking flaw (§3 A6) still applies: with the new capacity the walking redirect ranks #1 on Δexcess − λ·cost.
+
 ## 1. What already exists (commit `2866ae4`+)
 | Area | State |
 |---|---|
@@ -12,7 +25,8 @@ A/B/C are **to be agreed on the team call**; the proposal is at the bottom.
 | API | Contract v1 frozen: `/healthz /stations /events /forecast /simulate /decisions /evidence`, `/agent/plan` = 501 stub |
 | Contract | `contract/openapi.json`, `contract/api-types.ts`, 9 fixtures from real code paths, drift test |
 | Tooling | `python tasks.py <task>` on every OS; pinned `requirements.txt`; CI gate workflow; 57 tests |
-| Not started | real-data ingest, LightGBM serving + conformal, exhaustive search, agents, offline cache, web app, Arabic, kiosk, `demo` task |
+| Data | Official RTA GTFS 2021 ingested for capacity + station coords (`data/raw/MANIFEST.md`); ridership still missing |
+| Not started | ridership ingest, LightGBM serving + conformal, exhaustive search, agents, offline cache, web app, Arabic, kiosk, `demo` task |
 
 ## 2. Rules that keep three people from colliding
 - **Contract first.** Never change `apps/api/eventflow/schemas.py` silently. Change = bump `CONTRACT_VERSION`,
@@ -27,7 +41,7 @@ A/B/C are **to be agreed on the team call**; the proposal is at the bottom.
 ## 3. Streams
 **A — Data, forecast, simulator core**
 1. Real data: ingest Dubai Pulse ridership → `data/processed/station_hour.parquet` (reindex to a gap-free hourly grid; the backtest refuses gaps). Station alias table + unmatched-name test. `data/raw/MANIFEST.md`.
-2. Verify corridor station names/coords and venue coords; GTFS headways → `corridor.yaml` (record which feed in DECISIONS #5).
+2. ~~Station names/coords + GTFS headways~~ done (DECISIONS #18–20). Still: verify venue coords; replace `boardable_share` with through-load from OD ridership.
 3. LightGBM quantile model as the forecast background (same output shape) + **split-conformal** calibration of p10/p90.
 4. Calibrate `metro_share` on a verified historical event day; report calibration error honestly.
 5. `rank.py`: deterministic ranking + **exhaustive bundle search** (menu × param grid) → Pareto set; yardstick metric for B.

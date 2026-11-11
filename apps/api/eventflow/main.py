@@ -94,8 +94,8 @@ def run_simulation(forecast_run_id: str, interventions: list) -> dict:
     """Shared by /simulate, the agent tools and the eval suites."""
     run = get_run(forecast_run_id)
     ivs = [i.model_dump() if hasattr(i, "model_dump") else i for i in interventions]
-    base = simulate(run["demand"])
-    res = simulate(run["demand"], ivs)
+    base = simulate(run["demand"], weekday=run["weekday"])
+    res = simulate(run["demand"], ivs, weekday=run["weekday"])
     run_id = make_run_id("sim", {"fc": forecast_run_id, "iv": ivs})
     delta = {k: round(res.summary[k] - base.summary[k], 3) for k in res.summary if k != "bins_per_hour"}
     return {"run_id": run_id, "source_forecast": forecast_run_id, "is_synthetic": run["is_synthetic"],

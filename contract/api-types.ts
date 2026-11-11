@@ -474,6 +474,11 @@ export interface components {
             total_demand: number;
             /** End Of Day Queue */
             end_of_day_queue: number;
+            /**
+             * No Service Pax
+             * @description Demand in bins with no scheduled metro service (not queued)
+             */
+            no_service_pax: number;
             /** Bins Per Hour */
             bins_per_hour: number;
         };

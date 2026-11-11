@@ -1,0 +1,74 @@
+{
+  "suite": "forecast",
+  "git_sha": "ea8fc09",
+  "timestamp": "2026-11-11T18:22:07",
+  "models": {
+    "forecast": "lgbm",
+    "baseline": "seasonal_naive_168h"
+  },
+  "dataset_version": "synthetic:2026-08-03..2026-09-27",
+  "is_synthetic": true,
+  "horizon": "7-day-ahead hourly; features use only lags >= 168h (no within-horizon leakage)",
+  "features": [
+    "hour",
+    "dow",
+    "weekend",
+    "lag168",
+    "lag336",
+    "mean_samehour_4w",
+    "station_code",
+    "event_flag"
+  ],
+  "metrics": {
+    "naive_mase": 0.9904697257002599,
+    "naive_smape": 0.09010145844168332,
+    "lgbm_mase": 0.8357965727928904,
+    "lgbm_smape": 0.07388259228870434,
+    "lgbm_coverage80": 0.7380952380952381
+  },
+  "n": 1008,
+  "split": "test",
+  "folds": [
+    {
+      "fold_start": "2026-08-31",
+      "split": "val",
+      "naive_mase": 1.065066945184379,
+      "naive_smape": 0.0924092414541578,
+      "lgbm_mase": 0.9211463688979691,
+      "lgbm_smape": 0.07943824857813263,
+      "lgbm_coverage80": 0.6805555555555556,
+      "lgbm_mase_event_days": 1.517099328346929,
+      "n": 1008
+    },
+    {
+      "fold_start": "2026-09-07",
+      "split": "val",
+      "naive_mase": 1.0924525555540152,
+      "naive_smape": 0.09476863980431105,
+      "lgbm_mase": 0.832650693787231,
+      "lgbm_smape": 0.07700838559975147,
+      "lgbm_coverage80": 0.6805555555555556,
+      "n": 1008
+    },
+    {
+      "fold_start": "2026-09-14",
+      "split": "val",
+      "naive_mase": 0.9386876302998068,
+      "naive_smape": 0.09162936144372949,
+      "lgbm_mase": 0.7994142228205957,
+      "lgbm_smape": 0.07652563973799578,
+      "lgbm_coverage80": 0.6954365079365079,
+      "n": 1008
+    },
+    {
+      "fold_start": "2026-09-21",
+      "split": "test",
+      "naive_mase": 0.9904697257002599,
+      "naive_smape": 0.09010145844168332,
+      "lgbm_mase": 0.8357965727928904,
+      "lgbm_smape": 0.07388259228870434,
+      "lgbm_coverage80": 0.7380952380952381,
+      "n": 1008
+    }
+  ]
+}
