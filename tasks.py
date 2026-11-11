@@ -31,6 +31,10 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
     "gate": ("Check latest eval results against eval/thresholds.yaml",
              [[PY, "-m", "eval.gate", "--thresholds", "eval/thresholds.yaml"]]),
     "test": ("Run pytest", [[PY, "-m", "pytest", "-q"]]),
+    "contract": ("Re-export OpenAPI + fixtures + TS types (contract/)", [
+        [PY, "scripts/export_contract.py"],
+        ["npx", "-y", "openapi-typescript@7", "contract/openapi.json", "-o", "contract/api-types.ts"],
+    ]),
     "api": ("Run FastAPI on :8000", [[PY, "-m", "uvicorn", "apps.api.eventflow.main:app", "--reload", "--port", "8000"]]),
     "web": ("Run Next.js on :3000", [["npm", "run", "dev"]]),
 }
@@ -51,7 +55,7 @@ def run(name: str, extra: list[str]) -> int:
     for i, cmd in enumerate(cmds):
         full = cmd + (extra if i == len(cmds) - 1 else [])
         print("$", " ".join(full), flush=True)
-        rc = subprocess.call(full, cwd=cwd, env=env, shell=(os.name == "nt" and cmd[0] == "npm"))
+        rc = subprocess.call(full, cwd=cwd, env=env, shell=(os.name == "nt" and cmd[0] in ("npm", "npx")))
         if rc:
             return rc
     return 0

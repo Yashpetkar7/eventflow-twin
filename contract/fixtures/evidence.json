@@ -1,0 +1,39 @@
+{
+  "eval": {
+    "forecast": {
+      "file": "forecast_20261111-1812.json",
+      "timestamp": "2026-11-11T18:12:00",
+      "metrics": {
+        "naive_mase": 0.9904697257002599,
+        "naive_smape": 0.09010145844168332,
+        "lgbm_mase": 0.8357965727928904,
+        "lgbm_smape": 0.07388259228870434,
+        "lgbm_coverage80": 0.7380952380952381
+      },
+      "n": 1008,
+      "split": "test",
+      "is_synthetic": true,
+      "dataset_version": "synthetic:2026-08-03..2026-09-27"
+    },
+    "simulator": {
+      "file": "simulator_20261111-181204.json",
+      "timestamp": "2026-11-11T18:12:04",
+      "metrics": {
+        "property_pass_rate": 1.0,
+        "conservation_error_max": 0.0
+      },
+      "n": 93,
+      "split": "properties",
+      "is_synthetic": true,
+      "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows"
+    }
+  },
+  "data": {
+    "dataset_version": "synthetic:2026-07-06..2026-09-27:12096rows",
+    "is_synthetic": true,
+    "file": "station_hour_synthetic.parquet",
+    "config_hash": "bce3f76b8a"
+  },
+  "decisions_logged": 0,
+  "contract": "1.0.0"
+}

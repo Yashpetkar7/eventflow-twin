@@ -1,0 +1,184 @@
+{
+  "plan_id": "plan_cbe01bf25435",
+  "forecast_run_id": "fc_a6a7dfa41587",
+  "mode": "offline",
+  "is_synthetic": true,
+  "baseline_summary": {
+    "overcap_station_hours": 1.25,
+    "excess_pax": 1501.6,
+    "peak_lf": 1.377,
+    "max_wait_min": 13.9,
+    "delay_pax_min": 45932.2,
+    "cost_proxy": 0.0,
+    "total_demand": 102818.0,
+    "end_of_day_queue": 0.0,
+    "bins_per_hour": 4
+  },
+  "options": [
+    {
+      "rank": 1,
+      "title": "Stagger the exit and run a feeder shuttle",
+      "interventions": [
+        {
+          "type": "staggered_exit",
+          "params": {
+            "spread_minutes": 45
+          }
+        },
+        {
+          "type": "shuttle_bus",
+          "params": {
+            "from_station": "EMT",
+            "to_station": "BBY",
+            "buses": 10,
+            "hours": [
+              17,
+              18,
+              19
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "overcap_station_hours": 0.75,
+        "excess_pax": 161.6,
+        "peak_lf": 0.955,
+        "max_wait_min": 0.0,
+        "delay_pax_min": 0.0,
+        "cost_proxy": 32.0,
+        "total_demand": 102818.0,
+        "end_of_day_queue": 0.0,
+        "bins_per_hour": 4
+      },
+      "delta": {
+        "overcap_station_hours": -0.5,
+        "excess_pax": -1340.0,
+        "peak_lf": -0.422,
+        "max_wait_min": -13.9,
+        "delay_pax_min": -45932.2,
+        "cost_proxy": 32.0,
+        "total_demand": 0.0,
+        "end_of_day_queue": 0.0
+      },
+      "score": 700.0,
+      "rationale": "Stagger the exit and run a feeder shuttle. Simulated over-capacity station-hours go from 1.25 to 0.75, passengers above the comfort level from 1501.6 to 161.6, and peak load factor from 1.377 to 0.955. Cost proxy 32.0. [FIXTURE: deterministic template, not agent output]",
+      "sources": [
+        {
+          "tool": "simulate",
+          "run_id": "sim_5a5ca86a5037"
+        },
+        {
+          "tool": "forecast",
+          "run_id": "fc_a6a7dfa41587"
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "title": "Guide visitors to Financial Centre on foot",
+      "interventions": [
+        {
+          "type": "wayfinding_redirect",
+          "params": {
+            "from_station": "EMT",
+            "to_station": "FIC",
+            "share": 0.3,
+            "hours": [
+              17,
+              18,
+              19
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "overcap_station_hours": 2.0,
+        "excess_pax": 859.5,
+        "peak_lf": 1.117,
+        "max_wait_min": 3.5,
+        "delay_pax_min": 8835.2,
+        "cost_proxy": 1.5,
+        "total_demand": 102818.0,
+        "end_of_day_queue": 0.0,
+        "bins_per_hour": 4
+      },
+      "delta": {
+        "overcap_station_hours": 0.75,
+        "excess_pax": -642.1,
+        "peak_lf": -0.26,
+        "max_wait_min": -10.4,
+        "delay_pax_min": -37097.0,
+        "cost_proxy": 1.5,
+        "total_demand": 0.0,
+        "end_of_day_queue": 0.0
+      },
+      "score": 612.1,
+      "rationale": "Guide visitors to Financial Centre on foot. Simulated over-capacity station-hours go from 1.25 to 2.0, passengers above the comfort level from 1501.6 to 859.5, and peak load factor from 1.377 to 1.117. Cost proxy 1.5. [FIXTURE: deterministic template, not agent output]",
+      "sources": [
+        {
+          "tool": "simulate",
+          "run_id": "sim_b086a01601b5"
+        },
+        {
+          "tool": "forecast",
+          "run_id": "fc_a6a7dfa41587"
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "title": "Run trains every 3 minutes during the exit peak",
+      "interventions": [
+        {
+          "type": "extra_trains",
+          "params": {
+            "headway_min": 3,
+            "hours": [
+              17,
+              18,
+              19
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "overcap_station_hours": 0.75,
+        "excess_pax": 470.7,
+        "peak_lf": 1.033,
+        "max_wait_min": 0.5,
+        "delay_pax_min": 608.1,
+        "cost_proxy": 45.0,
+        "total_demand": 102818.0,
+        "end_of_day_queue": 0.0,
+        "bins_per_hour": 4
+      },
+      "delta": {
+        "overcap_station_hours": -0.5,
+        "excess_pax": -1030.9,
+        "peak_lf": -0.344,
+        "max_wait_min": -13.4,
+        "delay_pax_min": -45324.1,
+        "cost_proxy": 45.0,
+        "total_demand": 0.0,
+        "end_of_day_queue": 0.0
+      },
+      "score": 130.9,
+      "rationale": "Run trains every 3 minutes during the exit peak. Simulated over-capacity station-hours go from 1.25 to 0.75, passengers above the comfort level from 1501.6 to 470.7, and peak load factor from 1.377 to 1.033. Cost proxy 45.0. [FIXTURE: deterministic template, not agent output]",
+      "sources": [
+        {
+          "tool": "simulate",
+          "run_id": "sim_e89128a85b04"
+        },
+        {
+          "tool": "forecast",
+          "run_id": "fc_a6a7dfa41587"
+        }
+      ]
+    }
+  ],
+  "verify": {
+    "numbers_checked": 0,
+    "all_matched": true,
+    "fallback_used": true
+  }
+}

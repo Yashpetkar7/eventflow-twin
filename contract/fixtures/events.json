@@ -1,0 +1,16 @@
+[
+  {
+    "id": "dfw2026_d1",
+    "name": "Dubai Future Week 2026 – Day 1 (demo scenario)",
+    "venue": "Emirates Towers & Museum of the Future",
+    "lat": 25.2178,
+    "lon": 55.2823,
+    "date": "2026-11-18",
+    "start": "09:30",
+    "end": "18:00",
+    "attendance": 15000,
+    "is_assumption": true,
+    "is_synthetic": false,
+    "source_url": "https://www.dubaifutureweek.com/en"
+  }
+]

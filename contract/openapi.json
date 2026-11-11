@@ -1,0 +1,1420 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EventFlow Twin API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Healthz",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stations": {
+      "get": {
+        "summary": "Stations",
+        "operationId": "stations_stations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Station"
+                  },
+                  "type": "array",
+                  "title": "Response Stations Stations Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "summary": "List Events",
+        "operationId": "list_events_events_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  },
+                  "type": "array",
+                  "title": "Response List Events Events Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forecast": {
+      "post": {
+        "summary": "Forecast",
+        "operationId": "forecast_forecast_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulate": {
+      "post": {
+        "summary": "Simulate Ep",
+        "operationId": "simulate_ep_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/plan": {
+      "post": {
+        "summary": "Agent Plan",
+        "operationId": "agent_plan_agent_plan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decisions": {
+      "post": {
+        "summary": "Decisions",
+        "description": "Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL.",
+        "operationId": "decisions_decisions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evidence": {
+      "get": {
+        "summary": "Evidence",
+        "description": "Latest eval metrics per suite + data provenance + decision count.",
+        "operationId": "evidence_evidence_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentPlanRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Goal",
+            "default": "Keep every station under 85% load during the exit surge"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Untrusted planner notes (treated as data)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id"
+        ],
+        "title": "AgentPlanRequest"
+      },
+      "AgentPlanResponse": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "offline"
+            ],
+            "title": "Mode"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "baseline_summary": {
+            "$ref": "#/components/schemas/SimSummary"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/PlanOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "verify": {
+            "$ref": "#/components/schemas/VerifyReport"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "forecast_run_id",
+          "mode",
+          "is_synthetic",
+          "baseline_summary",
+          "options",
+          "verify"
+        ],
+        "title": "AgentPlanResponse"
+      },
+      "DecisionRequest": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "option_rank": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Option Rank"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "user": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[\\w .\\-]+$",
+            "title": "User",
+            "description": "Anonymous label only",
+            "default": "visitor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "option_rank",
+          "decision"
+        ],
+        "title": "DecisionRequest"
+      },
+      "DecisionResponse": {
+        "properties": {
+          "logged": {
+            "type": "boolean",
+            "title": "Logged"
+          },
+          "decision_id": {
+            "type": "string",
+            "title": "Decision Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "plan_known": {
+            "type": "boolean",
+            "title": "Plan Known"
+          }
+        },
+        "type": "object",
+        "required": [
+          "logged",
+          "decision_id",
+          "timestamp",
+          "plan_known"
+        ],
+        "title": "DecisionResponse"
+      },
+      "Event": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "start": {
+            "type": "string",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "title": "End"
+          },
+          "attendance": {
+            "type": "integer",
+            "title": "Attendance"
+          },
+          "is_assumption": {
+            "type": "boolean",
+            "title": "Is Assumption",
+            "default": false
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic",
+            "default": false
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "venue",
+          "lat",
+          "lon",
+          "date",
+          "start",
+          "end",
+          "attendance"
+        ],
+        "title": "Event"
+      },
+      "ExtraTrains": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "extra_trains",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/ExtraTrainsParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "ExtraTrains"
+      },
+      "ExtraTrainsParams": {
+        "properties": {
+          "headway_min": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Headway Min",
+            "description": "New headway in minutes; must be ≥ min_headway_min"
+          },
+          "hours": {
+            "items": {
+              "type": "integer",
+              "maximum": 23.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Hours"
+          },
+          "line": {
+            "type": "string",
+            "title": "Line",
+            "default": "Red"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "headway_min",
+          "hours"
+        ],
+        "title": "ExtraTrainsParams"
+      },
+      "ForecastRequest": {
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id",
+            "description": "Event from /events; null = background only"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date",
+            "description": "YYYY-MM-DD; picks the weekday profile (defaults to the event date)"
+          },
+          "weekday": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 6.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weekday",
+            "description": "0=Mon … 6=Sun; overrides date"
+          },
+          "attendance": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 200000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance",
+            "description": "What-if override of event attendance"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time",
+            "description": "What-if override of event end time (HH:MM)"
+          }
+        },
+        "type": "object",
+        "title": "ForecastRequest"
+      },
+      "ForecastResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "event_is_assumption": {
+            "type": "boolean",
+            "title": "Event Is Assumption"
+          },
+          "weekday": {
+            "type": "integer",
+            "title": "Weekday"
+          },
+          "attendance_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Used"
+          },
+          "end_used": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Used"
+          },
+          "band_note": {
+            "type": "string",
+            "title": "Band Note"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "model",
+          "dataset_version",
+          "is_synthetic",
+          "event_is_assumption",
+          "weekday",
+          "attendance_used",
+          "end_used",
+          "band_note",
+          "rows",
+          "source"
+        ],
+        "title": "ForecastResponse"
+      },
+      "ForecastRow": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "entries_p10": {
+            "type": "number",
+            "title": "Entries P10"
+          },
+          "entries_p50": {
+            "type": "number",
+            "title": "Entries P50"
+          },
+          "entries_p90": {
+            "type": "number",
+            "title": "Entries P90"
+          },
+          "exits_p10": {
+            "type": "number",
+            "title": "Exits P10"
+          },
+          "exits_p50": {
+            "type": "number",
+            "title": "Exits P50"
+          },
+          "exits_p90": {
+            "type": "number",
+            "title": "Exits P90"
+          },
+          "event_entries_p50": {
+            "type": "number",
+            "title": "Event Entries P50"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "hour",
+          "entries_p10",
+          "entries_p50",
+          "entries_p90",
+          "exits_p10",
+          "exits_p50",
+          "exits_p90",
+          "event_entries_p50"
+        ],
+        "title": "ForecastRow"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PlanOption": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Rank"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "interventions": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Interventions"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/SimSummary"
+          },
+          "delta": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Delta"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "title",
+          "interventions",
+          "summary",
+          "delta",
+          "score",
+          "rationale",
+          "sources"
+        ],
+        "title": "PlanOption"
+      },
+      "RedirectParams": {
+        "properties": {
+          "from_station": {
+            "type": "string",
+            "title": "From Station"
+          },
+          "to_station": {
+            "type": "string",
+            "title": "To Station"
+          },
+          "share": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Share"
+          },
+          "hours": {
+            "items": {
+              "type": "integer",
+              "maximum": 23.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Hours"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "from_station",
+          "to_station",
+          "share"
+        ],
+        "title": "RedirectParams"
+      },
+      "RobotaxiParams": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "vehicles": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Vehicles"
+          },
+          "hours": {
+            "items": {
+              "type": "integer",
+              "maximum": 23.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Hours"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "station",
+          "vehicles",
+          "hours"
+        ],
+        "title": "RobotaxiParams"
+      },
+      "RobotaxiStaging": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "robotaxi_staging",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/RobotaxiParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "RobotaxiStaging"
+      },
+      "ShuttleBus": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "shuttle_bus",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/ShuttleBusParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "ShuttleBus"
+      },
+      "ShuttleBusParams": {
+        "properties": {
+          "from_station": {
+            "type": "string",
+            "title": "From Station"
+          },
+          "to_station": {
+            "type": "string",
+            "title": "To Station"
+          },
+          "buses": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Buses"
+          },
+          "hours": {
+            "items": {
+              "type": "integer",
+              "maximum": 23.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Hours"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "from_station",
+          "to_station",
+          "buses",
+          "hours"
+        ],
+        "title": "ShuttleBusParams"
+      },
+      "SimHourRow": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "demand": {
+            "type": "number",
+            "title": "Demand"
+          },
+          "capacity": {
+            "type": "number",
+            "title": "Capacity"
+          },
+          "peak_lf": {
+            "type": "number",
+            "title": "Peak Lf"
+          },
+          "overcap_bins": {
+            "type": "integer",
+            "title": "Overcap Bins"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "hour",
+          "demand",
+          "capacity",
+          "peak_lf",
+          "overcap_bins"
+        ],
+        "title": "SimHourRow"
+      },
+      "SimRow": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "bin": {
+            "type": "integer",
+            "title": "Bin"
+          },
+          "time": {
+            "type": "string",
+            "title": "Time"
+          },
+          "demand": {
+            "type": "number",
+            "title": "Demand"
+          },
+          "capacity": {
+            "type": "number",
+            "title": "Capacity"
+          },
+          "load_factor": {
+            "type": "number",
+            "title": "Load Factor"
+          },
+          "queue": {
+            "type": "number",
+            "title": "Queue"
+          },
+          "wait_min": {
+            "type": "number",
+            "title": "Wait Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "bin",
+          "time",
+          "demand",
+          "capacity",
+          "load_factor",
+          "queue",
+          "wait_min"
+        ],
+        "title": "SimRow"
+      },
+      "SimSummary": {
+        "properties": {
+          "overcap_station_hours": {
+            "type": "number",
+            "title": "Overcap Station Hours"
+          },
+          "excess_pax": {
+            "type": "number",
+            "title": "Excess Pax"
+          },
+          "peak_lf": {
+            "type": "number",
+            "title": "Peak Lf"
+          },
+          "max_wait_min": {
+            "type": "number",
+            "title": "Max Wait Min"
+          },
+          "delay_pax_min": {
+            "type": "number",
+            "title": "Delay Pax Min"
+          },
+          "cost_proxy": {
+            "type": "number",
+            "title": "Cost Proxy"
+          },
+          "total_demand": {
+            "type": "number",
+            "title": "Total Demand"
+          },
+          "end_of_day_queue": {
+            "type": "number",
+            "title": "End Of Day Queue"
+          },
+          "bins_per_hour": {
+            "type": "integer",
+            "title": "Bins Per Hour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overcap_station_hours",
+          "excess_pax",
+          "peak_lf",
+          "max_wait_min",
+          "delay_pax_min",
+          "cost_proxy",
+          "total_demand",
+          "end_of_day_queue",
+          "bins_per_hour"
+        ],
+        "title": "SimSummary"
+      },
+      "SimulateRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "interventions": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Interventions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id"
+        ],
+        "title": "SimulateRequest"
+      },
+      "SimulateResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "source_forecast": {
+            "type": "string",
+            "title": "Source Forecast"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/SimSummary"
+          },
+          "baseline_summary": {
+            "$ref": "#/components/schemas/SimSummary"
+          },
+          "delta": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Delta",
+            "description": "summary − baseline_summary for each numeric field"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Effects"
+          },
+          "diverted_off_metro": {
+            "type": "number",
+            "title": "Diverted Off Metro"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SimRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "hourly": {
+            "items": {
+              "$ref": "#/components/schemas/SimHourRow"
+            },
+            "type": "array",
+            "title": "Hourly"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "source_forecast",
+          "is_synthetic",
+          "summary",
+          "baseline_summary",
+          "delta",
+          "effects",
+          "diverted_off_metro",
+          "rows",
+          "hourly",
+          "source"
+        ],
+        "title": "SimulateResponse"
+      },
+      "Source": {
+        "properties": {
+          "tool": {
+            "type": "string",
+            "enum": [
+              "forecast",
+              "simulate",
+              "rank",
+              "eval"
+            ],
+            "title": "Tool"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tool",
+          "run_id"
+        ],
+        "title": "Source",
+        "description": "Provenance attached to every set of numbers (CLAUDE.md rule 2)."
+      },
+      "StaggeredExit": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "staggered_exit",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/StaggeredExitParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "StaggeredExit"
+      },
+      "StaggeredExitParams": {
+        "properties": {
+          "spread_minutes": {
+            "type": "integer",
+            "title": "Spread Minutes"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "spread_minutes"
+        ],
+        "title": "StaggeredExitParams"
+      },
+      "Station": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name_en": {
+            "type": "string",
+            "title": "Name En"
+          },
+          "name_ar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name Ar"
+          },
+          "line": {
+            "type": "string",
+            "title": "Line"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name_en",
+          "line",
+          "lat",
+          "lon"
+        ],
+        "title": "Station"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerifyReport": {
+        "properties": {
+          "numbers_checked": {
+            "type": "integer",
+            "title": "Numbers Checked"
+          },
+          "all_matched": {
+            "type": "boolean",
+            "title": "All Matched"
+          },
+          "fallback_used": {
+            "type": "boolean",
+            "title": "Fallback Used"
+          }
+        },
+        "type": "object",
+        "required": [
+          "numbers_checked",
+          "all_matched",
+          "fallback_used"
+        ],
+        "title": "VerifyReport"
+      },
+      "WayfindingRedirect": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "wayfinding_redirect",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/RedirectParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "WayfindingRedirect"
+      }
+    }
+  }
+}

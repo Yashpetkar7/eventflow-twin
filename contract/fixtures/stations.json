@@ -1,0 +1,50 @@
+[
+  {
+    "id": "MAX",
+    "name_en": "Max (formerly Jafiliya) [VERIFY]",
+    "name_ar": null,
+    "line": "Red",
+    "lat": 25.2335,
+    "lon": 55.292
+  },
+  {
+    "id": "WTC",
+    "name_en": "World Trade Centre [VERIFY]",
+    "name_ar": null,
+    "line": "Red",
+    "lat": 25.2253,
+    "lon": 55.2855
+  },
+  {
+    "id": "EMT",
+    "name_en": "Emirates Towers [VERIFY]",
+    "name_ar": null,
+    "line": "Red",
+    "lat": 25.2175,
+    "lon": 55.2797
+  },
+  {
+    "id": "FIC",
+    "name_en": "Financial Centre [VERIFY]",
+    "name_ar": null,
+    "line": "Red",
+    "lat": 25.2115,
+    "lon": 55.2752
+  },
+  {
+    "id": "BKD",
+    "name_en": "Burj Khalifa/Dubai Mall [VERIFY]",
+    "name_ar": null,
+    "line": "Red",
+    "lat": 25.2011,
+    "lon": 55.2696
+  },
+  {
+    "id": "BBY",
+    "name_en": "Business Bay [VERIFY]",
+    "name_ar": null,
+    "line": "Red",
+    "lat": 25.1912,
+    "lon": 55.2603
+  }
+]
