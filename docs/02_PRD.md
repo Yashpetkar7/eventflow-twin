@@ -28,8 +28,8 @@ Large events (Dubai Future Week, GITEX, New Year's Eve, concerts, expos) create 
 
 ## Demo flow (the one that must never break)
 1. Landing: 3D corridor, headline "Predict the crowd before it arrives."
-2. Load scenario "Dubai Future Week — Day 1 (18 Nov), 9:30 start, 6:00 pm exit surge".
-3. Timeline scrub → Emirates Towers & World Trade Centre stations turn amber/red at exit peak.
+2. Load headline scenario "GITEX Global 2025 — Day 1 (13 Oct 2025, Dubai World Trade Centre, 10:00–17:00)" (sourced; daily attendance derived from the official expected total, labelled).
+3. Timeline scrub → World Trade Centre (and Max) build up through the afternoon; break-point view shows at what crowd size / train fullness WTC tips over. Secondary scenario: "Dubai Future Week 2026 — Day 1" (Emirates Towers).
 4. "Plan interventions" → agent returns 3 ranked options with numbers + sources.
 5. Approve 2 → re-simulation: red station-hours drop; scoreboard shows the delta.
 6. "Evidence" panel: backtest accuracy vs baseline, data sources, SYNTHETIC badges, human-approval log.

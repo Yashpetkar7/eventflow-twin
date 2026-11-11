@@ -21,7 +21,7 @@ Story for the booth: *"With the sourced 40,000 GITEX visitors a day, World Trade
 trains arrive with less than ~30% free space — exactly the number ridership data will pin down."*
 
 Decide together:
-1. **Demo scenario.** Options: a sourced attendance figure for DFW; a bigger verified event (GITEX at DWTC, New
+1. ~~**Demo scenario.**~~ **Decided 11 Nov: GITEX 2025 is the headline** (DECISIONS #25); nomination, poster, demo script, jury Q&A and PRD updated; PDF + concept images still need regenerating. Original options were: Options: a sourced attendance figure for DFW; a bigger verified event (GITEX at DWTC, New
    Year's Eve at Burj Khalifa/Dubai Mall — both real, both in historical ridership); or keep DFW and make the
    attendance slider the story ("at what crowd size does EMT break?").
 2. **Through-load.** `boardable_share` 0.35 is the softest assumption: trains reach EMT already loaded. Ridership
