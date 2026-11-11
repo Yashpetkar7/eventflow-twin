@@ -224,8 +224,12 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /** Name Ar */
+            name_ar?: string | null;
             /** Venue */
             venue: string;
+            /** Venue Ar */
+            venue_ar?: string | null;
             /** Lat */
             lat: number;
             /** Lon */
@@ -259,6 +263,8 @@ export interface components {
             sources?: string[];
             /** Note */
             note?: string | null;
+            /** Note Ar */
+            note_ar?: string | null;
         };
         /** ExtraTrains */
         ExtraTrains: {

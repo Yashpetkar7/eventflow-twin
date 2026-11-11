@@ -3,7 +3,9 @@
 events:
   - id: gitex2025_d1
     name: "GITEX Global 2025 – Day 1 (Mon 13 Oct 2025)"
+    name_ar: "جيتكس جلوبال 2025 – اليوم الأول (الاثنين 13 أكتوبر 2025)"   # Arabic: native-speaker check pending
     venue: "Dubai World Trade Centre"
+    venue_ar: "مركز دبي التجاري العالمي"
     # Coordinates: Dubai World Trade Centre as listed on Wikipedia (25.227611, 55.288778)
     lat: 25.227611
     lon: 55.288778
@@ -21,10 +23,13 @@ events:
       - "https://www.gitex.com/News/gitex-global-2025-closes-a-landmark-45th-edition-with-record-international-participation-and-outcomedriven-dialogues"
       - "https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre"
     note: "Historical event on the corridor; calibration target once metro ridership for Oct 2025 is ingested. GITEX 2026 moved to Expo City (7–11 Dec 2026), off this corridor."
+    note_ar: "فعالية سابقة على هذا المسار؛ ستُستخدم لمعايرة النموذج عند إدخال بيانات ركاب المترو لشهر أكتوبر 2025. انتقل جيتكس 2026 إلى إكسبو سيتي (7–11 ديسمبر 2026) خارج هذا المسار."
 
   - id: dfw2026_d1
     name: "Dubai Future Week 2026 – Day 1 (demo scenario)"
+    name_ar: "أسبوع دبي للمستقبل 2026 – اليوم الأول (سيناريو تجريبي)"   # Arabic: native-speaker check pending
     venue: "Emirates Towers & Museum of the Future"
+    venue_ar: "أبراج الإمارات ومتحف المستقبل"
     lat: 25.2178
     lon: 55.2823
     date: "2026-11-18"

@@ -26,8 +26,8 @@
   --radius-card: 14px;
   --radius-chip: 999px;
 
-  --font-latin: "Geist", "Inter", system-ui, sans-serif;
-  --font-arabic: "IBM Plex Sans Arabic", "Noto Kufi Arabic", system-ui, sans-serif;
+  --font-latin: var(--font-geist-sans), "Geist", "Inter", system-ui, sans-serif;
+  --font-arabic: var(--font-plex-arabic), "IBM Plex Sans Arabic", "Noto Kufi Arabic", system-ui, sans-serif;
 }
 
 :root[dir="rtl"] body { font-family: var(--font-arabic); line-height: 1.65; letter-spacing: 0; }

@@ -1,5 +1,5 @@
-import Workspace from "@/components/Workspace";
+import App from "@/components/App";
 
 export default function Home() {
-  return <Workspace />;
+  return <App />;
 }

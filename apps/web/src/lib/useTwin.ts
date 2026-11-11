@@ -6,7 +6,7 @@ import {
   api, ApiError, type AgentPlanResponse, type EventInfo, type ForecastResponse, type Intervention,
   type SimulateResponse, type Station,
 } from "./api";
-import { previewPlan } from "./previewPlanner";
+import { previewPlan, type OptionLabel, type PlannerText } from "./previewPlanner";
 
 export type Decision = "approve" | "reject";
 export type PlanStatus = "idle" | "loading" | "ready" | "error";
@@ -32,7 +32,7 @@ function mergeInterventions(lists: Intervention[][]): Intervention[] {
   return stagger ? [stagger, ...out] : out;
 }
 
-export function useTwin() {
+export function useTwin(plannerText: PlannerText, locale: "en" | "ar") {
   const [stations, setStations] = useState<Station[]>([]);
   const [events, setEvents] = useState<EventInfo[]>([]);
   const [scenario, setScenario] = useState<Scenario>({ eventId: null, attendance: null, endTime: null });
@@ -41,8 +41,9 @@ export function useTwin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<AgentPlanResponse | null>(null);
+  const [planLabels, setPlanLabels] = useState<Record<number, OptionLabel> | null>(null); // preview planner only
   const [planStatus, setPlanStatus] = useState<PlanStatus>("idle");
-  const [planError, setPlanError] = useState<string | null>(null);
+  const [planError, setPlanError] = useState<{ kind: "plan" | "decision" | "simulate"; message: string } | null>(null);
   const [decisions, setDecisions] = useState<Record<number, Decision>>({});
   const [after, setAfter] = useState<SimulateResponse | null>(null);
   const [afterLoading, setAfterLoading] = useState(false);
@@ -80,6 +81,7 @@ export function useTwin() {
         setForecast(fc);
         setBaseline(base);
         setPlan(null);
+        setPlanLabels(null);
         setPlanStatus("idle");
         setPlanError(null);
         setDecisions({});
@@ -99,28 +101,30 @@ export function useTwin() {
     setPlanError(null);
     try {
       let p: AgentPlanResponse;
+      let labels: Record<number, OptionLabel> | null = null;
       try {
-        p = await api.agentPlan(forecast.run_id);
+        p = await api.agentPlan(forecast.run_id, locale);
       } catch (e) {
         if (!(e instanceof ApiError && e.status === 501)) throw e;
-        p = await previewPlan(forecast.run_id, baseline, stations, !!scenario.eventId);
+        ({ plan: p, labels } = await previewPlan(forecast.run_id, baseline, stations, !!scenario.eventId, plannerText));
       }
       setPlan(p);
+      setPlanLabels(labels);
       setDecisions({});
       setAfter(null);
       setPlanStatus("ready");
     } catch (e) {
-      setPlanError((e as Error).message);
+      setPlanError({ kind: "plan", message: (e as Error).message });
       setPlanStatus("error");
     }
-  }, [forecast, baseline, stations, scenario.eventId]);
+  }, [forecast, baseline, stations, scenario.eventId, plannerText, locale]);
 
   const decide = useCallback(async (rank: number, decision: Decision) => {
     if (!plan || !forecast) return;
     try {
       await api.decide({ plan_id: plan.plan_id, option_rank: rank, decision, user: "visitor" });
     } catch (e) {
-      setPlanError(`Decision not logged: ${(e as Error).message}`);
+      setPlanError({ kind: "decision", message: (e as Error).message });
       return;                                    // never show an "applied" state that was not logged
     }
     const next = { ...decisions, [rank]: decision };
@@ -131,7 +135,7 @@ export function useTwin() {
     try {
       setAfter(await api.simulate(forecast.run_id, mergeInterventions(approved.map((o) => o.interventions))));
     } catch (e) {
-      setPlanError((e as Error).message);
+      setPlanError({ kind: "simulate", message: (e as Error).message });
     } finally {
       setAfterLoading(false);
     }
@@ -140,7 +144,7 @@ export function useTwin() {
   const event = events.find((e) => e.id === scenario.eventId) ?? null;
   return {
     stations, events, event, scenario, setScenario, forecast, baseline, loading, error,
-    plan, planStatus, planError, requestPlan, decisions, decide, after, afterLoading,
+    plan, planLabels, planStatus, planError, requestPlan, decisions, decide, after, afterLoading,
   };
 }
 

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.2.0"   # 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile, Event.sources, Event.note
+CONTRACT_VERSION = "1.3.0"   # 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -32,7 +32,9 @@ class Station(BaseModel):
 class Event(BaseModel):
     id: str
     name: str
+    name_ar: str | None = None
     venue: str
+    venue_ar: str | None = None
     lat: float
     lon: float
     date: str
@@ -45,6 +47,7 @@ class Event(BaseModel):
     profile: str = "default"
     sources: list[str] = Field(default_factory=list)
     note: str | None = None
+    note_ar: str | None = None
 
 
 # ---------- forecast ----------

@@ -2,7 +2,7 @@
   {
     "id": "MAX",
     "name_en": "Max",
-    "name_ar": null,
+    "name_ar": "ماكس",
     "line": "Red",
     "lat": 25.232984,
     "lon": 55.291774
@@ -10,7 +10,7 @@
   {
     "id": "WTC",
     "name_en": "World Trade Centre",
-    "name_ar": null,
+    "name_ar": "المركز التجاري العالمي",
     "line": "Red",
     "lat": 25.225489,
     "lon": 55.285489
@@ -18,7 +18,7 @@
   {
     "id": "EMT",
     "name_en": "Emirates Towers",
-    "name_ar": null,
+    "name_ar": "أبراج الإمارات",
     "line": "Red",
     "lat": 25.217178,
     "lon": 55.279792
@@ -26,7 +26,7 @@
   {
     "id": "FIC",
     "name_en": "Financial Centre",
-    "name_ar": null,
+    "name_ar": "المركز المالي",
     "line": "Red",
     "lat": 25.210956,
     "lon": 55.275493
@@ -34,7 +34,7 @@
   {
     "id": "BKD",
     "name_en": "Burj Khalifa/Dubai Mall",
-    "name_ar": null,
+    "name_ar": "برج خليفة / دبي مول",
     "line": "Red",
     "lat": 25.201471,
     "lon": 55.269574
@@ -42,7 +42,7 @@
   {
     "id": "BBY",
     "name_en": "Business Bay",
-    "name_ar": null,
+    "name_ar": "الخليج التجاري",
     "line": "Red",
     "lat": 25.191356,
     "lon": 55.260437

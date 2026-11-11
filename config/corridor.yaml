@@ -1,16 +1,17 @@
 # Corridor definition. Station names, stop ids and coordinates verified against the official RTA GTFS feed
 # (service Sep–Dec 2021, stops "<Name> Metro Station 1/2"); coordinates = mean of the two platforms.
+# Arabic names (name_ar) = official GTFS translations.txt (prefix "محطة المترو_" and platform digit removed).
 # Re-check names against the Dubai Pulse metro stations dataset once ridership is ingested.
 corridor_name: Sheikh Zayed Road / Trade Centre
 timezone: Asia/Dubai
 bins_per_hour: 4               # simulator + event overlay resolution (15-min bins); UI aggregates to hours
 stations:
-  - {id: MAX, name_en: "Max",                      line: Red, lat: 25.232984, lon: 55.291774, gtfs_stop_ids: [13801, 13802]}
-  - {id: WTC, name_en: "World Trade Centre",       line: Red, lat: 25.225489, lon: 55.285489, gtfs_stop_ids: [13901, 13902]}
-  - {id: EMT, name_en: "Emirates Towers",          line: Red, lat: 25.217178, lon: 55.279792, gtfs_stop_ids: [14001, 14002]}
-  - {id: FIC, name_en: "Financial Centre",         line: Red, lat: 25.210956, lon: 55.275493, gtfs_stop_ids: [14101, 14102]}
-  - {id: BKD, name_en: "Burj Khalifa/Dubai Mall",  line: Red, lat: 25.201471, lon: 55.269574, gtfs_stop_ids: [14201, 14202]}
-  - {id: BBY, name_en: "Business Bay",             line: Red, lat: 25.191356, lon: 55.260437, gtfs_stop_ids: [14301, 14302]}
+  - {id: MAX, name_en: "Max",                      name_ar: "ماكس", line: Red, lat: 25.232984, lon: 55.291774, gtfs_stop_ids: [13801, 13802]}
+  - {id: WTC, name_en: "World Trade Centre",       name_ar: "المركز التجاري العالمي", line: Red, lat: 25.225489, lon: 55.285489, gtfs_stop_ids: [13901, 13902]}
+  - {id: EMT, name_en: "Emirates Towers",          name_ar: "أبراج الإمارات", line: Red, lat: 25.217178, lon: 55.279792, gtfs_stop_ids: [14001, 14002]}
+  - {id: FIC, name_en: "Financial Centre",         name_ar: "المركز المالي", line: Red, lat: 25.210956, lon: 55.275493, gtfs_stop_ids: [14101, 14102]}
+  - {id: BKD, name_en: "Burj Khalifa/Dubai Mall",  name_ar: "برج خليفة / دبي مول", line: Red, lat: 25.201471, lon: 55.269574, gtfs_stop_ids: [14201, 14202]}
+  - {id: BBY, name_en: "Business Bay",             name_ar: "الخليج التجاري", line: Red, lat: 25.191356, lon: 55.260437, gtfs_stop_ids: [14301, 14302]}
 # Walkable neighbouring stations (assumption; refine with OSM in Phase 1). wayfinding_redirect may only
 # send people to a station listed here.
 neighbours: {MAX: [WTC], WTC: [MAX, EMT], EMT: [WTC, FIC], FIC: [EMT, BKD], BKD: [FIC, BBY], BBY: [BKD]}
