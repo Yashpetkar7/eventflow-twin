@@ -52,6 +52,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 | `…/twin/Metro.tsx` | Viaduct + piers, six stations (oyster-shell roofs, glass footbridges), instanced trains paced by `trains_per_hour` |
 | `…/twin/Landmarks.tsx` | Burj Khalifa, Emirates Towers, Museum of the Future, DWTC tower, Dubai Frame at their OSM positions |
 | `…/twin/Live.tsx` | Crowd columns (capacity glass, threshold ring, demand bar, pulse), venue beacon, crowd particles, illustrative traffic |
+| `…/twin/buildingsV2.ts`, `buildings.worker.ts`, `facade.ts` | Realism scene only: per-type building geometry built in a web worker, and the seven-type façade shader |
 | `…/twin/atmosphere.ts`, `src/lib/sun.ts` | Realism scene only: haze for every material, ground + water shader on the R1 bake, real sun position |
 | `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
 | `tests/ui.spec.ts` | Playwright: screenshots → `eval/results/ui/`, fps → `eval/results/ui/fps.json` (`make ui-test`) |
@@ -67,7 +68,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 ## Known limits (honest list)
 - The planner is deterministic with template explanations; no live LLM path yet (the response says so).
 - `?scene=v2`: 32 % of the ring's building heights are still estimated; 3D-GloBFP heights are calibrated against OSM tags (decision #79); the
-  ground is 10 m satellite data, soft in close-ups and dark at night until R2; façades are still the simple window grid (R3).
+  ground is 10 m satellite data, soft in close-ups. Buildings are procedural by type (R3): set-backs are the footprint scaled about its centre, not real massing.
 - Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
 - Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.

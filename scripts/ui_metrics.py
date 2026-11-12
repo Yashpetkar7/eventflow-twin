@@ -52,6 +52,12 @@ def realism_rows() -> list[str]:
                 "| | Average fps | Minimum | Quality tier at the end |", "|---|---|---|---|",
                 f"| Before, R1 scene (`before_fps.json`, {b2['timestamp']}) | {b2['avg_fps']} | {b2['min_fps']} | {b2.get('tier_at_end')} |",
                 f"| After, R2 scene (`after_fps.json`, {a2['timestamp']}) | {a2['avg_fps']} | {a2['min_fps']} | {a2.get('tier_at_end')} |", ""]
+    b3, a3 = load(UI / "realism_r3/before_fps.json"), load(UI / "realism_r3/after_fps.json")
+    if b3 and a3:
+        out += ["R3 (buildings by type): 15 before/after pairs in `eval/results/ui/realism_r3/`, clock paused, mains power, capped at the display's 60 Hz.", "",
+                "| | Average fps | Minimum | Quality tier at the end |", "|---|---|---|---|",
+                f"| Before, R2 scene (`before_fps.json`, {b3['timestamp']}) | {b3['avg_fps']} | {b3['min_fps']} | {b3.get('tier_at_end')} |",
+                f"| After, R3 scene (`after_fps.json`, {a3['timestamp']}) | {a3['avg_fps']} | {a3['min_fps']} | {a3.get('tier_at_end')} |", ""]
     v2fps = load(UI / "fps_v2.json")
     if v2fps:
         out += [f"`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, {v2fps['timestamp']}, test \"realism ring…\"): "

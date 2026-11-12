@@ -6,6 +6,7 @@ import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTwin } from "@/lib/store";
 import { buildingsGeometry, canvasTexture, flatPolygons, ribbons, sweep } from "./builders";
+import { facadeMaterialV2 } from "./facade";
 import { Ring } from "./Ring";
 import type { Manifest } from "@/lib/manifest";
 import { live, mulberry, pairs, Path, type SceneJson } from "./sceneData";
@@ -228,7 +229,8 @@ export function City({ data, corridor, manifest }: { data: SceneJson; corridor: 
     ground: groundMaterial(groundTex),
     sand: groundMaterial(null),
     water: new THREE.MeshStandardMaterial({ color: 0x2a7fa6, roughness: 0.06, metalness: 0.6, envMapIntensity: 1.25, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
-    facade: facadeMaterial(uniforms),
+    facade: manifest ? facadeMaterialV2(uniforms) : facadeMaterial(uniforms),
+    facadeFar: manifest ? facadeMaterialV2(uniforms, THREE.FrontSide) : null,
     ghost: new THREE.MeshBasicMaterial({ color: 0xb8cfe4, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide }),
     road: new THREE.MeshStandardMaterial({ color: 0x45484e, roughness: 0.92, emissive: 0xffb469, emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     highway: highwayMaterial(),
@@ -237,7 +239,7 @@ export function City({ data, corridor, manifest }: { data: SceneJson; corridor: 
     trunk: new THREE.MeshStandardMaterial({ color: 0x8a6a45, roughness: 0.9 }),
     leaf: new THREE.MeshStandardMaterial({ color: 0x4f8a3c, roughness: 0.8 }),
     lamp: new THREE.PointsMaterial({ color: 0xffcf8a, size: 9, sizeAttenuation: true, map: built.glow, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
-  }), [groundTex, built.glow, uniforms]);
+  }), [groundTex, built.glow, uniforms, manifest]);
 
   const palmGeo = useMemo(() => {
     const trunk = new THREE.CylinderGeometry(0.28, 0.42, 9, 6).translate(0, 4.5, 0);
@@ -258,7 +260,7 @@ export function City({ data, corridor, manifest }: { data: SceneJson; corridor: 
       if (v instanceof THREE.BufferGeometry || v instanceof THREE.Texture) v.dispose();
       if (Array.isArray(v)) v.forEach((x) => x instanceof THREE.BufferGeometry && x.dispose());
     });
-    Object.values(mats).forEach((m) => m.dispose());
+    Object.values(mats).forEach((m) => m?.dispose());
     palmGeo.trunk.dispose(); palmGeo.crown.dispose();
   }, [built, mats, palmGeo]);
 
@@ -273,7 +275,7 @@ export function City({ data, corridor, manifest }: { data: SceneJson; corridor: 
 
   return (
     <group>
-      {manifest ? <Ring manifest={manifest} facade={mats.facade} show={showBuildings} /> : (
+      {manifest ? <Ring manifest={manifest} facade={mats.facade} facadeFar={mats.facadeFar ?? mats.facade} show={showBuildings} /> : (
         <>
           <mesh rotation-x={-Math.PI / 2} position-y={-0.4} receiveShadow material={mats.sand}>
             <planeGeometry args={[60000, 60000]} />

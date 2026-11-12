@@ -26,17 +26,21 @@ const NOISE = /* glsl */ `
 // Six wave bands: direction (x, z), wavelength in metres, slope amplitude, speed. Each band fades out before its
 // wavelength falls under two pixels, so distant water is smooth instead of shimmering.
 const WAVES: [number, number, number, number, number][] = [
-  [0.86, 0.5, 190, 0.05, 0.35], [-0.36, 0.93, 95, 0.06, 0.5], [0.97, -0.24, 41, 0.07, 0.8],
+  [0.86, 0.5, 190, 0.018, 0.35], [-0.36, 0.93, 95, 0.026, 0.5], [0.97, -0.24, 41, 0.05, 0.8],
   [0.2, 0.98, 17, 0.08, 1.2], [-0.78, 0.62, 7.3, 0.08, 1.9], [0.6, -0.8, 3.1, 0.07, 2.7],
 ];
 const waves = WAVES.map(([dx, dz, len, amp, speed]) => /* glsl */ `
     eftWN += vec2(${dx.toFixed(2)}, ${dz.toFixed(2)}) * cos(dot(vGw.xz, vec2(${dx.toFixed(2)}, ${dz.toFixed(2)})) * ${(6.2832 / len).toFixed(4)} + uTime * ${speed.toFixed(2)})
-      * ${amp.toFixed(3)} * (1.0 - smoothstep(${(len * 0.12).toFixed(2)}, ${(len * 0.5).toFixed(2)}, eftPx));`).join("");
+      * ${amp.toFixed(3)} * (1.0 - smoothstep(${(len * 0.06).toFixed(2)}, ${(len * 0.25).toFixed(2)}, eftPx));`).join("");
 
 const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
 white.needsUpdate = true;
 
-export interface GroundTextures { map: THREE.Texture; ao?: THREE.Texture | null; mask?: THREE.Texture | null }
+export interface GroundTextures {
+  map: THREE.Texture; ao?: THREE.Texture | null; mask?: THREE.Texture | null;
+  /** finer AO over part of the ground (the corridor, 2 m / px): extent = x0, x1, z0, z1 in metres */
+  aoFine?: { tex: THREE.Texture; extent: [number, number, number, number] } | null;
+}
 
 /** Ground of the realism ring. Land: satellite colour × baked AO, with mask-driven close-up detail (sand ripple on
  *  bare ground, mottled grass in parks, grain on built-up land). Water (mask G, or everything when `allWater`):
@@ -50,12 +54,15 @@ export function groundMaterial(tex: GroundTextures, time: { value: number }, all
     sh.uniforms.uAllWater = { value: allWater ? 1 : 0 };
     sh.uniforms.uHasMask = { value: tex.mask ? 1 : 0 };
     sh.uniforms.uTime = time;
+    const fx = tex.aoFine?.extent;
+    sh.uniforms.uAoFine = { value: tex.aoFine?.tex ?? white };
+    sh.uniforms.uFine = { value: fx ? new THREE.Vector4(fx[0], fx[2], fx[1] - fx[0], fx[3] - fx[2]) : new THREE.Vector4(0, 0, 0, 0) };
     sh.vertexShader = sh.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 vGw;")
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvGw = (modelMatrix * vec4(position, 1.0)).xyz;");
     sh.fragmentShader = sh.fragmentShader
       .replace("#include <common>", `#include <common>
-        uniform sampler2D uAo; uniform sampler2D uMask; uniform float uAllWater; uniform float uHasMask; uniform float uTime;
+        uniform sampler2D uAo; uniform sampler2D uAoFine; uniform vec4 uFine; uniform sampler2D uMask; uniform float uAllWater; uniform float uHasMask; uniform float uTime;
         varying vec3 vGw;
         float eftWater = 0.0; float eftPx = 1.0; vec2 eftWN = vec2(0.0);
         ${NOISE}`)
@@ -72,7 +79,12 @@ export function groundMaterial(tex: GroundTextures, time: { value: number }, all
           vec3 land = diffuseColor.rgb;
           land *= 1.0 + near * (bare * (0.12 * (ripple - 0.5) + 0.12 * (grain - 0.5)) + mk.r * 0.26 * (grain - 0.55) + mk.b * 0.16 * (grain - 0.6));
           land = mix(land, land * vec3(0.9, 1.03, 0.84), mk.r * near * 0.45);
-          land *= texture2D(uAo, vMapUv).r;
+          float ao = texture2D(uAo, vMapUv).r;
+          if (uFine.z > 0.0) {                                             // sharper contact shadows where the fine bake covers
+            vec2 fuv = (vGw.xz - uFine.xy) / uFine.zw;
+            if (fuv.x > 0.0 && fuv.x < 1.0 && fuv.y > 0.0 && fuv.y < 1.0) ao = min(ao, texture2D(uAoFine, fuv).r);
+          }
+          land *= ao;
 
           eftWater = smoothstep(0.45, 0.6, mk.g);
           ${waves}
@@ -80,7 +92,7 @@ export function groundMaterial(tex: GroundTextures, time: { value: number }, all
           vec3 sea = mix(vec3(0.09, 0.44, 0.45), vec3(0.015, 0.12, 0.19), deep);        // shallow turquoise → deep Gulf
           sea = mix(sea, diffuseColor.rgb, 0.22);                                       // keep the satellite's sandbars
           float foam = (1.0 - smoothstep(0.5, 0.64, open)) * smoothstep(0.4, 0.8, eftN(vGw.xz * 0.11 + uTime * 0.04));
-          sea = mix(sea, vec3(0.9), foam * 0.5 * (1.0 - smoothstep(2.0, 14.0, eftPx)));
+          sea = mix(sea, vec3(0.9), foam * 0.5 * (1.0 - smoothstep(0.8, 4.0, eftPx)));          // foam is a close-up detail
           diffuseColor.rgb = mix(land, sea, eftWater);
         }`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
