@@ -75,7 +75,8 @@ python tasks.py smoke https://<production-url>
 Share the link only after the smoke test prints `OK`. Roll back with `vercel rollback`.
 
 ## Deploys from GitHub (switch on once — Krishna + Yash, ~2 minutes)
-Not switched on yet (Claude Code was not allowed to change these account settings). To make every merge to `main`
+Not switched on yet (Claude Code was not allowed to change these account settings). Version 1.8.0 was deployed by
+hand on 12 Nov 18:32 (`vercel deploy --prod` from the repo folder — never from the parent folder). To make every merge to `main`
 update https://eventflow-twin.vercel.app and every pull request get its own preview link:
 1. **Krishna:** Vercel dashboard → project **eventflow-twin** → Settings → **Git** → Connect Git Repository → GitHub →
    `Yashpetkar7/eventflow-twin`. (CLI alternative in the repo folder: `vercel git connect`.)
@@ -90,7 +91,11 @@ and `python scripts/load_check.py https://eventflow-twin.vercel.app`.
 `eval/results/load_20261112-1821.json`: 30 parallel page/API reads ×3 → 90/90 OK, p50 0.44 s, p95 5.1 s (cold starts);
 20 parallel visitors (forecast + AI plan) → 40/40 OK, p50 1.3 s, p95 1.8 s; the courtesy rate limit answered 429 from
 request 58 of 70 in a row. Abuse checks (25 interventions, 2,000-character note → 422) pass on the new code
-(`load_20261112-1823.json`, local); re-run on the live site after the next production deploy.
+(`load_20261112-1823.json`, local).
+
+**After the 1.8.0 production deploy (12 Nov, 18:32, `eval/results/load_20261112-1832.json`, live):** 90/90 reads OK
+(p50 0.40 s, p95 5.2 s), 20 parallel visitors 40/40 OK (p50 1.5 s, p95 2.7 s), abuse requests refused with 422 / 422,
+rate limit 429 from request 50 of 70. Smoke test `OK … contract 1.8.0`; security headers present on the pages.
 
 ## If the build fails
 | Symptom | Fix |

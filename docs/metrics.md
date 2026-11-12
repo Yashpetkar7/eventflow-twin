@@ -4,16 +4,16 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 nothing is typed by hand. Regenerate: `make ui-test`, then `python scripts/ui_metrics.py`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T15:15:09.560Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+Source: `eval/results/ui/fps.json` (2026-11-12T16:00:00.775Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
 
 | Measure | Value |
 |---|---|
 | Viewport | 1920x1080 (3D canvas 1230×771, device pixel ratio 1) |
 | Layers | all on, clock playing |
 | Build | next dev |
-| Average fps (5 camera presets × 5 s) | **60** |
-| Minimum 1-second sample | 59.9 |
-| Per camera | overview 60, close 60, top 60, fly 60, orbit 60 |
+| Average fps (5 camera presets × 5 s) | **56.3** |
+| Minimum 1-second sample | 55.2 |
+| Per camera | overview 56.5, close 56.2, top 56.3, fly 56.4, orbit 56.2 |
 
 Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 means
 "at the cap". Not measured: the exhibit's touch monitor at its native resolution; a 2-hour soak.
@@ -54,7 +54,7 @@ Crash recovery (test "crash recovery…"): with the API blocked the banner appea
 the health check every 4 s clears the banner when the API returns.
 
 ## Offline
-Source: `eval/results/ui/network.json` (2026-11-12T15:13:40.233Z).
+Source: `eval/results/ui/network.json` (2026-11-12T15:58:30.780Z).
 Requests to any host other than localhost during load, an agent plan and a language switch: **0**.
 Fonts (Readex Pro, OFL) are files in the repo; the map is baked into `apps/web/public/geo/`.
 With the API blocked the app starts from the saved snapshot (`apps/web/public/cache/`) and says so (test "API down").
@@ -113,7 +113,7 @@ Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 M
 | Before, corridor scene (`before_fps.json`, 2026-11-12T15:03:53.507Z) | 60 | 60 |
 | After, `?scene=v2` (`after_fps.json`, 2026-11-12T15:05:22.412Z) | 60 | 60 |
 
-`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T15:14:27.218Z, test "realism ring…"): average **60** fps, minimum 1-second sample 59.9.
+`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T15:59:18.579Z, test "realism ring…"): average **56.4** fps, minimum 1-second sample 55.6.
 
 ## UI tests
 `apps/web/tests/ui.spec.ts` — 21 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,

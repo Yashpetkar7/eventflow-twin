@@ -62,6 +62,34 @@ COMMON RULES — EventFlow Twin realism pass (repo: eventflow-twin, work on a ne
 - Commit in small steps; open a pull request into main (do not push to main directly). Stop and tell me if a rule above cannot be met.
 ```
 
+## 4b. The visitor kiosk shares your 3D — rules so the two never conflict (added 12 Nov, evening)
+The booth now runs a separate **visitor kiosk** at `?kiosk=1` (`apps/web/src/components/kiosk/`, `src/app/kiosk.css`,
+owner Krishna/Claude). It mounts the **same** `<TwinCanvas />` and `<LabelLayer />` as the workspace, so everything you
+build inside the 3D scene appears in the kiosk automatically — `?kiosk=1&scene=v2` already shows your ring.
+Paste these lines into the COMMON RULES block of every R-prompt (they are hard rules):
+
+```text
+KIOSK RULES (docs/13 §4b):
+- Put every visual change INSIDE the 3D scene (apps/web/src/components/twin/*, scene data, shaders). Do not add new
+  visible overlays only in Stage.tsx: the kiosk does not mount Stage.tsx. If you need an HTML overlay (legend, credits),
+  make it a small component in apps/web/src/components/ with a `compact` prop, mount it in Stage.tsx, and tell Krishna —
+  the kiosk team adds it to the kiosk.
+- Do not edit apps/web/src/components/kiosk/*, apps/web/src/app/kiosk.css or the kiosk branch in Root.tsx.
+- Keep these working (the kiosk calls them): store fields time, playing, selected, cam, sceneReady, glFailed, ready,
+  base, cur, breaks, stations, events, scenario; actions setTime, setPlaying, setCam("overview"|"close"|"orbit"),
+  select(id), selectEvent(id), patchScenario, runAgents, decide, clearPlans. Do not rename the label DOM
+  (.labels, .tag, .tag.lm, .tag.venue, [data-pct]) — the kiosk styles and hides them.
+- Camera presets must frame the corridor at ANY canvas aspect: in the kiosk the 3D view is the left ~67 % of a 1920×1080
+  screen (about 1288×1080) during the steps and the full screen on the attract loop (slow "orbit" at 17:30).
+- Credits: keep public/geo/v2/manifest.json → provenance[].source (name first, then details after a comma) and .licence
+  filled; the kiosk footer shows the short source names directly (derived / internal rows are skipped).
+- Before every PR, run BOTH:
+    cd apps/web && npx playwright test                                   # workspace + kiosk (v1)
+    cd apps/web && EFT_SCENE=v2 npx playwright test tests/kiosk.spec.ts  # kiosk on your scene
+  and attach eval/results/ui/kiosk_v2/*.png to the PR. 50 fps floor applies to ?kiosk=1&scene=v2 too.
+- When R6 makes v2 the default, the kiosk follows automatically — no kiosk change needed.
+```
+
 ## 5. The prompts
 
 ### R1 — Real data bake (Fable 5.2)

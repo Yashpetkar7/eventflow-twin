@@ -52,8 +52,8 @@ test("workspace AR (RTL), day and night", async ({ page }) => {
   await page.screenshot({ path: `${OUT}/workspace_ar_night.png` });
 });
 
-test("kiosk mode: touch targets ≥ 48 px, no context menu", async ({ page }) => {
-  await open(page, "/?kiosk=1&idle=600");
+test("classic kiosk (?kiosk=classic): touch targets ≥ 48 px, no context menu", async ({ page }) => {
+  await open(page, "/?kiosk=classic&idle=600");
   await expect(page.locator("body")).toHaveClass(/kiosk/);
   const small = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>("button, select, input[type=range], .checks label")]
     .filter((el) => el.offsetParent !== null && !el.closest(".labels"))
