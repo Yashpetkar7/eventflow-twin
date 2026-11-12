@@ -21,6 +21,15 @@ Override any of them in Project → Settings → Environment Variables:
 `EVENTFLOW_DATA_DIR`, `EVENTFLOW_STORAGE`, `EVENTFLOW_RATE_LIMIT`, `DEMO_MODE`, and for the web app
 `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_PUBLIC_DEMO`.
 
+## Turning on Claude (optional)
+The planner stays offline and deterministic unless all of these are set (Project → Settings → Environment Variables,
+or `.env` on a laptop — never commit them):
+`DEMO_MODE=live`, `LLM_MODEL=claude-opus-5-5`, `ANTHROPIC_API_KEY=<key with a monthly spend cap>`.
+Then Claude proposes extra plans and writes the explanations; the simulator still computes every number and any
+text with an untraceable number falls back to the template (docs/09 #71). Before switching it on for the public link,
+run `python tasks.py eval-fast && python tasks.py gate` with the same variables so the agents and red-team suites
+measure the Claude path. `LLM_FALLBACKS=off` disables the server-side refusal fallback if the API rejects it.
+
 ## First deploy (about 10 minutes)
 ```bash
 npm i -g vercel                      # or pnpm add -g vercel; CLI 60+ (services support)

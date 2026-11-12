@@ -21,12 +21,16 @@ from typing import Callable
 
 from ..config import ROOT, corridor
 from ..forecast import config_hash, make_run_id
+from ..interventions import InterventionError, validate_interventions
+from . import llm as llm_mod
 
 CACHE = ROOT / "data/demo_cache"                    # shipped with the build (read)
 # new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
 CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
-PLANNER_REV = 2            # bump when the ranking changes, so stale offline-cache entries are not replayed
+PLANNER_REV = 2
+DEFAULT_GOAL = "Keep every station under 85% load during the exit surge"   # schemas.AgentPlanRequest.goal default
+LLM_FACTORY = llm_mod.get_llm                    # swapped for a fake model in tests            # bump when the ranking changes, so stale offline-cache entries are not replayed
 
 STEP_KEYS = ["intake", "forecast", "diagnose", "propose", "simulate", "rank", "explain", "verify"]
 STEP_LABELS = {
@@ -65,7 +69,10 @@ TEXT = {
                    "diagnose": "{worst}, {hours}", "diagnose_none": "No station over {thr}%",
                    "propose": "{n} candidate plans from the fixed menu", "simulate": "{n} simulator runs",
                    "rank": "Top {n} by riders relieved − λ × cost", "explain": "Template text, numbers copied from the simulator",
-                   "verify": "{n} figures checked, {ok}"},
+                   "verify": "{n} figures checked, {ok}",
+                   "llm_propose": "Claude added {n} bundles ({d} outside the menu dropped)",
+                   "llm_explain": "Claude wrote {n} of {m}; the rest kept the verified template",
+                   "llm_off": "Claude unavailable ({why}); offline planner used"},
         "ok": "all match", "bad": "mismatch found", "prio": {"cost": "lower cost", "balanced": "balanced", "impact": "biggest impact"},
     },
     "ar": {
@@ -94,7 +101,10 @@ TEXT = {
                    "diagnose": "{worst}، {hours}", "diagnose_none": "لا توجد محطة فوق {thr}%",
                    "propose": "{n} خطط مرشحة من القائمة المحددة", "simulate": "{n} عمليات محاكاة",
                    "rank": "أفضل {n} حسب الركاب المخفَّف عنهم − λ × التكلفة", "explain": "نص قالب، والأرقام منسوخة من المحاكي",
-                   "verify": "تم التحقق من {n} رقمًا، {ok}"},
+                   "verify": "تم التحقق من {n} رقمًا، {ok}",
+                   "llm_propose": "أضاف Claude {n} حزم (واستُبعدت {d} خارج القائمة)",
+                   "llm_explain": "كتب Claude {n} من {m}؛ والبقية بالنص المتحقَّق منه",
+                   "llm_off": "Claude غير متاح ({why})؛ استُخدم المخطِّط غير المتصل"},
         "ok": "جميعها مطابقة", "bad": "وُجد عدم تطابق", "prio": {"cost": "تكلفة أقل", "balanced": "متوازن", "impact": "أكبر أثر"},
     },
 }
@@ -232,11 +242,78 @@ def _hours_text(hours: list[int]) -> str:
     return ", ".join(f"{h}:00" for h in hours)
 
 
+GENERIC = {
+    "en": {"extra_trains": "trains every {hw} minutes on the {line} Line from {h0}:00 to {h1}:00",
+           "wayfinding_redirect": "guide {share}% of {a} riders to {b} on foot",
+           "shuttle_bus": "{n} feeder shuttles from {a} to {b}",
+           "robotaxi_staging": "{n} robotaxis staged at {a}",
+           "staggered_exit": "venue exits spread over {spread} minutes",
+           "join": "; ", "title": "Planner-proposed bundle",
+           "risk": {"extra_trains": "Depends on spare trains and crew.", "wayfinding_redirect": "Relies on visitors following the signs.",
+                    "shuttle_bus": "Can shift crowding to the receiving station.", "robotaxi_staging": "Depends on fleet availability.",
+                    "staggered_exit": "Needs the organiser's cooperation."}},
+    "ar": {"extra_trains": "قطارات كل {hw} دقائق على الخط {line} من {h0}:00 إلى {h1}:00",
+           "wayfinding_redirect": "توجيه {share}% من ركاب {a} إلى {b} سيرًا",
+           "shuttle_bus": "{n} حافلات مغذية من {a} إلى {b}",
+           "robotaxi_staging": "{n} سيارة أجرة ذاتية القيادة عند {a}",
+           "staggered_exit": "توزيع خروج الزوار على {spread} دقيقة",
+           "join": "؛ ", "title": "حزمة مقترحة من المخطِّط",
+           "risk": {"extra_trains": "يعتمد على توفر القطارات والطواقم.", "wayfinding_redirect": "يعتمد على استجابة الزوار.",
+                    "shuttle_bus": "قد ينقل الازدحام إلى المحطة المستقبلة.", "robotaxi_staging": "يعتمد على توفر الأسطول.",
+                    "staggered_exit": "يتطلب تعاون المنظمين."}},
+}
+
+
+def _num(v: float) -> str:
+    return str(int(v)) if float(v).is_integer() else f"{v:g}"
+
+
+def describe(ivs: list[dict], locale: str) -> tuple[str, str]:
+    """Template description and risk for any bundle (used for Claude-proposed bundles and as the safe fallback)."""
+    G, parts = GENERIC[locale], []
+    for iv in ivs:
+        p = iv["params"]
+        hours = p.get("hours") or [0]
+        ctx = {"hw": _num(p.get("headway_min", 0)), "line": LINE_AR.get(p.get("line", "Red"), p.get("line", "Red")) if locale == "ar" else p.get("line", "Red"),
+               "h0": min(hours), "h1": max(hours) + 1, "share": _num(round(p.get("share", 0) * 100, 1)),
+               "a": _name(p.get("from_station") or p.get("station"), locale), "b": _name(p.get("to_station"), locale),
+               "n": p.get("buses") or p.get("vehicles") or 0, "spread": p.get("spread_minutes", 0)}
+        parts.append(G[iv["type"]].format(**ctx))
+    what = G["join"].join(parts)
+    what = (what[0].upper() + what[1:] if locale == "en" else what) + ("." if locale == "en" else ".")
+    return what, G["risk"][ivs[0]["type"]] if ivs else ""
+
+
+def allowed_for(b_fig: dict, a_fig: dict, cost: str, thr_pct: str, ivs: list[dict], rank: int) -> set[str]:
+    """Every number an option's text may contain: simulator figures (before/after), its added cost, the threshold,
+    its rank and the parameters of its own interventions (as the template prints them)."""
+    out = {*b_fig.values(), *a_fig.values(), cost, thr_pct, "00", str(rank)}
+    for iv in ivs:
+        for k, v in iv["params"].items():
+            if v is None or isinstance(v, (bool, str)):
+                continue
+            for x in (v if isinstance(v, list) else [v]):
+                out.add(_num(x))
+                if k == "share":
+                    out.add(_num(round(x * 100, 1)))
+                if k == "hours":
+                    out.add(str(x + 1))
+    return out
+
+
+def _texts_ok(texts: dict, allowed: set[str]) -> tuple[int, bool]:
+    n, ok = verify_numbers(" \n".join(texts[k] for k in ("title", "what", "risk", "rationale")), allowed)
+    return n, ok
+
+
 def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     locale, thr_req = req.locale, req.threshold
     applied = [i.model_dump() if hasattr(i, "model_dump") else i for i in req.applied]
     key = {"fc": run["run_id"], "applied": applied, "thr": thr_req, "scope": req.scope, "priority": req.priority,
            "locale": locale, "config": config_hash(), "planner": PLANNER, "rev": PLANNER_REV}
+    goal, notes = getattr(req, "goal", DEFAULT_GOAL) or DEFAULT_GOAL, getattr(req, "notes", None)
+    if goal != DEFAULT_GOAL or notes:              # only the Claude steps read these; keep default ids stable
+        key["input"] = {"goal": goal, "notes": notes}
     plan_id = make_run_id("plan", key)
     name = f"{plan_id}.json"
     offline = os.environ.get("DEMO_MODE", "offline") == "offline"
@@ -248,6 +325,11 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                 continue                            # missing or torn entry: try the next folder, else recompute
 
     T = TEXT[locale]
+    llm = LLM_FACTORY()                            # None unless DEMO_MODE=live and LLM_MODEL is configured
+    llm_used: list[str] = []
+    llm_note: dict[str, str] = {}
+    texts_for: list[dict] = []
+    template_used: list[int] = []
     sim = lambda ivs: run_simulation(run["run_id"], ivs, False, thr_req, req.scope)               # noqa: E731
     base = sim(applied)
     thr = base["summary"]["threshold"]
@@ -264,6 +346,28 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     else:
         details["diagnose"] = T["detail"]["diagnose"].format(worst=_name(hot["station"], locale), hours=_hours_text(hot["hours"]))
         cands = propose(hot, bool(run.get("event")), any(i["type"] == "staggered_exit" for i in applied), scope_ids)
+        if llm is not None:                        # Claude may add bundles; code validates, simulates and ranks them
+            try:
+                ans = llm.complete_json(system=llm_mod.PROPOSER_SYSTEM, schema=llm_mod.PROPOSER_SCHEMA, effort="medium",
+                                        max_tokens=16000, user=llm_mod.proposer_prompt(
+                                            hot, scope_ids, cands, base["summary"], req.priority, goal, notes, bool(run.get("event"))))
+                seen = {json.dumps(sorted(json.dumps(i, sort_keys=True) for i in c["ivs"])) for c in cands}
+                added = dropped = 0
+                for b in ans.get("bundles", [])[:5]:
+                    try:
+                        ivs = [iv.model_dump() for iv in validate_interventions([llm_mod.to_intervention(x) for x in b["interventions"][:3]])]
+                    except (InterventionError, ValueError, KeyError, TypeError):
+                        dropped += 1               # outside the menu or the bounds: never simulated
+                        continue
+                    sig = json.dumps(sorted(json.dumps(i, sort_keys=True) for i in ivs))
+                    if ivs and sig not in seen:
+                        seen.add(sig)
+                        cands.append({"key": "llm", "ivs": ivs, "ctx": {}, "label": str(b.get("label", ""))[:80]})
+                        added += 1
+                llm_used.append("propose")
+                llm_note["propose"] = T["detail"]["llm_propose"].format(n=added, d=dropped)
+            except llm_mod.LLMUnavailable as e:
+                llm_note["propose"] = T["detail"]["llm_off"].format(why=str(e)[:80])
         n_cand = len(cands)
         base_over, b_fig = over_sets(base), summary_figures(base["summary"])
         scored = []
@@ -283,37 +387,75 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
         # riders relieved − λ·cost.
         scored.sort(key=lambda o: (o["demote"], bool(o["new_hot"]), -o["score"], o["res"]["summary"]["overcap_station_hours"]))
         for rank, o in enumerate(scored[:3], 1):
-            title, what_t, risk = T[o["key"]]
-            ctx = {**o["ctx"], "worst": _name(o["ctx"]["worst"], locale), "nb": _name(o["ctx"]["nb"], locale),
-                   "far": _name(o["ctx"]["far"], locale),
-                   "line": LINE_AR.get(o["ctx"]["line"], o["ctx"]["line"]) if locale == "ar" else o["ctx"]["line"]}
-            what = what_t.format(**ctx)
+            if o["key"] == "llm":
+                title = GENERIC[locale]["title"]
+                what, risk = describe(o["ivs"], locale)
+            else:
+                title, what_t, risk = T[o["key"]]
+                ctx = {**o["ctx"], "worst": _name(o["ctx"]["worst"], locale), "nb": _name(o["ctx"]["nb"], locale),
+                       "far": _name(o["ctx"]["far"], locale),
+                       "line": LINE_AR.get(o["ctx"]["line"], o["ctx"]["line"]) if locale == "ar" else o["ctx"]["line"]}
+                what = what_t.format(**ctx)
             a_fig = summary_figures(o["res"]["summary"])
             cost = f_num(o["cost_added"])
             rationale = T["rationale"].format(what=what, risk=risk, cost=cost, b_over=b_fig["over"], a_over=a_fig["over"],
                                               b_excess=b_fig["excess"], a_excess=a_fig["excess"],
                                               b_peak=b_fig["peak"], a_peak=a_fig["peak"])
             allowed = {*b_fig.values(), *a_fig.values(), cost, "00",
-                       *(str(v) for k, v in o["ctx"].items() if isinstance(v, (int, float)))}
+                       *(str(v) for k, v in o["ctx"].items() if isinstance(v, (int, float)))} | allowed_for(
+                b_fig, a_fig, cost, thr_pct, o["ivs"], rank)
             n, ok = verify_numbers(rationale, allowed)
-            if not ok:                              # cannot happen with the template; an LLM explainer would land here
+            if not ok:                              # cannot happen with the template; kept as a guard
                 rationale, n = what, 0
             checked, all_ok = checked + n, all_ok and ok
+            texts_for.append({"rank": rank, "allowed": allowed, "figures": {"before": b_fig, "after": a_fig, "added_cost": cost,
+                                                                             "threshold_pct": thr_pct}})
             options.append({"rank": rank, "title": title, "interventions": o["ivs"], "summary": o["res"]["summary"],
                             "delta": {k: round(o["res"]["summary"][k] - base["summary"][k], 3)
                                       for k in o["res"]["summary"] if k not in ("bins_per_hour", "threshold")},
                             "score": o["score"], "rationale": rationale, "what": what, "risk": risk,
                             "cost_added": o["cost_added"], "new_hotspots": o["new_hot"], "figures": 7,
                             "sources": [o["res"]["source"], {"tool": "forecast", "run_id": run["run_id"]}]})
+    if llm is not None and options:                # Claude rewrites the texts; each must pass the number check
+        try:
+            items = [{"rank": o["rank"], "ACTIONS": o["interventions"], "FIGURES": t_["figures"],
+                      "new_hotspots": [_name(x, locale) for x in o["new_hotspots"]], "template_what": o["what"]}
+                     for o, t_ in zip(options, texts_for)]
+            ans = llm.complete_json(system=llm_mod.EXPLAINER_SYSTEM.format(language="Arabic" if locale == "ar" else "British English"),
+                                    schema=llm_mod.EXPLAINER_SCHEMA, effort="low", max_tokens=16000,
+                                    user=llm_mod.explainer_prompt(items, goal, notes))
+            by_rank = {int(x["rank"]): x for x in ans.get("options", []) if isinstance(x, dict)}
+            kept = 0
+            checked, all_ok = 0, True
+            for o, t_ in zip(options, texts_for):
+                x = by_rank.get(o["rank"])
+                texts = {k: str((x or {}).get(k, "")).strip()[:900] for k in ("title", "what", "risk", "rationale")}
+                n, ok = _texts_ok(texts, t_["allowed"]) if x and all(texts.values()) else (0, False)
+                if ok:
+                    o.update(texts)
+                    kept += 1
+                    checked += n
+                else:                              # invented or missing numbers: keep the verified template text
+                    template_used.append(o["rank"])
+                    n2, _ = _texts_ok({k: o[k] for k in ("title", "what", "risk", "rationale")}, t_["allowed"])
+                    checked += n2
+            llm_used.append("explain")
+            llm_note["explain"] = T["detail"]["llm_explain"].format(n=kept, m=len(options))
+        except llm_mod.LLMUnavailable as e:
+            llm_note["explain"] = T["detail"]["llm_off"].format(why=str(e)[:80])
     details.update({"propose": T["detail"]["propose"].format(n=n_cand), "simulate": T["detail"]["simulate"].format(n=n_cand + 1),
                     "rank": T["detail"]["rank"].format(n=len(options)), "explain": T["detail"]["explain"],
                     "verify": T["detail"]["verify"].format(n=checked, ok=T["ok"] if all_ok else T["bad"])})
-    plan = {"plan_id": plan_id, "forecast_run_id": run["run_id"], "mode": "offline", "is_synthetic": run["is_synthetic"],
+    for k, v in llm_note.items():
+        details[k] = f"{details.get(k, '')} · {v}" if details.get(k) else v
+    live = bool(llm_used)
+    plan = {"plan_id": plan_id, "forecast_run_id": run["run_id"], "mode": "live" if live else "offline", "is_synthetic": run["is_synthetic"],
             "baseline_summary": base["summary"], "options": options,
-            "verify": {"numbers_checked": checked, "all_matched": all_ok, "fallback_used": True},
+            "verify": {"numbers_checked": checked, "all_matched": all_ok,
+                       "fallback_used": (not live) or "explain" not in llm_used or bool(template_used)},
             "steps": [{"key": k, "label": STEP_LABELS[locale][i], "detail": details.get(k, ""), "tool": STEP_TOOLS[i]}
                       for i, k in enumerate(STEP_KEYS)],
-            "planner": PLANNER,
+            "planner": f"claude:{llm.model}" if live else PLANNER,
             "hotspot": None if hot is None else {"station": hot["station"], "hours": hot["hours"], "window": hot["window"],
                                                  "peak_lf": hot["peak_lf"]},
             "cached": False}

@@ -74,6 +74,7 @@ export function AiTab() {
         )}
         <div className="note" style={{ marginTop: 8 }}>{t("planNote")}</div>
         {plan && plan.planner === "deterministic-template" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planMode")}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
+        {plan && plan.planner.startsWith("claude:") && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planLive", { model: plan.planner.slice(7) })}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
       </div>
       {status === "error" && <div className="warnbox" role="alert">{t("planError", { msg: planError ?? "" })}</div>}
       {decisionError && <div className="warnbox" role="alert">{t("decisionError", { msg: decisionError })}</div>}
