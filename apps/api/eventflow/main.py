@@ -56,10 +56,29 @@ def _remember(run: dict) -> None:
             _RUNS.popitem(last=False)
 
 
-def get_run(run_id: str) -> dict:
+def build_run(req: ForecastRequest) -> dict:
+    """One place that turns a forecast request into a run (shared by /forecast and cold-instance rebuilds)."""
+    try:
+        return build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time,
+                              weather=req.weather, exit_sigma_min=req.exit_sigma_min,
+                              custom=req.custom_event.model_dump() if req.custom_event else None)
+    except KeyError as e:
+        raise HTTPException(404, f"Unknown event or station {e}")
+    except ValueError as e:     # bad date string
+        raise HTTPException(422, str(e))
+
+
+def get_run(run_id: str, spec: ForecastRequest | None = None) -> dict:
+    """The forecast run for `run_id`. Run ids are deterministic hashes of the request, so an instance that has
+    never seen the run rebuilds it from `spec` and checks that it hashes to the same id (serverless hosting)."""
     run = _RUNS.get(run_id)
+    if run is None and spec is not None:
+        run = build_run(spec)
+        if run["run_id"] != run_id:
+            raise HTTPException(409, f"forecast does not match forecast_run_id '{run_id}' (it produces '{run['run_id']}')")
+        _remember(run)
     if run is None:
-        raise HTTPException(404, f"Unknown forecast_run_id '{run_id}'. POST /forecast again (ids are deterministic).")
+        raise HTTPException(404, f"Unknown forecast_run_id '{run_id}'. Send `forecast` with the request, or POST /forecast again.")
     return run
 
 
@@ -80,14 +99,7 @@ def list_events():
 
 @app.post("/forecast", response_model=ForecastResponse)
 def forecast(req: ForecastRequest):
-    try:
-        run = build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time,
-                             weather=req.weather, exit_sigma_min=req.exit_sigma_min,
-                             custom=req.custom_event.model_dump() if req.custom_event else None)
-    except KeyError as e:
-        raise HTTPException(404, f"Unknown event or station {e}")
-    except ValueError as e:     # bad date string
-        raise HTTPException(422, str(e))
+    run = build_run(req)
     _remember(run)
     return {**{k: v for k, v in run.items() if k != "demand"},
             "source": {"tool": "forecast", "run_id": run["run_id"]}}
@@ -121,6 +133,7 @@ def run_simulation(forecast_run_id: str, interventions: list, detail: bool = Fal
 
 @app.post("/simulate", response_model=SimulateResponse)
 def simulate_ep(req: SimulateRequest):
+    get_run(req.forecast_run_id, req.forecast)          # rebuild first if this instance has never seen the run
     return run_simulation(req.forecast_run_id, req.interventions, req.detail, req.threshold, req.scope)
 
 
@@ -128,7 +141,7 @@ def simulate_ep(req: SimulateRequest):
 def agent_plan(req: AgentPlanRequest):
     """Plan → simulate each candidate → rank → explain → verify every number. See agents/planner.py."""
     from .agents.planner import make_plan
-    run = get_run(req.forecast_run_id)
+    run = get_run(req.forecast_run_id, req.forecast)
     plan = make_plan(run, req, run_simulation)
     with _LOCK:
         _PLANS[plan["plan_id"]] = plan

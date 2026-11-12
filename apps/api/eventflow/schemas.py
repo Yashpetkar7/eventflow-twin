@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.5.0"   # 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.6.0"   # 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -111,6 +111,8 @@ class ForecastResponse(BaseModel):
 # ---------- simulate ----------
 class SimulateRequest(BaseModel):
     forecast_run_id: str
+    forecast: ForecastRequest | None = Field(
+        None, description="The request that produced forecast_run_id. Lets an instance that has never seen the run rebuild it.")
     interventions: list[Intervention] = Field(default_factory=list)
     detail: bool = Field(False, description="Include the 15-minute rows (large); hourly rows are always returned")
     threshold: float | None = Field(None, ge=0.5, le=1.0, description="What-if comfort threshold (default: corridor.yaml)")
@@ -169,6 +171,7 @@ class SimulateResponse(BaseModel):
 # ---------- agents (implemented by Stream B; shape frozen now) ----------
 class AgentPlanRequest(BaseModel):
     forecast_run_id: str
+    forecast: ForecastRequest | None = Field(None, description="As in SimulateRequest.forecast")
     goal: str = Field("Keep every station under 85% load during the exit surge", max_length=500)
     locale: Literal["en", "ar"] = "en"
     notes: str | None = Field(None, max_length=1000, description="Untrusted planner notes (treated as data)")

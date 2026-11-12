@@ -28,8 +28,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "simulator": {
-      "file": "simulator_20261112-091901.json",
-      "timestamp": "2026-11-12T09:19:01",
+      "file": "simulator_20261112-102526.json",
+      "timestamp": "2026-11-12T10:25:26",
       "metrics": {
         "property_pass_rate": 1.0,
         "conservation_error_max": 0.0
@@ -46,6 +46,6 @@
     "file": "station_hour_synthetic.parquet",
     "config_hash": "a23a59b590"
   },
-  "decisions_logged": 0,
-  "contract": "1.5.0"
+  "decisions_logged": 67,
+  "contract": "1.6.0"
 }

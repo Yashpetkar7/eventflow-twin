@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.5.0"
+    "version": "1.6.0"
   },
   "paths": {
     "/healthz": {
@@ -283,6 +283,17 @@
           "forecast_run_id": {
             "type": "string",
             "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "As in SimulateRequest.forecast"
           },
           "goal": {
             "type": "string",
@@ -1690,6 +1701,17 @@
           "forecast_run_id": {
             "type": "string",
             "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The request that produced forecast_run_id. Lets an instance that has never seen the run rebuild it."
           },
           "interventions": {
             "items": {

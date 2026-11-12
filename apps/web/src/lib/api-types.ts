@@ -161,6 +161,8 @@ export interface components {
         AgentPlanRequest: {
             /** Forecast Run Id */
             forecast_run_id: string;
+            /** @description As in SimulateRequest.forecast */
+            forecast?: components["schemas"]["ForecastRequest"] | null;
             /**
              * Goal
              * @default Keep every station under 85% load during the exit surge
@@ -696,6 +698,8 @@ export interface components {
         SimulateRequest: {
             /** Forecast Run Id */
             forecast_run_id: string;
+            /** @description The request that produced forecast_run_id. Lets an instance that has never seen the run rebuild it. */
+            forecast?: components["schemas"]["ForecastRequest"] | null;
             /** Interventions */
             interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
             /**
