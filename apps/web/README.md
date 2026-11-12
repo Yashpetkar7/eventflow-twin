@@ -65,7 +65,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 
 ## Known limits (honest list)
 - The planner is deterministic with template explanations; no live LLM path yet (the response says so).
-- `?scene=v2`: 32 % of the ring's building heights are still estimated; 3D-GloBFP heights are calibrated against OSM tags (decision #77); the
+- `?scene=v2`: 32 % of the ring's building heights are still estimated; 3D-GloBFP heights are calibrated against OSM tags (decision #79); the
   ground is 10 m satellite data, soft in close-ups and dark at night until R2; façades are still the simple window grid (R3).
 - Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
 - Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.

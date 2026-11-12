@@ -28,7 +28,7 @@ CACHE = ROOT / "data/demo_cache"                    # shipped with the build (re
 # new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
 CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
-PLANNER_REV = 2
+PLANNER_REV = 3
 DEFAULT_GOAL = "Keep every station under 85% load during the exit surge"   # schemas.AgentPlanRequest.goal default
 LLM_FACTORY = llm_mod.get_llm                    # swapped for a fake model in tests            # bump when the ranking changes, so stale offline-cache entries are not replayed
 
@@ -62,6 +62,12 @@ TEXT = {
         "trainsway": ("Extra trains + wayfinding",
                       "{hw}-minute headway from {h0}:00 to {h1}:00, plus guiding {share}% of {worst} riders to {nb}.",
                       "Needs operations and on-street teams to coordinate."),
+        "meter": ("Entry metering + guide to the next station",
+                  "Admit riders at {worst} only up to {ml}% load; guide the rest on foot to {nb}.",
+                  "Riders are turned away at the gates; needs staff and clear signs, and can load the next station."),
+        "meterq": ("Entry metering at the gates",
+                   "Admit riders at {worst} only up to {ml}% load; the rest wait outside the station.",
+                   "Keeps the platform safe but builds a queue outside – watch the waiting time."),
         "rationale": ("{what} Simulated result: station-hours over the threshold go from {b_over} to {a_over}, "
                       "riders above the threshold from {b_excess} to {a_excess}, and the peak station load from "
                       "{b_peak}% to {a_peak}%. Added cost proxy: {cost}. Risk: {risk}"),
@@ -94,6 +100,12 @@ TEXT = {
         "trainsway": ("قطارات إضافية + توجيه المشاة",
                       "فاصل {hw} دقائق من {h0}:00 إلى {h1}:00 مع توجيه {share}% من ركاب {worst} إلى {nb}.",
                       "يحتاج إلى تنسيق بين التشغيل والميدان."),
+        "meter": ("تنظيم الدخول + التوجيه إلى المحطة التالية",
+                  "السماح بالدخول إلى {worst} حتى حمولة {ml}% فقط، وتوجيه البقية سيرًا إلى {nb}.",
+                  "يُمنع بعض الركاب عند البوابات؛ يحتاج إلى موظفين ولافتات واضحة، وقد يزيد حمل المحطة التالية."),
+        "meterq": ("تنظيم الدخول عند البوابات",
+                   "السماح بالدخول إلى {worst} حتى حمولة {ml}% فقط، وينتظر البقية خارج المحطة.",
+                   "يحافظ على سلامة الرصيف لكنه يُكوّن طابورًا في الخارج – راقب وقت الانتظار."),
         "rationale": ("{what} نتيجة المحاكاة: ساعات المحطات فوق الحد من {b_over} إلى {a_over}، والركاب فوق الحد من "
                       "{b_excess} إلى {a_excess}، وأعلى حمولة محطة من {b_peak}% إلى {a_peak}%. "
                       "مؤشر التكلفة المضافة: {cost}. المخاطر: {risk}"),
@@ -193,7 +205,7 @@ def diagnose(base: dict) -> dict | None:
             "load_at": {s: {r["hour"]: r["peak_lf"] for r in base["hourly"] if r["station_id"] == s} for s in by}}
 
 
-def propose(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set[str]) -> list[dict]:
+def propose(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set[str], thr: float | None = None) -> list[dict]:
     """Candidate bundles from the fixed menu, inside the bounds of corridor.yaml."""
     cfg = corridor()
     by_id = {s["id"]: s for s in cfg["stations"]}
@@ -201,9 +213,10 @@ def propose(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set[str]) 
     worst, hrs, win, pk = hot["station"], hot["hours"], hot["window"], hot["peak_hour"]
     load = lambda s: hot["load_at"].get(s, {}).get(pk, 0.0)                                      # noqa: E731
     nbs = [n for n in cfg["neighbours"].get(worst, []) if n in scope_ids]
-    nb = min(nbs, key=load) if nbs else None
-    far_pool = [s for s in scope_ids if s not in (worst, nb) and _km(by_id[worst], by_id[s]) <= b.get("max_shuttle_km", 8)]
-    far = min(far_pool, key=load) if far_pool else nb
+    nb = min(nbs, key=lambda s: (load(s), nbs.index(s))) if nbs else None
+    # Deterministic: quietest station, then the nearest, then by id (scope_ids is a set — never rely on its order).
+    far_pool = sorted(s for s in scope_ids if s not in (worst, nb) and _km(by_id[worst], by_id[s]) <= b.get("max_shuttle_km", 8))
+    far = min(far_pool, key=lambda s: (load(s), round(_km(by_id[worst], by_id[s]), 3), s)) if far_pool else nb
     hw = max(3.0, float(cap["min_headway_min"]))
     hw = int(hw) if hw == int(hw) else hw
     line = by_id[worst]["line"]
@@ -228,6 +241,15 @@ def propose(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set[str]) 
         out.append({"key": "trainstag", "ivs": [trains, stag], "ctx": ctx})
     if nb:
         out.append({"key": "trainsway", "ivs": [trains, way(0.2)], "ctx": {**ctx, "share": 20}})
+    if hot["peak_lf"] > 1.0:
+        # Platform over its full capacity (not just the comfort line): offer RTA's New Year's Eve measure, entry
+        # metering at the gates — with riders guided to the walkable neighbour, or kept waiting outside.
+        ml = round(float(thr if thr is not None else cap["overcap_threshold"]), 2)
+        meter = lambda to: {"type": "station_metering", "params": {"station": worst, "max_load": ml, "hours": hrs,  # noqa: E731
+                                                                   **({"to_station": to} if to else {})}}
+        if nb:
+            out.append({"key": "meter", "ivs": [meter(nb)], "ctx": {**ctx, "ml": round(ml * 100)}})
+        out.append({"key": "meterq", "ivs": [meter(None)], "ctx": {**ctx, "ml": round(ml * 100)}})
     return out
 
 
@@ -248,19 +270,31 @@ GENERIC = {
            "shuttle_bus": "{n} feeder shuttles from {a} to {b}",
            "robotaxi_staging": "{n} robotaxis staged at {a}",
            "staggered_exit": "venue exits spread over {spread} minutes",
+           "station_metering": "admit riders at {a} only up to {ml}% load, the rest waiting outside",
+           "station_metering_to": "admit riders at {a} only up to {ml}% load, the rest guided on foot to {b}",
+           "station_closed": "close {a} from {h0}:00 to {h1}:00 and guide riders on foot to {b}",
+           "extended_hours": "{line} Line service extended to {h0}:00–{h1}:00, a train every {hw} minutes",
            "join": "; ", "title": "Planner-proposed bundle",
            "risk": {"extra_trains": "Depends on spare trains and crew.", "wayfinding_redirect": "Relies on visitors following the signs.",
                     "shuttle_bus": "Can shift crowding to the receiving station.", "robotaxi_staging": "Depends on fleet availability.",
-                    "staggered_exit": "Needs the organiser's cooperation."}},
+                    "staggered_exit": "Needs the organiser's cooperation.",
+                    "station_metering": "Riders are held at the gates; watch the queue and the next station.",
+                    "extended_hours": "Needs crews and maintenance windows to be moved."}},
     "ar": {"extra_trains": "قطارات كل {hw} دقائق على الخط {line} من {h0}:00 إلى {h1}:00",
            "wayfinding_redirect": "توجيه {share}% من ركاب {a} إلى {b} سيرًا",
            "shuttle_bus": "{n} حافلات مغذية من {a} إلى {b}",
            "robotaxi_staging": "{n} سيارة أجرة ذاتية القيادة عند {a}",
            "staggered_exit": "توزيع خروج الزوار على {spread} دقيقة",
+           "station_metering": "السماح بالدخول إلى {a} حتى حمولة {ml}% فقط مع انتظار البقية في الخارج",
+           "station_metering_to": "السماح بالدخول إلى {a} حتى حمولة {ml}% فقط وتوجيه البقية سيرًا إلى {b}",
+           "station_closed": "إغلاق {a} من {h0}:00 إلى {h1}:00 وتوجيه الركاب سيرًا إلى {b}",
+           "extended_hours": "تمديد تشغيل الخط {line} من {h0}:00 إلى {h1}:00، قطار كل {hw} دقائق",
            "join": "؛ ", "title": "حزمة مقترحة من المخطِّط",
            "risk": {"extra_trains": "يعتمد على توفر القطارات والطواقم.", "wayfinding_redirect": "يعتمد على استجابة الزوار.",
                     "shuttle_bus": "قد ينقل الازدحام إلى المحطة المستقبلة.", "robotaxi_staging": "يعتمد على توفر الأسطول.",
-                    "staggered_exit": "يتطلب تعاون المنظمين."}},
+                    "staggered_exit": "يتطلب تعاون المنظمين.",
+                    "station_metering": "يُوقَف الركاب عند البوابات؛ راقب الطابور والمحطة التالية.",
+                    "extended_hours": "يتطلب نقل مواعيد الطواقم والصيانة."}},
 }
 
 
@@ -277,8 +311,12 @@ def describe(ivs: list[dict], locale: str) -> tuple[str, str]:
         ctx = {"hw": _num(p.get("headway_min", 0)), "line": LINE_AR.get(p.get("line", "Red"), p.get("line", "Red")) if locale == "ar" else p.get("line", "Red"),
                "h0": min(hours), "h1": max(hours) + 1, "share": _num(round(p.get("share", 0) * 100, 1)),
                "a": _name(p.get("from_station") or p.get("station"), locale), "b": _name(p.get("to_station"), locale),
-               "n": p.get("buses") or p.get("vehicles") or 0, "spread": p.get("spread_minutes", 0)}
-        parts.append(G[iv["type"]].format(**ctx))
+               "n": p.get("buses") or p.get("vehicles") or 0, "spread": p.get("spread_minutes", 0),
+               "ml": _num(round(p.get("max_load", 0) * 100, 1))}
+        key = iv["type"]
+        if key == "station_metering":
+            key = "station_closed" if p.get("max_load") == 0 else ("station_metering_to" if p.get("to_station") else "station_metering")
+        parts.append(G[key].format(**ctx))
     what = G["join"].join(parts)
     what = (what[0].upper() + what[1:] if locale == "en" else what) + ("." if locale == "en" else ".")
     return what, G["risk"][ivs[0]["type"]] if ivs else ""
@@ -294,7 +332,7 @@ def allowed_for(b_fig: dict, a_fig: dict, cost: str, thr_pct: str, ivs: list[dic
                 continue
             for x in (v if isinstance(v, list) else [v]):
                 out.add(_num(x))
-                if k == "share":
+                if k in ("share", "max_load"):
                     out.add(_num(round(x * 100, 1)))
                 if k == "hours":
                     out.add(str(x + 1))
@@ -346,7 +384,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
         details["diagnose"] = T["detail"]["diagnose_none"].format(thr=thr_pct)
     else:
         details["diagnose"] = T["detail"]["diagnose"].format(worst=_name(hot["station"], locale), hours=_hours_text(hot["hours"]))
-        cands = propose(hot, bool(run.get("event")), any(i["type"] == "staggered_exit" for i in applied), scope_ids)
+        cands = propose(hot, bool(run.get("event")), any(i["type"] == "staggered_exit" for i in applied), scope_ids, thr)
         if llm is not None:                        # the LLM may add bundles; code validates, simulates and ranks them
             try:
                 ans = llm.complete_json(system=llm_mod.PROPOSER_SYSTEM, schema=llm_mod.PROPOSER_SCHEMA, effort="medium",

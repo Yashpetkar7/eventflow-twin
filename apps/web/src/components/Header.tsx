@@ -20,7 +20,7 @@ export function Header({ onHow, onTour }: { onHow: () => void; onTour: () => voi
       {synthetic && <span className="badge" data-testid="synthetic-badge">{t("synthetic")}</span>}
       <button type="button" className="pill" onClick={onTour}>{t("tourBtn")}</button>
       <button type="button" className="pill" onClick={onHow}>{t("how")}</button>
-      <button type="button" className="pill" aria-pressed={kiosk} onClick={() => useTwin.setState({ kiosk: !kiosk })}>{t("kiosk")}</button>
+      <button type="button" className="pill kioskbtn" aria-pressed={kiosk} onClick={() => useTwin.setState({ kiosk: !kiosk })}>{t("kiosk")}</button>
       <button type="button" className="pill" lang={locale === "ar" ? "en" : "ar"} onClick={() => setLocale(locale === "ar" ? "en" : "ar")}>{t("langSwitch")}</button>
     </header>
   );

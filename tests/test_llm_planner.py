@@ -29,7 +29,7 @@ class FakeLLM:
 
 def flat(**kw):
     base = {"type": "", "hours": [], "from_station": "", "to_station": "", "station": "", "share": 0, "buses": 0,
-            "vehicles": 0, "headway_min": 0, "spread_minutes": 0, "line": ""}
+            "vehicles": 0, "headway_min": 0, "spread_minutes": 0, "line": "", "max_load": 0}
     return {**base, **kw}
 
 

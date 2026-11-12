@@ -1,0 +1,53 @@
+{
+  "suite": "forecast",
+  "git_sha": "154fd23",
+  "timestamp": "2026-11-12T18:14:42",
+  "models": {
+    "forecast": "lgbm",
+    "baseline": "seasonal_naive_168h"
+  },
+  "dataset_version": "synthetic:2026-08-03..2026-09-27",
+  "is_synthetic": true,
+  "horizon": "7-day-ahead hourly; features use only lags >= 168h (no within-horizon leakage)",
+  "features": [
+    "hour",
+    "dow",
+    "weekend",
+    "lag168",
+    "lag336",
+    "mean_samehour_4w",
+    "station_code",
+    "event_flag"
+  ],
+  "metrics": {
+    "naive_mase": 0.9707583955016034,
+    "naive_smape": 0.08867938631213816,
+    "lgbm_mase": 0.7790885228609528,
+    "lgbm_smape": 0.07128027033578942,
+    "lgbm_coverage80": 0.8123315363881402
+  },
+  "n": 8904,
+  "split": "test",
+  "folds": [
+    {
+      "fold_start": "2026-09-14",
+      "split": "val",
+      "naive_mase": 0.9925983491348845,
+      "naive_smape": 0.08905803996794526,
+      "lgbm_mase": 0.7805370116730804,
+      "lgbm_smape": 0.07122117806614818,
+      "lgbm_coverage80": 0.815251572327044,
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-21",
+      "split": "test",
+      "naive_mase": 0.9707583955016034,
+      "naive_smape": 0.08867938631213816,
+      "lgbm_mase": 0.7790885228609528,
+      "lgbm_smape": 0.07128027033578942,
+      "lgbm_coverage80": 0.8123315363881402,
+      "n": 8904
+    }
+  ]
+}

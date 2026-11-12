@@ -181,7 +181,14 @@
     "approveMine": "Approve my plan",
     "mine": "Your plan",
     "nothing": "Turn on at least one action.",
-    "error": "The simulator rejected this plan: {msg}"
+    "error": "The simulator rejected this plan: {msg}",
+    "meter": "Entry metering (gates)",
+    "closed": "Closed",
+    "restGo": "Riders held back",
+    "waitOutside": "Wait outside",
+    "ext": "Extend service after midnight",
+    "until": "until {time}",
+    "noService": "Riders arriving while the metro is closed"
   },
   "alerts": {
     "title": "Station-hours over threshold",
@@ -244,5 +251,6 @@
   "close": "Close",
   "credits": "Data credits",
   "creditsNote": "{n} buildings in the 20 km ring; {e} of them have no height in any dataset and use an ESTIMATED height.",
-  "footer": "Research prototype by SP Jain MAIB students. Baseline demand is synthetic; attendance, metro share and capacity values are assumptions. Train frequency: RTA open data (GTFS). Map: © OpenStreetMap contributors; building heights are estimated where untagged and sea-side towers are cut to podium height. Not an RTA system and not endorsed by RTA."
+  "footer": "Research prototype by SP Jain MAIB students. Baseline demand is synthetic; attendance, metro share and capacity values are assumptions. Train frequency: RTA open data (GTFS). Map: © OpenStreetMap contributors; building heights are estimated where untagged and sea-side towers are cut to podium height. Not an RTA system and not endorsed by RTA.",
+  "longestWait": "Longest wait (inside or outside the gates)"
 }

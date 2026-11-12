@@ -1,0 +1,54 @@
+{
+ "suite": "load_check",
+ "git_sha": "bf7bf4a",
+ "timestamp": "2026-11-12T18:23:13",
+ "models": null,
+ "dataset_version": null,
+ "metrics": {
+  "target": "http://localhost:3300",
+  "A_reads_30_concurrent": {
+   "n": 90,
+   "codes": {
+    "200": 90
+   },
+   "p50_s": 0.089,
+   "p95_s": 0.192,
+   "max_s": 0.245,
+   "mean_s": 0.095
+  },
+  "B_visitor_flows_20_concurrent": {
+   "n": 40,
+   "codes": {
+    "200": 40
+   },
+   "p50_s": 0.844,
+   "p95_s": 1.531,
+   "max_s": 1.535,
+   "mean_s": 0.825
+  },
+  "D_abuse_refused": {
+   "codes": [
+    422,
+    422
+   ],
+   "expected": [
+    422,
+    422
+   ]
+  },
+  "C_rate_limit_70_in_a_row": {
+   "n": 70,
+   "codes": {
+    "200": 18,
+    "429": 52
+   },
+   "p50_s": 0.007,
+   "p95_s": 0.017,
+   "max_s": 0.018,
+   "mean_s": 0.009,
+   "first_429_at": 19
+  }
+ },
+ "n": 200,
+ "split": "live"
+}

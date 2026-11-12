@@ -105,8 +105,13 @@ export function mergeInterventions(lists: Intervention[][]): Intervention[] {
 export interface BuildState {
   headway: number; wayShare: number; wayFrom: string; wayTo: string; buses: number; busFrom: string; busTo: string;
   rt: number; rtAt: string; stag: number;
+  /** Entry metering: 0 off, 95/85/75 = admit up to that % load, -1 = station closed. meterTo "" = wait outside. */
+  meterLoad: number; meterAt: string; meterTo: string;
+  /** Extended service hours after midnight: 0 off, 1 = until 01:00, 3 = until 03:00. */
+  ext: number;
 }
-const BUILD0: BuildState = { headway: 0, wayShare: 0, wayFrom: "EMT", wayTo: "FIC", buses: 0, busFrom: "EMT", busTo: "BKD", rt: 0, rtAt: "EMT", stag: 0 };
+const BUILD0: BuildState = { headway: 0, wayShare: 0, wayFrom: "EMT", wayTo: "FIC", buses: 0, busFrom: "EMT", busTo: "BKD", rt: 0, rtAt: "EMT", stag: 0,
+  meterLoad: 0, meterAt: "WTC", meterTo: "", ext: 0 };
 
 export function buildInterventions(b: BuildState, cur: SimView | null, ids: string[]): Intervention[] {
   const hrs = hotHours(cur, ids);
@@ -117,6 +122,9 @@ export function buildInterventions(b: BuildState, cur: SimView | null, ids: stri
   if (b.wayShare > 0 && b.wayFrom !== b.wayTo) iv.push({ type: "wayfinding_redirect", params: { from_station: b.wayFrom, to_station: b.wayTo, share: b.wayShare / 100, hours: hrs } });
   if (b.buses > 0 && b.busFrom !== b.busTo) iv.push({ type: "shuttle_bus", params: { from_station: b.busFrom, to_station: b.busTo, buses: b.buses, hours: hrs } });
   if (b.rt > 0) iv.push({ type: "robotaxi_staging", params: { station: b.rtAt, vehicles: b.rt, hours: hrs } });
+  if (b.meterLoad !== 0) iv.push({ type: "station_metering", params: {
+    station: b.meterAt, max_load: b.meterLoad < 0 ? 0 : b.meterLoad / 100, hours: hrs, ...(b.meterTo ? { to_station: b.meterTo } : {}) } });
+  if (b.ext > 0) iv.push({ type: "extended_hours", params: { line: "Red", hours: b.ext === 1 ? [0] : [0, 1, 2], headway_min: 10 } });
   return iv;
 }
 
@@ -231,7 +239,7 @@ export const useTwin = create<State>((set, get) => {
   async function applyPlan(title: string, ivs: Intervention[]) {
     const s = get();
     const applied = [...s.applied, { title, ivs }];
-    set({ applied, plan: null, planStatus: "idle", decisions: {}, build: { ...s.build, headway: 0, wayShare: 0, buses: 0, rt: 0, stag: 0 }, preview: null });
+    set({ applied, plan: null, planStatus: "idle", decisions: {}, build: { ...s.build, headway: 0, wayShare: 0, buses: 0, rt: 0, stag: 0, meterLoad: 0, ext: 0 }, preview: null });
     try {
       const r = await api.simulate(simulateBody(s.forecast!.run_id, mergeInterventions(applied.map((a) => a.ivs)), s.threshold, s.forecastReq!));
       set({ cur: buildView(r) });

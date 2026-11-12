@@ -217,7 +217,7 @@ export interface components {
              * Applied
              * @description Already-approved interventions to plan on top of
              */
-            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
         };
         /** AgentPlanResponse */
         AgentPlanResponse: {
@@ -382,7 +382,7 @@ export interface components {
             /** Forecast Run Id */
             forecast_run_id?: string | null;
             /** Interventions */
-            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
         };
         /** DecisionRequest */
         DecisionRequest: {
@@ -406,7 +406,7 @@ export interface components {
             /** Forecast Run Id */
             forecast_run_id?: string | null;
             /** Interventions */
-            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
         };
         /** DecisionResponse */
         DecisionResponse: {
@@ -466,6 +466,30 @@ export interface components {
             note?: string | null;
             /** Note Ar */
             note_ar?: string | null;
+        };
+        /**
+         * ExtendedHours
+         * @description Run trains in hours when the line is normally closed (e.g. after midnight), at `headway_min`.
+         */
+        ExtendedHours: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "extended_hours";
+            params: components["schemas"]["ExtendedHoursParams"];
+        };
+        /** ExtendedHoursParams */
+        ExtendedHoursParams: {
+            /**
+             * Line
+             * @default Red
+             */
+            line: string;
+            /** Hours */
+            hours: number[];
+            /** Headway Min */
+            headway_min: number;
         };
         /** ExtraTrains */
         ExtraTrains: {
@@ -600,6 +624,17 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** MeteringParams */
+        MeteringParams: {
+            /** Station */
+            station: string;
+            /** Max Load */
+            max_load: number;
+            /** Hours */
+            hours: number[];
+            /** To Station */
+            to_station?: string | null;
+        };
         /** PlanOption */
         PlanOption: {
             /** Rank */
@@ -607,7 +642,7 @@ export interface components {
             /** Title */
             title: string;
             /** Interventions */
-            interventions: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+            interventions: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
             summary: components["schemas"]["SimSummary"];
             /** Delta */
             delta: {
@@ -777,7 +812,7 @@ export interface components {
             /** @description The request that produced forecast_run_id. Lets an instance that has never seen the run rebuild it. */
             forecast?: components["schemas"]["ForecastRequest"] | null;
             /** Interventions */
-            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
             /**
              * Detail
              * @description Include the 15-minute rows (large); hourly rows are always returned
@@ -903,6 +938,20 @@ export interface components {
              * @description HH:MM of the 15-minute bin that crosses first
              */
             first_time: string | null;
+        };
+        /**
+         * StationMetering
+         * @description Entry metering at the gates (RTA's New Year's Eve practice): admit riders only up to `max_load` × boarding
+         *     capacity; the rest wait outside the station or, with `to_station`, are guided on foot to a neighbouring station.
+         *     `max_load` 0 = the station is closed for those hours (then `to_station` is required).
+         */
+        StationMetering: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "station_metering";
+            params: components["schemas"]["MeteringParams"];
         };
         /** ValidationError */
         ValidationError: {

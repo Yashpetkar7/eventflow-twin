@@ -17,7 +17,7 @@ source is in brackets — keep the brackets out of the printed poster, keep the 
    | World Trade Centre, GITEX 2025 Day 1, 40,000 assumed visitors | peak load **78 %** of comfortable capacity [`/agent/plan`, gitex2025_d1] |
    | Crowd size at which it tips over (85 % line) | about **44,400** visitors; **14,900 – 44,400** depending on how full trains arrive [`/breakpoint`] |
    | Same day, hot weather (55 % take the metro) | **92 %** → **70 %** with the top plan (guide 35 % of riders to Emirates Towers on foot), simulated [`/agent/plan`, weather hot] |
-   | Downtown celebration night (hypothetical) | over-threshold station-hours **2.25 → 1.25** with shuttles + robotaxi staging, simulated [`/agent/plan`, downtown_night] |
+   | Downtown celebration night (hypothetical) | over-threshold station-hours **2.25 → 1.5** with shuttles (to Max) + robotaxi staging, simulated [`/agent/plan`, downtown_night, corridor view] |
    | Every number in AI plan texts traced to the simulator | **48 of 48** options [`eval/results/agents_20261112-163846.json`] |
    | Prompt-injection attacks that changed a plan | **0 of 15** (English, Arabic, mixed) [`eval/results/redteam_20261112-163848.json`] |
    | Forecasting model backtest (synthetic data) | MASE **0.78** vs **0.97** seasonal baseline [`eval/results/forecast_20261112-0918.json`] |

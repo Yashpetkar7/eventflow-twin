@@ -37,13 +37,23 @@ app.add_middleware(CORSMiddleware, allow_origin_regex=r"^http://(localhost|127\.
 _LIMIT = RateLimit(int(os.environ["EVENTFLOW_RATE_LIMIT"])) if os.environ.get("EVENTFLOW_RATE_LIMIT") else None
 
 
+SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin",
+                    "Cache-Control": "no-store"}
+
+
 @app.middleware("http")
 async def _rate_limit(request: Request, call_next):
     if _LIMIT is not None and request.method == "POST":
-        fwd = request.headers.get("x-forwarded-for") or (request.client.host if request.client else "unknown")
+        # Vercel overwrites X-Forwarded-For (no client spoofing) and also sends x-vercel-forwarded-for, which survives
+        # a proxy in front of Vercel; locally neither is set and the socket address is used.
+        fwd = (request.headers.get("x-vercel-forwarded-for") or request.headers.get("x-forwarded-for")
+               or (request.client.host if request.client else "unknown"))
         if not _LIMIT.allow(fwd.split(",")[0].strip(), time.monotonic()):
-            return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again in a minute."})
-    return await call_next(request)
+            return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again in a minute."},
+                                headers={"Retry-After": "60", **SECURITY_HEADERS})
+    response = await call_next(request)
+    response.headers.update(SECURITY_HEADERS)
+    return response
 
 # Writable state. Laptop / booth: <repo>/data (kept between runs). Serverless: a temp directory per instance —
 # set EVENTFLOW_DATA_DIR=/tmp/eventflow and EVENTFLOW_STORAGE=ephemeral so the UI can say decisions are not kept.

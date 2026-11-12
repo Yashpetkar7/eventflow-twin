@@ -1,0 +1,298 @@
+{
+ "plan_id": "plan_c6129a8de375",
+ "forecast_run_id": "fc_04687fde6ca0",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 2.25,
+  "excess_pax": 3947.4,
+  "peak_lf": 2.066,
+  "max_wait_min": 129.3,
+  "delay_pax_min": 317110.2,
+  "cost_proxy": 0.0,
+  "total_demand": 77463.0,
+  "end_of_day_queue": 2747.0,
+  "no_service_pax": 2483.0,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "Feeder shuttles + robotaxi staging",
+   "interventions": [
+    {
+     "type": "shuttle_bus",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "MAX",
+      "buses": 6,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    },
+    {
+     "type": "robotaxi_staging",
+     "params": {
+      "station": "BKD",
+      "vehicles": 30,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 1.5,
+    "excess_pax": 1734.8,
+    "peak_lf": 1.618,
+    "max_wait_min": 42.8,
+    "delay_pax_min": 107497.7,
+    "cost_proxy": 54.0,
+    "total_demand": 77338.1,
+    "end_of_day_queue": 618.8,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.75,
+    "excess_pax": -2212.6,
+    "peak_lf": -0.448,
+    "max_wait_min": -86.5,
+    "delay_pax_min": -209612.5,
+    "cost_proxy": 54.0,
+    "total_demand": -124.9,
+    "end_of_day_queue": -2128.2,
+    "no_service_pax": 0.0
+   },
+   "score": 1132.6,
+   "rationale": "6 shuttles from Burj Khalifa/Dubai Mall to Max, plus 30 robotaxis staged at Burj Khalifa/Dubai Mall. Simulated result: station-hours over the threshold go from 2.25 to 1.5, riders above the threshold from 3,947 to 1,735, and the peak station load from 207% to 162%. Added cost proxy: 54. Risk: Can shift crowding to the receiving station.",
+   "what": "6 shuttles from Burj Khalifa/Dubai Mall to Max, plus 30 robotaxis staged at Burj Khalifa/Dubai Mall.",
+   "risk": "Can shift crowding to the receiving station.",
+   "cost_added": 54.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_1ebafc92a5ec"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_04687fde6ca0"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Extra trains",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.723,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 318.0,
+    "total_demand": 77463.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.25,
+    "excess_pax": -3947.4,
+    "peak_lf": -1.343,
+    "max_wait_min": -129.3,
+    "delay_pax_min": -317110.2,
+    "cost_proxy": 318.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": -2747.0,
+    "no_service_pax": 0.0
+   },
+   "score": -2412.6,
+   "rationale": "Cut Red Line headway to 3 minutes from 20:00 to 24:00. Simulated result: station-hours over the threshold go from 2.25 to 0, riders above the threshold from 3,947 to 0, and the peak station load from 207% to 72%. Added cost proxy: 318. Risk: Depends on spare trains and crew.",
+   "what": "Cut Red Line headway to 3 minutes from 20:00 to 24:00.",
+   "risk": "Depends on spare trains and crew.",
+   "cost_added": 318.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_f369120a5688"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_04687fde6ca0"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "Extra trains + wayfinding",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.578,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 319.5,
+    "total_demand": 77463.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.25,
+    "excess_pax": -3947.4,
+    "peak_lf": -1.488,
+    "max_wait_min": -129.3,
+    "delay_pax_min": -317110.2,
+    "cost_proxy": 319.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": -2747.0,
+    "no_service_pax": 0.0
+   },
+   "score": -2442.6,
+   "rationale": "3-minute headway from 20:00 to 24:00, plus guiding 20% of Burj Khalifa/Dubai Mall riders to Financial Centre. Simulated result: station-hours over the threshold go from 2.25 to 0, riders above the threshold from 3,947 to 0, and the peak station load from 207% to 58%. Added cost proxy: 319.5. Risk: Needs operations and on-street teams to coordinate.",
+   "what": "3-minute headway from 20:00 to 24:00, plus guiding 20% of Burj Khalifa/Dubai Mall riders to Financial Centre.",
+   "risk": "Needs operations and on-street teams to coordinate.",
+   "cost_added": 319.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_3b2f591c7962"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_04687fde6ca0"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 34,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "Read the goal",
+   "detail": "Keep every station under 85% · priority: balanced",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "Forecast demand",
+   "detail": "Run fc_04687fde6ca0",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "Find hotspots",
+   "detail": "Burj Khalifa/Dubai Mall, 21:00, 22:00, 23:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "Propose plans",
+   "detail": "8 candidate plans from the fixed menu",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "Simulate each plan",
+   "detail": "9 simulator runs",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "Rank by impact and cost",
+   "detail": "Top 3 by riders relieved − λ × cost",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "Explain in plain words",
+   "detail": "Template text, numbers copied from the simulator",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "Check every number",
+   "detail": "34 figures checked, all match",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "BKD",
+  "hours": [
+   21,
+   22,
+   23
+  ],
+  "window": [
+   20,
+   21,
+   22,
+   23
+  ],
+  "peak_lf": 2.066
+ },
+ "cached": false
+}

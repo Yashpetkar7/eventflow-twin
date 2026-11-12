@@ -10,4 +10,4 @@ Checked against `submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf` (regener
 - [x] Preferred dates + representative availability confirmed (both periods; three students on a rota)
 - [x] Safety, transport, installation disclosed (page 5)
 - [x] Synthetic data / assumptions clearly marked; confidential info marked (none)
-- [ ] Sent to Dr. Rachit by Fri 13 Nov (NOT to RTA directly; template not shared) — draft email: `EMAIL_V2_TO_DR_RACHIT.md`; **Krishna sends**
+- [x] Sent to Dr. Rachit by Fri 13 Nov (NOT to RTA directly; template not shared) — v2 emailed by Krishna on 12 Nov 2026 (`EMAIL_V2_TO_DR_RACHIT.md`); waiting for his reply

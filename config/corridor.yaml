@@ -50,7 +50,8 @@ interventions:
   bus_trips_per_hour: 3
   robotaxi_occupancy: 1.6
   robotaxi_trips_per_hour: 2
-  cost_proxy: {extra_trains_per_train_hour: 3.0, shuttle_bus_hour: 1.0, robotaxi_vehicle_hour: 0.4, staggered_exit: 2.0, wayfinding_redirect: 0.5}
+  cost_proxy: {extra_trains_per_train_hour: 3.0, shuttle_bus_hour: 1.0, robotaxi_vehicle_hour: 0.4, staggered_exit: 2.0, wayfinding_redirect: 0.5,
+               station_metering_hour: 1.0, metered_wait_per_pax_hour: 0.05, extended_hours_hour: 2.0}   # metering: gate staff + riders kept waiting outside; extended hours: staff on top of the train trips [ASSUMPTION]
   ranking_lambda: 20
   # Planner priority → λ in score = Δexcess − λ·Δcost (cost: avoid spend · balanced · impact: relieve most) [ASSUMPTION]
   priority_lambda: {cost: 60, balanced: 20, impact: 5}
@@ -62,3 +63,4 @@ interventions:
     max_redirect_share: 0.5
     max_redirect_walk_min: 25     # wayfinding only between adjacent stations within this walk [ASSUMPTION]
     stagger_minutes: [15, 90]
+    metering_load: [0.5, 0.95]    # entry metering admits riders up to this share of boarding capacity; 0 = station closed [ASSUMPTION]

@@ -78,8 +78,8 @@
     "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
     "is_synthetic": true,
     "file": "station_hour_synthetic.parquet",
-    "config_hash": "a23a59b590"
+    "config_hash": "94ae032aa3"
   },
-  "decisions_logged": 73,
-  "contract": "1.7.0"
+  "decisions_logged": 79,
+  "contract": "1.8.0"
 }
