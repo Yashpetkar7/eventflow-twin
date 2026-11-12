@@ -286,9 +286,18 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   await page.getByTestId("credits").locator("summary").click();
   expect(failed).toEqual([]);
   expect(external).toEqual([]);
-  const fps: number[] = [];
-  for (let i = 0; i < 5; i++) { await page.waitForTimeout(1000); fps.push(await page.evaluate(() => (window as unknown as TwinWindow).__eft?.fps ?? 0)); }
-  expect(Math.min(...fps)).toBeGreaterThanOrEqual(50);                        // the floor of the common rules
+  await twin(page, "t.setState({ playing: true, speed: 1 })");
+  const fps: Record<string, number[]> = {};                                    // same protocol as the performance test below
+  for (const cam of ["overview", "close", "top", "fly", "orbit"]) {
+    await twin(page, `t.getState().setCam('${cam}')`);
+    await page.waitForTimeout(3000);
+    fps[cam] = [];
+    for (let i = 0; i < 5; i++) { await page.waitForTimeout(1000); fps[cam].push(+(await page.evaluate(() => (window as unknown as TwinWindow).__eft?.fps ?? 0)).toFixed(1)); }
+  }
+  const all = Object.values(fps).flat();
+  fs.writeFileSync(`${OUT}/fps_v2.json`, JSON.stringify({ suite: "ui_fps_v2", timestamp: new Date().toISOString(), viewport: "1920x1080", layers: "all on, clock playing, ?scene=v2", mode: process.env.EFT_MODE ?? "next dev",
+    avg_fps: +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), min_fps: Math.min(...all), samples: fps }, null, 2));
+  expect(Math.min(...all), JSON.stringify(fps)).toBeGreaterThanOrEqual(50);    // the floor of the common rules
 });
 
 test("performance: fps with every layer on (1920×1080)", async ({ page }) => {

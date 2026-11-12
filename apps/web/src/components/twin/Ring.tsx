@@ -38,7 +38,7 @@ function groundMaterial(map: THREE.Texture, ao: THREE.Texture | null): THREE.Mes
   return m;
 }
 
-interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; geo: THREE.BufferGeometry | null; shadows: boolean }
+interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; far: THREE.BufferGeometry | null; near: THREE.BufferGeometry | null }
 
 export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: THREE.Material; show: boolean }) {
   const [overview, setOverview] = useState<THREE.MeshStandardMaterial | null>(null);
@@ -53,7 +53,7 @@ export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: T
     let dead = false;
     const made: Loaded[] = [];
     let ov: THREE.MeshStandardMaterial | null = null;
-    const e = manifest.extent;
+    const e = manifest.extent, M = 300;
     const mid = (c: { extent: Box }) => Math.hypot((c.extent[0] + c.extent[1]) / 2, (c.extent[2] + c.extent[3]) / 2);
     (async () => {
       ov = groundMaterial(await texture(manifest.overview.file, true), null);
@@ -63,12 +63,13 @@ export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: T
         const [json, map, ao] = await Promise.all([
           fetch(DIR + c.buildings).then((r) => r.json() as Promise<ChunkJson>), texture(c.ground, true), texture(c.ao, false)]);
         if (dead) return;
-        made.push({
-          id: c.id, plane: plane(c.extent, 0), mat: groundMaterial(map, ao), ao,
-          geo: json.buildings.length ? buildingsGeometry(json.buildings, { roofs: json.roof }) : null,
-          // only the chunks that touch the corridor cast shadows (the shadow box follows the corridor camera)
-          shadows: c.extent[0] < e[1] && c.extent[1] > e[0] && c.extent[2] < e[3] && c.extent[3] > e[2],
-        });
+        // only buildings by the corridor cast shadows (the shadow box follows the corridor camera): one mesh each
+        const part = (near: boolean) => {
+          const bs: number[][] = [], roofs: number[] = [];
+          json.buildings.forEach((b, i) => { if ((b[2] > e[0] - M && b[2] < e[1] + M && b[3] > e[2] - M && b[3] < e[3] + M) === near) { bs.push(b); roofs.push(json.roof[i]); } });
+          return bs.length ? buildingsGeometry(bs, { roofs }) : null;
+        };
+        made.push({ id: c.id, plane: plane(c.extent, 0), mat: groundMaterial(map, ao), ao, far: part(false), near: part(true) });
         setChunks([...made]);
         document.documentElement.dataset.sceneV2 = `${made.length}/${manifest.chunks.length}`;     // read by the UI tests
         await new Promise((r) => setTimeout(r, 0));                                                 // let a frame through
@@ -77,7 +78,7 @@ export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: T
     return () => {
       dead = true;
       ov?.map?.dispose(); ov?.dispose();
-      for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.geo?.dispose(); }
+      for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.far?.dispose(); c.near?.dispose(); }
     };
   }, [manifest]);
   useEffect(() => () => { base.wide.dispose(); base.far.dispose(); base.sea.dispose(); }, [base]);
@@ -94,7 +95,8 @@ export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: T
       {chunks.map((c) => (
         <group key={c.id}>
           <mesh geometry={c.plane} material={c.mat} receiveShadow />
-          {c.geo && <mesh geometry={c.geo} material={facade} visible={show} castShadow={c.shadows} receiveShadow />}
+          {c.far && <mesh geometry={c.far} material={facade} visible={show} receiveShadow />}
+          {c.near && <mesh geometry={c.near} material={facade} visible={show} castShadow receiveShadow />}
         </group>
       ))}
     </group>
