@@ -387,7 +387,8 @@ export function Kiosk() {
   const attMin = Math.max(1000, Math.round((att0 * 0.4) / 1000) * 1000), attMax = Math.round((att0 * 2.5) / 1000) * 1000;
   const shareNow = forecast?.metro_share_used ?? null;
   const shown = plan ?? kept;                                  // the plan the "how" and comparison panels describe
-  const best = shown?.options[0]?.summary ?? null;
+  // the AI's strongest option on riders over the line (its rank 1 also weighs cost, so it is not always this one)
+  const best = shown?.options.length ? [...shown.options].sort((a, b) => a.summary.excess_pax - b.summary.excess_pax || a.summary.peak_lf - b.summary.peak_lf)[0].summary : null;
   const mins = (m: number) => T.mins(f.num(m, 0));
   const hours = (paxMin: number) => f.int(paxMin / 60);
   const wait = (m: number) => (m < 0.5 ? T.rNoWait : T.rWait(f.num(m, 0)));
@@ -633,7 +634,7 @@ export function Kiosk() {
               </div>
               {idea && mine && best && (
                 <p className="kvs" data-testid="kiosk-vs">
-                  {mine === "none" ? T.vsNone : mine.excess_pax > best.excess_pax ? <N>{T.vsLose(f.int(mine.excess_pax - best.excess_pax))}</N> : T.vsWin}
+                  {mine === "none" ? T.vsNone : mine.excess_pax > best.excess_pax ? <N>{T.vsLose(f.int(mine.excess_pax - best.excess_pax))}</N> : mine.excess_pax < best.excess_pax ? T.vsBeat : T.vsWin}
                 </p>
               )}
               {visitors && visitors.n > 0 && <p className="knote"><N>{T.you(f.int(visitors.n))}</N></p>}

@@ -122,6 +122,12 @@ test("kiosk: Arabic right to left, larger text, and the hidden expert exit", asy
   await page.waitForTimeout(1500);
   await shot(page, "8_arabic_attract");
   await page.getByTestId("kiosk-start").click();
+  await expect(page.getByRole("heading", { name: "ما الذي أتى بك؟" })).toBeVisible();
+  await page.getByTestId("kiosk-rider").click();                             // the rider tip in Arabic, right to left
+  await expect(page.getByTestId("kiosk-advice").locator(".tip b")).toBeVisible({ timeout: 20_000 });
+  for (const b of await page.locator(".kcard button").all()) { const box = (await b.boundingBox())!; expect(box.y + box.height).toBeLessThanOrEqual(1080 - 72); }
+  await page.waitForTimeout(1200);
+  await shot(page, "8b_arabic_rider_advice");
   await page.locator(".ktools .kpill").first().click();                       // larger text
   await expect(page.locator(".kiosk-root")).toHaveClass(/kbig/);
   await page.waitForTimeout(800);
@@ -175,10 +181,10 @@ test("kiosk: 'I'm travelling to the event' gives a tip from the simulator, faste
   await expect(page.getByRole("heading", { name: "When should I leave?" })).toBeVisible();
   const advice = page.getByTestId("kiosk-advice");
   await expect(advice.locator(".tip b")).toContainText(" at ");
-  await expect(advice.locator(".worst span")).toContainText("% full");
+  await expect(advice.locator(".worst > span")).toContainText("% full");
   const fast = await advice.locator(".tip").innerText();
   await page.getByTestId("kiosk-mode").getByRole("button", { name: "Quieter" }).click();
-  await expect(advice.locator(".tip span")).toContainText("% full");
+  await expect(advice.locator(".tip > span")).toContainText("% full");
   const quiet = await advice.locator(".tip").innerText();
   const pct = (t: string) => Number(/(\d+)% full/.exec(t)![1]);
   expect(pct(quiet)).toBeLessThanOrEqual(60);                                               // "quieter" = trains under 60 % full

@@ -69,12 +69,13 @@ export function riderAdvice(v: SimView | null, served: string[], endHour: number
   const slots: Slot[] = v.resp.rows
     .filter((r) => served.includes(r.station_id))
     .map((r) => ({ id: r.station_id, time: r.time, t: (r.bin + 0.5) / v.bph, wait: r.wait_min, lf: r.load_factor }))
-    .filter((s) => s.t >= endHour - 0.25 && s.t <= Math.min(T_MAX, endHour + 2.5));
+    .filter((s) => s.t >= endHour - 3 && s.t <= Math.min(T_MAX, endHour + 2.5));          // the hours when visitors leave
   if (!slots.length) return null;
   const worst = [...slots].sort((a, b) => b.lf - a.lf || b.wait - a.wait)[0];
+  // the tip never asks anyone to leave before the busiest moment: same time at a calmer station, or a little later
   const ok = (s: Slot) => (quiet ? s.lf <= QUIET_LF : s.lf <= thr && s.wait <= 3);
-  const byTime = [...slots].sort((a, b) => a.t - b.t || a.lf - b.lf);
-  const tip = byTime.find(ok) ?? [...slots].sort((a, b) => a.lf - b.lf || a.t - b.t)[0];
+  const later = slots.filter((s) => s.t >= worst.t - 1e-9).sort((a, b) => a.t - b.t || a.lf - b.lf);
+  const tip = later.find(ok) ?? [...later].sort((a, b) => a.lf - b.lf || a.t - b.t)[0];
   return { worst, tip };
 }
 
