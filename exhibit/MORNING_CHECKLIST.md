@@ -12,7 +12,9 @@ Date: ______  Names on the stand: ______________________
 - [ ] Chrome full screen on the touch monitor: `http://localhost:3000/?kiosk=1` (command in `docs/BOOTH_RUNBOOK.md`)
 
 **Check (as a visitor would)**
-- [ ] Tap **Guided demo** and let it finish
+- [ ] Kiosk shows the attract screen; touch → ① Event → ② guess a station → ③ AI plan → ④ approve → **Start again**
+- [ ] Hold the logo 3 s → full workspace opens; **Touch kiosk** brings the visitor kiosk back
+- [ ] In the full workspace, tap **Guided demo** and let it finish
 - [ ] Tap **World Trade Centre** → Station tab shows the **Break point** card
 - [ ] **Hot day** → **AI plan** → **Plan with AI agents** → 3 options, "All … figures match" → **Approve** option 1
 - [ ] **Clear approved plans**; **Landmarks → Burj Khalifa**; drag the map, then **Recentre**

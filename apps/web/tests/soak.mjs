@@ -15,7 +15,7 @@ const external = [], errors = [];
 page.on("request", (r) => { const u = r.url(); if (!/^https?:\/\/(localhost|127\.0\.0\.1)[:/]/.test(u) && !u.startsWith("data:") && !u.startsWith("blob:")) external.push(u); });
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().slice(0, 200)); });
-await page.goto(`${base}/?kiosk=1&idle=600`);
+await page.goto(`${base}/?kiosk=classic&idle=600`);
 await page.waitForFunction(() => window.__twin?.getState().sceneReady && window.__twin.getState().ready, null, { timeout: 90000 });
 
 const median = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];

@@ -121,4 +121,7 @@ export const api = {
   breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),
   decide: (req: DecisionRequest) => call<DecisionResponse>("/decisions", req, { cache: false }),
   evidence: () => call<Evidence>("/evidence"),
+  /** Anonymous audit log, newest first (kiosk "visitors today" counter). */
+  decisions: (limit = 500) => call<{ total: number; approved: number; rejected: number;
+    items: { timestamp: string; user: string; decision: string; interventions?: { type: string }[] }[] }>(`/decisions?limit=${limit}`, undefined, { cache: false }),
 };
