@@ -62,7 +62,9 @@ export function Columns({ places }: { places: StationPlace[] }) {
       const beat = s.reducedMotion ? 0.45 : 0.35 + 0.25 * Math.sin(live.animT * 6);
       // self-lit so the colour reads the same at noon, golden hour and night
       m.bar.emissive.copy(col).multiplyScalar(over ? beat + 0.25 : 0.42 + live.night * 0.3 + live.golden * 0.12);
-      m.glass.opacity = 0.3 - 0.14 * live.night;
+      // the capacity glass fades out when the camera passes right beside a column (fly-through), the bar stays
+      const near = Math.max(0, Math.min(1, (camera.position.distanceTo(g.position) - 140) / 320));
+      m.glass.opacity = (0.3 - 0.14 * live.night) * near;
       m.ring.color.setHex(over ? 0xffd9e2 : 0xffffff);
       const ph = s.reducedMotion ? 0.35 : (live.animT * 0.8) % 1;
       m.pulse.opacity = over ? 0.55 * (1 - ph) : 0;

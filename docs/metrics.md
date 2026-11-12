@@ -24,7 +24,7 @@ Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refr
 | | Average fps | Minimum |
 |---|---|---|
 | Before (`before_fps.json`, 2026-11-12T07:15:41.333Z) | 60 | 60 |
-| After (`after_fps.json`, 2026-11-12T07:30:34.213Z) | 60 | 60 |
+| After (`after_fps.json`, 2026-11-12T07:38:46.372Z) | 60 | 60 |
 
 ## Offline
 Source: `eval/results/ui/network.json` (2026-11-12T07:34:34.246Z).
