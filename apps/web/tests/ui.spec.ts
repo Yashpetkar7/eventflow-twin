@@ -326,7 +326,7 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   }
   const all = Object.values(fps).flat();
   fs.writeFileSync(`${OUT}/fps_v2.json`, JSON.stringify({ suite: "ui_fps_v2", timestamp: new Date().toISOString(), viewport: "1920x1080", layers: "all on, clock playing, ?scene=v2", mode: process.env.EFT_MODE ?? "next dev",
-    avg_fps: +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), min_fps: Math.min(...all), samples: fps }, null, 2));
+    avg_fps: +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), min_fps: Math.min(...all), tier_at_end: await page.evaluate(() => (window as unknown as { __eft?: { tier: number } }).__eft?.tier ?? -1), samples: fps }, null, 2));
   expect(Math.min(...all), JSON.stringify(fps)).toBeGreaterThanOrEqual(50);    // the floor of the common rules
 });
 

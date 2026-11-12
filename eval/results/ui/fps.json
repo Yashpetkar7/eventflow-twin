@@ -1,6 +1,6 @@
 {
   "suite": "ui_fps",
-  "timestamp": "2026-11-12T14:19:28.194Z",
+  "timestamp": "2026-11-12T15:15:09.560Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing",
   "mode": "next dev",
@@ -13,7 +13,7 @@
     "fly": 60,
     "orbit": 60
   },
-  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)",
+  "renderer": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
   "dpr": 1,
   "canvas": [
     1230,

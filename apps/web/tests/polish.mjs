@@ -27,6 +27,6 @@ for (const [time, tag] of TIMES) {
   }
 }
 const all = Object.values(fps);
-fs.writeFileSync(`${OUT}/${label}_fps.json`, JSON.stringify({ label, timestamp: new Date().toISOString(), viewport: "1920x1080", avg_fps: +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), min_fps: Math.min(...all), per_shot: fps }, null, 2));
+fs.writeFileSync(`${OUT}/${label}_fps.json`, JSON.stringify({ label, timestamp: new Date().toISOString(), viewport: "1920x1080", avg_fps: +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), min_fps: Math.min(...all), tier_at_end: await page.evaluate(() => window.__eft?.tier ?? -1), per_shot: fps }, null, 2));
 console.log(label, "avg fps", (all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), "min", Math.min(...all));
 await browser.close();
