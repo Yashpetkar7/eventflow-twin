@@ -14,6 +14,7 @@ import { LabelProjector } from "./Labels";
 import { Landmarks } from "./Landmarks";
 import { Columns, Crowd, Traffic, VenueBeacon } from "./Live";
 import { Metro, placeStations, Trains } from "./Metro";
+import { loadModels, type Models } from "./models";
 import { loadManifest, type Manifest } from "@/lib/manifest";
 import { landmarkSpots, live, loadScene, type SceneJson } from "./sceneData";
 import { Sky } from "./Sky";
@@ -53,7 +54,7 @@ function Ready() {
   return null;
 }
 
-function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest | null; tier: number }) {
+function World({ data, manifest, models, tier }: { data: SceneJson; manifest: Manifest | null; models: Models | null; tier: number }) {
   const stations = useTwin((s) => s.stations);
   const corridor = useMemo(() => buildCorridor(data), [data]);
   const places = useMemo(() => placeStations(data, corridor, stations), [data, corridor, stations]);
@@ -64,9 +65,9 @@ function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest |
     <>
       <Sky frame={data.meta.frame} tier={tier} real={!!manifest} />
       <City data={data} corridor={corridor} manifest={manifest} />
-      <Landmarks data={data} />
-      <Metro corridor={corridor} places={places} />
-      <Trains corridor={corridor} />
+      <Landmarks data={data} models={models} />
+      <Metro corridor={corridor} places={places} models={models} />
+      <Trains corridor={corridor} models={models} />
       <Traffic corridor={corridor} />
       <Columns places={places} />
       <VenueBeacon data={data} />
@@ -87,9 +88,9 @@ function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest |
 }
 
 export default function TwinCanvas({ label }: { label: string }) {
-  const [data, setData] = useState<{ scene: SceneJson; manifest: Manifest | null } | null>(null);
+  const [data, setData] = useState<{ scene: SceneJson; manifest: Manifest | null; models: Models | null } | null>(null);
   const tier = useTwin((s) => s.tier);
-  useEffect(() => { Promise.all([loadScene(), loadManifest()]).then(([scene, manifest]) => { if (manifest) installHaze(); setData({ scene, manifest }); }).catch(() => useTwin.setState({ glFailed: true })); }, []);
+  useEffect(() => { Promise.all([loadScene(), loadManifest()]).then(async ([scene, manifest]) => { if (manifest) installHaze(); setData({ scene, manifest, models: manifest ? await loadModels() : null }); }).catch(() => useTwin.setState({ glFailed: true })); }, []);
   if (!data) return null;
   return (
     <Canvas
@@ -100,7 +101,7 @@ export default function TwinCanvas({ label }: { label: string }) {
       style={{ position: "absolute", inset: 0 }}
     >
       <Suspense fallback={null}>
-        <World data={data.scene} manifest={data.manifest} tier={tier} />
+        <World data={data.scene} manifest={data.manifest} models={data.models} tier={tier} />
       </Suspense>
     </Canvas>
   );

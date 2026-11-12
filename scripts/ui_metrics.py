@@ -58,6 +58,12 @@ def realism_rows() -> list[str]:
                 "| | Average fps | Minimum | Quality tier at the end |", "|---|---|---|---|",
                 f"| Before, R2 scene (`before_fps.json`, {b3['timestamp']}) | {b3['avg_fps']} | {b3['min_fps']} | {b3.get('tier_at_end')} |",
                 f"| After, R3 scene (`after_fps.json`, {a3['timestamp']}) | {a3['avg_fps']} | {a3['min_fps']} | {a3.get('tier_at_end')} |", ""]
+    mj = load(ROOT / "apps/web/public/models/models.json")
+    if mj:
+        out += [f"R4 models (Blender {mj['blender']}, `scripts/blender/build_models.py`; approximations from public dimensions, not survey models):", "",
+                "| Model | Triangles | Far version | Budget | File | Public dimension source |", "|---|---|---|---|---|---|"]
+        out += [f"| {n} | {m['triangles']} | {m['triangles_lod1']} | {m['budget']} | {m['bytes'] / 1e3:.1f} kB | {m['source']} |" for n, m in mj["models"].items()]
+        out += [""]
     v2fps = load(UI / "fps_v2.json")
     if v2fps:
         out += [f"`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, {v2fps['timestamp']}, test \"realism ring…\"): "

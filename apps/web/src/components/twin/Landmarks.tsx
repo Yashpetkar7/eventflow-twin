@@ -11,6 +11,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { useTwin } from "@/lib/store";
 import { canvasTexture } from "./builders";
+import { ModelMesh, withAo, type Models } from "./models";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
 function burjGeometry(): THREE.BufferGeometry {
@@ -83,7 +84,8 @@ function frameGeometry(): THREE.BufferGeometry {
   ])!;
 }
 
-export function Landmarks({ data }: { data: SceneJson }) {
+/** `models`: the Blender-built landmarks of the realism scene (docs/13 R4); without them the procedural ones are drawn. */
+export function Landmarks({ data, models = null }: { data: SceneJson; models?: Models | null }) {
   const visible = useTwin((s) => s.layers.landmarks);
   const lm = data.landmarks;
   const beacon = useRef<THREE.Mesh>(null);
@@ -168,17 +170,52 @@ export function Landmarks({ data }: { data: SceneJson }) {
     gold: new THREE.MeshStandardMaterial({ color: 0xd9b25a, metalness: 0.9, roughness: 0.26, envMapIntensity: 1.3, emissive: 0xffc35a, emissiveIntensity: 0 }),
     beacon: new THREE.MeshBasicMaterial({ color: 0xff3b30, transparent: true, opacity: 0, fog: false }),
   }), [built]);
+  // the same materials for the Blender models, reading the baked ambient occlusion from the vertex colours
+  // glass is less of a mirror than the procedural tower's: seen from above, a full mirror only shows the sand
+  const vmats = useMemo(() => (models ? { glass: Object.assign(withAo(mats.burj), { metalness: 0.55, roughness: 0.22, color: new THREE.Color(0xa9c0d6) }),
+    steel: withAo(mats.steel), concrete: withAo(mats.crown), gold: withAo(mats.gold),
+    green: withAo(mats.mound), mof: withAo(mats.mof), dwtc: withAo(mats.dwtc) } : null), [mats, models]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => (v instanceof THREE.BufferGeometry || v instanceof THREE.Texture) && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
   }, [built, mats]);
+  useEffect(() => () => { if (vmats) Object.values(vmats).forEach((m) => m.dispose()); }, [vmats]);
   useFrame(() => {
     const n = live.night;
     mats.burj.emissiveIntensity = n * 0.3; mats.steel.emissiveIntensity = n * 0.22;      // façade lighting after dark
     mats.mof.emissiveIntensity = n * 1.6; mats.gold.emissiveIntensity = n * 0.5; mats.dwtc.emissiveIntensity = n * 1.1;
     mats.beacon.opacity = n * (0.55 + 0.45 * Math.sin(live.animT * 2.4));                // aviation light on the spire
     beacon.current?.scale.setScalar(Math.max(2.2, Math.min(9, live.camDist / 700)));
+    if (vmats) {
+      vmats.glass.emissiveIntensity = mats.burj.emissiveIntensity; vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
+      vmats.mof.emissiveIntensity = mats.mof.emissiveIntensity; vmats.gold.emissiveIntensity = mats.gold.emissiveIntensity; vmats.dwtc.emissiveIntensity = mats.dwtc.emissiveIntensity;
+    }
   });
+  const side = (a: number) => Math.sqrt((4 * a) / Math.sqrt(3));
+
+  if (models && vmats) {
+    const m = models, et = (k: "et1" | "et2", name: "emirates_office_tower" | "emirates_hotel_tower", modelSide: number, angle: number) => {
+      const l = lm[k];
+      if (!l) return null;
+      const s = side(l.area) / modelSide;                              // the model's footprint scaled to the real one
+      return <group position={[l.x, 0, l.z]} rotation-y={angle} scale={[s, 1, s]}><ModelMesh model={m[name]} mats={vmats} /></group>;
+    };
+    return (
+      <group visible={visible}>
+        {lm.burj && (
+          <group position={[lm.burj.x, 0, lm.burj.z]} rotation-y={-lm.burj.angle}>
+            <ModelMesh model={m.burj_khalifa} mats={vmats} />
+            <mesh ref={beacon} geometry={built.beacon} material={mats.beacon} position-y={830} />
+          </group>
+        )}
+        {et("et1", "emirates_office_tower", 54, built.a1)}
+        {et("et2", "emirates_hotel_tower", 48, built.a2)}
+        {lm.mof && <group position={[lm.mof.x, 0, lm.mof.z]} rotation-y={-lm.mof.angle}><ModelMesh model={m.museum_of_the_future} mats={vmats} /></group>}
+        {lm.dwtc && <group position={[lm.dwtc.x, 0, lm.dwtc.z]} rotation-y={-lm.dwtc.angle}><ModelMesh model={m.trade_centre_tower} mats={vmats} /></group>}
+        {lm.frame && <group position={[lm.frame.x, 0, lm.frame.z]} rotation-y={-lm.frame.angle}><ModelMesh model={m.dubai_frame} mats={vmats} /></group>}
+      </group>
+    );
+  }
 
   return (
     <group visible={visible}>

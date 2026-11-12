@@ -4,16 +4,16 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 nothing is typed by hand. Regenerate: `make ui-test`, then `python scripts/ui_metrics.py`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T17:29:26.745Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+Source: `eval/results/ui/fps.json` (2026-11-12T18:05:17.416Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
 
 | Measure | Value |
 |---|---|
 | Viewport | 1920x1080 (3D canvas 1230×771, device pixel ratio 1) |
 | Layers | all on, clock playing |
 | Build | next dev |
-| Average fps (5 camera presets × 5 s) | **59.8** |
-| Minimum 1-second sample | 58 |
-| Per camera | overview 59.1, close 59.9, top 60, fly 60, orbit 60 |
+| Average fps (5 camera presets × 5 s) | **56.3** |
+| Minimum 1-second sample | 55.5 |
+| Per camera | overview 56.3, close 56.5, top 56.3, fly 55.9, orbit 56.3 |
 
 Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 means
 "at the cap". Not measured: the exhibit's touch monitor at its native resolution; a 2-hour soak.
@@ -54,7 +54,7 @@ Crash recovery (test "crash recovery…"): with the API blocked the banner appea
 the health check every 4 s clears the banner when the API returns.
 
 ## Offline
-Source: `eval/results/ui/network.json` (2026-11-12T17:27:46.066Z).
+Source: `eval/results/ui/network.json` (2026-11-12T18:03:36.273Z).
 Requests to any host other than localhost during load, an agent plan and a language switch: **0**.
 Fonts (Readex Pro, OFL) are files in the repo; the map is baked into `apps/web/public/geo/`.
 With the API blocked the app starts from the saved snapshot (`apps/web/public/cache/`) and says so (test "API down").
@@ -127,7 +127,21 @@ R3 (buildings by type): 15 before/after pairs in `eval/results/ui/realism_r3/`, 
 | Before, R2 scene (`before_fps.json`, 2026-11-12T16:52:58.191Z) | 60 | 60 | 0 |
 | After, R3 scene (`after_fps.json`, 2026-11-12T17:23:39.511Z) | 60 | 59.9 | 0 |
 
-`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T17:28:44.186Z, test "realism ring…"): average **59.9** fps, minimum 1-second sample 56.3.
+R4 models (Blender 5.3.0, `scripts/blender/build_models.py`; approximations from public dimensions, not survey models):
+
+| Model | Triangles | Far version | Budget | File | Public dimension source |
+|---|---|---|---|---|---|
+| burj_khalifa | 2332 | 582 | 60000 | 41.6 kB | https://en.wikipedia.org/wiki/Burj_Khalifa |
+| emirates_office_tower | 313 | 77 | 25000 | 8.4 kB | https://en.wikipedia.org/wiki/Emirates_Towers |
+| emirates_hotel_tower | 297 | 73 | 25000 | 8.3 kB | https://en.wikipedia.org/wiki/Emirates_Towers |
+| museum_of_the_future | 4192 | 1048 | 25000 | 78.5 kB | https://en.wikipedia.org/wiki/Museum_of_the_Future |
+| trade_centre_tower | 136 | 34 | 25000 | 5.9 kB | https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre |
+| dubai_frame | 84 | 20 | 25000 | 5.0 kB | https://en.wikipedia.org/wiki/Dubai_Frame |
+| metro_station | 1828 | 456 | 15000 | 21.0 kB | https://en.wikipedia.org/wiki/Dubai_Metro |
+| viaduct_segment | 180 | 44 | 15000 | 6.9 kB | https://en.wikipedia.org/wiki/Dubai_Metro |
+| metro_car | 216 | 54 | 8000 | 8.4 kB | https://en.wikipedia.org/wiki/Dubai_Metro |
+
+`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T18:04:34.725Z, test "realism ring…"): average **56.2** fps, minimum 1-second sample 55.7.
 
 ## UI tests
 `apps/web/tests/ui.spec.ts` — 21 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,

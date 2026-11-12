@@ -4,11 +4,13 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Station } from "@/lib/api";
 import { project } from "@/lib/geo";
 import { hourOf, useTwin } from "@/lib/store";
 import { pathSamples, sweep } from "./builders";
 import { roadWidth, type Corridor } from "./City";
+import { ModelMesh, withAo, type Models } from "./models";
 import { live, type SceneJson } from "./sceneData";
 
 export const RAIL_Y = 12.2;
@@ -70,7 +72,7 @@ function ribTexture() {
   return t;
 }
 
-export function Metro({ corridor, places }: { corridor: Corridor; places: StationPlace[] }) {
+export function Metro({ corridor, places, models = null }: { corridor: Corridor; places: StationPlace[]; models?: Models | null }) {
   const select = useTwin((s) => s.select);
   const built = useMemo(() => {
     const samples = pathSamples(corridor.metro, 12, 0);
@@ -105,7 +107,13 @@ export function Metro({ corridor, places }: { corridor: Corridor; places: Statio
     Object.values(mats).forEach((m) => m.dispose());
     ribs.dispose();
   }, [built, mats, ribs]);
-  useFrame(() => { mats.glass.emissiveIntensity = live.night * 0.9; mats.red.emissiveIntensity = 1 + live.night * 1.5; });
+  // Blender-built station (docs/13 R4): the same materials, reading the baked ambient occlusion
+  const vmats = useMemo(() => (models ? { shell: withAo(mats.shell), concrete: withAo(mats.conc), glass: withAo(mats.glass), steel: withAo(mats.conc) } : null), [mats, models]);
+  useEffect(() => () => { if (vmats) Object.values(vmats).forEach((m) => m.dispose()); }, [vmats]);
+  useFrame(() => {
+    mats.glass.emissiveIntensity = live.night * 0.9; mats.red.emissiveIntensity = 1 + live.night * 1.5;
+    if (vmats) vmats.glass.emissiveIntensity = mats.glass.emissiveIntensity;
+  });
 
   const pick = (id: string) => (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 6) return;                       // a drag, not a tap
@@ -124,9 +132,13 @@ export function Metro({ corridor, places }: { corridor: Corridor; places: Statio
         const span = p.zMax - p.zMin, mid = (p.zMax + p.zMin) / 2;
         return (
           <group key={p.id} position={[p.x, 0, p.z]} rotation-y={p.angle}>
-            <mesh geometry={built.platform} material={mats.conc} position-y={RAIL_Y - 0.9} castShadow receiveShadow />
-            <mesh geometry={built.concourse} material={mats.glass} position-y={6.3} />
-            <mesh geometry={built.shell} material={mats.shell} position-y={RAIL_Y - 1.2} castShadow />
+            {models && vmats ? <ModelMesh model={models.metro_station} mats={vmats} /> : (
+              <>
+                <mesh geometry={built.platform} material={mats.conc} position-y={RAIL_Y - 0.9} castShadow receiveShadow />
+                <mesh geometry={built.concourse} material={mats.glass} position-y={6.3} />
+                <mesh geometry={built.shell} material={mats.shell} position-y={RAIL_Y - 1.2} castShadow />
+              </>
+            )}
             {/* glass footbridge across Sheikh Zayed Road with an entrance pod and lift tower at each end */}
             <mesh geometry={built.box} material={mats.glass} position={[0, 7.4, mid]} scale={[5.5, 3.4, span]} />
             <mesh geometry={built.box} material={mats.conc} position={[0, 5.5, mid]} scale={[6, 0.5, span]} castShadow />
@@ -147,17 +159,20 @@ export function Metro({ corridor, places }: { corridor: Corridor; places: Statio
 const CAR_L = 17.2, CAR_GAP = 0.45, CARS = 5, MAX_TRAINS = 14, TRAIN_SPEED = 30;
 
 /** Trains: spacing = headway × running speed, taken from the simulator's trains-per-hour at the selected station. */
-export function Trains({ corridor }: { corridor: Corridor }) {
+export function Trains({ corridor, models = null }: { corridor: Corridor; models?: Models | null }) {
   const visible = useTwin((s) => s.layers.trains);
   const refs = { body: useRef<THREE.InstancedMesh>(null), win: useRef<THREE.InstancedMesh>(null), red: useRef<THREE.InstancedMesh>(null) };
-  const geo = useMemo(() => ({
+  // realism scene: one Blender-built car (body with roof units and bogies, window band, red stripe), instanced five per train
+  const car = models?.metro_car.full;
+  const geo = useMemo(() => (car ? { body: mergeGeometries([car.body, car.steel])!, win: car.win, red: car.red } : {
     body: new THREE.BoxGeometry(CAR_L, 3.5, 2.8), win: new THREE.BoxGeometry(CAR_L - 0.5, 1.05, 2.86), red: new THREE.BoxGeometry(CAR_L, 0.34, 2.88),
-  }), []);
+  }), [car]);
   const mats = useMemo(() => ({
-    body: new THREE.MeshStandardMaterial({ color: 0xf4f6f8, metalness: 0.4, roughness: 0.3 }),
-    win: new THREE.MeshStandardMaterial({ color: 0x1d2a3a, metalness: 0.6, roughness: 0.2, emissive: 0xfff0cf, emissiveIntensity: 0 }),
-    red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, roughness: 0.5 }),
-  }), []);
+    body: new THREE.MeshStandardMaterial({ color: 0xf4f6f8, metalness: 0.4, roughness: 0.3, vertexColors: !!car }),
+    win: new THREE.MeshStandardMaterial({ color: 0x1d2a3a, metalness: 0.6, roughness: 0.2, emissive: 0xfff0cf, emissiveIntensity: 0, vertexColors: !!car }),
+    red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, roughness: 0.5, vertexColors: !!car }),
+  }), [car]);
+  const offWin = car ? 0 : 0.55, offRed = car ? 0 : -1.5;              // the model's parts share one origin
   useEffect(() => () => { Object.values(geo).forEach((g) => g.dispose()); Object.values(mats).forEach((m) => m.dispose()); }, [geo, mats]);
   const st = useRef({ phase: 0, spacing: 2400 });
   const N = MAX_TRAINS * 2 * CARS;
@@ -191,8 +206,8 @@ export function Trains({ corridor }: { corridor: Corridor }) {
           q.setFromAxisAngle(up, Math.atan2(-tmp.tz, tmp.tx));
           p.set(tmp.x - tmp.tz * lat, RAIL_Y + 2.0, tmp.z + tmp.tx * lat);
           body.setMatrixAt(k, m.compose(p, q, sc));
-          p.y += 0.55; win.setMatrixAt(k, m.compose(p, q, sc));
-          p.y -= 1.5; red.setMatrixAt(k, m.compose(p, q, sc));
+          p.y += offWin; win.setMatrixAt(k, m.compose(p, q, sc));
+          p.y += offRed; red.setMatrixAt(k, m.compose(p, q, sc));
         }
       }
     }

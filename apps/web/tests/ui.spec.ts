@@ -302,12 +302,13 @@ test("API down: saved results keep the twin alive", async ({ page }) => {
 test("realism ring (?scene=v2): every chunk streams in offline and the credits list each dataset", async ({ page }) => {
   const external: string[] = [], failed: string[] = [];
   page.on("request", (r) => { const h = new URL(r.url()).hostname; if (!["localhost", "127.0.0.1"].includes(h) && !/^(data|blob):/.test(r.url())) external.push(r.url()); });
-  page.on("response", (r) => { if (r.url().includes("/geo/v2/") && !r.ok()) failed.push(r.url()); });
+  page.on("response", (r) => { if (/\/(geo\/v2|models|draco)\//.test(r.url()) && !r.ok()) failed.push(r.url()); });
   const shaderErrors: string[] = [];
   page.on("console", (m) => { if (m.type() === "error" && /shader|WebGLProgram|GLSL/i.test(m.text())) shaderErrors.push(m.text().slice(0, 300)); });
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
-  expect(await page.evaluate(() => document.documentElement.dataset.sceneV2Builder)).toBe("worker");    // R3: geometry is built off the main thread
+  expect(await page.evaluate(() => document.documentElement.dataset.sceneV2Builder)).toBe("worker");
+  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("8");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
   await expect(page.getByTestId("synthetic-badge")).toBeVisible();
   await expect(page.locator(".labels, .label").first()).toBeAttached();         // station overlays still on top
   await page.getByTestId("credits").locator("summary").click();
