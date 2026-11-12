@@ -23,7 +23,8 @@ Override any of them in Project → Settings → Environment Variables:
 
 ## Turning on the live language model (optional)
 The planner stays offline and deterministic unless these are set (Project → Settings → Environment Variables,
-or `.env` on a laptop — never commit them). **Our key is OpenAI:**
+or `.env` on a laptop — never commit them). **Our key is OpenAI and Yash holds it** (live test steps:
+`docs/12_TEAM_TASKS.md` §0); the public site stays offline unless Krishna decides otherwise:
 `DEMO_MODE=live`, `LLM_MODEL=gpt-5` (or whichever GPT-5 model id the key can use), `OPENAI_API_KEY=<key with a
 monthly budget limit set in the OpenAI dashboard>`. The provider is taken from the model id (`claude-*` → Anthropic,
 anything else → OpenAI) or from `LLM_PROVIDER=openai|anthropic`. Claude works the same way with

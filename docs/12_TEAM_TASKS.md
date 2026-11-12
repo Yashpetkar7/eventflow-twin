@@ -38,9 +38,17 @@ Most of the build tasks below were done on `main` in one pass with Claude Code (
   Still to do: rehearse 3×, USB stick, second laptop.
 
 **What is left, by owner**
-- **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; set a monthly budget limit on the **OpenAI** key and get it to Atharva privately (not in WhatsApp or the repo — e.g. add him to the OpenAI project so he makes his own key), then one live run of B4 (below); K8 booth kit.
-- **Atharva:** **the realism pass for the 3D twin with Fable 5.2 — `docs/13_REALISM_FABLE_TASKS.md` (R1–R6, merged by Mon 16)**; review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`); with the OpenAI key in your `.env`, run `DEMO_MODE=live LLM_MODEL=gpt-5 python -m eval.suites.agents` and `… redteam` and compare with the offline numbers; write down cost and latency.
+- **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; decide whether the public site may ever use the OpenAI key (default: no — it stays offline); K8 booth kit.
+- **Atharva:** **the realism pass for the 3D twin with Fable 5.2 — `docs/13_REALISM_FABLE_TASKS.md` (R1–R6, merged by Mon 16)**; review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`).
 - **Yash:** C4 touch-monitor test; C5 Arabic review; then retake C6 (`node apps/web/tests/final_shots.mjs`).
+  **Yash holds the team's OpenAI key**, so the live AI test (B4) is Yash's:
+  1. In the OpenAI dashboard set a **monthly budget limit** on the key's project.
+  2. Copy `.env.example` to `.env` on your laptop (git-ignored) and set `OPENAI_API_KEY=…`, `LLM_MODEL=gpt-5` (or the
+     GPT-5 model id the key can use), `DEMO_MODE=live`.
+  3. Run `python -m eval.suites.agents`, `python -m eval.suites.redteam`, `python -m eval.gate`; post the numbers
+     (number faithfulness, attack success, p95 latency) and the cost from the OpenAI usage page in the team chat.
+  4. Never send the key in WhatsApp, email, screenshots, GitHub or Vercel without Krishna's decision. If someone else
+     needs access, add them to the OpenAI project so they create their own key.
 
 ## 1. Get the new `main` running (everyone, tonight, ~15 minutes)
 `main` changed a lot on 12 Nov: the web app is now a react-three-fiber twin, the API is at contract 1.7.0, and
@@ -70,7 +78,7 @@ If something does not start, post the terminal output in the team chat before ch
   `python tasks.py contract`, add one line to `docs/09_DECISIONS.md`, tell the other two.
 - Numbers on screen, poster or nomination come only from API responses or `eval/results/`. Synthetic and assumed
   values stay labelled. "Designed for / aligned with RTA" — never "used by". No RTA logo.
-- Secrets (API keys, Vercel tokens) never go in the repo or the chat. Krishna adds them as GitHub and Vercel secrets.
+- Secrets (API keys, Vercel tokens) never go in the repo or the chat. The OpenAI key stays with Yash (see §0); Krishna decides if a key is ever added to Vercel or GitHub secrets.
 - Using Claude Code? Paste: *"Execute Task N of docs/superpowers/plans/2026-11-12-vercel-live-demo.md, step by
   step, and stop after the commit."* Each task there has its tests, code and commands.
 
@@ -134,9 +142,9 @@ Wed 18  exhibit
 ## 5. What each of us must bring (not code)
 | Who | What |
 |---|---|
-| Krishna | Vercel account linked to the repo; Anthropic API key and a monthly spend cap; Dubai Pulse access; the decision in K1 |
+| Krishna | Vercel account linked to the repo; data.dubai ridership download; the decision in K1 |
 | Atharva | Gold examples for the agent suites (10 EN + 10 AR prompts) in `eval/gold/` |
-| Yash | The touch monitor and its cables; a native Arabic reviewer |
+| Yash | The touch monitor and its cables; a native Arabic reviewer; the OpenAI key (with a monthly budget limit) |
 | All | One full offline rehearsal on two laptops on Monday (`docs/BOOTH_RUNBOOK.md`) |
 
 ## 6. If we run out of time
