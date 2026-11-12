@@ -17,6 +17,7 @@ import { SCENE_V2 } from "@/lib/manifest";
 import { simulateBody } from "@/lib/requests";
 import { CORRIDOR_ORDER, mergeInterventions, T_MIN, useTwin } from "@/lib/store";
 import { LabelLayer } from "../LabelLayer";
+import { SceneProgress } from "../SceneProgress";
 import { bump, busiest, closure, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -400,6 +401,7 @@ export function Kiosk() {
       <div className="kmap" data-testid="view">
         <TwinCanvas label={T.attractTitle} />
         <LabelLayer />
+        <SceneProgress text={T.loadingCity} />
       </div>
 
       <header className="ktop">

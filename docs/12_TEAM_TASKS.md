@@ -7,7 +7,12 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
-## Status on Fri 13 Nov, 03:00 — newest first
+## Status on Fri 13 Nov, 05:00 — newest first
+- **Best 3D by default (decision #108):** the kiosk and the desktop workspace open on the realism city at full quality;
+  a slow laptop steps down by itself (kiosk: under 50 fps). `?quality=light` and `?scene=v1` are the manual fallbacks.
+  **Atharva:** your Windows kiosk run now tells us which level the booth laptop settles on (it no longer gates a switch):
+  open `http://localhost:3100/?kiosk=1`, wait 30 s, and send the tier and fps (`node tests/kiosk_fps.mjs http://localhost:3100 v2`).
+  **Yash:** C6 screenshots can be retaken now; the workspace shots show the realism city.
 - **Live:** https://eventflow-twin.vercel.app on `main` with everything below (contract 1.9.0). Still public and unshared
   until Dr. Rachit replies.
 - **Kiosk plus (PR #12, decisions #104–#106):** two ways in (planning / travelling / 60-second show), stress test, your

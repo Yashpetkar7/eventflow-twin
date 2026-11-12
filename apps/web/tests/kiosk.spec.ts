@@ -142,18 +142,26 @@ test("kiosk: Arabic right to left, larger text, and the hidden expert exit", asy
   await expect(page.locator(".app")).toBeVisible();
 });
 
-test("kiosk: the realism scene is its default, held at quality tier 1; ?scene=v1 brings back the corridor scene", async ({ page }) => {
-  type T = Window & { __twin: { getState: () => { tier: number } } };
+test("kiosk: the realism scene at full quality is its default; under 50 fps it steps down; ?quality=light and ?scene=v1", async ({ page }) => {
+  type T = Window & { __twin: { getState: () => { tier: number }; setState: (p: object) => void } };
+  const tier = () => page.evaluate(() => (window as unknown as T).__twin.getState().tier);
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/?kiosk=1&idle=600");
+  await expect(page.getByTestId("scene-progress")).toBeVisible({ timeout: 30_000 });        // "Loading the 3D city…" while it streams in
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
-  expect(await page.evaluate(() => (window as unknown as T).__twin.getState().tier)).toBe(1);   // decision #102
-  await expect(page.locator(".kcred")).toContainText("Overture");             // the realism datasets are credited
+  await expect(page.getByTestId("scene-progress")).toHaveCount(0);
+  expect(await tier()).toBe(0);                                                             // full quality (decision #108)
+  await expect(page.locator(".kcred")).toContainText("Overture");                           // the realism datasets are credited
+  await page.evaluate(() => (window as unknown as T).__twin.setState({ fpsOverride: 45 })); // a laptop that cannot hold 50 fps …
+  await page.waitForFunction(() => (window as unknown as T).__twin.getState().tier === 1, null, { timeout: 30_000 });   // … gets the lighter level
+  await page.goto("/?kiosk=1&idle=600&quality=light");                                      // the booth can also ask for it
+  await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
+  expect(await tier()).toBe(1);
   await page.goto("/?kiosk=1&idle=600&scene=v1");
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await page.waitForTimeout(1500);
   expect(await page.evaluate(() => document.documentElement.dataset.sceneV2 ?? "off")).toBe("off");
-  expect(await page.evaluate(() => (window as unknown as T).__twin.getState().tier)).toBe(0);
+  expect(await tier()).toBe(0);
   await expect(page.locator(".kcred")).not.toContainText("Overture");
 });
 

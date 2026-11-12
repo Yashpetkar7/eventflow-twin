@@ -32,8 +32,10 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
 
 ## The visitor kiosk (`?kiosk=1`; kiosk plus since 13 Nov)
 - **Attract screen** (golden-hour 3D city, "Will the metro cope?", a live fact from the twin, today's visitor count)
-  until someone touches it. The kiosk shows the **realism city** at quality tier 1; `?kiosk=1&scene=v1` shows the older
-  corridor city (use it if a laptop struggles; the kiosk also switches to it by itself after 20 s under 24 fps).
+  until someone touches it. The kiosk shows the **realism city at full quality** and, on a laptop that cannot hold
+  50 fps, steps down to a lighter level by itself within seconds (decision #108). If it still stutters:
+  `?kiosk=1&quality=light` starts on the lighter level, `?kiosk=1&scene=v1` shows the older corridor city (the kiosk
+  also switches to that by itself after 20 s under 24 fps).
 - **Two ways in**, plus a show:
   - **I'm planning the event** — four steps with a highlighted stepper: **① Event** (pick one, or build **your own
     event**, + weather) → **② Crowd** (guess the busiest station, the twin reveals it; optional **Stress-test it**:

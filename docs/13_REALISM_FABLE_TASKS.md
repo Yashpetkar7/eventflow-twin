@@ -169,6 +169,10 @@ building tiles.
 **R7 was measured on a MacBook, whose GPU is much faster than the booth laptop's, so the kiosk is still held at tier 1.**
 
 #### To switch the kiosk to tier 0 (Atharva, on the Windows booth laptop)
+> **Update 13 Nov, decision #108:** the kiosk now starts at tier 0 everywhere and steps down by itself under 50 fps, so
+> nothing has to be switched by hand. Still run the measurement below and report the tier it ends on and the fps; skip
+> the `MIN_TIER` edit (use the build as it is).
+
 Mains power, OneDrive paused, every other browser window and 3D page closed.
 ```text
 git checkout main && git pull
