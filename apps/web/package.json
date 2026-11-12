@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:ui": "playwright test"
+    "test:ui": "playwright test",
+    "snapshot": "node scripts/snapshot.mjs",
+    "demo": "next build && next start -p 3000"
   },
   "dependencies": {
     "@react-three/drei": "10.7.9",

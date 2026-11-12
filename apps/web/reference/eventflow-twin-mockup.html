@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EventFlow Twin – 3D interactive mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --brand:#D90F0F; --navy:#0F2F8F; --navy-soft:#E7ECFA;
+  --bg:#F3F4F7; --surface:#FFFFFF; --muted:#EBEDF2; --line:rgba(20,28,45,.10);
+  --ink:#151B28; --ink-2:#444C5E; --ink-3:#7A8193;
+  --ok:#0E9F6E; --warn:#E39A00; --risk:#C1123F; --ok-soft:#E2F5EE; --risk-soft:#F9E3EB;
+  --shadow:0 12px 32px rgba(15,25,50,.08);
+  --font:"Readex Pro",system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --brand:#FF3B3B; --navy:#8EA6FF; --navy-soft:#1E2A52;
+  --bg:#0E121A; --surface:#161B26; --muted:#202736; --line:rgba(255,255,255,.09);
+  --ink:#EEF1F6; --ink-2:#B6BCCA; --ink-3:#848C9D; --ok:#3CCB95; --warn:#FFB83D; --risk:#FF5C93; --ok-soft:#173329; --risk-soft:#3A1A27; --shadow:0 12px 32px rgba(0,0,0,.4);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --brand:#FF3B3B; --navy:#8EA6FF; --navy-soft:#1E2A52;
+  --bg:#0E121A; --surface:#161B26; --muted:#202736; --line:rgba(255,255,255,.09);
+  --ink:#EEF1F6; --ink-2:#B6BCCA; --ink-3:#848C9D; --ok:#3CCB95; --warn:#FFB83D; --risk:#FF5C93; --ok-soft:#173329; --risk-soft:#3A1A27; --shadow:0 12px 32px rgba(0,0,0,.4);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14.5px;line-height:1.45;-webkit-font-smoothing:antialiased}
+[dir="rtl"] body{line-height:1.65}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--navy);outline-offset:2px;border-radius:8px}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-top:4px solid var(--brand);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 18px;flex-wrap:wrap}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--brand)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand b{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--ink-3)}
+.spacer{flex:1}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:500;min-height:36px}
+.pill[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.badge{border-radius:999px;padding:5px 11px;font-size:12px;font-weight:500;background:#FFF1D6;color:#7A4E00}
+:root[data-theme="dark"] .badge{background:#3A2E14;color:#FFD48A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .badge{background:#3A2E14;color:#FFD48A}}
+
+.app{display:grid;grid-template-columns:290px minmax(0,1fr) 400px;height:calc(100vh - 66px);min-height:640px}
+.rail{background:var(--surface);border-inline-end:1px solid var(--line);overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:16px}
+.rail h2,.panel h2{font-size:13px;font-weight:600;color:var(--ink-2);margin:0 0 8px}
+.scen{display:grid;gap:7px}
+.scen button{text-align:start;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:9px 11px;min-height:48px}
+.scen button b{display:block;font-weight:500;font-size:14px}
+.scen button span{font-size:12px;color:var(--ink-3)}
+.scen button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy-soft)}
+.custom{display:grid;gap:8px;background:var(--bg);border-radius:12px;padding:10px}
+.custom label,.field label{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--ink-2)}
+select{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 8px;min-height:38px}
+input[type=range]{width:100%;accent-color:var(--navy);height:26px;margin:2px 0}
+.seg{display:flex;background:var(--muted);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:7px 4px;font-size:12.5px;min-height:34px}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.08);font-weight:600}
+.note{font-size:12px;color:var(--ink-3)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.checks label{display:flex;align-items:center;gap:7px;font-size:13px;background:var(--bg);border-radius:9px;padding:7px 8px;min-height:36px}
+.checks input{accent-color:var(--navy);width:16px;height:16px}
+.btn{border:0;border-radius:11px;padding:11px 14px;font-weight:600;min-height:44px}
+.btn.red{background:var(--brand);color:#fff}
+.btn.navy{background:var(--navy);color:#fff}
+:root[data-theme="dark"] .btn.navy{color:#0B1230}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.navy{color:#0B1230}}
+.btn.ghost{background:var(--muted)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;align-items:center}
+
+.stage{display:flex;flex-direction:column;min-width:0;min-height:0}
+.view{position:relative;flex:1;min-height:360px;overflow:hidden;background:#cfe0ee}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#gl:active{cursor:grabbing}
+.labels{position:absolute;inset:0;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,-100%);background:rgba(255,255,255,.92);color:#151B28;border-radius:9px;padding:3px 8px;font-size:12px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.12);pointer-events:auto;cursor:pointer;border:1.5px solid transparent}
+.tag b{font-weight:600}
+.tag.over{border-color:var(--risk);color:#7A0B35}
+.tag.sel{background:#0F2F8F;color:#fff}
+.tag.lm{background:rgba(21,27,40,.72);color:#fff;font-size:11px;pointer-events:none}
+.hud{position:absolute;top:12px;inset-inline-start:14px;max-width:38%;pointer-events:none;color:#0E1525;text-shadow:0 1px 10px rgba(255,255,255,.7)}
+.hud.night{color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.clock{font-size:44px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.hud .sub{font-size:13.5px;font-weight:500}
+.kpis{position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:62%}
+.kpi{background:rgba(255,255,255,.9);color:#151B28;border-radius:12px;padding:7px 11px;box-shadow:0 6px 18px rgba(0,0,0,.1);min-width:96px}
+.kpi b{display:block;font-size:19px;font-weight:600;line-height:1.1}
+.kpi span{font-size:11px;color:#5A6273}
+.kpi.bad b{color:#B0124F}
+.legend{position:absolute;bottom:10px;inset-inline-start:12px;display:flex;gap:10px;background:rgba(255,255,255,.88);color:#151B28;border-radius:10px;padding:6px 10px;font-size:11.5px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px}
+.camtools{position:absolute;bottom:10px;inset-inline-end:12px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.camtools button{border:0;background:rgba(255,255,255,.92);color:#151B28;border-radius:10px;padding:7px 10px;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);min-height:34px}
+.camtools button[aria-pressed="true"]{background:#0F2F8F;color:#fff}
+.glfail{position:absolute;inset:0;display:grid;place-items:center;padding:30px;text-align:center;color:var(--ink-2);background:var(--bg)}
+#tableView{position:absolute;inset:0;overflow:auto;padding:18px;background:var(--bg)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border-radius:12px;overflow:hidden}
+th,td{padding:8px 10px;text-align:start;border-bottom:1px solid var(--line)}
+th{color:var(--ink-3);font-weight:500}
+.timebar{display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid var(--line);background:var(--surface)}
+.timebar input{flex:1}
+.play{width:44px;height:44px;border-radius:50%;border:0;background:var(--brand);color:#fff;display:grid;place-items:center;flex:none}
+.speed{width:auto;min-height:36px}
+.heat{padding:6px 16px 10px;background:var(--surface);border-top:1px solid var(--line);overflow-x:auto}
+.heatgrid{display:grid;grid-template-columns:118px repeat(19,minmax(20px,1fr));gap:3px;min-width:600px;align-items:center}
+.heatgrid .lab{font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.heatgrid .hh{font-size:10.5px;color:var(--ink-3);text-align:center}
+.cell{height:17px;border-radius:4px;border:0;padding:0;position:relative}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.over::after{content:"";position:absolute;inset:5px 40%;border-radius:2px;background:rgba(255,255,255,.9)}
+
+.panel{background:var(--surface);border-inline-start:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;gap:2px;padding:8px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:9px 10px;font-size:13px;border-bottom:2.5px solid transparent;white-space:nowrap;min-height:40px;color:var(--ink-2)}
+.tabs button[aria-selected="true"]{border-bottom-color:var(--brand);color:var(--ink);font-weight:600}
+.tabs .count{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--risk);color:#fff;font-size:11px;margin-inline-start:4px}
+.tabpanel{padding:14px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:var(--shadow)}
+.big{font-size:40px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.kv div{background:var(--bg);border-radius:10px;padding:8px}
+.kv b{display:block;font-size:17px;font-weight:600}
+.kv span{font-size:11px;color:var(--ink-3)}
+.agent-steps{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:5px}
+.agent-steps li{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3)}
+.agent-steps .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:10px}
+.agent-steps li.run{color:var(--ink)} .agent-steps li.run .dot{border-color:var(--navy);border-top-color:transparent;animation:spin .7s linear infinite}
+.agent-steps li.done{color:var(--ink-2)} .agent-steps li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+.opt{border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:8px}
+.opt.top{border-color:var(--navy);box-shadow:var(--shadow)}
+.opt h3{margin:0;font-size:15.5px;font-weight:600}
+.rank{font-size:12px;color:var(--navy);font-weight:600}
+.opt p{margin:0;font-size:13px;color:var(--ink-2)}
+.delta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.delta div{background:var(--bg);border-radius:9px;padding:7px}
+.delta b{font-size:14px;display:block;font-weight:600}
+.delta span{font-size:10.5px;color:var(--ink-3)}
+.good{color:var(--ok)} .bad{color:var(--risk)}
+.verify{font-size:12px;color:var(--ok)}
+.warnbox{font-size:12.5px;background:#FFF1D6;color:#7A4E00;border-radius:9px;padding:8px}
+:root[data-theme="dark"] .warnbox{background:#3A2E14;color:#FFD48A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warnbox{background:#3A2E14;color:#FFD48A}}
+.empty{font-size:13px;color:var(--ink-2)}
+.score{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px 10px;font-size:13px}
+.score .h{font-size:11.5px;color:var(--ink-3)}
+.log{font-size:12.5px;color:var(--ink-2);margin:0;padding-inline-start:18px}
+.alert{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:var(--surface);text-align:start;width:100%}
+.alert b{font-weight:600}
+.alert .lf{font-weight:600;color:var(--risk)}
+.ctl{display:grid;gap:6px;border:1px solid var(--line);border-radius:12px;padding:10px}
+.ctl .head{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:500}
+.ctl .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.claude-out{font-size:13px;white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:10px}
+footer{padding:8px 18px;font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--line);background:var(--surface)}
+dialog{border:0;border-radius:18px;max-width:720px;width:calc(100% - 32px);padding:24px;background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(10,14,22,.5)}
+dialog h3{margin:0 0 10px;font-size:20px;font-weight:600}
+dialog li,dialog p{font-size:13.5px;color:var(--ink-2)}
+.tour{position:fixed;inset-inline:0;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;z-index:50;pointer-events:none}
+.tour div{pointer-events:auto;background:#151B28;color:#fff;border-radius:14px;padding:12px 16px;max-width:660px;display:flex;gap:12px;align-items:center;font-size:14.5px;box-shadow:0 14px 40px rgba(0,0,0,.3)}
+.tour button{background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 12px;color:#fff}
+body.kiosk{font-size:16.5px}
+body.kiosk .rail .adv{display:none}
+body.kiosk .btn{min-height:54px}
+body.kiosk .clock{font-size:58px}
+body.kiosk{user-select:none;-webkit-user-select:none}
+@media (max-width:1150px){
+  .app{grid-template-columns:1fr;height:auto}
+  .rail{border-inline-end:0;border-bottom:1px solid var(--line)}
+  .view{min-height:440px}
+  .panel{border-inline-start:0;border-top:1px solid var(--line)}
+  .kpis{max-width:100%;top:auto;bottom:52px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="15" width="6" height="12" rx="2" fill="var(--navy)"/><rect x="12" y="5" width="6" height="22" rx="2" fill="var(--brand)"/><rect x="21" y="10" width="6" height="17" rx="2" fill="var(--warn)"/></svg>
+    <div><b>EventFlow Twin</b><br><span data-i18n="tagline">Interactive digital twin demonstrator · Sheikh Zayed Road corridor</span></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="badge" data-i18n="synthetic">Synthetic baseline</span>
+  <button class="pill" id="btnTour" data-i18n="tourBtn">Guided demo</button>
+  <button class="pill" id="btnHow" data-i18n="how">How it works</button>
+  <button class="pill" id="btnKiosk" aria-pressed="false" data-i18n="kiosk">Touch kiosk</button>
+  <button class="pill" id="btnLang" aria-label="Language">عربي</button>
+  <button class="pill" id="btnTheme" aria-label="Theme">◐</button>
+</header>
+
+<main class="app">
+  <aside class="rail">
+    <section>
+      <h2 data-i18n="event">Event</h2>
+      <div class="scen" id="scenarios"></div>
+      <div class="custom" id="customBox" hidden style="margin-top:8px">
+        <label><span data-i18n="cVenue">Venue nearest to</span></label><select id="cVenue"></select>
+        <div class="row"><div style="flex:1"><label><span data-i18n="cStart">Starts</span></label><select id="cStart"></select></div><div style="flex:1"><label><span data-i18n="cEnd">Ends</span></label><select id="cEnd"></select></div></div>
+        <div class="seg" id="cDay"><button data-v="wd" aria-pressed="true" data-i18n="weekday">Weekday</button><button data-v="we" aria-pressed="false" data-i18n="weekend">Weekend</button></div>
+      </div>
+    </section>
+    <section class="field">
+      <label><span data-i18n="attendance">Expected attendance</span><b class="num" id="attVal"></b></label>
+      <input type="range" id="att" min="5000" max="80000" step="1000">
+      <label><span data-i18n="exitWin">Venue exit window</span><b class="num" id="exitVal"></b></label>
+      <input type="range" id="exitSig" min="15" max="60" step="5">
+      <div class="note" data-i18n="assumption">Attendance and exit window are scenario assumptions.</div>
+    </section>
+    <section>
+      <h2 data-i18n="weather">Conditions</h2>
+      <div class="seg" id="weather"><button data-v="normal" aria-pressed="true" data-i18n="wNormal">Normal</button><button data-v="hot" aria-pressed="false" data-i18n="wHot">Hot day</button><button data-v="rain" aria-pressed="false" data-i18n="wRain">Rain</button></div>
+      <div class="note" id="weatherNote" style="margin-top:6px"></div>
+    </section>
+    <section class="field adv">
+      <h2 data-i18n="planning">Planning settings</h2>
+      <label><span data-i18n="thr">Comfort threshold</span><b class="num" id="thrVal"></b></label>
+      <input type="range" id="thr" min="70" max="95" step="5">
+      <label><span data-i18n="prio">Agents prioritise</span><b id="prioVal"></b></label>
+      <input type="range" id="prio" min="0" max="2" step="1">
+    </section>
+    <section class="adv">
+      <h2 data-i18n="layers">3D layers</h2>
+      <div class="checks" id="layers"></div>
+    </section>
+    <section>
+      <h2 data-i18n="view">View</h2>
+      <div class="seg" id="viewSeg"><button data-v="3d" aria-pressed="true" data-i18n="v3d">3D twin</button><button data-v="table" aria-pressed="false" data-i18n="vTable">Table</button></div>
+    </section>
+    <button class="btn ghost" id="btnReset" data-i18n="reset">Clear approved plans</button>
+  </aside>
+
+  <section class="stage">
+    <div class="view" id="view">
+      <canvas id="gl" aria-label="3D digital twin of the Sheikh Zayed Road corridor"></canvas>
+      <div class="labels" id="labels"></div>
+      <div class="hud" id="hud"><div class="clock num" id="clock">18:00</div><div class="sub" id="scenSub"></div></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="legend"><span><i style="background:var(--ok)"></i><span data-i18n="lgOk">Comfortable</span></span><span><i style="background:var(--warn)"></i><span data-i18n="lgWarn">Busy</span></span><span><i style="background:var(--risk)"></i><span data-i18n="lgRisk">Over threshold</span></span><span><i style="background:transparent;border:2px solid #fff;outline:1px solid #888"></i><span data-i18n="lgRing">Threshold ring</span></span></div>
+      <div class="camtools" id="camtools"></div>
+      <div id="tableView" hidden></div>
+      <div class="glfail" id="glfail" hidden></div>
+    </div>
+    <div class="timebar">
+      <button class="play" id="btnPlay" aria-label="Play"><svg width="16" height="16" viewBox="0 0 16 16"><path id="playIcon" d="M4 2l10 6-10 6z" fill="currentColor"/></svg></button>
+      <input type="range" id="time" min="5" max="23.5" step="0.05" aria-label="Time of day">
+      <select class="speed" id="speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+    </div>
+    <div class="heat"><div class="heatgrid" id="heat"></div></div>
+  </section>
+
+  <aside class="panel">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="tabpanel" id="tp-station" role="tabpanel"></div>
+    <div class="tabpanel" id="tp-ai" role="tabpanel" hidden>
+      <div class="card">
+        <button class="btn red" id="btnPlan" style="width:100%" data-i18n="plan">Plan with AI agents</button>
+        <ol class="agent-steps" id="steps" hidden></ol>
+        <div class="note" style="margin-top:8px" data-i18n="planNote">Agents choose actions; the simulator calculates every number; you approve.</div>
+      </div>
+      <div id="options" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div class="tabpanel" id="tp-build" role="tabpanel" hidden></div>
+    <div class="tabpanel" id="tp-alerts" role="tabpanel" hidden></div>
+    <div class="tabpanel" id="tp-report" role="tabpanel" hidden></div>
+  </aside>
+</main>
+<footer data-i18n="footer">Interactive mockup for review by SP Jain MAIB students. Baseline demand is synthetic, attendance and capacity values are assumptions, and buildings are stylised. The full prototype uses RTA open data (Dubai Pulse). Not an RTA system and not endorsed by RTA. Arabic text is a draft for native-speaker review.</footer>
+
+<div class="tour" id="tour" hidden><div><span id="tourText"></span><button id="tourSkip" data-i18n="skip">Skip</button></div></div>
+<dialog id="howDlg">
+  <h3 data-i18n="howTitle">How EventFlow Twin works</h3>
+  <ol>
+    <li data-i18n="how1">Forecast: background demand per station and hour, plus an event surge shared across stations by walking distance.</li>
+    <li data-i18n="how2">Capacity: trains per hour × train capacity × the share available at one station. Station-hours above the comfort threshold are flagged.</li>
+    <li data-i18n="how3">AI agents propose plans from a fixed menu: extra trains, wayfinding, feeder shuttles, robotaxi staging and staggered exits.</li>
+    <li data-i18n="how4">A deterministic simulator scores every plan. The agents never calculate numbers; every figure is checked.</li>
+    <li data-i18n="how5">Nothing is applied until a human approves it, and every decision is logged.</li>
+  </ol>
+  <p data-i18n="howAlign">Built around RTA AI Strategy priorities: congestion reduction, agentic AI and human approval of every decision.</p>
+  <form method="dialog"><button class="btn navy" data-i18n="close">Close</button></form>
+</dialog>
+
+<script>
+(() => {
+"use strict";
+/* =============== i18n =============== */
+const T={
+en:{tagline:"Interactive digital twin demonstrator · Sheikh Zayed Road corridor",synthetic:"Synthetic baseline",tourBtn:"Guided demo",how:"How it works",kiosk:"Touch kiosk",event:"Event",cVenue:"Venue nearest to",cStart:"Starts",cEnd:"Ends",weekday:"Weekday",weekend:"Weekend",attendance:"Expected attendance",exitWin:"Venue exit window",assumption:"Attendance and exit window are scenario assumptions.",weather:"Conditions",wNormal:"Normal",wHot:"Hot day",wRain:"Rain",planning:"Planning settings",thr:"Comfort threshold",prio:"Agents prioritise",layers:"3D layers",view:"View",v3d:"3D twin",vTable:"Table",reset:"Clear approved plans",lgOk:"Comfortable",lgWarn:"Busy",lgRisk:"Over threshold",lgRing:"Threshold ring",plan:"Plan with AI agents",planNote:"Agents choose actions; the simulator calculates every number; you approve.",skip:"Skip",howTitle:"How EventFlow Twin works",how1:"Forecast: background demand per station and hour, plus an event surge shared across stations by walking distance.",how2:"Capacity: trains per hour × train capacity × the share available at one station. Station-hours above the comfort threshold are flagged.",how3:"AI agents propose plans from a fixed menu: extra trains, wayfinding, feeder shuttles, robotaxi staging and staggered exits.",how4:"A deterministic simulator scores every plan. The agents never calculate numbers; every figure is checked.",how5:"Nothing is applied until a human approves it, and every decision is logged.",howAlign:"Built around RTA AI Strategy priorities: congestion reduction, agentic AI and human approval of every decision.",close:"Close",footer:"Interactive mockup for review by SP Jain MAIB students. Baseline demand is synthetic, attendance and capacity values are assumptions, and buildings are stylised. The full prototype uses RTA open data (Dubai Pulse). Not an RTA system and not endorsed by RTA. Arabic text is a draft for native-speaker review.",
+ custom:"Custom event",customSub:"Build your own scenario",
+ weatherNote:{normal:"Metro share of event trips: 45%",hot:"Hot day: more visitors take the metro (55%)",rain:"Rain: more visitors take the metro (60%)"},
+ prioL:["Lower cost","Balanced","Biggest impact"],
+ layerL:{buildings:"Buildings",landmarks:"Landmarks",trains:"Metro trains",traffic:"Road traffic",flows:"Crowd flows",labels:"Labels"},
+ cam:{overview:"Overview",close:"Station close-up",top:"Top-down",fly:"Fly-through",orbit:"Auto-orbit"},
+ tabs:{station:"Station",ai:"AI plan",build:"My plan",alerts:"Alerts",report:"Report"},
+ kpi:{peak:"Corridor peak load",over:"Over-threshold station-hours",trains:"Trains per hour now",plans:"Plans applied"},
+ load:"Load",riders:"riders/hour",peakToday:"Peak today",overHours:"Hours over threshold",selected:"Selected station",chartNow:"Demand",chartCap:"Threshold",chartBase:"Before plans",capHour:"capacity/hour",
+ steps:["Read the goal","Forecast demand","Find hotspots","Propose plans","Simulate each plan","Rank by impact and cost","Explain in plain words","Check every number"],
+ noHot:"No station goes over the threshold in this scenario, so the agents recommend no action. Try raising attendance or picking a hot day.",
+ rankL:n=>`Option ${n}`,approve:"Approve",reject:"Reject",approved:"Approved and applied",rejected:"Rejected",
+ dOver:"station-hours over threshold",dExcess:"riders above threshold",dPeak:"peak station load",cost:"Added cost proxy",
+ verified:n=>`All ${n} figures match the simulator output`,newHot:s=>`Creates a new hotspot at ${s}. The agent flags this trade-off.`,
+ replan:"Plan applied. Run the agents again to see what else would help.",
+ score:"Impact on the whole corridor",metric:"Measure",before:"No plans",after:"With approved plans",sOver:"Station-hours over threshold",sExcess:"Riders above threshold",sPeak:"Peak station load",sCost:"Cost proxy (relative)",
+ decisions:"Decision log",noDecisions:"No decisions yet.",
+ logApprove:(t,o)=>`${t} approved: ${o}`,logReject:(t,o)=>`${t} rejected: ${o}`,logReset:t=>`${t} all plans cleared`,
+ askClaude:"Ask Claude to brief the planner",claudeWait:"Claude is writing a briefing from the simulator results…",claudeOk:"Every number in the briefing was checked against the simulator.",claudeBad:"The briefing contained a number the simulator did not produce, so it was withheld. The verified summaries above are complete.",claudeErr:"Claude is not available right now; the verified summaries above are complete.",
+ build:{title:"Build your own plan",intro:"Combine actions and see the effect live. Applies to the hotspot hours:",trains:"Extra trains",headway:"Headway",off:"Off",way:"Wayfinding",share:"Share redirected",from:"From",to:"To",bus:"Feeder shuttles",buses:"Buses",rt:"Robotaxi staging",vehicles:"Vehicles",at:"At",stag:"Staggered exit",spread:"Spread",min:"min",preview:"Effect of your plan",approveMine:"Approve my plan",mine:"Your plan",nothing:"Turn on at least one action."},
+ alerts:{title:"Station-hours over threshold",none:"No alerts. Every station stays under the threshold all day.",jump:"Show"},
+ report:{title:"Event brief",save:"Save brief (.md)",snap:"Save 3D snapshot (.png)",saved:"Saved",unavail:"Saving files is available when this page is opened on claude.ai."},
+ tableH:{station:"Station",demand:"Riders/hour",cap:"Capacity/hour",load:"Load",trains:"Trains/hour"},
+ tourSteps:["Dubai Future Week, day 1. Watch the corridor through the day in the 3D twin.","At the exit peak, Emirates Towers station rises far above its threshold ring.","AI agents propose plans, and the simulator measures each one.","You stay in charge: approving the top plan brings every station back under the ring.","Try a hot day, a custom event, or build your own plan in the My plan tab."],
+ glfail:"3D needs WebGL, which is not available in this browser. The table view shows the same results.",
+ play:"Play",pause:"Pause"},
+ar:{tagline:"نموذج تفاعلي للتوأم الرقمي · ممر شارع الشيخ زايد",synthetic:"بيانات أساسية تجريبية",tourBtn:"عرض موجَّه",how:"كيف يعمل",kiosk:"الشاشة اللمسية",event:"الفعالية",cVenue:"الموقع الأقرب إلى",cStart:"البداية",cEnd:"النهاية",weekday:"يوم عمل",weekend:"عطلة نهاية الأسبوع",attendance:"الحضور المتوقع",exitWin:"مدة خروج الزوار",assumption:"الحضور ومدة الخروج افتراضات للسيناريو.",weather:"الظروف",wNormal:"عادي",wHot:"يوم حار",wRain:"مطر",planning:"إعدادات التخطيط",thr:"حد الراحة",prio:"أولوية الوكلاء",layers:"طبقات العرض ثلاثي الأبعاد",view:"العرض",v3d:"التوأم ثلاثي الأبعاد",vTable:"جدول",reset:"مسح الخطط المعتمدة",lgOk:"مريح",lgWarn:"مزدحم",lgRisk:"فوق الحد",lgRing:"حلقة الحد",plan:"التخطيط بوكلاء الذكاء الاصطناعي",planNote:"الوكلاء يختارون الإجراءات، والمحاكي يحسب كل رقم، وأنت تعتمد.",skip:"تخطي",howTitle:"كيف يعمل EventFlow Twin",how1:"التنبؤ: الطلب الأساسي لكل محطة وساعة، مضافًا إليه موجة الفعالية موزعة على المحطات حسب مسافة المشي.",how2:"السعة: عدد القطارات في الساعة × سعة القطار × الحصة المتاحة في محطة واحدة. تُميَّز الساعات التي تتجاوز حد الراحة.",how3:"يقترح الوكلاء خططًا من قائمة محددة: قطارات إضافية، توجيه المشاة، حافلات مغذية، سيارات أجرة ذاتية القيادة، وخروج متدرج.",how4:"محاكٍ حتمي يقيّم كل خطة. الوكلاء لا يحسبون الأرقام، ويتم التحقق من كل رقم.",how5:"لا يُطبق شيء قبل اعتماد بشري، وكل قرار يُسجَّل.",howAlign:"مصمم حول أولويات استراتيجية الذكاء الاصطناعي للهيئة: خفض الازدحام، والذكاء الاصطناعي الوكيلي، والاعتماد البشري لكل قرار.",close:"إغلاق",footer:"نموذج تفاعلي للمراجعة من طلاب ماجستير الذكاء الاصطناعي في الأعمال بجامعة إس بي جain. الطلب الأساسي تجريبي، وقيم الحضور والسعة افتراضية، والمباني مبسطة. يستخدم النموذج الكامل بيانات الهيئة المفتوحة (دبي بالس). ليس نظامًا تابعًا للهيئة ولا معتمدًا منها. النص العربي مسودة تحتاج إلى مراجعة.",
+ custom:"فعالية مخصصة",customSub:"أنشئ السيناريو الخاص بك",
+ weatherNote:{normal:"حصة المترو من رحلات الفعالية: ٤٥٪",hot:"يوم حار: يستخدم مزيد من الزوار المترو (٥٥٪)",rain:"مطر: يستخدم مزيد من الزوار المترو (٦٠٪)"},
+ prioL:["تكلفة أقل","متوازن","أكبر أثر"],
+ layerL:{buildings:"المباني",landmarks:"المعالم",trains:"قطارات المترو",traffic:"حركة الطرق",flows:"تدفق الحشود",labels:"التسميات"},
+ cam:{overview:"نظرة عامة",close:"قرب المحطة",top:"من الأعلى",fly:"جولة طيران",orbit:"دوران تلقائي"},
+ tabs:{station:"المحطة",ai:"خطة الذكاء الاصطناعي",build:"خطتي",alerts:"تنبيهات",report:"تقرير"},
+ kpi:{peak:"أعلى حمولة في الممر",over:"ساعات فوق الحد",trains:"قطارات في الساعة الآن",plans:"خطط مطبقة"},
+ load:"الحمولة",riders:"راكب/ساعة",peakToday:"ذروة اليوم",overHours:"ساعات فوق الحد",selected:"المحطة المختارة",chartNow:"الطلب",chartCap:"الحد",chartBase:"قبل الخطط",capHour:"السعة/ساعة",
+ steps:["قراءة الهدف","التنبؤ بالطلب","تحديد نقاط الازدحام","اقتراح الخطط","محاكاة كل خطة","الترتيب حسب الأثر والتكلفة","الشرح بلغة بسيطة","التحقق من كل رقم"],
+ noHot:"لا توجد محطة تتجاوز الحد في هذا السيناريو، لذا لا يوصي الوكلاء بأي إجراء. جرّب زيادة الحضور أو اختيار يوم حار.",
+ rankL:n=>`الخيار ${n}`,approve:"اعتماد",reject:"رفض",approved:"تم الاعتماد والتطبيق",rejected:"مرفوض",
+ dOver:"ساعات محطة فوق الحد",dExcess:"ركاب فوق الحد",dPeak:"أعلى حمولة محطة",cost:"تكلفة إضافية (مؤشر)",
+ verified:n=>`جميع الأرقام (${n}) مطابقة لنتائج المحاكي`,newHot:s=>`يُنشئ نقطة ازدحام جديدة في ${s}. ينبّه الوكيل إلى هذه المقايضة.`,
+ replan:"تم تطبيق الخطة. شغّل الوكلاء مرة أخرى لمعرفة ما قد يساعد أيضًا.",
+ score:"الأثر على الممر بالكامل",metric:"المقياس",before:"بدون خطط",after:"مع الخطط المعتمدة",sOver:"ساعات محطة فوق الحد",sExcess:"ركاب فوق الحد",sPeak:"أعلى حمولة محطة",sCost:"مؤشر التكلفة (نسبي)",
+ decisions:"سجل القرارات",noDecisions:"لا توجد قرارات بعد.",
+ logApprove:(t,o)=>`${t} اعتماد: ${o}`,logReject:(t,o)=>`${t} رفض: ${o}`,logReset:t=>`${t} مسح جميع الخطط`,
+ askClaude:"اطلب من Claude موجزًا للمخطط",claudeWait:"يكتب Claude موجزًا من نتائج المحاكي…",claudeOk:"تم التحقق من كل رقم في الموجز مقابل المحاكي.",claudeBad:"احتوى الموجز على رقم لم ينتجه المحاكي، لذلك تم حجبه. الملخصات المُتحقق منها أعلاه كاملة.",claudeErr:"Claude غير متاح الآن؛ الملخصات المُتحقق منها أعلاه كاملة.",
+ build:{title:"أنشئ خطتك",intro:"اجمع الإجراءات وشاهد الأثر مباشرة. تُطبق على ساعات الازدحام:",trains:"قطارات إضافية",headway:"الفاصل الزمني",off:"إيقاف",way:"توجيه المشاة",share:"نسبة التحويل",from:"من",to:"إلى",bus:"حافلات مغذية",buses:"حافلات",rt:"سيارات أجرة ذاتية القيادة",vehicles:"مركبات",at:"عند",stag:"خروج متدرج",spread:"التوزيع",min:"دقيقة",preview:"أثر خطتك",approveMine:"اعتماد خطتي",mine:"خطتك",nothing:"فعّل إجراءً واحدًا على الأقل."},
+ alerts:{title:"ساعات محطة فوق الحد",none:"لا توجد تنبيهات. تبقى كل المحطات تحت الحد طوال اليوم.",jump:"عرض"},
+ report:{title:"موجز الفعالية",save:"حفظ الموجز (.md)",snap:"حفظ لقطة ثلاثية الأبعاد (.png)",saved:"تم الحفظ",unavail:"حفظ الملفات متاح عند فتح الصفحة على claude.ai."},
+ tableH:{station:"المحطة",demand:"راكب/ساعة",cap:"السعة/ساعة",load:"الحمولة",trains:"قطارات/ساعة"},
+ tourSteps:["اليوم الأول من أسبوع دبي للمستقبل. شاهد الممر خلال اليوم في التوأم ثلاثي الأبعاد.","عند ذروة الخروج ترتفع محطة أبراج الإمارات فوق حلقة الحد بكثير.","يقترح وكلاء الذكاء الاصطناعي خططًا، ويقيس المحاكي كل خطة.","القرار لك: اعتماد الخطة الأولى يعيد كل المحطات تحت الحلقة.","جرّب يومًا حارًا أو فعالية مخصصة أو أنشئ خطتك في تبويب خطتي."],
+ glfail:"العرض ثلاثي الأبعاد يتطلب WebGL غير المتوفر في هذا المتصفح. يعرض الجدول النتائج نفسها.",
+ play:"تشغيل",pause:"إيقاف"}};
+T.ar.footer=T.ar.footer.replace("إس بي جain","إس بي جين");
+let lang="en";const t=k=>T[lang][k];
+
+/* =============== model =============== */
+const ST=[
+ {id:"MAX",en:"Max",ar:"ماكس",lat:25.2335,lon:55.2920,scale:.7,x:-470},
+ {id:"WTC",en:"World Trade Centre",ar:"مركز التجارة العالمي",lat:25.2253,lon:55.2855,scale:.9,x:-290},
+ {id:"EMT",en:"Emirates Towers",ar:"أبراج الإمارات",lat:25.2175,lon:55.2797,scale:1.0,x:-110},
+ {id:"FIC",en:"Financial Centre",ar:"المركز المالي",lat:25.2115,lon:55.2752,scale:1.1,x:60},
+ {id:"BKD",en:"Burj Khalifa/Dubai Mall",ar:"برج خليفة/دبي مول",lat:25.2011,lon:55.2696,scale:1.6,x:235},
+ {id:"BBY",en:"Business Bay",ar:"الخليج التجاري",lat:25.1912,lon:55.2603,scale:1.2,x:420}];
+const IDS=ST.map(s=>s.id);
+const NEI={MAX:["WTC"],WTC:["MAX","EMT"],EMT:["WTC","FIC"],FIC:["EMT","BKD"],BKD:["FIC","BBY"],BBY:["BKD"]};
+const CFG={trainCap:700,board:.35,hw:{peak:4,off:6,night:8},minHw:2.5,thr:.85,share:{normal:.45,hot:.55,rain:.60},ret:1,exitOff:20,tau:8,
+  busCap:80,busTrips:3,rtOcc:1.6,rtTrips:2,cost:{train:3,bus:1,rt:.4,stag:2,way:.5},lambdas:[60,20,5]};
+const SCEN=[
+ {id:"dfw",en:"Dubai Future Week, day 1",ar:"أسبوع دبي للمستقبل، اليوم الأول",subEn:"Emirates Towers & Museum of the Future · Wed 18 Nov, 09:30–18:00",subAr:"أبراج الإمارات ومتحف المستقبل · الأربعاء ١٨ نوفمبر، ٩:٣٠–١٨:٠٠",lat:25.2178,lon:55.2823,start:570,end:1080,att:15000,weekend:false,anchor:"EMT",vx:-70,vz:-60},
+ {id:"expo",en:"Trade Centre expo, closing day",ar:"معرض مركز التجارة، يوم الختام",subEn:"Dubai World Trade Centre · weekday, 10:00–17:00",subAr:"مركز دبي التجاري العالمي · يوم عمل، ١٠:٠٠–١٧:٠٠",lat:25.2285,lon:55.2867,start:600,end:1020,att:30000,weekend:false,anchor:"WTC",vx:-300,vz:110},
+ {id:"dt",en:"Downtown celebration night",ar:"ليلة احتفال وسط المدينة",subEn:"Burj Park, Downtown Dubai · Saturday, 20:00–22:00",subAr:"حديقة برج، وسط مدينة دبي · السبت، ٢٠:٠٠–٢٢:٠٠",lat:25.1950,lon:55.2740,start:1200,end:1320,att:25000,weekend:true,anchor:"BKD",vx:250,vz:-130},
+ {id:"custom",custom:true,en:"",ar:"",lat:0,lon:0,start:1140,end:1320,att:20000,weekend:false,anchor:"FIC",vx:60,vz:110}];
+const shape=(h,we)=>{const g=(c,s)=>Math.exp(-.5*((h-c)/s)**2);const am=g(8,1.2),pm=g(18,1.6),mid=.35*g(13,3),night=h<5?.05:0;return we?.25*am+.6*pm+.6*mid+.4*g(21,2)+night:am+pm+mid+night;};
+const hav=(a,b,c,d)=>{const r=Math.PI/180,dp=(c-a)*r,dl=(d-b)*r;const h=Math.sin(dp/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return 2*6371*Math.asin(Math.sqrt(h));};
+const gaussH=(c,s)=>{const v=[...Array(24)].map((_,h)=>Math.exp(-.5*((h*60+30-c)/s)**2));const tt=v.reduce((a,b)=>a+b,0)||1;return v.map(x=>x/tt);};
+function weights(sc){const w={};let tt=0;for(const s of ST){const walk=hav(sc.lat,sc.lon,s.lat,s.lon)*1.3/4.8*60;w[s.id]=Math.exp(-walk/CFG.tau);tt+=w[s.id];}for(const k in w)w[k]/=tt;return w;}
+function demandFor(){const sc=S.scen;const w=weights(sc),trips=S.att*CFG.share[S.weather]*CFG.ret,dep=gaussH(sc.end+CFG.exitOff,S.exitSig),arr=gaussH(sc.start-60,45);
+  const d={};for(const s of ST){d[s.id]={base:[...Array(24)].map((_,h)=>1500*s.scale*shape(h,sc.weekend)),event:dep.map(x=>trips*w[s.id]*x),arr:arr.map(x=>trips*w[s.id]*x)};}return d;}
+const hwFor=h=>(h>=7&&h<=9)||(h>=17&&h<=20)?CFG.hw.peak:(h>=6&&h<=23?CFG.hw.off:CFG.hw.night);
+const tot=(d,s,h)=>d[s].base[h]+d[s].event[h];
+function moveD(d,a,b,h,amt){amt=Math.max(0,Math.min(amt,tot(d,a,h)));const te=Math.min(amt,d[a].event[h]);d[a].event[h]-=te;d[a].base[h]-=amt-te;d[b].event[h]+=amt;return amt;}
+function remD(d,s,h,amt){amt=Math.max(0,Math.min(amt,tot(d,s,h)));const te=Math.min(amt,d[s].event[h]);d[s].event[h]-=te;d[s].base[h]-=amt-te;return amt;}
+function spread(series,mins){const k=Math.max(0,Math.round(mins/60));if(!k)return series.slice();const out=Array(24).fill(0),w=2*k+1;series.forEach((v,h)=>{for(let j=-k;j<=k;j++){let x=h+j;x=x<0?-x-1:(x>23?47-x:x);x=Math.min(23,Math.max(0,x));out[x]+=v/w;}});return out;}
+function simulate(demand,ivs){
+  const d=JSON.parse(JSON.stringify(demand));const hwo={};let cost=0,div=0;
+  for(const iv of ivs){const p=iv.p,hrs=p.hours&&p.hours.length?p.hours:[...Array(24).keys()];
+    if(iv.type==="trains"){const nh=Math.max(p.headway,CFG.minHw);for(const h of hrs){const b=hwFor(h);if(nh<b){hwo[h]=Math.min(hwo[h]||99,nh);cost+=(60/nh-60/b)*CFG.cost.train;}}}
+    else if(iv.type==="way"){for(const h of hrs)moveD(d,p.from,p.to,h,tot(d,p.from,h)*p.share);cost+=CFG.cost.way*hrs.length;}
+    else if(iv.type==="bus"){const ph=p.buses*CFG.busCap*CFG.busTrips;for(const h of hrs)moveD(d,p.from,p.to,h,ph);cost+=CFG.cost.bus*p.buses*hrs.length;}
+    else if(iv.type==="rt"){const ph=p.vehicles*CFG.rtOcc*CFG.rtTrips;for(const h of hrs)div+=remD(d,p.station,h,ph);cost+=CFG.cost.rt*p.vehicles*hrs.length;}
+    else if(iv.type==="stag"){for(const s of IDS)d[s].event=spread(d[s].event,p.mins);cost+=CFG.cost.stag;}}
+  const rows={};let over=0,excess=0,peak=0;const overSet=new Set();
+  for(const s of IDS){rows[s]=[];for(let h=0;h<24;h++){const hw=hwo[h]||hwFor(h);const cap=60/hw*CFG.trainCap*CFG.board;const dem=tot(d,s,h),lf=dem/cap;rows[s].push({dem,cap,lf,tph:60/hw,ev:d[s].event[h]});
+    if(lf>CFG.thr){over++;overSet.add(s);}excess+=Math.max(0,dem-CFG.thr*cap);peak=Math.max(peak,lf);}}
+  return {rows,sum:{over,excess:Math.round(excess),peak:Math.round(peak*100),cost:Math.round(cost*10)/10},overSet,div:Math.round(div),hwo};}
+
+/* =============== state =============== */
+const S={scen:SCEN[0],att:15000,exitSig:30,weather:"normal",prio:1,time:18,selected:"EMT",applied:[],options:[],decisions:{},planning:false,playing:false,speed:1,view:"3d",tab:"station",
+  layers:{buildings:true,landmarks:true,trains:true,traffic:true,flows:true,labels:true},cam:"overview",
+  build:{headway:0,wayShare:0,wayFrom:"EMT",wayTo:"FIC",buses:0,busFrom:"EMT",busTo:"BKD",rt:0,rtAt:"EMT",stag:0},demand:null,base:null,cur:null};
+const $=id=>document.getElementById(id);
+const nm=s=>ST.find(x=>x.id===s)[lang];
+const loc=()=>lang==="ar"?"ar-AE":"en-GB";
+const fmt=n=>Math.round(n).toLocaleString(loc());
+const pct=n=>Math.round(n).toLocaleString(loc())+"%";
+const hhmm=x=>{x=Math.max(0,x);const h=Math.floor(x),m=Math.round((x-h)*60)%60;return `${String(h%24).padStart(2,"0")}:${String(m).padStart(2,"0")}`;};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const lfColor=lf=>lf>CFG.thr?css("--risk"):(lf>CFG.thr*.72?css("--warn"):css("--ok"));
+function recompute(){S.demand=demandFor();S.base=simulate(S.demand,[]);S.cur=simulate(S.demand,S.applied);}
+function at(rows,s,x){const h0=Math.min(23,Math.floor(x)),h1=Math.min(23,h0+1),f=x-Math.floor(x);const a=rows[s][h0],b=rows[s][h1];return {dem:a.dem+(b.dem-a.dem)*f,cap:a.cap+(b.cap-a.cap)*f,lf:a.lf+(b.lf-a.lf)*f,tph:a.tph,ev:a.ev+(b.ev-a.ev)*f};}
+const scenName=sc=>sc.custom?t("custom"):(lang==="ar"?sc.ar:sc.en);
+function scenSub(sc){if(!sc.custom)return lang==="ar"?sc.subAr:sc.subEn;const day=sc.weekend?t("weekend"):t("weekday");return `${lang==="ar"?"بالقرب من":"Near"} ${nm(sc.anchor)} · ${day}, ${hhmm(sc.start/60)}–${hhmm(sc.end/60)}`;}
+function hotHours(rows){const set=new Set();for(const s of IDS)rows[s].forEach((r,h)=>{if(r.lf>CFG.thr)set.add(h);});let hrs=[...set].sort((a,b)=>a-b);
+  if(!hrs.length){const eh=Math.min(23,Math.floor((S.scen.end+CFG.exitOff)/60));hrs=[eh];}return hrs;}
+
+/* =============== rail =============== */
+function renderRail(){
+  $("scenarios").innerHTML=SCEN.map(s=>`<button aria-pressed="${s.id===S.scen.id}" data-s="${s.id}"><b>${scenName(s)}</b><span>${s.custom?t("customSub"):(lang==="ar"?s.subAr:s.subEn).split(" · ")[0]}</span></button>`).join("");
+  $("scenarios").querySelectorAll("button").forEach(b=>b.onclick=()=>selectScen(b.dataset.s));
+  $("customBox").hidden=!S.scen.custom;
+  $("cVenue").innerHTML=ST.map(s=>`<option value="${s.id}" ${s.id===SCEN[3].anchor?"selected":""}>${nm(s.id)}</option>`).join("");
+  const opts=v=>[...Array(37)].map((_,i)=>{const m=360+i*30;return `<option value="${m}" ${m===v?"selected":""}>${hhmm(m/60)}</option>`;}).join("");
+  $("cStart").innerHTML=opts(SCEN[3].start);$("cEnd").innerHTML=opts(SCEN[3].end);
+  $("cDay").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.v==="we")===SCEN[3].weekend)));
+  $("att").value=S.att;$("attVal").textContent=fmt(S.att);
+  $("exitSig").value=S.exitSig;$("exitVal").textContent=`± ${fmt(S.exitSig)} ${lang==="ar"?"دقيقة":"min"}`;
+  $("weather").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===S.weather)));
+  $("weatherNote").textContent=t("weatherNote")[S.weather];
+  $("thr").value=Math.round(CFG.thr*100);$("thrVal").textContent=pct(CFG.thr*100);
+  $("prio").value=S.prio;$("prioVal").textContent=t("prioL")[S.prio];
+  $("layers").innerHTML=Object.keys(S.layers).map(k=>`<label><input type="checkbox" data-l="${k}" ${S.layers[k]?"checked":""}>${t("layerL")[k]}</label>`).join("");
+  $("layers").querySelectorAll("input").forEach(i=>i.onchange=()=>{S.layers[i.dataset.l]=i.checked;applyLayers();});
+  $("viewSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===S.view)));
+  $("scenSub").innerHTML=`<b>${scenName(S.scen)}</b><br>${scenSub(S.scen)}`;
+}
+function selectScen(id){const sc=SCEN.find(s=>s.id===id);S.scen=sc;S.att=sc.att;S.selected=sc.anchor;S.applied=[];S.options=[];S.decisions={};$("steps").hidden=true;
+  if(sc.custom){const st=ST.find(s=>s.id===sc.anchor);sc.lat=st.lat+.0012;sc.lon=st.lon+.0012;sc.vx=st.x+10;sc.vz=115;}
+  recompute();S.time=Math.min(23.5,(sc.end+CFG.exitOff)/60);$("time").value=S.time;placeVenue();renderAll();camTo(S.cam==="close"?"close":S.cam);}
+function customChanged(){const c=SCEN[3];c.anchor=$("cVenue").value;c.start=+$("cStart").value;c.end=Math.max(c.start+30,+$("cEnd").value);selectScen("custom");}
+
+/* =============== tabs & panels =============== */
+const TABS=["station","ai","build","alerts","report"];
+function renderTabs(){const n=alertsList().length;
+  $("tabs").innerHTML=TABS.map(k=>`<button role="tab" aria-selected="${S.tab===k}" data-t="${k}">${t("tabs")[k]}${k==="alerts"&&n?`<span class="count num">${fmt(n)}</span>`:""}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;showTab();});
+  showTab();}
+function showTab(){TABS.forEach(k=>$("tp-"+k).hidden=k!==S.tab);$("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.t===S.tab)));
+  if(S.tab==="station")renderStation();if(S.tab==="ai")renderOptions();if(S.tab==="build")renderBuild();if(S.tab==="alerts")renderAlerts();if(S.tab==="report")renderReport();}
+
+function chartSVG(s){const W=360,H=150,pad=26,hrs=[...Array(19)].map((_,i)=>i+5);
+  const maxV=Math.max(...hrs.map(h=>Math.max(S.base.rows[s][h].dem,S.cur.rows[s][h].cap*CFG.thr)))*1.1;
+  const X=h=>pad+(h-5)/18*(W-pad-6),Y=v=>H-18-(v/maxV)*(H-30);
+  const line=f=>hrs.map((h,i)=>`${i?"L":"M"}${X(h).toFixed(1)} ${Y(f(h)).toFixed(1)}`).join(" ");
+  const band=hrs.map((h,i)=>`${i?"L":"M"}${X(h).toFixed(1)} ${Y(S.cur.rows[s][h].dem*1.12).toFixed(1)}`).join(" ")+" "+hrs.slice().reverse().map(h=>`L${X(h).toFixed(1)} ${Y(S.cur.rows[s][h].dem*.88).toFixed(1)}`).join(" ")+"Z";
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${nm(s)}" style="direction:ltr"><path d="${band}" fill="${css("--navy")}" opacity=".12"/>`;
+  g+=`<path d="${line(h=>S.cur.rows[s][h].cap*CFG.thr)}" fill="none" stroke="${css("--ink-3")}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  if(S.applied.length)g+=`<path d="${line(h=>S.base.rows[s][h].dem)}" fill="none" stroke="${css("--risk")}" stroke-width="2" stroke-dasharray="3 3"/>`;
+  g+=`<path d="${line(h=>S.cur.rows[s][h].dem)}" fill="none" stroke="${css("--navy")}" stroke-width="2.6"/>`;
+  g+=`<line x1="${X(S.time)}" x2="${X(S.time)}" y1="6" y2="${H-18}" stroke="${css("--brand")}" stroke-width="1.5"/>`;
+  for(const h of [6,9,12,15,18,21])g+=`<text x="${X(h)}" y="${H-3}" font-size="10" text-anchor="middle" fill="${css("--ink-3")}">${h}:00</text>`;
+  return g+`</svg><div class="note" style="display:flex;gap:12px;flex-wrap:wrap"><span style="color:var(--navy)">━ ${t("chartNow")}</span><span>┅ ${t("chartCap")} ${pct(CFG.thr*100)}</span>${S.applied.length?`<span style="color:var(--risk)">┅ ${t("chartBase")}</span>`:""}</div>`;}
+function renderStation(){const s=S.selected,v=at(S.cur.rows,s,S.time);const peak=Math.max(...S.cur.rows[s].map(r=>r.lf));const oh=S.cur.rows[s].filter(r=>r.lf>CFG.thr).length;
+  $("tp-station").innerHTML=`<div class="card"><div class="note">${t("selected")}</div><h3 style="margin:2px 0 8px;font-size:18px;font-weight:600">${nm(s)}</h3>
+  <div class="row" style="align-items:baseline;gap:10px"><span class="big num" style="color:${lfColor(v.lf)}">${pct(v.lf*100)}</span><span class="note">${t("load")} ${hhmm(S.time)}</span></div>
+  <div class="kv"><div><b class="num">${fmt(v.dem)}</b><span>${t("riders")}</span></div><div><b class="num">${pct(peak*100)}</b><span>${t("peakToday")}</span></div><div><b class="num">${fmt(oh)}</b><span>${t("overHours")}</span></div></div>
+  <div style="margin-top:10px">${chartSVG(s)}</div></div>
+  <div class="row" style="flex-wrap:wrap">${IDS.map(id=>`<button class="pill" aria-pressed="${id===s}" data-st="${id}">${nm(id)}</button>`).join("")}</div>`;
+  $("tp-station").querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>selectStation(b.dataset.st,true));}
+function selectStation(id,fly){S.selected=id;if(fly&&S.cam==="close")camTo("close");renderStation();updateLabelsNow=true;}
+
+/* ---- AI agents ---- */
+function candidates(){const cur=S.cur;let worst=null,we=-1;
+  for(const s of IDS){const e=cur.rows[s].reduce((a,r)=>a+Math.max(0,r.dem-CFG.thr*r.cap),0);if(e>we){we=e;worst=s;}}
+  if(we<=0)return [];
+  const hrs=cur.rows[worst].map((r,h)=>r.lf>CFG.thr?h:-1).filter(h=>h>=0);
+  const win=[...new Set(hrs.flatMap(h=>[h-1,h,h+1]))].filter(h=>h>=0&&h<=23).sort((a,b)=>a-b);
+  const pk=hrs.reduce((a,h)=>cur.rows[worst][h].lf>cur.rows[worst][a].lf?h:a,hrs[0]);
+  const nb=NEI[worst].slice().sort((a,b)=>cur.rows[a][pk].lf-cur.rows[b][pk].lf)[0];
+  const far=(NEI[nb].find(x=>x!==worst))||nb;const N=nm,ar=lang==="ar";
+  return [
+   {key:"stagway",title:ar?"خروج متدرج + توجيه المشاة":"Staggered exit + wayfinding",what:ar?`توزيع خروج الزوار على ساعة إضافية وتوجيه ٢٥٪ من ركاب ${N(worst)} إلى ${N(nb)} سيرًا.`:`Spread venue exits over an extra hour and guide 25% of ${N(worst)} riders to ${N(nb)} on foot.`,risk:ar?"يتطلب تعاون المنظمين ولافتات واضحة.":"Needs the organiser’s cooperation and clear signage.",ivs:[{type:"stag",p:{mins:60}},{type:"way",p:{from:worst,to:nb,share:.25,hours:hrs}}]},
+   {key:"trains",title:ar?"قطارات إضافية":"Extra trains",what:ar?`تقليل الفاصل الزمني للخط الأحمر إلى ٣ دقائق من ${win[0]}:00 إلى ${win[win.length-1]+1}:00.`:`Cut Red Line headway to 3 minutes from ${win[0]}:00 to ${win[win.length-1]+1}:00.`,risk:ar?"يعتمد على توفر القطارات والطواقم.":"Depends on spare trains and crew.",ivs:[{type:"trains",p:{headway:3,hours:win}}]},
+   {key:"busrt",title:ar?"حافلات مغذية + سيارات أجرة ذاتية القيادة":"Feeder shuttles + robotaxi staging",what:ar?`٦ حافلات من ${N(worst)} إلى ${N(far)} و٣٠ سيارة أجرة ذاتية القيادة عند ${N(worst)}.`:`6 shuttles from ${N(worst)} to ${N(far)}, plus 30 robotaxis staged at ${N(worst)}.`,risk:ar?"قد ينقل الازدحام إلى المحطة المستقبلة.":"Can shift crowding to the receiving station.",ivs:[{type:"bus",p:{from:worst,to:far,buses:6,hours:hrs}},{type:"rt",p:{station:worst,vehicles:30,hours:hrs}}]},
+   {key:"way",title:ar?"توجيه المشاة فقط":"Wayfinding only",what:ar?`توجيه ٣٥٪ من ركاب ${N(worst)} إلى ${N(nb)}.`:`Guide 35% of ${N(worst)} riders to ${N(nb)}.`,risk:ar?"يعتمد على استجابة الزوار.":"Relies on visitors following the signs.",ivs:[{type:"way",p:{from:worst,to:nb,share:.35,hours:hrs}}]},
+   {key:"trainstag",title:ar?"قطارات إضافية + خروج متدرج":"Extra trains + staggered exit",what:ar?"فاصل ٣ دقائق في الذروة مع توزيع الخروج على ساعة إضافية.":"3-minute headway at the peak, plus exits spread over an extra hour.",risk:ar?"أعلى تكلفة بين الخيارات.":"The most expensive option.",ivs:[{type:"trains",p:{headway:3,hours:win}},{type:"stag",p:{mins:60}}]},
+   {key:"trainsway",title:ar?"قطارات إضافية + توجيه المشاة":"Extra trains + wayfinding",what:ar?`فاصل ٣ دقائق مع توجيه ٢٠٪ من ركاب ${N(worst)} إلى ${N(nb)}.`:`3-minute headway plus guiding 20% of ${N(worst)} riders to ${N(nb)}.`,risk:ar?"يحتاج إلى تنسيق بين التشغيل والميدان.":"Needs operations and on-street teams to coordinate.",ivs:[{type:"trains",p:{headway:3,hours:win}},{type:"way",p:{from:worst,to:nb,share:.2,hours:hrs}}]}];}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function runAgents(){if(S.planning)return;S.planning=true;$("btnPlan").disabled=true;S.options=[];renderOptions();
+  const ol=$("steps");ol.hidden=false;ol.innerHTML=t("steps").map(x=>`<li><span class="dot"></span>${x}</li>`).join("");
+  const fast=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  for(const li of ol.children){li.className="run";await sleep(fast?40:230);li.className="done";li.querySelector(".dot").textContent="✓";}
+  const c=candidates();
+  if(!c.length)S.options=[{none:true}];
+  else{const b=S.cur,lam=CFG.lambdas[2-S.prio];
+    const sc=c.map(o=>{const r=simulate(S.demand,[...S.applied,...o.ivs]);return {...o,r,score:(b.sum.excess-r.sum.excess)-lam*(r.sum.cost-b.sum.cost),newHot:[...r.overSet].filter(s=>!b.overSet.has(s))};});
+    sc.sort((a,z)=>z.score-a.score);S.options=sc.slice(0,3);}
+  S.planning=false;$("btnPlan").disabled=false;renderOptions();}
+function figs(o){const b=S.cur.sum,a=o.r.sum;return [b.over,a.over,b.excess,a.excess,b.peak,a.peak,Math.round((a.cost-b.cost)*10)/10];}
+function optCard(o,i,b){const a=o.r.sum,st=S.decisions[o.key],dc=Math.round((a.cost-b.cost)*10)/10;
+  return `<article class="opt ${i===0?"top":""}" style="${st==="approved"?"border-color:var(--ok)":""}${st==="rejected"?";opacity:.55":""}"><div class="rank">${t("rankL")(i+1)}</div><h3>${o.title}</h3><p>${o.what}</p>
+  <div class="delta"><div><b class="num">${fmt(b.over)} → <span class="${a.over<b.over?"good":a.over>b.over?"bad":""}">${fmt(a.over)}</span></b><span>${t("dOver")}</span></div>
+  <div><b class="num">${fmt(b.excess)} → <span class="${a.excess<b.excess?"good":"bad"}">${fmt(a.excess)}</span></b><span>${t("dExcess")}</span></div>
+  <div><b class="num">${pct(b.peak)} → <span class="${a.peak<b.peak?"good":"bad"}">${pct(a.peak)}</span></b><span>${t("dPeak")}</span></div></div>
+  <p>${t("cost")}: <b class="num">+${dc.toLocaleString(loc())}</b>. ${o.risk}</p>
+  ${o.newHot.length?`<div class="warnbox">${t("newHot")(o.newHot.map(nm).join(", "))}</div>`:""}
+  <div class="verify">✓ ${t("verified")(figs(o).length)}</div>
+  ${st?`<div class="${st==="approved"?"good":""}" style="font-weight:600;font-size:13px">${st==="approved"?t("approved"):t("rejected")}</div>`:`<div class="row"><button class="btn navy" style="flex:1" data-a="${i}">${t("approve")}</button><button class="btn ghost" data-r="${i}">${t("reject")}</button></div>`}</article>`;}
+function renderOptions(){const box=$("options");
+  if(!S.options.length){box.innerHTML=S.applied.length?`<div class="card empty">${t("replan")}</div>`:"";return;}
+  if(S.options[0].none){box.innerHTML=`<div class="card empty">${t("noHot")}</div>`;return;}
+  box.innerHTML=S.options.map((o,i)=>optCard(o,i,S.cur.sum)).join("")+`<div class="card" id="claudeCard" ${sampleFn?"":"hidden"}><button class="btn ghost" id="btnClaude" style="width:100%">${t("askClaude")}</button><div id="claudeOut" style="margin-top:8px"></div></div>`;
+  box.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>decide(+b.dataset.a,"approved"));
+  box.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>decide(+b.dataset.r,"rejected"));
+  if(sampleFn)$("btnClaude").onclick=askClaude;}
+function decide(i,st){const o=S.options[i];S.decisions[o.key]=st;
+  if(st==="approved"){S.applied.push(...o.ivs);log(t("logApprove")(stamp(),o.title));S.cur=simulate(S.demand,S.applied);S.options=[];S.decisions={};$("steps").hidden=true;renderAll();}
+  else{log(t("logReject")(stamp(),o.title));renderOptions();}}
+
+/* ---- build your own ---- */
+function buildIvs(){const b=S.build,hrs=hotHours(S.cur.rows),win=[...new Set(hrs.flatMap(h=>[h-1,h,h+1]))].filter(h=>h>=0&&h<=23);const iv=[];
+  if(b.headway)iv.push({type:"trains",p:{headway:b.headway,hours:win}});
+  if(b.wayShare>0&&b.wayFrom!==b.wayTo)iv.push({type:"way",p:{from:b.wayFrom,to:b.wayTo,share:b.wayShare/100,hours:hrs}});
+  if(b.buses>0&&b.busFrom!==b.busTo)iv.push({type:"bus",p:{from:b.busFrom,to:b.busTo,buses:b.buses,hours:hrs}});
+  if(b.rt>0)iv.push({type:"rt",p:{station:b.rtAt,vehicles:b.rt,hours:hrs}});
+  if(b.stag>0)iv.push({type:"stag",p:{mins:b.stag}});return iv;}
+function stSel(id,val){return `<select id="${id}">${IDS.map(s=>`<option value="${s}" ${s===val?"selected":""}>${nm(s)}</option>`).join("")}</select>`;}
+function renderBuild(){const B=t("build"),b=S.build,hrs=hotHours(S.cur.rows);
+  $("tp-build").innerHTML=`<div class="card"><h2>${B.title}</h2><div class="note">${B.intro} <b class="num">${hrs.map(h=>h+":00").join(", ")}</b></div></div>
+  <div class="ctl"><div class="head">${B.trains}<b class="num" id="bHwV"></b></div><div class="seg" id="bHw">${[0,3.5,3,2.5].map(v=>`<button data-v="${v}" aria-pressed="${b.headway===v}">${v?v.toLocaleString(loc())+" "+B.min:B.off}</button>`).join("")}</div></div>
+  <div class="ctl"><div class="head">${B.way}<b class="num" id="bWayV">${pct(b.wayShare)}</b></div><input type="range" id="bWay" min="0" max="50" step="5" value="${b.wayShare}"><div class="two"><div><span class="note">${B.from}</span>${stSel("bWayF",b.wayFrom)}</div><div><span class="note">${B.to}</span>${stSel("bWayT",b.wayTo)}</div></div></div>
+  <div class="ctl"><div class="head">${B.bus}<b class="num" id="bBusV">${fmt(b.buses)} ${B.buses}</b></div><input type="range" id="bBus" min="0" max="20" step="1" value="${b.buses}"><div class="two"><div><span class="note">${B.from}</span>${stSel("bBusF",b.busFrom)}</div><div><span class="note">${B.to}</span>${stSel("bBusT",b.busTo)}</div></div></div>
+  <div class="ctl"><div class="head">${B.rt}<b class="num" id="bRtV">${fmt(b.rt)} ${B.vehicles}</b></div><input type="range" id="bRt" min="0" max="80" step="5" value="${b.rt}"><div><span class="note">${B.at}</span>${stSel("bRtA",b.rtAt)}</div></div>
+  <div class="ctl"><div class="head">${B.stag}</div><div class="seg" id="bStag">${[0,30,60,90].map(v=>`<button data-v="${v}" aria-pressed="${b.stag===v}">${v?fmt(v)+" "+B.min:B.off}</button>`).join("")}</div></div>
+  <div class="card" id="bPrev"></div>`;
+  const re=()=>{renderBuildPreview();};
+  $("bHw").querySelectorAll("button").forEach(x=>x.onclick=()=>{b.headway=+x.dataset.v;$("bHw").querySelectorAll("button").forEach(y=>y.setAttribute("aria-pressed",String(y===x)));re();});
+  $("bStag").querySelectorAll("button").forEach(x=>x.onclick=()=>{b.stag=+x.dataset.v;$("bStag").querySelectorAll("button").forEach(y=>y.setAttribute("aria-pressed",String(y===x)));re();});
+  $("bWay").oninput=e=>{b.wayShare=+e.target.value;$("bWayV").textContent=pct(b.wayShare);re();};
+  $("bBus").oninput=e=>{b.buses=+e.target.value;$("bBusV").textContent=`${fmt(b.buses)} ${B.buses}`;re();};
+  $("bRt").oninput=e=>{b.rt=+e.target.value;$("bRtV").textContent=`${fmt(b.rt)} ${B.vehicles}`;re();};
+  [["bWayF","wayFrom"],["bWayT","wayTo"],["bBusF","busFrom"],["bBusT","busTo"],["bRtA","rtAt"]].forEach(([id,k])=>$(id).onchange=e=>{b[k]=e.target.value;re();});
+  renderBuildPreview();}
+function renderBuildPreview(){const B=t("build"),iv=buildIvs(),box=$("bPrev");if(!box)return;
+  if(!iv.length){box.innerHTML=`<div class="empty">${B.nothing}</div>`;S.preview=null;return;}
+  const r=simulate(S.demand,[...S.applied,...iv]);const o={key:"mine",title:B.mine,r,newHot:[...r.overSet].filter(s=>!S.cur.overSet.has(s))};const b=S.cur.sum,a=r.sum;S.preview=r;
+  box.innerHTML=`<h2>${B.preview}</h2><div class="delta"><div><b class="num">${fmt(b.over)} → <span class="${a.over<b.over?"good":a.over>b.over?"bad":""}">${fmt(a.over)}</span></b><span>${t("dOver")}</span></div><div><b class="num">${fmt(b.excess)} → <span class="${a.excess<b.excess?"good":"bad"}">${fmt(a.excess)}</span></b><span>${t("dExcess")}</span></div><div><b class="num">${pct(b.peak)} → <span class="${a.peak<b.peak?"good":"bad"}">${pct(a.peak)}</span></b><span>${t("dPeak")}</span></div></div>
+  <p class="note" style="margin:8px 0">${t("cost")}: <b class="num">+${(Math.round((a.cost-b.cost)*10)/10).toLocaleString(loc())}</b></p>${o.newHot.length?`<div class="warnbox">${t("newHot")(o.newHot.map(nm).join(", "))}</div>`:""}
+  <button class="btn navy" id="bApprove" style="width:100%;margin-top:8px">${B.approveMine}</button>`;
+  $("bApprove").onclick=()=>{S.applied.push(...iv);log(t("logApprove")(stamp(),B.mine));S.cur=simulate(S.demand,S.applied);S.options=[];S.build={...S.build,headway:0,wayShare:0,buses:0,rt:0,stag:0};renderAll();};
+  updateLabelsNow=true;}
+
+/* ---- alerts ---- */
+function alertsList(){const L=[];for(const s of IDS)S.cur.rows[s].forEach((r,h)=>{if(r.lf>CFG.thr)L.push({s,h,lf:r.lf});});return L.sort((a,b)=>b.lf-a.lf);}
+function renderAlerts(){const L=alertsList(),A=t("alerts");
+  $("tp-alerts").innerHTML=`<h2>${A.title}</h2>`+(L.length?L.map(a=>`<button class="alert" data-s="${a.s}" data-h="${a.h}"><span><b>${nm(a.s)}</b><br><span class="note num">${a.h}:00–${a.h+1}:00</span></span><span class="lf num">${pct(a.lf*100)}</span></button>`).join(""):`<div class="card empty">${A.none}</div>`);
+  $("tp-alerts").querySelectorAll(".alert").forEach(b=>b.onclick=()=>{S.time=+b.dataset.h+.5;$("time").value=S.time;S.selected=b.dataset.s;S.cam="close";camTo("close");renderFrame();});}
+
+/* ---- report ---- */
+function renderScoreHTML(){const b=S.base.sum,c=S.cur.sum;const cl=(a,z)=>z===a?"":(z<a?"good":"bad");
+  return `<div class="card"><h2>${t("score")}</h2><div class="score"><span class="h">${t("metric")}</span><span class="h">${t("before")}</span><span class="h">${t("after")}</span>
+  <span>${t("sOver")}</span><b class="num">${fmt(b.over)}</b><b class="num ${cl(b.over,c.over)}">${fmt(c.over)}</b>
+  <span>${t("sExcess")}</span><b class="num">${fmt(b.excess)}</b><b class="num ${cl(b.excess,c.excess)}">${fmt(c.excess)}</b>
+  <span>${t("sPeak")}</span><b class="num">${pct(b.peak)}</b><b class="num ${cl(b.peak,c.peak)}">${pct(c.peak)}</b>
+  <span>${t("sCost")}</span><b class="num">${fmt(b.cost)}</b><b class="num">${c.cost.toLocaleString(loc())}</b></div></div>`;}
+const LOG=[];function log(m){LOG.unshift(m);if(S.tab==="report")renderReport();}
+const stamp=()=>new Date().toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"});
+function renderReport(){const R=t("report");
+  $("tp-report").innerHTML=renderScoreHTML()+`<div class="card"><h2>${t("decisions")}</h2>${LOG.length?`<ol class="log">${LOG.map(l=>`<li>${l.replace(/</g,"&lt;")}</li>`).join("")}</ol>`:`<div class="empty">${t("noDecisions")}</div>`}</div>
+  <div class="card"><h2>${R.title}</h2>${dl?`<div class="row" style="flex-wrap:wrap"><button class="btn navy" id="saveMd">${R.save}</button><button class="btn ghost" id="saveImg">${R.snap}</button></div><div class="note" id="saveNote"></div>`:`<div class="note">${R.unavail}</div>`}</div>`;
+  if(dl){$("saveMd").onclick=saveBrief;$("saveImg").onclick=saveSnap;}}
+function briefText(){const b=S.base.sum,c=S.cur.sum;return `# EventFlow Twin – event brief\n\nScenario: ${scenName(S.scen)} (${scenSub(S.scen)})\nAttendance (assumption): ${S.att}\nConditions: ${S.weather}\nComfort threshold: ${Math.round(CFG.thr*100)}%\n\n| Measure | No plans | With approved plans |\n|---|---|---|\n| Station-hours over threshold | ${b.over} | ${c.over} |\n| Riders above threshold | ${b.excess} | ${c.excess} |\n| Peak station load | ${b.peak}% | ${c.peak}% |\n| Cost proxy | ${b.cost} | ${c.cost} |\n\n## Decisions\n${LOG.slice().reverse().map(l=>"- "+l).join("\n")||"- none"}\n\n_Interactive mockup: synthetic baseline and assumption-based scenario. Not an RTA system._\n`;}
+async function saveBrief(){try{await dl.save({filename:"eventflow-twin-brief.md",data:briefText()});$("saveNote").textContent=t("report").saved;}catch(e){}}
+async function saveSnap(){try{renderGL();const url=renderer.domElement.toDataURL("image/png");const bin=atob(url.split(",")[1]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);await dl.save({filename:"eventflow-twin-3d.png",data:new Blob([u])});$("saveNote").textContent=t("report").saved;}catch(e){}}
+
+/* ---- claude briefing ---- */
+let sampleFn=null,dl=null;
+(async()=>{try{if(window.claude&&window.claude.use){const [s,d]=await Promise.all([window.claude.use("sample"),window.claude.use("downloads")]);sampleFn=s||null;dl=d||null;if(S.tab==="ai")renderOptions();if(S.tab==="report")renderReport();}}catch(e){}})();
+async function askClaude(){const out=$("claudeOut"),btn=$("btnClaude");btn.disabled=true;out.innerHTML=`<div class="note">${t("claudeWait")}</div>`;
+  const data=S.options.map((o,i)=>({option:i+1,title:o.title,before:{station_hours_over_threshold:S.cur.sum.over,riders_above_threshold:S.cur.sum.excess,peak_load_pct:S.cur.sum.peak},after:{station_hours_over_threshold:o.r.sum.over,riders_above_threshold:o.r.sum.excess,peak_load_pct:o.r.sum.peak},added_cost_proxy:Math.round((o.r.sum.cost-S.cur.sum.cost)*10)/10}));
+  const prompt=`You brief a Dubai transport planner in ${lang==="ar"?"Arabic":"English"}. Event: ${S.scen.en||"custom event"}. Using ONLY numbers in this JSON, write at most 90 words: which option to approve first and why, and one risk. Copy numbers exactly; do not compute, round or invent numbers. No headings.\nTOOL_RESULTS=${JSON.stringify(data)}`;
+  try{const r=await sampleFn(prompt,{modelTier:"quick",onText:({text})=>{out.innerHTML='<div class="claude-out"></div>';out.firstChild.textContent=text;}});
+    const ok=new Set(["1","2","3",String(Math.round(CFG.thr*100))]);data.forEach(d=>{[d.before,d.after].forEach(o=>Object.values(o).forEach(v=>ok.add(String(v))));ok.add(String(d.added_cost_proxy));});
+    const nums=(r.text.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).match(/\d[\d,]*(\.\d+)?/g)||[]).map(n=>n.replace(/,/g,""));
+    if(nums.every(n=>ok.has(n))){out.innerHTML='<div class="claude-out"></div><div class="verify" style="margin-top:6px">✓ '+t("claudeOk")+'</div>';out.firstChild.textContent=r.text;}
+    else out.innerHTML=`<div class="warnbox">${t("claudeBad")}</div>`;
+  }catch(e){out.innerHTML=`<div class="note">${t("claudeErr")}</div>`;}btn.disabled=false;}
+
+/* =============== heat, table, KPIs =============== */
+function renderHeat(){const hrs=[...Array(19)].map((_,i)=>i+5),now=Math.floor(S.time);
+  let h=`<div></div>`+hrs.map(x=>`<div class="hh num">${x}</div>`).join("");
+  for(const s of IDS){h+=`<div class="lab">${nm(s)}</div>`;for(const x of hrs){const r=S.cur.rows[s][x];h+=`<button class="cell ${x===now?"now":""} ${r.lf>CFG.thr?"over":""}" style="background:${lfColor(r.lf)};opacity:${(.3+Math.min(r.lf,1.4)*.5).toFixed(2)}" data-s="${s}" data-h="${x}" aria-label="${nm(s)} ${x}:00 ${pct(r.lf*100)}"></button>`;}}
+  $("heat").innerHTML=h;$("heat").querySelectorAll(".cell").forEach(c=>c.onclick=()=>{S.selected=c.dataset.s;S.time=+c.dataset.h+.5;$("time").value=S.time;renderFrame();if(S.tab==="station")renderStation();});}
+function renderTable(){const L=t("tableH"),x=S.time;$("tableView").innerHTML=`<table><thead><tr><th>${L.station}</th><th>${L.demand}</th><th>${L.cap}</th><th>${L.trains}</th><th>${L.load}</th></tr></thead><tbody>${IDS.map(s=>{const v=at(S.cur.rows,s,x);return `<tr><td>${nm(s)}</td><td class="num">${fmt(v.dem)}</td><td class="num">${fmt(v.cap)}</td><td class="num">${fmt(v.tph)}</td><td class="num ${v.lf>CFG.thr?"bad":""}">${pct(v.lf*100)}${v.lf>CFG.thr?" ▲":""}</td></tr>`;}).join("")}</tbody></table>`;}
+function renderKPIs(){const x=S.time;let pk=0;for(const s of IDS)pk=Math.max(pk,at(S.cur.rows,s,x).lf);const K=t("kpi");const h=Math.min(23,Math.floor(x));
+  $("kpis").innerHTML=`<div class="kpi ${pk>CFG.thr?"bad":""}"><b class="num">${pct(pk*100)}</b><span>${K.peak}</span></div><div class="kpi ${S.cur.sum.over?"bad":""}"><b class="num">${fmt(S.cur.sum.over)}</b><span>${K.over}</span></div><div class="kpi"><b class="num">${fmt(S.cur.rows.EMT[h].tph)}</b><span>${K.trains}</span></div><div class="kpi"><b class="num">${fmt(new Set(S.applied.map(i=>i.type)).size)}</b><span>${K.plans}</span></div>`;}
+function renderFrame(){$("clock").textContent=hhmm(S.time);renderKPIs();if(S.view==="table")renderTable();
+  const now=Math.floor(S.time);$("heat").querySelectorAll(".cell").forEach(c=>c.classList.toggle("now",+c.dataset.h===now));updateLabelsNow=true;}
+function renderAll(){renderRail();renderHeat();renderTabs();renderFrame();renderCamTools();}
+
+/* =============== 3D =============== */
+let renderer,scene,camera,GL=false,updateLabelsNow=true;
+const G={};const camS={theta:-0.28,phi:0.86,r:1250,tx:0,ty:40,tz:-20},camD={...camS};
+function canvasTex(w,h,draw){const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);const tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;tx.anisotropy=4;return tx;}
+function init3D(){
+  if(!window.THREE)throw new Error("no three");
+  const cv=$("gl");renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true,powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.98;renderer.outputEncoding=THREE.sRGBEncoding;
+  scene=new THREE.Scene();scene.fog=new THREE.Fog(0xcfe0ee,1400,3600);
+  camera=new THREE.PerspectiveCamera(38,1,2,9000);
+  G.hemi=new THREE.HemisphereLight(0xdfeeff,0xc9b38a,.75);scene.add(G.hemi);
+  G.sun=new THREE.DirectionalLight(0xfff1dc,1.6);G.sun.castShadow=true;G.sun.shadow.mapSize.set(2048,2048);
+  Object.assign(G.sun.shadow.camera,{left:-800,right:800,top:800,bottom:-800,near:10,far:3000});G.sun.shadow.bias=-.0006;scene.add(G.sun);scene.add(G.sun.target);
+  // ground
+  const sand=canvasTex(256,256,(g,w,h)=>{g.fillStyle="#D8C49E";g.fillRect(0,0,w,h);for(let i=0;i<2600;i++){g.fillStyle=`rgba(${150+Math.random()*60|0},${120+Math.random()*50|0},${80+Math.random()*40|0},.08)`;g.fillRect(Math.random()*w,Math.random()*h,2,2);}});
+  sand.wrapS=sand.wrapT=THREE.RepeatWrapping;sand.repeat.set(30,30);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(6000,6000),new THREE.MeshStandardMaterial({map:sand,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+  // city blocks (paved)
+  const pave=new THREE.MeshStandardMaterial({color:0xCBC2B1,roughness:.95});
+  for(const z of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(1500,.6,330),pave);b.position.set(0,.3,z*215);b.receiveShadow=true;scene.add(b);}
+  // canal
+  const water=new THREE.Mesh(new THREE.BoxGeometry(46,.8,1200),new THREE.MeshStandardMaterial({color:0x2E8FB8,roughness:.15,metalness:.3}));water.position.set(345,.5,0);scene.add(water);
+  // road
+  const roadTex=canvasTex(512,128,(g,w,h)=>{g.fillStyle="#2E3239";g.fillRect(0,0,w,h);g.strokeStyle="rgba(255,255,255,.75)";g.lineWidth=2;
+    for(let i=1;i<12;i++){if(i===6)continue;const y=i*h/12;g.setLineDash([26,22]);g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke();}
+    g.setLineDash([]);g.strokeStyle="#E8C547";g.lineWidth=3;g.beginPath();g.moveTo(0,h/2-5);g.lineTo(w,h/2-5);g.moveTo(0,h/2+5);g.lineTo(w,h/2+5);g.stroke();});
+  roadTex.wrapS=THREE.RepeatWrapping;roadTex.repeat.set(26,1);
+  const road=new THREE.Mesh(new THREE.BoxGeometry(1600,1,72),new THREE.MeshStandardMaterial({map:roadTex,roughness:.85}));road.position.set(0,.6,0);road.receiveShadow=true;scene.add(road);
+  const side=new THREE.MeshStandardMaterial({color:0x8E9097,roughness:.9});
+  for(const z of [-1,1]){const r=new THREE.Mesh(new THREE.BoxGeometry(1600,.9,16),side);r.position.set(0,.55,z*52);r.receiveShadow=true;scene.add(r);}
+  // palms along median
+  G.palms=new THREE.Group();const trunkG=new THREE.CylinderGeometry(.5,.8,9,6),leafG=new THREE.ConeGeometry(4.5,3,7);
+  const trunkM=new THREE.MeshStandardMaterial({color:0x8a6a45}),leafM=new THREE.MeshStandardMaterial({color:0x4f8a3c,roughness:.8});
+  for(let x=-760;x<=760;x+=34){for(const z of [-40,40]){const tr=new THREE.Mesh(trunkG,trunkM);tr.position.set(x,5,z);const lf=new THREE.Mesh(leafG,leafM);lf.position.set(x,10.2,z);lf.rotation.x=Math.PI;tr.castShadow=lf.castShadow=true;G.palms.add(tr,lf);}}
+  scene.add(G.palms);
+  // metro viaduct
+  const conc=new THREE.MeshStandardMaterial({color:0xE9E6E0,roughness:.7});
+  const deck=new THREE.Mesh(new THREE.BoxGeometry(1600,2.6,11),conc);deck.position.set(0,15,0);deck.castShadow=deck.receiveShadow=true;scene.add(deck);
+  const redLine=new THREE.Mesh(new THREE.BoxGeometry(1600,.6,11.4),new THREE.MeshStandardMaterial({color:0xD90F0F,emissive:0x550000,roughness:.5}));redLine.position.set(0,13.6,0);scene.add(redLine);
+  const pierG=new THREE.CylinderGeometry(1.8,2.2,14,10);for(let x=-780;x<=780;x+=40){const p=new THREE.Mesh(pierG,conc);p.position.set(x,7,0);p.castShadow=true;scene.add(p);}
+  // stations: oyster shell roofs
+  G.st={};const shellM=new THREE.MeshStandardMaterial({color:0xE6D7B2,metalness:.55,roughness:.28,side:THREE.DoubleSide});
+  const glassM=new THREE.MeshStandardMaterial({color:0x9FC3D8,metalness:.3,roughness:.15,transparent:true,opacity:.55});
+  for(const s of ST){const g=new THREE.Group();g.position.set(s.x,0,0);
+    const plat=new THREE.Mesh(new THREE.BoxGeometry(84,3,22),conc);plat.position.y=16.5;plat.castShadow=true;g.add(plat);
+    const shG=new THREE.CylinderGeometry(13,13,86,28,1,true,0,Math.PI);shG.rotateZ(Math.PI/2);const shell=new THREE.Mesh(shG,shellM);shell.scale.set(1,.8,1);shell.position.y=18;shell.castShadow=true;g.add(shell);
+    for(const z of [-1,1]){const br=new THREE.Mesh(new THREE.BoxGeometry(6,5,46),glassM);br.position.set(0,13,z*34);g.add(br);const tw=new THREE.Mesh(new THREE.BoxGeometry(14,16,12),conc);tw.position.set(0,8,z*62);tw.castShadow=true;g.add(tw);}
+    // capacity glass + threshold ring + demand bar
+    const capH=110;const glass=new THREE.Mesh(new THREE.CylinderGeometry(13.5,13.5,1,32,1,true),new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.16,side:THREE.DoubleSide,depthWrite:false}));g.add(glass);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(14.2,.9,8,48),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:.35}));ring.rotation.x=Math.PI/2;g.add(ring);
+    const bar=new THREE.Mesh(new THREE.CylinderGeometry(10,10,1,32),new THREE.MeshStandardMaterial({color:0x0E9F6E,roughness:.35,metalness:.1,emissive:0x000000}));bar.castShadow=true;g.add(bar);
+    const pulse=new THREE.Mesh(new THREE.RingGeometry(20,24,48),new THREE.MeshBasicMaterial({color:0xB0124F,transparent:true,opacity:.0,side:THREE.DoubleSide,depthWrite:false}));pulse.rotation.x=-Math.PI/2;pulse.position.y=1.4;g.add(pulse);
+    const hit=new THREE.Mesh(new THREE.BoxGeometry(60,140,60),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=60;hit.userData.station=s.id;g.add(hit);
+    scene.add(g);G.st[s.id]={g,bar,glass,ring,pulse,hit,cur:0,capH,base:32};}
+  // buildings (instanced)
+  const facade=canvasTex(64,128,(g,w,h)=>{g.fillStyle="#ffffff";g.fillRect(0,0,w,h);for(let y=4;y<h;y+=8)for(let x=3;x<w;x+=8){g.fillStyle=Math.random()<.5?"#d7e3ee":"#b9cada";g.fillRect(x,y,5,5);}});
+  const lit=canvasTex(64,128,(g,w,h)=>{g.fillStyle="#000";g.fillRect(0,0,w,h);for(let y=4;y<h;y+=8)for(let x=3;x<w;x+=8){if(Math.random()<.42){g.fillStyle=Math.random()<.7?"#ffd9a0":"#cfe6ff";g.fillRect(x,y,5,5);}}});
+  G.bMat=new THREE.MeshStandardMaterial({map:facade,emissiveMap:lit,emissive:0xffffff,emissiveIntensity:0,metalness:.35,roughness:.35});
+  const spots=[];const rnd=mulberry(7);
+  const keep=(x,z)=>!LANDMARK_ZONES.some(([lx,lz,r])=>Math.hypot(x-lx,z-lz)<r)&&Math.abs(x-345)>34;
+  for(let x=-760;x<=760;x+=26){for(const side of [-1,1]){
+      if(side<0){if(rnd()<.85){const z=-(82+rnd()*10);if(keep(x,z))spots.push([x,z,70+rnd()*210,16+rnd()*8,16+rnd()*8]);}
+        for(let k=0;k<3;k++){if(rnd()<.65){const z=-(130+k*55+rnd()*20),xx=x+rnd()*10;if(keep(xx,z))spots.push([xx,z,40+rnd()*(150-k*30),14+rnd()*12,14+rnd()*12]);}}}
+      else{for(let k=0;k<3;k++){if(rnd()<.55){const z=110+k*55+rnd()*20,xx=x+rnd()*10;if(keep(xx,z))spots.push([xx,z,10+rnd()*(28+k*14),16+rnd()*12,16+rnd()*12]);}}}}}
+  G.bld=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),G.bMat,spots.length);G.bld.castShadow=true;G.bld.receiveShadow=true;
+  const m4=new THREE.Matrix4(),col=new THREE.Color();const tints=[0xB9CDE0,0x8FB0CC,0xE6D6BA,0xA7BED3,0xD6DDE4,0x7E9DBB,0xEDE3D0,0x9DB6C9];
+  spots.forEach(([x,z,h,w,d],i)=>{m4.makeScale(w,h,d);m4.setPosition(x,h/2+.6,z);G.bld.setMatrixAt(i,m4);col.setHex(tints[i%tints.length]);G.bld.setColorAt(i,col);});
+  scene.add(G.bld);
+  // landmarks
+  G.lm=new THREE.Group();const metal=new THREE.MeshStandardMaterial({color:0xD5DEE7,metalness:.35,roughness:.3});
+  // Burj Khalifa (stylised)
+  const bk=new THREE.Group();let y=0;const tiers=[[26,90],[22,80],[18,70],[15,60],[12,50],[9,40],[7,30],[5,22],[3.4,16]];
+  tiers.forEach(([r,h])=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(r*.92,r,h,6),metal);c.position.y=y+h/2;c.castShadow=true;bk.add(c);y+=h;});
+  const sp=new THREE.Mesh(new THREE.ConeGeometry(2.4,90,8),metal);sp.position.y=y+45;bk.add(sp);bk.position.set(255,0,-215);G.lm.add(bk);
+  // Emirates Towers (triangular prisms)
+  for(const [x,z,h,r] of [[-150,-115,190,15],[-112,-138,165,13]]){const tw=new THREE.Mesh(new THREE.CylinderGeometry(r*.6,r,h,3),metal);tw.position.set(x,h/2,z);tw.rotation.y=.5;tw.castShadow=true;G.lm.add(tw);const tip=new THREE.Mesh(new THREE.ConeGeometry(r*.6,22,3),metal);tip.position.set(x,h+11,z);tip.rotation.y=.5;G.lm.add(tip);}
+  // Museum of the Future (torus on green mound)
+  const mound=new THREE.Mesh(new THREE.SphereGeometry(34,32,16,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0x6E9B53,roughness:.9}));mound.scale.y=.35;mound.position.set(-40,0,-104);mound.receiveShadow=true;G.lm.add(mound);
+  const mof=new THREE.Mesh(new THREE.TorusGeometry(24,10,24,64),new THREE.MeshStandardMaterial({color:0xE4E9EE,metalness:.4,roughness:.22}));mof.scale.set(1,1.25,1);mof.position.set(-40,40,-104);mof.rotation.y=.3;mof.castShadow=true;G.lm.add(mof);
+  // Dubai World Trade Centre tower
+  const dwtc=new THREE.Mesh(new THREE.BoxGeometry(24,150,24),new THREE.MeshStandardMaterial({color:0xF3EEE4,roughness:.6}));dwtc.position.set(-330,75,-112);dwtc.castShadow=true;G.lm.add(dwtc);
+  const dwtcTop=new THREE.Mesh(new THREE.BoxGeometry(14,18,14),metal);dwtcTop.position.set(-330,159,-112);G.lm.add(dwtcTop);
+  scene.add(G.lm);
+  // venue beacon
+  G.venue=new THREE.Group();const beam=new THREE.Mesh(new THREE.CylinderGeometry(4,4,240,24,1,true),new THREE.MeshBasicMaterial({color:0x2F5BFF,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));beam.position.y=120;G.venue.add(beam);
+  G.vRing=new THREE.Mesh(new THREE.RingGeometry(14,18,48),new THREE.MeshBasicMaterial({color:0x2F5BFF,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));G.vRing.rotation.x=-Math.PI/2;G.vRing.position.y=1.5;G.venue.add(G.vRing);scene.add(G.venue);
+  // trains
+  G.trains=[];const tBody=new THREE.MeshStandardMaterial({color:0xF4F6F8,metalness:.4,roughness:.3}),tWin=new THREE.MeshStandardMaterial({color:0x1D2A3A,metalness:.6,roughness:.2,emissive:0x0}),tRed=new THREE.MeshStandardMaterial({color:0xD90F0F});
+  for(let i=0;i<30;i++){const tr=new THREE.Group();for(let c=0;c<5;c++){const car=new THREE.Mesh(new THREE.BoxGeometry(10.4,3.4,3.6),tBody);car.position.x=c*10.8;car.castShadow=true;tr.add(car);const w=new THREE.Mesh(new THREE.BoxGeometry(10,1.1,3.7),tWin);w.position.set(c*10.8,.6,0);tr.add(w);const st=new THREE.Mesh(new THREE.BoxGeometry(10,.4,3.72),tRed);st.position.set(c*10.8,-.9,0);tr.add(st);}
+    tr.position.y=18.2;scene.add(tr);G.trains.push(tr);}
+  G.tWin=tWin;
+  // traffic (instanced)
+  G.carN=520;G.cars=new THREE.InstancedMesh(new THREE.BoxGeometry(4.4,1.8,2.1),new THREE.MeshStandardMaterial({roughness:.4,metalness:.5}),G.carN);G.cars.castShadow=true;
+  G.carData=[];const ccols=[0xffffff,0xd9dde3,0x1f2329,0xc9c3b6,0x8a1f1f,0x2b4a7a,0xe8d9a8];
+  for(let i=0;i<G.carN;i++){const dir=i%2?1:-1;const lane=Math.floor(rnd()*6);G.carData.push({x:-800+rnd()*1600,dir,z:dir*(6+lane*5.2),v:.8+rnd()*.5});col.setHex(ccols[i%ccols.length]);G.cars.setColorAt(i,col);}
+  scene.add(G.cars);
+  // crowd particles
+  G.pN=2600;const pg=new THREE.BufferGeometry();G.pPos=new Float32Array(G.pN*3);pg.setAttribute("position",new THREE.BufferAttribute(G.pPos,3));
+  G.parts=new THREE.Points(pg,new THREE.PointsMaterial({color:0x1530A8,size:3.2,sizeAttenuation:true,transparent:true,opacity:.9,depthWrite:false}));scene.add(G.parts);
+  G.pData=[...Array(G.pN)].map(()=>({live:false}));
+  // labels
+  const lab=$("labels");G.tags={};for(const s of ST){const d=document.createElement("div");d.className="tag";d.dataset.s=s.id;d.onclick=()=>selectStation(s.id,true);lab.appendChild(d);G.tags[s.id]=d;}
+  G.lmTags=[[255,560,-215,"burj"],[-40,90,-104,"mof"]].map(([x,y,z,k])=>{const d=document.createElement("div");d.className="tag lm";lab.appendChild(d);return {d,v:new THREE.Vector3(x,y,z),k};});
+  G.venueTag=document.createElement("div");G.venueTag.className="tag lm";lab.appendChild(G.venueTag);
+  bindControls();resize();new ResizeObserver(resize).observe($("view"));placeVenue();applyLayers();GL=true;
+}
+const LANDMARK_ZONES=[[255,-215,60],[-131,-126,45],[-40,-104,55],[-330,-112,30]];
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function placeVenue(){if(!GL)return;G.venue.position.set(S.scen.vx,0,S.scen.vz);}
+function applyLayers(){if(!GL)return;G.bld.visible=S.layers.buildings;G.palms.visible=S.layers.buildings;G.lm.visible=S.layers.landmarks;G.trains.forEach(tr=>tr.visible=S.layers.trains&&tr.userData.on);G.cars.visible=S.layers.traffic;G.parts.visible=S.layers.flows;$("labels").hidden=!S.layers.labels;}
+function resize(){if(!renderer)return;const v=$("view");const w=v.clientWidth,h=v.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(1,h);camera.updateProjectionMatrix();updateLabelsNow=true;}
+
+/* camera */
+const PRESETS={overview:()=>({theta:-0.28,phi:0.86,r:1250,tx:0,ty:40,tz:-20}),close:()=>{const s=ST.find(x=>x.id===S.selected);return {theta:-0.42,phi:1.0,r:330,tx:s.x,ty:60,tz:0};},top:()=>({theta:0,phi:.06,r:1500,tx:0,ty:0,tz:0}),fly:()=>({theta:-1.5,phi:1.18,r:240,tx:-700,ty:45,tz:20}),orbit:()=>({theta:camD.theta,phi:.9,r:1100,tx:0,ty:40,tz:-20})};
+function camTo(k){S.cam=k;Object.assign(camD,PRESETS[k]());renderCamTools();}
+function renderCamTools(){$("camtools").innerHTML=Object.keys(PRESETS).map(k=>`<button data-c="${k}" aria-pressed="${S.cam===k}">${t("cam")[k]}</button>`).join("");$("camtools").querySelectorAll("button").forEach(b=>b.onclick=()=>camTo(b.dataset.c));}
+function bindControls(){const cv=$("gl");const pts=new Map();let moved=0,last=null,pinch=0;
+  cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY,b:e.button,sh:e.shiftKey});moved=0;last={x:e.clientX,y:e.clientY};if(S.cam==="fly"||S.cam==="orbit")S.cam="free",renderCamTools();});
+  cv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const p=pts.get(e.pointerId);const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+    if(pts.size===2){const [a,b]=[...pts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch)camD.r=Math.min(2600,Math.max(120,camD.r*pinch/d));pinch=d;return;}
+    if(p.b===2||p.sh){const k=camD.r/900;const c=Math.cos(camD.theta),s=Math.sin(camD.theta);camD.tx+=(-dx*c-dy*s)*k;camD.tz+=(dx*s-dy*c)*k;}
+    else{camD.theta-=dx*.006;camD.phi=Math.min(1.45,Math.max(.05,camD.phi-dy*.005));}
+    if(S.cam!=="free"){S.cam="free";renderCamTools();}});
+  const up=e=>{pts.delete(e.pointerId);pinch=0;if(moved<6&&e.button===0)pick(e);};cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",e=>{pts.delete(e.pointerId);pinch=0;});
+  cv.addEventListener("contextmenu",e=>e.preventDefault());
+  cv.addEventListener("wheel",e=>{e.preventDefault();camD.r=Math.min(2600,Math.max(120,camD.r*(1+Math.sign(e.deltaY)*.1)));if(S.cam!=="free"){S.cam="free";renderCamTools();}},{passive:false});}
+function pick(e){const r=$("gl").getBoundingClientRect();const v=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
+  const hits=rc.intersectObjects(Object.values(G.st).map(o=>o.hit));if(hits.length){selectStation(hits[0].object.userData.station,false);S.tab="station";showTab();}}
+
+/* scene update */
+let animT=0,lastTs=performance.now(),flyT=0;
+function lerp(a,b,f){return a+(b-a)*f;}
+function skyFor(h){const stops=[[5,0x1a2440],[6.3,0xf2c9a0],[8,0xcfe3f2],[16,0xcfe3f2],[18.2,0xf3b98a],[19.4,0x384a78],[20.5,0x0d1424],[24,0x0d1424]];
+  for(let i=0;i<stops.length-1;i++){const [h0,c0]=stops[i],[h1,c1]=stops[i+1];if(h>=h0&&h<=h1){const a=new THREE.Color(c0),b=new THREE.Color(c1);return a.lerp(b,(h-h0)/(h1-h0));}}return new THREE.Color(0x0d1424);}
+function nightF(h){if(h<5.5)return 1;if(h<7)return 1-(h-5.5)/1.5;if(h<18.3)return 0;if(h<20)return(h-18.3)/1.7;return 1;}
+function updateScene(dt){const h=S.time,nf=nightF(h);
+  const sky=skyFor(h);scene.background=sky;scene.fog.color.copy(sky);
+  const sunA=Math.max(0.08,Math.sin(Math.PI*Math.min(1,Math.max(0,(h-5.8)/13))));
+  G.sun.position.set(Math.cos((h-6)/12*Math.PI)*900,180+sunA*900,420);G.sun.intensity=.05+1.65*(1-nf);G.sun.color.set(h>16.5&&h<19.5?0xffc58a:0xfff1dc);
+  G.hemi.intensity=.14+.66*(1-nf);G.bMat.emissiveIntensity=nf*1.35;G.tWin.emissive.setHex(nf>.3?0x8fb4ff:0x000000);
+  $("hud").classList.toggle("night",nf>.5);
+  // stations
+  for(const s of IDS){const o=G.st[s],v=at(S.cur.rows,s,h);const capH=o.capH;const target=Math.max(.02,Math.min(1.7,v.lf))*capH;o.cur=lerp(o.cur,target,Math.min(1,dt*6));
+    const thrH=CFG.thr*capH;o.glass.scale.y=thrH;o.glass.position.y=o.base+thrH/2;o.ring.position.y=o.base+thrH;
+    o.bar.scale.y=o.cur;o.bar.position.y=o.base+o.cur/2;const c=new THREE.Color(lfColor(v.lf));o.bar.material.color.copy(c).multiplyScalar(.78);o.bar.material.emissive.copy(c).multiplyScalar(v.lf>CFG.thr?.35+.25*Math.sin(animT*6):.12+nf*.25);
+    o.ring.material.emissive.setHex(v.lf>CFG.thr?0xffd0dc:0xffffff);
+    const over=v.lf>CFG.thr;o.pulse.material.opacity=over?.55*(1-((animT*.8)%1)):0;o.pulse.scale.setScalar(over?1+((animT*.8)%1)*1.6:1);}
+  // venue pulse
+  const vp=(animT*.6)%1;G.vRing.scale.setScalar(1+vp*2.2);G.vRing.material.opacity=.7*(1-vp);
+  // trains: spacing by headway now
+  const hh=Math.min(23,Math.floor(h));const tph=S.cur.rows.EMT[hh].tph;const spacing=Math.max(120,60/tph*55);const L=1600,speed=95;
+  let k=0;for(const dir of [1,-1]){const n=Math.min(15,Math.ceil(L/spacing));for(let i=0;i<15;i++){const tr=G.trains[k++];const on=i<n&&h>=5.3;tr.userData.on=on;tr.visible=on&&S.layers.trains;if(!on)continue;
+      let x=((animT*speed*dir+i*spacing)%L+L)%L-L/2;tr.position.x=x;tr.position.z=dir*2.4;tr.rotation.y=dir>0?0:Math.PI;}}
+  // traffic
+  if(S.layers.traffic){const press=Math.min(2.2,.35+shape(h,S.scen.weekend)*.8+IDS.reduce((a,s)=>a+at(S.cur.rows,s,h).ev,0)/9000);
+    const nVis=Math.round(G.carN*Math.min(1,.25+press*.42));const vel=70/(1+press*1.6);const m4=new THREE.Matrix4();
+    for(let i=0;i<G.carN;i++){const c=G.carData[i];if(i<nVis){c.x+=c.dir*vel*c.v*dt;if(c.x>800)c.x-=1600;if(c.x<-800)c.x+=1600;m4.makeRotationY(0);m4.setPosition(c.x,2,c.z);}else{m4.makeScale(0,0,0);}G.cars.setMatrixAt(i,m4);}
+    G.cars.instanceMatrix.needsUpdate=true;}
+  // crowd flows: venue -> stations at departure surge, stations -> venue at arrival
+  if(S.layers.flows){const sc=S.scen;const vx=sc.vx,vz=sc.vz;
+    for(const s of ST){const v=at(S.cur.rows,s.id,h);const hi=Math.min(23,Math.floor(h));const arr=S.demand[s.id].arr[hi];
+      const spawnOut=v.ev/700*dt*6,spawnIn=arr/700*dt*6;
+      for(const [rate,from,to] of [[spawnOut,[vx,vz],[s.x,(vz>0?44:-44)]],[spawnIn,[s.x,(vz>0?44:-44)],[vx,vz]]]){let n=rate+(Math.random()<rate%1?1:0);n=Math.floor(n);
+        for(let j=0;j<n;j++){const p=G.pData.find(q=>!q.live);if(!p)break;p.live=true;p.t=0;p.dur=3.2+Math.random()*2;p.a=[from[0]+(Math.random()-.5)*20,from[1]+(Math.random()-.5)*20];p.b=[to[0]+(Math.random()-.5)*18,to[1]+(Math.random()-.5)*6];p.wob=Math.random()*6;}}}
+    for(let i=0;i<G.pN;i++){const p=G.pData[i];if(p.live){p.t+=dt/p.dur;if(p.t>=1)p.live=false;}
+      if(p.live){const f=p.t;G.pPos[i*3]=lerp(p.a[0],p.b[0],f);G.pPos[i*3+1]=2.4;G.pPos[i*3+2]=lerp(p.a[1],p.b[1],f)+Math.sin(f*8+p.wob)*2;}else{G.pPos[i*3+1]=-50;}}
+    G.parts.geometry.attributes.position.needsUpdate=true;}
+  // camera
+  if(S.cam==="fly"){flyT+=dt;camD.tx=-700+((flyT*55)%1400);}
+  if(S.cam==="orbit"&&!reduceMotion)camD.theta+=dt*.08;
+  const f=Math.min(1,dt*3.2);for(const k of ["theta","phi","r","tx","ty","tz"])camS[k]=lerp(camS[k],camD[k],f);
+  camera.position.set(camS.tx+camS.r*Math.sin(camS.phi)*Math.sin(camS.theta),camS.ty+camS.r*Math.cos(camS.phi),camS.tz+camS.r*Math.sin(camS.phi)*Math.cos(camS.theta));camera.lookAt(camS.tx,camS.ty,camS.tz);
+  G.sun.target.position.set(camS.tx,0,camS.tz);G.sun.position.x+=camS.tx;G.sun.position.z+=camS.tz;}
+function updateLabels(){if(!S.layers.labels)return;const r=$("view").getBoundingClientRect();const v=new THREE.Vector3();
+  const place=(el,vec)=>{v.copy(vec).project(camera);if(v.z>1||v.x<-1.2||v.x>1.2||v.y<-1.2||v.y>1.2){el.style.display="none";return;}el.style.display="";el.style.left=((v.x+1)/2*r.width)+"px";el.style.top=((1-v.y)/2*r.height)+"px";};
+  for(const s of ST){const o=G.st[s.id],el=G.tags[s.id],lv=at(S.cur.rows,s.id,S.time).lf;place(el,new THREE.Vector3(s.x,o.base+Math.max(o.cur,CFG.thr*o.capH)+10,0));
+    el.className="tag"+(lv>CFG.thr?" over":"")+(s.id===S.selected?" sel":"");const txt=`<b>${nm(s.id)}</b> · <span class="num">${pct(lv*100)}</span>`;if(el._t!==txt){el.innerHTML=txt;el._t=txt;}}
+  const L={burj:lang==="ar"?"برج خليفة":"Burj Khalifa",et:lang==="ar"?"أبراج الإمارات":"Emirates Towers",mof:lang==="ar"?"متحف المستقبل":"Museum of the Future",dwtc:lang==="ar"?"مركز التجارة العالمي":"World Trade Centre"};
+  for(const m of G.lmTags){if(!S.layers.landmarks){m.d.style.display="none";continue;}place(m.d,m.v);m.d.textContent=L[m.k];}
+  place(G.venueTag,new THREE.Vector3(S.scen.vx,250,S.scen.vz));G.venueTag.textContent=(lang==="ar"?"موقع الفعالية: ":"Event: ")+scenName(S.scen);}
+function renderGL(){renderer.render(scene,camera);}
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let lastHourRendered=-1;
+function loop(ts){const dt=Math.min(.05,(ts-lastTs)/1000);lastTs=ts;animT+=dt;
+  if(S.playing){S.time+=dt*.55*S.speed;if(S.time>=23.5){S.time=23.5;setPlaying(false);}$("time").value=S.time;renderFrame();const hr=Math.floor(S.time);if(hr!==lastHourRendered){lastHourRendered=hr;if(S.tab==="station")renderStation();}}
+  if(GL&&S.view==="3d"&&!document.hidden){updateScene(dt);renderGL();updateLabels();}
+  requestAnimationFrame(loop);}
+function setPlaying(p){S.playing=p;$("playIcon").setAttribute("d",p?"M4 2h3v12H4zM9 2h3v12H9z":"M4 2l10 6-10 6z");$("btnPlay").setAttribute("aria-label",p?t("pause"):t("play"));}
+
+/* =============== tour, kiosk, i18n, wiring =============== */
+let touring=false;
+async function tour(){if(touring)return;touring=true;const tt=$("tour"),tx=$("tourText");const say=i=>{tt.hidden=false;tx.textContent=t("tourSteps")[i];};const stop=()=>!touring;
+  selectScen("dfw");S.time=13;$("time").value=13;camTo("overview");S.tab="station";showTab();say(0);
+  await new Promise(res=>{const st=performance.now();(function step(n){if(stop())return res();S.time=13+Math.min(1,(n-st)/5200)*5.3;$("time").value=S.time;renderFrame();if(S.time<18.3)requestAnimationFrame(step);else res();})(st);});
+  if(stop())return end();S.selected="EMT";camTo("close");say(1);await sleep(3600);if(stop())return end();
+  S.tab="ai";showTab();say(2);await runAgents();await sleep(2600);if(stop())return end();
+  say(3);await sleep(2200);if(stop())return end();if(S.options.length&&!S.options[0].none)decide(0,"approved");S.tab="ai";showTab();await sleep(3200);if(stop())return end();
+  camTo("orbit");say(4);await sleep(4500);end();
+  function end(){touring=false;tt.hidden=true;}}
+let idleT=null;function armIdle(){clearTimeout(idleT);if(document.body.classList.contains("kiosk"))idleT=setTimeout(()=>tour(),60000);}
+["pointerdown","keydown"].forEach(ev=>addEventListener(ev,armIdle,{passive:true}));
+function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const v=T[lang][el.dataset.i18n];if(typeof v==="string")el.textContent=v;});
+  $("btnLang").textContent=lang==="ar"?"English":"عربي";S.options=[];$("steps").hidden=true;renderAll();}
+$("att").oninput=e=>{S.att=+e.target.value;S.options=[];recompute();renderAll();};
+$("exitSig").oninput=e=>{S.exitSig=+e.target.value;S.options=[];recompute();renderAll();};
+$("thr").oninput=e=>{CFG.thr=+e.target.value/100;S.options=[];recompute();renderAll();};
+$("prio").oninput=e=>{S.prio=+e.target.value;$("prioVal").textContent=t("prioL")[S.prio];S.options=[];renderOptions();};
+$("weather").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.weather=b.dataset.v;S.options=[];recompute();renderAll();});
+$("viewSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.view=b.dataset.v;$("tableView").hidden=S.view!=="table";$("viewSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderFrame();});
+$("cVenue").onchange=$("cStart").onchange=$("cEnd").onchange=customChanged;
+$("cDay").querySelectorAll("button").forEach(b=>b.onclick=()=>{SCEN[3].weekend=b.dataset.v==="we";customChanged();});
+$("time").oninput=e=>{S.time=+e.target.value;renderFrame();if(S.tab==="station")renderStation();};
+$("speed").onchange=e=>{S.speed=+e.target.value;};
+$("btnPlay").onclick=()=>{if(S.time>=23.4)S.time=5;setPlaying(!S.playing);};
+$("btnPlan").onclick=runAgents;
+$("btnReset").onclick=()=>{S.applied=[];S.options=[];S.decisions={};S.cur=simulate(S.demand,[]);log(t("logReset")(stamp()));renderAll();};
+$("btnLang").onclick=()=>{lang=lang==="en"?"ar":"en";applyLang();};
+$("btnTheme").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;r.dataset.theme=dark?"light":"dark";renderAll();};
+$("btnHow").onclick=()=>$("howDlg").showModal();
+$("btnTour").onclick=()=>tour();
+$("tourSkip").onclick=()=>{touring=false;$("tour").hidden=true;};
+$("btnKiosk").onclick=e=>{const on=!document.body.classList.contains("kiosk");document.body.classList.toggle("kiosk",on);e.currentTarget.setAttribute("aria-pressed",String(on));armIdle();setTimeout(resize,50);};
+document.addEventListener("contextmenu",e=>{if(document.body.classList.contains("kiosk"))e.preventDefault();});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",renderAll);
+
+recompute();S.time=18.3;$("time").value=S.time;
+try{init3D();}catch(err){GL=false;$("glfail").hidden=false;$("glfail").textContent=T[lang].glfail;S.view="table";$("tableView").hidden=false;}
+renderAll();requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

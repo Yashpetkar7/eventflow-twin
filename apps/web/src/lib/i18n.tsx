@@ -1,7 +1,6 @@
 "use client";
-// English / Arabic with full RTL. next-intl handles messages (ICU); locale lives in client state because the
-// kiosk is a single offline page (no locale routing). Initial locale: ?lang=ar|en, else last choice, else en.
-// This module is only rendered client-side (see App.tsx), so reading window during initial state is safe.
+// English / Arabic with full RTL. next-intl handles messages (ICU); the locale lives in client state because the
+// exhibit is one offline page (no locale routing). Initial locale: ?lang=ar|en, else the last choice, else en.
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/messages/en.json";
@@ -17,7 +16,7 @@ function initialLocale(): Locale {
   try {
     const s = window.localStorage.getItem(KEY);
     if (s === "ar" || s === "en") return s;
-  } catch { /* storage blocked: fall through */ }
+  } catch { /* storage blocked */ }
   return "en";
 }
 
@@ -40,34 +39,34 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useLocaleSwitch = () => useContext(LocaleCtx);
+export const useLocale = () => useContext(LocaleCtx);
 
-/** Locale-aware number formatting. Arabic uses Western digits (common in UAE interfaces). */
-export function useFmt() {
-  const { locale } = useLocaleSwitch();
-  return useMemo(() => {
-    const tag = locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB";
-    const cache = new Map<string, Intl.NumberFormat>();
-    const nf = (key: string, opts: Intl.NumberFormatOptions) => {
-      if (!cache.has(key)) cache.set(key, new Intl.NumberFormat(tag, opts));
-      return cache.get(key)!;
-    };
-    return {
-      fmt: (n: number, digits = 0) => nf(`n${digits}`, { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n),
-      pct: (lf: number) => nf("p", { style: "percent", maximumFractionDigits: 0 }).format(lf),
-      hh: (h: number) => `${String(h).padStart(2, "0")}:00`,
-    };
-  }, [locale]);
+const formatters = new Map<string, Intl.NumberFormat>();
+function nf(locale: Locale, key: string, opts: Intl.NumberFormatOptions) {
+  const k = `${locale}:${key}`;
+  // Arabic uses Western digits: standard in UAE interfaces and consistent with the poster (docs/09 #30).
+  if (!formatters.has(k)) formatters.set(k, new Intl.NumberFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", opts));
+  return formatters.get(k)!;
+}
+export const fmtInt = (l: Locale, n: number) => nf(l, "i", { maximumFractionDigits: 0 }).format(n);
+export const fmtNum = (l: Locale, n: number, d = 2) => nf(l, `n${d}`, { maximumFractionDigits: d }).format(n);
+export const fmtPct = (l: Locale, lf: number) => nf(l, "p", { style: "percent", maximumFractionDigits: 0 }).format(lf);
+export function hhmm(t: number): string {
+  const x = Math.max(0, t), h = Math.floor(x), m = Math.floor((x - h) * 60);
+  return `${String(h % 24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-/** Pick the Arabic name when available (official RTA GTFS translations for stations). */
-export function useNames() {
-  const { locale } = useLocaleSwitch();
+export function useFmt() {
+  const { locale } = useLocale();
   return useMemo(() => ({
-    station: (s: Pick<Station, "name_en" | "name_ar"> | null | undefined) =>
-      !s ? "—" : locale === "ar" && s.name_ar ? s.name_ar : s.name_en,
+    int: (n: number) => fmtInt(locale, n), num: (n: number, d = 2) => fmtNum(locale, n, d), pct: (lf: number) => fmtPct(locale, lf),
+    station: (s: Pick<Station, "name_en" | "name_ar"> | undefined | null) => (!s ? "—" : locale === "ar" && s.name_ar ? s.name_ar : s.name_en),
     event: (e: EventInfo) => (locale === "ar" && e.name_ar ? e.name_ar : e.name),
     venue: (e: EventInfo) => (locale === "ar" && e.venue_ar ? e.venue_ar : e.venue),
-    note: (e: EventInfo) => (locale === "ar" && e.note_ar ? e.note_ar : e.note),
   }), [locale]);
+}
+
+/** Numbers and times inside right-to-left text keep their own direction. */
+export function N({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <bdi className={className ? `num ${className}` : "num"}>{children}</bdi>;
 }

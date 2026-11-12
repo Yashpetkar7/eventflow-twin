@@ -1,22 +1,31 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, IBM_Plex_Sans_Arabic } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-// Self-hosted at build time by next/font: no font requests at the venue (offline booth).
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const plexArabic = IBM_Plex_Sans_Arabic({ variable: "--font-plex-arabic", subsets: ["arabic"], weight: ["400", "500", "600", "700"] });
+// Readex Pro (SIL OFL) ships inside the repo: no font request ever leaves the booth laptop.
+const readex = localFont({
+  src: [{ path: "./fonts/readex-pro-latin-wght-normal.woff2", weight: "160 700" }],
+  variable: "--font-readex", display: "swap", adjustFontFallback: false,
+});
+const readexExt = localFont({
+  src: [{ path: "./fonts/readex-pro-latin-ext-wght-normal.woff2", weight: "160 700" }],
+  variable: "--font-readex-ext", display: "swap", adjustFontFallback: false,
+});
+const readexAr = localFont({
+  src: [{ path: "./fonts/readex-pro-arabic-wght-normal.woff2", weight: "160 700" }],
+  variable: "--font-readex-ar", display: "swap", adjustFontFallback: false,
+});
 
 export const metadata: Metadata = {
   title: "EventFlow Twin",
-  description: "Research prototype: forecast event-driven metro crowding on Dubai's Sheikh Zayed Road corridor and test interventions a human planner approves.",
+  description: "Interactive digital twin demonstrator: event-driven metro crowding on Dubai's Sheikh Zayed Road corridor, with plans a human approves.",
 };
-
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr" className={`${geistSans.variable} ${plexArabic.variable} h-full antialiased`}>
-      <body className="h-full font-sans">{children}</body>
+    <html lang="en" dir="ltr" className={`${readex.variable} ${readexExt.variable} ${readexAr.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,47 +1,57 @@
-# apps/web — EventFlow Twin UI (Next.js 16)
+# apps/web — EventFlow Twin exhibit UI (Next.js 16 + react-three-fiber)
 
-Spec: `docs/07_UI_SPEC.md`. Design tokens: `src/app/tokens.css` (accent #1D4ED8), mapped to Tailwind in `globals.css`.
+One workspace, built to `reference/eventflow-twin-mockup.html` (layout, palette, copy, flows) with a higher-quality
+3D twin on the **real** Sheikh Zayed Road corridor. Decisions: `docs/09_DECISIONS.md` #41–#53. Metrics: `docs/metrics.md`.
 
 ## Run
 ```bash
-# once (repo root): offline Dubai basemap (~32 MB, OpenStreetMap via Protomaps) + map fonts
-python tasks.py basemap
-# terminal 1 (repo root): the API
-python tasks.py api                           # http://localhost:8000
-# terminal 2
-cd apps/web && npm install && npm run dev     # http://localhost:3000  (predev copies MapLibre's worker)
+# repo root, terminal 1                      # terminal 2
+python tasks.py api                           cd apps/web && npm install && npm run dev     # http://localhost:3000
 ```
-`NEXT_PUBLIC_API_URL` overrides the API address (default `http://localhost:8000`).
+One command for the booth (offline cache → API → production build → kiosk URL): `python tasks.py demo`.
 
-### URLs
 | URL | What |
 |---|---|
-| `/?tab=overview` (default) | Network KPIs, day curve, busiest station-hours, load by line, scenario + assumptions |
-| `/?tab=twin` | Live twin: real 3D Dubai map, all 53 metro stations, heat strip, station panel, planner |
-| `/?tab=events` · `stations` · `planner` · `evidence` · `decisions` | One page per job (sidebar) |
-| `?lang=ar` | Arabic, full right-to-left |
-| `/?kiosk=1` | **Booth kiosk**: attract screen + autoplay → touch → 3-step tour → live twin; resets after 60 s idle (`&idle=10` for rehearsals) |
+| `/` | Workspace |
+| `/?lang=ar` | Arabic, full right-to-left (the 3D scene is not mirrored) |
+| `/?kiosk=1` | Touch kiosk: targets ≥ 48 px, no selection / context menu, 60 s idle → guided demo (`&idle=10` for rehearsals) |
+
+`NEXT_PUBLIC_API_URL` overrides the API address (default `http://localhost:8000`).
+
+## The 3D scene is baked, not fetched
+```bash
+python tasks.py osm      # once, needs internet: OpenStreetMap → data/raw/osm (git-ignored)
+python tasks.py scene    # → public/geo/corridor_scene.json + ground.png (committed; the exhibit never goes online)
+```
+Real metres, rotated so Max → Business Bay runs left → right with the camera on the sea side (`scripts/scene_frame.py`).
+Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line track.
 
 ## Structure
 | File | Role |
 |---|---|
-| `src/lib/api-types.ts` | **Generated** from the API contract — `python tasks.py contract`. Never edit by hand. |
-| `src/lib/api.ts` | Typed client for every endpoint |
-| `src/lib/useTwin.ts` / `twinContext.tsx` | All twin state, shared by every tab (scenario → forecast → baseline → plan → decisions → after; hour/station/view) |
-| `src/lib/stats.ts` | Per-station day views (peak, peak hour, boardings) — re-arrangements of API numbers only |
-| `src/lib/previewPlanner.ts` | **Temporary** while `/agent/plan` returns 501: fixed candidate menu, numbers from `/simulate`, labelled "Preview planner (no AI)" |
-| `src/lib/i18n.tsx`, `src/messages/{en,ar}.json` | next-intl, typed messages (key parity checked). **Arabic needs a native-speaker review.** |
-| `src/components/Shell.tsx` | Sidebar navigation + header + tabs (URL-synced, back button works) |
-| `src/components/DubaiMap.tsx` | MapLibre + local PMTiles (OSM) in our palette, 3D buildings from OSM heights, deck.gl columns/rings overlay, native MapLibre labels (Arabic shaped) |
-| `src/components/pages/*` | Overview, Twin, Events, Stations, Planner, Evidence, Decisions |
-| `src/components/Inspector.tsx` | Reusable station summary, forecast chart, plan panel, scoreboard |
-| `src/components/KioskLayer.tsx`, `src/lib/kiosk.ts` | Attract/tour/idle, lockdown, full screen |
-| `public/map/` | `dubai.pmtiles` (git-ignored, `python tasks.py basemap`), fonts, sprites, copied MapLibre worker (git-ignored) |
-| `public/geo/metro.geojson` | Metro line geometry from RTA GTFS — `python tasks.py network` |
+| `src/lib/api-types.ts` | **Generated** from the contract (`python tasks.py contract`). Never edit by hand. |
+| `src/lib/api.ts`, `requests.ts` | Typed client; request builders shared with `scripts/snapshot.mjs`; API-down fallback (memory, localStorage, `public/cache/`) |
+| `src/lib/store.ts` | All state (zustand): scenario → `/forecast` → `/simulate` (no plans / approved plans) → `/agent/plan` → `/decisions`. The only arithmetic is interpolation between 15-minute bins |
+| `src/lib/tour.ts` | Guided demo, kiosk idle timer, API reconnect |
+| `src/lib/i18n.tsx`, `src/messages/{en,ar}.json` | next-intl (client state, no locale routes). **Arabic is a draft for native-speaker review.** Numbers sit in `<bdi>` |
+| `src/components/{Header,Rail,Stage,Panel,PlanTabs,ReportTab}.tsx` | The 2D workspace |
+| `src/components/twin/TwinCanvas.tsx` | Canvas (lazy chunk behind `public/poster.jpg`), N8AO + SMAA + ACES, automatic quality tier |
+| `…/twin/City.tsx` | Ground map, water, extruded buildings with a procedural façade (lit windows at night), roads, lane-marked SZR, flyovers, palms |
+| `…/twin/Metro.tsx` | Viaduct + piers, six stations (oyster-shell roofs, glass footbridges), instanced trains paced by `trains_per_hour` |
+| `…/twin/Landmarks.tsx` | Burj Khalifa, Emirates Towers, Museum of the Future, DWTC tower, Dubai Frame at their OSM positions |
+| `…/twin/Live.tsx` | Crowd columns (capacity glass, threshold ring, demand bar, pulse), venue beacon, crowd particles, illustrative traffic |
+| `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
+| `tests/ui.spec.ts` | Playwright: screenshots → `eval/results/ui/`, fps → `eval/results/ui/fps.json` (`make ui-test`) |
 
 ## Rules
-- Offline: no remote tiles, fonts, or scripts at run time. Map © OpenStreetMap contributors (shown on the map).
-- Every number on screen comes from an API response with a `source` run id; the UI never computes metrics.
-- Colour is never the only cue (rings, outlines, % labels).
-- Known limits: deck.gl draws on a camera-synced overlay (9.4's interleaved mode does not support MapLibre 6 yet),
-  so columns are not hidden behind buildings. Not done yet: export brief, Playwright screenshots, touch-monitor test.
+- Offline: no remote tiles, fonts or scripts. Map © OpenStreetMap contributors (shown on the canvas and in the footer).
+- Every number comes from an API response with a `source` run id. SYNTHETIC badge whenever `is_synthetic`.
+- Colour is never the only cue: ▲ markers, threshold rings, white bars in over-threshold heat cells.
+- No RTA logo; "designed for / aligned with" only.
+
+## Known limits (honest list)
+- The planner is deterministic with template explanations; no live LLM path yet (the response says so).
+- Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
+- Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.
+- Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
+- Dev mode can serve stale CSS after edits to `globals.css` (restart `npm run dev`).

@@ -1,0 +1,304 @@
+{
+ "plan_id": "plan_fcd4b557d023",
+ "forecast_run_id": "fc_9bfd552ee278",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 2.75,
+  "excess_pax": 6749.9,
+  "peak_lf": 2.662,
+  "max_wait_min": 221.8,
+  "delay_pax_min": 558389.0,
+  "cost_proxy": 0.0,
+  "total_demand": 81213.0,
+  "end_of_day_queue": 5081.5,
+  "no_service_pax": 2483.0,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "حافلات مغذية + سيارات أجرة ذاتية القيادة",
+   "interventions": [
+    {
+     "type": "shuttle_bus",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "MAX",
+      "buses": 6,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    },
+    {
+     "type": "robotaxi_staging",
+     "params": {
+      "station": "BKD",
+      "vehicles": 30,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 2.25,
+    "excess_pax": 4271.7,
+    "peak_lf": 2.214,
+    "max_wait_min": 128.9,
+    "delay_pax_min": 326721.2,
+    "cost_proxy": 54.0,
+    "total_demand": 81069.0,
+    "end_of_day_queue": 2750.3,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -2478.2,
+    "peak_lf": -0.448,
+    "max_wait_min": -92.9,
+    "delay_pax_min": -231667.8,
+    "cost_proxy": 54.0,
+    "total_demand": -144.0,
+    "end_of_day_queue": -2331.2,
+    "no_service_pax": 0.0
+   },
+   "score": -761.8,
+   "rationale": "6 حافلات من برج خليفة / دبي مول إلى ماكس و30 سيارة أجرة ذاتية القيادة عند برج خليفة / دبي مول. نتيجة المحاكاة: ساعات المحطات فوق الحد من 2.75 إلى 2.25، والركاب فوق الحد من 6,750 إلى 4,272، وأعلى حمولة محطة من 266% إلى 221%. مؤشر التكلفة المضافة: 54. المخاطر: قد ينقل الازدحام إلى المحطة المستقبلة.",
+   "what": "6 حافلات من برج خليفة / دبي مول إلى ماكس و30 سيارة أجرة ذاتية القيادة عند برج خليفة / دبي مول.",
+   "risk": "قد ينقل الازدحام إلى المحطة المستقبلة.",
+   "cost_added": 54.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_79a8d80efec5"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_9bfd552ee278"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "قطارات إضافية + توجيه المشاة",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.745,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 319.5,
+    "total_demand": 81213.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.75,
+    "excess_pax": -6749.9,
+    "peak_lf": -1.917,
+    "max_wait_min": -221.8,
+    "delay_pax_min": -558389.0,
+    "cost_proxy": 319.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": -5081.5,
+    "no_service_pax": 0.0
+   },
+   "score": -12420.1,
+   "rationale": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توجيه 20% من ركاب برج خليفة / دبي مول إلى المركز المالي. نتيجة المحاكاة: ساعات المحطات فوق الحد من 2.75 إلى 0، والركاب فوق الحد من 6,750 إلى 0، وأعلى حمولة محطة من 266% إلى 74%. مؤشر التكلفة المضافة: 319.5. المخاطر: يحتاج إلى تنسيق بين التشغيل والميدان.",
+   "what": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توجيه 20% من ركاب برج خليفة / دبي مول إلى المركز المالي.",
+   "risk": "يحتاج إلى تنسيق بين التشغيل والميدان.",
+   "cost_added": 319.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_eabafbc72275"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_9bfd552ee278"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "قطارات إضافية + خروج متدرج",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.801,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 320.0,
+    "total_demand": 81213.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.75,
+    "excess_pax": -6749.9,
+    "peak_lf": -1.861,
+    "max_wait_min": -221.8,
+    "delay_pax_min": -558389.0,
+    "cost_proxy": 320.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": -5081.5,
+    "no_service_pax": 0.0
+   },
+   "score": -12450.1,
+   "rationale": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توزيع الخروج على 60 دقيقة إضافية. نتيجة المحاكاة: ساعات المحطات فوق الحد من 2.75 إلى 0، والركاب فوق الحد من 6,750 إلى 0، وأعلى حمولة محطة من 266% إلى 80%. مؤشر التكلفة المضافة: 320. المخاطر: أعلى تكلفة بين الخيارات.",
+   "what": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توزيع الخروج على 60 دقيقة إضافية.",
+   "risk": "أعلى تكلفة بين الخيارات.",
+   "cost_added": 320.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_b84207bf2205"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_9bfd552ee278"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 35,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "قراءة الهدف",
+   "detail": "إبقاء كل المحطات تحت 85% · الأولوية: تكلفة أقل",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "التنبؤ بالطلب",
+   "detail": "التشغيل fc_9bfd552ee278",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "تحديد نقاط الازدحام",
+   "detail": "برج خليفة / دبي مول، 21:00, 22:00, 23:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "اقتراح الخطط",
+   "detail": "6 خطط مرشحة من القائمة المحددة",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "محاكاة كل خطة",
+   "detail": "7 عمليات محاكاة",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "الترتيب حسب الأثر والتكلفة",
+   "detail": "أفضل 3 حسب الركاب المخفَّف عنهم − λ × التكلفة",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "الشرح بلغة بسيطة",
+   "detail": "نص قالب، والأرقام منسوخة من المحاكي",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "التحقق من كل رقم",
+   "detail": "تم التحقق من 35 رقمًا، جميعها مطابقة",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "BKD",
+  "hours": [
+   21,
+   22,
+   23
+  ],
+  "window": [
+   20,
+   21,
+   22,
+   23
+  ],
+  "peak_lf": 2.662
+ },
+ "cached": false
+}

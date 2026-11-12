@@ -1,47 +1,26 @@
-/* Light 3D Design System tokens. Set --accent per project. */
+/* EventFlow Twin exhibit tokens (palette from apps/web/reference/eventflow-twin-mockup.html). */
 :root {
-  --bg: #FAF8F5;
+  --brand: #D90F0F;            /* signal red */
+  --navy: #0F2F8F;
+  --navy-soft: #E7ECFA;
+  --bg: #F3F4F7;
   --surface: #FFFFFF;
-  --muted: #F2EEE8;
-  --line: rgba(27, 31, 42, 0.08);
+  --muted: #EBEDF2;
+  --line: rgba(20, 28, 45, 0.10);
 
-  --ink: #1B1F2A;
-  --ink-2: #4A5060;
-  --ink-3: #8A8F9C;
+  --ink: #151B28;
+  --ink-2: #444C5E;
+  --ink-3: #6B7284;
 
-  --accent: #1D4ED8;          /* EventFlow Twin transit blue */
-  --accent-soft: color-mix(in oklab, var(--accent) 12%, white);
-  --sand: #C9A46A;
+  --ok: #0E9F6E;
+  --warn: #E39A00;
+  --risk: #C1123F;
+  --ok-soft: #E2F5EE;
+  --risk-soft: #F9E3EB;
+  --amber-soft: #FFF1D6;
+  --amber-ink: #7A4E00;
 
-  --ok: #3F8F6B;
-  --warn: #C08A2E;
-  --risk: #B4454F;
-
-  --glass-bg: rgba(255, 255, 255, 0.62);
-  --glass-border: rgba(27, 31, 42, 0.06);
-  --glass-blur: 18px;
-  --shadow-1: 0 1px 2px rgba(27, 31, 42, 0.04), 0 8px 30px rgba(27, 31, 42, 0.06);
-  --shadow-2: 0 2px 6px rgba(27, 31, 42, 0.05), 0 20px 60px rgba(27, 31, 42, 0.08);
-
+  --shadow: 0 12px 32px rgba(15, 25, 50, 0.08);
   --radius-card: 14px;
-  --radius-chip: 999px;
-
-  --font-latin: var(--font-geist-sans), "Geist", "Inter", system-ui, sans-serif;
-  --font-arabic: var(--font-plex-arabic), "IBM Plex Sans Arabic", "Noto Kufi Arabic", system-ui, sans-serif;
-}
-
-:root[dir="rtl"] body { font-family: var(--font-arabic); line-height: 1.65; letter-spacing: 0; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-latin); }
-
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 120ms !important; }
+  --font: var(--font-readex), var(--font-readex-ext), var(--font-readex-ar), system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
 }
