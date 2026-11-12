@@ -10,6 +10,7 @@ import { canvasTexture } from "./builders";
 import { LANE, roadWidth, SHOULDER, type Corridor } from "./City";
 import type { StationPlace } from "./Metro";
 import type { Models } from "./models";
+import { R7 } from "./perf";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
 const OK = new THREE.Color(0x0e9f6e), WARN = new THREE.Color(0xe39a00), RISK = new THREE.Color(0xc1123f);
@@ -23,6 +24,7 @@ export function Columns({ places }: { places: StationPlace[] }) {
   const groups = useRef<Record<string, THREE.Group>>({});
   const pulses = useRef<Record<string, THREE.Mesh>>({});
   const heights = useRef<Record<string, number>>({});
+  const cast = useRef<Record<string, number>>({});                   // bar height (m) the shadow map was last told about
   const geo = useMemo(() => ({
     glass: new THREE.CylinderGeometry(COL_R + 3.5, COL_R + 3.5, 1, 36, 1, true).translate(0, 0.5, 0),
     ring: new THREE.TorusGeometry(COL_R + 4.4, 1.25, 10, 56).rotateX(Math.PI / 2),
@@ -72,6 +74,7 @@ export function Columns({ places }: { places: StationPlace[] }) {
       m.pulse.opacity = over ? 0.55 * (1 - ph) : 0;
       pulse.scale.setScalar(over ? k * (1 + ph * 1.6) : k);
       live.columnTop[p.id] = COL_BASE + (Math.max(cur, thrH) + 16) * k;
+      if (Math.abs(cur * k - (cast.current[p.id] ?? -1)) > 0.5) { cast.current[p.id] = cur * k; live.shadowDirty = 2; }
     });
   });
 
@@ -184,6 +187,7 @@ export function Crowd({ places }: { places: StationPlace[] }) {
   );
 }
 
+const CAR_LOD_AT = 1500;                             // camera working distance (m): a car is under 5 px long beyond it
 const CARS = 1500, CAR_COLORS = [0xffffff, 0xd9dde3, 0x1f2329, 0xc9c3b6, 0x8a1f1f, 0x2b4a7a, 0xe8d9a8, 0xf2f2f2, 0x9aa0a8];
 /** Road traffic on Sheikh Zayed Road. ILLUSTRATIVE ONLY: density follows a fixed daily profile plus the event
  *  surge so the scene feels alive; it is not simulated and no number is derived from it. */
@@ -194,6 +198,7 @@ export function Traffic({ corridor, models = null }: { corridor: Corridor; model
   // realism scene (docs/13 R5): Blender car and bus, cream taxis with a coloured roof, red tail lights at night
   const roofs = useRef<THREE.InstancedMesh>(null), glass = useRef<THREE.InstancedMesh>(null), busBody = useRef<THREE.InstancedMesh>(null), busGlass = useRef<THREE.InstancedMesh>(null), tails = useRef<THREE.Points>(null);
   const car = models?.car.full, bus = models?.bus.full, BUSES = Math.ceil(CARS / BUS_EVERY);
+  const carFar = models?.car.lod, busFar = models?.bus.lod;
   const xmats = useMemo(() => ({
     paint: new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.5, vertexColors: true }),
     glass: new THREE.MeshStandardMaterial({ color: 0x1b222c, roughness: 0.25, metalness: 0.6, vertexColors: true }),
@@ -239,6 +244,24 @@ export function Traffic({ corridor, models = null }: { corridor: Corridor; model
     const nVis = Math.round(CARS * Math.min(1, 0.25 + press * 0.42) * (st.tier === 0 ? 1 : st.tier === 1 ? 0.6 : 0.35)), vel = 26 / (1 + press * 0.9);
     const { m: mm, q, p, one, up, s, zero } = tmp;
     const night = live.night > 0.3;
+    if (R7.cars) {
+      // instances from nVis on are hidden, so they are not sent to the GPU at all
+      m.count = nVis;
+      if (roofs.current) roofs.current.count = nVis;
+      if (glass.current) glass.current.count = nVis;
+      const nBus = Math.ceil(nVis / BUS_EVERY);
+      if (busBody.current) busBody.current.count = nBus;
+      if (busGlass.current) busGlass.current.count = nBus;
+      // the 25 % models once a car is only a few pixels long
+      if (car && carFar && bus && busFar) {
+        const far = live.camDist > CAR_LOD_AT;
+        const set = (im: THREE.InstancedMesh | null, g: THREE.BufferGeometry) => { if (im && im.geometry !== g) im.geometry = g; };
+        set(m, far ? carFar.body : car.body); set(roofs.current, far ? carFar.roof : car.roof); set(glass.current, far ? carFar.win : car.win);
+        set(busBody.current, far ? busFar.body : bus.body); set(busGlass.current, far ? busFar.win : bus.win);
+      }
+    }
+    m.castShadow = live.movingShadows;
+    if (busBody.current) busBody.current.castShadow = live.movingShadows;
     for (let i = 0; i < CARS; i++) {
       const c = cars[i], ch = corridor.szr[c.c];
       const isBus = !!bus && st.tier === 0 && i % BUS_EVERY === 0, bi = i / BUS_EVERY;

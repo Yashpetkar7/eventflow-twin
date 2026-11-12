@@ -9,6 +9,7 @@ import { compass, type Frame } from "@/lib/geo";
 import { nightFactor } from "@/lib/daylight";
 import { sunPosition } from "@/lib/sun";
 import { useTwin } from "@/lib/store";
+import { R7 } from "./perf";
 import { live } from "./sceneData";
 
 // Stylised day for the exhibit: golden hour 16:30–18:30, blue hour to ~19:30 (docs/09 #54).
@@ -80,6 +81,7 @@ export function Sky({ frame, tier = 0, real = false }: { frame: Frame; tier?: nu
     return { env, ball, floor, floorMat, rt: null as THREE.WebGLRenderTarget | null, at: -99, wall: 0 };
   }, [dome]);
   const pmrem = useMemo(() => new THREE.PMREMGenerator(gl), [gl]);
+  const cache = useRef({ dir: new THREE.Vector3(), x: 1e9, z: 1e9, half: 0 });       // what the shadow map was last drawn for
 
   useEffect(() => {
     scene.fog = new THREE.Fog(0xcfe0ee, 5200, 46000);
@@ -95,8 +97,13 @@ export function Sky({ frame, tier = 0, real = false }: { frame: Frame; tier?: nu
     if (!l) return;
     const n = tier === 0 ? 4096 : 2048;
     l.castShadow = tier < 2;
+    l.shadow.autoUpdate = false;                           // redrawn on demand, see the frame loop
     if (l.shadow.mapSize.x !== n) { l.shadow.mapSize.set(n, n); l.shadow.map?.dispose(); l.shadow.map = null; }
+    live.shadowDirty = 2;
   }, [tier]);
+  // hiding or showing a layer changes what casts (an effect, so the scene already has the change)
+  const layers = useTwin((s) => s.layers);
+  useEffect(() => { live.shadowDirty = 2; }, [layers]);
 
   useFrame((state, dt) => {
     const st = useTwin.getState(), h = st.time;
@@ -137,20 +144,35 @@ export function Sky({ frame, tier = 0, real = false }: { frame: Frame; tier?: nu
     }
 
     if (sun.current) {
-      const t = live.camTarget, half = Math.max(420, Math.min(3200, live.camDist * 0.66));
+      const t = live.camTarget, k = cache.current, want = Math.max(420, Math.min(3200, live.camDist * 0.66));
+      const half = Math.abs(k.half - want) > want * 0.04 ? want : k.half;       // the shadow box follows the view in steps of 4 % (crisp close-ups, wide overviews)
       sun.current.color.copy(c.sun);
       sun.current.intensity = up ? (1 - nf) * (2.25 + 1.9 * golden) + 0.25 * nf : 0.55;
       if (real) sun.current.intensity *= 1 + 0.9 * live.golden;      // exposure: a camera opens up when the real sun is low
       sun.current.position.set(t.x + c.dir.x * 7000, c.dir.y * 7000, t.z + c.dir.z * 7000);
       sun.current.target.position.set(t.x, 0, t.z);
       sun.current.target.updateMatrixWorld();
-      const cam = sun.current.shadow.camera;
-      if (Math.abs(cam.right - half) > half * 0.04) {       // the shadow box follows the view (crisp close-ups, wide overviews)
-        cam.left = -half; cam.right = half; cam.top = half; cam.bottom = -half;
-        cam.updateProjectionMatrix();
+      // The city does not move, so the shadow map is redrawn only when its content would change by about a screen
+      // pixel: the sun has turned, the view has moved or zoomed, or a caster has changed (live.shadowDirty). Cars and
+      // trains cast only in views where one is wider than ~1.5 px, and there the map is redrawn every frame as before.
+      const sh = sun.current.shadow;
+      const px = live.camDist * 2 * Math.tan((19 * Math.PI) / 180) / state.size.height;     // metres per pixel at the camera target (fov 38)
+      live.movingShadows = !(real && R7.shadow) || px < (live.movingShadows ? 1.7 : 1.5);     // the corridor scene keeps a redraw every frame
+      const turned = c.dir.angleTo(k.dir) > Math.max(0.0002, px / 800);                       // an 800 m lever: the tallest shadow tips move ~1 px
+      const moved = half !== k.half || Math.hypot(t.x - k.x, t.z - k.z) > half * 0.02;
+      if (live.movingShadows || live.shadowDirty > 0 || turned || moved || !sh.map) {
+        const cam = sh.camera;
+        if (k.half !== half) {
+          cam.left = -half; cam.right = half; cam.top = half; cam.bottom = -half;
+          cam.updateProjectionMatrix();
+        }
+        sh.bias = -0.00012 * (half / 600);
+        sh.normalBias = 0.6 + half / 900;
+        k.dir.copy(c.dir); k.x = t.x; k.z = t.z; k.half = half;
+        sh.needsUpdate = true;
+        live.shadowDraws++;
+        if (live.shadowDirty > 0) live.shadowDirty--;
       }
-      sun.current.shadow.bias = -0.00012 * (half / 600);
-      sun.current.shadow.normalBias = 0.6 + half / 900;
     }
     if (hemi.current) {
       // cool sky fill against the warm sun = readable shadows at golden hour; blue moonlight ambience at night

@@ -1,5 +1,6 @@
 // Frame rate of the visitor kiosk's attract screen (full-screen 3D, slow orbit) — the booth's resting state.
-//   node tests/kiosk_fps.mjs [base url] [scene]   → eval/results/ui/fps_kiosk.json, or fps_kiosk_<scene>.json
+//   node tests/kiosk_fps.mjs [base url] [scene] [out]   → eval/results/ui/fps_kiosk.json, or fps_kiosk_<scene>.json, or
+//   eval/results/ui/<out> when given (e.g. realism_r7/kiosk_fps_tier0_after.json)
 //   realism scene on the production build: node tests/kiosk_fps.mjs http://localhost:3100 v2
 // Run on mains power with no other 3D page open. Samples are one-second averages; the tier is recorded so a reading
 // taken after the automatic quality step-down cannot pass as full quality.
@@ -8,7 +9,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const base = process.argv[2] ?? "http://localhost:3000", scene = process.argv[3] ?? "";
-const OUT = path.resolve(import.meta.dirname, `../../../eval/results/ui/fps_kiosk${scene ? "_" + scene : ""}.json`);
+const OUT = path.resolve(import.meta.dirname, "../../../eval/results/ui", process.argv[4] ?? `fps_kiosk${scene ? "_" + scene : ""}.json`);
+fs.mkdirSync(path.dirname(OUT), { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true,
   args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });

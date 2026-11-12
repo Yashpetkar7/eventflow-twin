@@ -19,7 +19,7 @@ import { loadManifest, MIN_TIER, type Manifest } from "@/lib/manifest";
 import { landmarkSpots, live, loadScene, type SceneJson } from "./sceneData";
 import { Sky } from "./Sky";
 
-declare global { interface Window { __eft?: { fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number; sun: { elevation: number; azimuth: number } | null } } }
+declare global { interface Window { __eft?: { fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number; calls: number; triangles: number; shadow_redraws: number; sun: { elevation: number; azimuth: number } | null } } }
 
 // `?tone=agx` swaps the tone curve of the realism scene for a side-by-side with ACES (docs/13 R2).
 const AGX = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tone") === "agx";
@@ -29,15 +29,21 @@ const AGX = typeof window !== "undefined" && new URLSearchParams(window.location
  *  particles; tier 2: no shadows, no particles). 45 s at the display's cap → step back up, at most twice. */
 function Stats() {
   const { gl } = useThree();
-  const acc = useRef({ t: 0, n: 0, total: 0, low: 0, high: 0, recoveries: 0, warm: 0 });
+  const acc = useRef({ t: 0, n: 0, total: 0, low: 0, high: 0, recoveries: 0, warm: 0, shadows: 0 });
   useFrame((_, dt) => {
     const a = acc.current;
+    // draw calls and triangles of the whole previous frame (shadow pass + scene + post-processing): the renderer's
+    // counters are reset here, once a frame, instead of before every pass; shadow_redraws = shadow-map redraws since
+    // the last publish, about a second ago
+    const calls = gl.info.render.calls, triangles = gl.info.render.triangles;
+    gl.info.reset();
     a.t += dt; a.n++; a.total++;
     if (a.t < 1) return;
     const measured = a.n / a.t, s = useTwin.getState(), fps = s.fpsOverride ?? measured;
     live.fps = measured;
     a.t = 0; a.n = 0; a.warm++;
-    window.__eft = { fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0, sun: live.sun };
+    window.__eft = { fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0, calls, triangles, shadow_redraws: live.shadowDraws - a.shadows, sun: live.sun };
+    a.shadows = live.shadowDraws;
     // a hidden or throttled page reports ~1 fps: that is not a slow GPU, so it never changes the tier
     if (a.warm < 8 || (s.fpsOverride === null && measured < 5)) return;
     a.low = fps < 40 ? a.low + 1 : 0;
@@ -97,7 +103,7 @@ export default function TwinCanvas({ label }: { label: string }) {
       flat shadows dpr={tier > 0 ? 1 : [1, 1.5]} aria-label={label} role="img"
       gl={{ antialias: false, powerPreference: "high-performance", preserveDrawingBuffer: true, stencil: false }}
       camera={{ fov: 38, near: 20, far: 60000, position: [0, 4000, 6000] }}
-      onCreated={({ gl }) => { gl.shadowMap.type = THREE.PCFShadowMap; gl.toneMappingExposure = 1; }}
+      onCreated={({ gl }) => { gl.shadowMap.type = THREE.PCFShadowMap; gl.toneMappingExposure = 1; gl.info.autoReset = false; }}
       style={{ position: "absolute", inset: 0 }}
     >
       <Suspense fallback={null}>

@@ -353,6 +353,42 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   expect(Math.min(...all), JSON.stringify(fps)).toBeGreaterThanOrEqual(50);    // the floor of the common rules
 });
 
+test("realism R7 (?scene=v2): the shadow map is redrawn only when the sun, the view or a caster changes", async ({ page }) => {
+  await open(page, "/?scene=v2");
+  await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
+  type Eft = { __eft: { frames: number; fps: number; tier: number; shadow_redraws: number; calls: number; triangles: number } };
+  // shadow-map redraws over the next n publishes of __eft (one publish ≈ one second of frames)
+  const redraws = async (n: number) => {
+    let sum = 0, frames = 0;
+    for (let i = 0; i < n; i++) {
+      const f0 = await page.evaluate(() => (window as unknown as Eft).__eft.frames);
+      await page.waitForFunction((f) => (window as unknown as Eft).__eft.frames > f, f0, { timeout: 30_000 });
+      const e = await page.evaluate(() => (window as unknown as Eft).__eft);
+      sum += e.shadow_redraws; frames += e.frames - f0;
+    }
+    return { sum, frames };
+  };
+  await twin(page, "t.setState({ time: 10, playing: false }); t.getState().setCam('overview')");
+  await page.waitForTimeout(7000);                                             // camera tween and crowd columns come to rest
+  await redraws(1);
+  const still = await redraws(2);
+  expect(still.sum, JSON.stringify(still)).toBe(0);                            // nothing changes: the map is kept
+  expect(await page.evaluate(() => (window as unknown as Eft).__eft.tier)).toBe(0);
+  const wide = await page.evaluate(() => (window as unknown as Eft).__eft.triangles);
+  await twin(page, "t.setState({ time: 16.5 })");                              // the sun turns
+  expect((await redraws(3)).sum).toBeGreaterThan(0);
+  await twin(page, "t.setState({ layers: { ...t.getState().layers, buildings: false } })");      // casters hidden
+  expect((await redraws(3)).sum).toBeGreaterThan(0);
+  await twin(page, "t.setState({ layers: { ...t.getState().layers, buildings: true } })");
+  await redraws(3);
+  expect((await redraws(2)).sum).toBe(0);
+  await twin(page, "t.getState().setCam('close')");                            // cars and trains cast here: every frame, as before
+  await page.waitForTimeout(6000);
+  const close = await redraws(2);
+  expect(close.sum, JSON.stringify(close)).toBeGreaterThanOrEqual(close.frames - 2);
+  expect(wide).toBeLessThan(2_000_000);                                        // 3.9 million before R7 (palms and the shadow pass)
+});
+
 test("performance: fps with every layer on (1920×1080)", async ({ page }) => {
   await open(page);
   await twin(page, "t.setState({ playing: true, speed: 1 })");

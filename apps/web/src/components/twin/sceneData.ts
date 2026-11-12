@@ -109,6 +109,10 @@ export const live = {
   stationPos: {} as Record<string, THREE.Vector3>,
   venue: new THREE.Vector3(), venueOn: false,
   fps: 0,
+  // shadow map (Sky.tsx redraws it only when something that casts has changed):
+  shadowDirty: 2,                                   // frames still to redraw; whoever adds, removes, moves or resizes a caster sets it to 2
+  shadowDraws: 0,                                   // how often the shadow map has been redrawn (published for the tests)
+  movingShadows: true,                              // cars and trains cast only while one is wider than about a pixel
 };
 
 /** Places a visitor can jump to. Modelled landmarks take their position from the baked scene; districts are

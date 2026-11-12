@@ -11,7 +11,8 @@ import { mulberry } from "./sceneData";
 export const CLASS = { tower: 0, midrise: 1, villa: 2, lowrise: 3, industrial: 4, mosque: 5, stadium: 6 } as const;   // manifest.classes order
 // 8-bit normals and colours, and seed / type / height in one attribute: 36 bytes a vertex instead of 48 (the ring is ~2 million vertices)
 export interface BuildingArrays { position: Float32Array; normal: Int8Array; uv: Float32Array; color: Uint8Array; aInfo: Float32Array; index: Uint32Array }
-export interface BuildingInput { buildings: number[][]; roof: number[]; cls: number[]; detail: boolean }
+/** `ids`: each building's number within its chunk (the seed of its colour and rooftop kit), so that splitting a chunk into tiles keeps every building as it was. */
+export interface BuildingInput { buildings: number[][]; roof: number[]; cls: number[]; detail: boolean; ids?: number[] }
 
 // wall colours per class (sRGB hex): glass tints for towers, sand and cream for homes, greys for sheds
 const PALETTE: number[][] = [
@@ -24,7 +25,7 @@ const PALETTE: number[][] = [
 ];
 const KIT = 0x9a9c9e, PAD = 0x4d5257;
 
-export function buildBuildings({ buildings, roof, cls, detail }: BuildingInput): BuildingArrays {
+export function buildBuildings({ buildings, roof, cls, detail, ids }: BuildingInput): BuildingArrays {
   const pos: number[] = [], nor: number[] = [], uv: number[] = [], col: number[] = [], info: number[] = [], idx: number[] = [];
   const c = new THREE.Color();
   let sd = 0, H = 0;
@@ -81,7 +82,7 @@ export function buildBuildings({ buildings, roof, cls, detail }: BuildingInput):
 
   for (let b = 0; b < buildings.length; b++) {
     const rec = buildings[b], h = rec[0], y0 = rec[1], ring = rec.slice(2), k = cls[b];
-    const rnd = mulberry(b * 7919 + Math.round(ring[0] * 13 + ring[1] * 31));
+    const rnd = mulberry((ids ? ids[b] : b) * 7919 + Math.round(ring[0] * 13 + ring[1] * 31));
     const pal = PALETTE[k] ?? PALETTE[3], a = area(ring);
     const wallHex = pal[Math.floor(rnd() * pal.length)], shade = (rnd() - 0.5) * 0.06;
     const walls = () => { c.setHex(wallHex).offsetHSL(0, 0, shade); }, roofs = () => { c.setHex(roof[b]); }, kit = (hex: number) => { c.setHex(hex).offsetHSL(0, 0, shade); };
