@@ -24,6 +24,7 @@ def realism_rows() -> list[str]:
     c, cal = v2["counts"], v2["counts"]["globfp_calibration"]
     files = [f for f in geo.rglob("*") if f.is_file()]
     biggest = max(files, key=lambda f: f.stat().st_size)
+    pub = [f for f in (ROOT / "apps/web/public").rglob("*") if f.is_file()]
     out = [f"## Realism ring, `?scene=v2` (docs/13 R1 — apps/web/public/geo/v2, generated {v2['generated']})",
            "Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/`, git-ignored) and",
            "`python scripts/build_scene.py --only v2`: a 20 km × 20 km ring in 16 chunks of 5 km over a 40 km overview.", "",
@@ -38,7 +39,7 @@ def realism_rows() -> list[str]:
             "and mapped onto them (median tagged height per quantile bin, monotone). Raw 3D-GloBFP m → used m: "
             + ", ".join(f"{g} → {t}" for g, t in cal["table"]) + ".", "",
             f"Size: `apps/web/public/geo` {sum(f.stat().st_size for f in files) / 1e6:.1f} MB (limit 60), largest file "
-            f"`{biggest.name}` {biggest.stat().st_size / 1e6:.2f} MB (limit 15).", ""]
+            f"`{biggest.name}` {biggest.stat().st_size / 1e6:.2f} MB (limit 15). All of `apps/web/public`: {sum(f.stat().st_size for f in pub) / 1e6:.1f} MB in {len(pub)} files.", ""]
     before, after = load(UI / "realism/before_fps.json"), load(UI / "realism/after_fps.json")
     if before and after:
         out += ["15 before/after pairs (5 camera presets × 10:00, 17:30, 21:30) in `eval/results/ui/realism/` "
@@ -64,6 +65,16 @@ def realism_rows() -> list[str]:
                 "| Model | Triangles | Far version | Budget | File | Public dimension source |", "|---|---|---|---|---|---|"]
         out += [f"| {n} | {m['triangles']} | {m['triangles_lod1']} | {m['budget']} | {m['bytes'] / 1e3:.1f} kB | {m['source']} |" for n, m in mj["models"].items()]
         out += [""]
+    k1, k2 = load(UI / "fps_kiosk.json"), load(UI / "fps_kiosk_v2.json")
+    if k1 or k2:
+        out += ["Visitor kiosk attract screen (3D full screen, `node tests/kiosk_fps.mjs`), every recorded run:", "",
+                "| | Runs | Average fps, lowest – highest run | Lowest 1-second sample | Quality tier | Target |", "|---|---|---|---|---|---|"]
+        for k in (k1, k2):
+            if k:
+                runs = k.get("runs") or [k]
+                out += [f"| `{k['url']}` | {len(runs)} | {min(r['avg_fps'] for r in runs)} – {max(r['avg_fps'] for r in runs)} | {min(r['min_fps'] for r in runs)} | "
+                        f"{', '.join(sorted({str(r['tier_at_end']) for r in runs}))} | {k['target']} |"]
+        out += [""]
     v2fps = load(UI / "fps_v2.json")
     if v2fps:
         out += [f"`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, {v2fps['timestamp']}, test \"realism ring…\"): "
@@ -78,7 +89,7 @@ def main() -> None:
     sc = json.loads((ROOT / "apps/web/public/geo/corridor_scene.json").read_text(encoding="utf-8"))
     hs = sc["meta"]["height_sources"]
     before, after = load(UI / "polish/before_fps.json"), load(UI / "polish/after_fps.json")
-    soak, short = load(UI / "soak.json"), load(UI / "soak_short.json")
+    soak, short, soak_v2 = load(UI / "soak.json"), load(UI / "soak_short.json"), load(UI / "soak_v2.json")
     n_tests = (ROOT / "apps/web/tests/ui.spec.ts").read_text(encoding="utf-8").count("\ntest(")
     out = ["# Metrics — exhibit UI", "",
            "Every number below is copied from a file in `eval/results/` or from the baked scene by `scripts/ui_metrics.py`;",
@@ -109,7 +120,7 @@ def main() -> None:
                 f"| DOM nodes (start → end) | {r['dom_nodes'][0]} → {r['dom_nodes'][1]} |",
                 f"| Lowest 1-second fps sample / quality tier at the end | {r['min_fps']} / {r['tier_final']} |",
                 f"| Requests outside localhost / page errors | {r['external_requests']} / {len(r['page_errors'])} |"]
-    if soak or short:
+    if soak or short or soak_v2:
         out += ["## Booth hardening (prompt F3)",
                 "Soak test `apps/web/tests/soak.mjs`: kiosk mode, production build, the guided demo in a loop with scenario,",
                 "landmark, language and camera changes between loops. Budget: heap growth ≤ 10 %.", "", "| Measure | Value |", "|---|---|"]
@@ -117,6 +128,8 @@ def main() -> None:
             out += soak_rows(soak, "soak.json")
         if short:
             out += soak_rows(short, "soak_short.json")
+        if soak_v2:
+            out += ["", "Realism scene (`?scene=v2`, docs/13 R6), same soak:", "", "| Measure | Value |", "|---|---|"] + soak_rows(soak_v2, "soak_v2.json")
         out += ["",
                 "Automatic quality tier (test \"quality tier steps down…\"): under 40 fps for 3 s → tier 1 (no ambient occlusion,",
                 "pixel ratio 1, 2048 px shadow map, fewer cars and particles) → tier 2 (no shadows, no particles); 45 s at the",

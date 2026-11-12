@@ -1,17 +1,17 @@
 {
   "suite": "ui_fps",
-  "timestamp": "2026-11-12T18:21:42.117Z",
+  "timestamp": "2026-11-12T18:32:40.631Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing",
-  "mode": "next dev",
+  "mode": "next start (production build)",
   "avg_fps": 56.2,
-  "min_fps": 55.3,
+  "min_fps": 55.5,
   "per_camera": {
-    "overview": 56,
+    "overview": 56.3,
     "close": 56.3,
-    "top": 56.3,
-    "fly": 55.9,
-    "orbit": 56.2
+    "top": 55.9,
+    "fly": 56,
+    "orbit": 56.5
   },
   "renderer": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
   "dpr": 1,

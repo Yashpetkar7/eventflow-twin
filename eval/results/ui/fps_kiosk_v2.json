@@ -1,0 +1,55 @@
+{
+  "suite": "ui_fps_kiosk",
+  "timestamp": "2026-11-12T19:16:31.434Z",
+  "target": "http://localhost:3100",
+  "url": "/?kiosk=1&scene=v2",
+  "viewport": "1920x1080 (3D full screen)",
+  "avg_fps": 56.8,
+  "min_fps": 53.7,
+  "tier_at_end": 0,
+  "samples": [
+    56.3,
+    54.8,
+    55.5,
+    53.7,
+    54.5,
+    57.1,
+    57.2,
+    57.1,
+    58.3,
+    56.4,
+    57.1,
+    57.7,
+    57,
+    57.4,
+    57.8,
+    57.5,
+    54.6,
+    58,
+    59.2,
+    58.8
+  ],
+  "runs": [
+    {
+      "timestamp": "2026-11-12T19:15:23.650Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 53.3,
+      "min_fps": 51,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T19:15:57.504Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 56.7,
+      "min_fps": 54.3,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T19:16:31.434Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 56.8,
+      "min_fps": 53.7,
+      "tier_at_end": 0
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import path from "node:path";
 const base = process.argv[2] ?? "http://localhost:3000";
 const OUT = path.resolve(import.meta.dirname, "../../../submission/images/final");
 fs.mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
+const browser = await chromium.launch({ channel: "chrome", headless: true, args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
 
 async function page(url) {
   const p = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });

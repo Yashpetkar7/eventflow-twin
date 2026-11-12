@@ -1,0 +1,26 @@
+{
+  "suite": "agents",
+  "git_sha": "bf4caf8-dirty",
+  "timestamp": "2026-11-12T22:27:06",
+  "models": {
+    "planner": "deterministic-template",
+    "llm_model": null
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "number_faithfulness": 1.0,
+    "schema_validity": 1.0,
+    "expectation_match": 1.0,
+    "top_relieves": 1.0,
+    "top_no_new_hotspot": 1.0,
+    "arabic_text": 1.0,
+    "options_checked": 48,
+    "plan_latency_p50_s": 0.126,
+    "plan_latency_p95_s": 0.291
+  },
+  "n": 20,
+  "split": "all (dev+test)",
+  "failures": [],
+  "gold_file": "eval\\gold\\agents_scenarios.jsonl"
+}

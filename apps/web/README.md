@@ -26,7 +26,7 @@ One command for the booth (offline cache → API → production build → kiosk 
 python tasks.py osm      # once, needs internet: OpenStreetMap → data/raw/osm (git-ignored)
 python tasks.py scene    # → public/geo/corridor_scene.json + ground.png (committed; the exhibit never goes online)
 ```
-**Realism ring (`/?scene=v2`, docs/13 R1 — off by default until R6):**
+**Realism scene (`/?scene=v2`, docs/13 R1–R5 — opt-in; R6 kept the corridor scene as the default, see decision #100 for what blocks the switch):**
 ```bash
 pip install -r requirements-realism.txt
 python tasks.py realism-data                 # once, needs internet: Overture, Sentinel-2, WorldCover, DEM, 3D-GloBFP → data/raw/realism

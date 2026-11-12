@@ -4,16 +4,16 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 nothing is typed by hand. Regenerate: `make ui-test`, then `python scripts/ui_metrics.py`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T18:21:42.117Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+Source: `eval/results/ui/fps.json` (2026-11-12T18:32:40.631Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
 
 | Measure | Value |
 |---|---|
 | Viewport | 1920x1080 (3D canvas 1230×771, device pixel ratio 1) |
 | Layers | all on, clock playing |
-| Build | next dev |
+| Build | next start (production build) |
 | Average fps (5 camera presets × 5 s) | **56.2** |
-| Minimum 1-second sample | 55.3 |
-| Per camera | overview 56, close 56.3, top 56.3, fly 55.9, orbit 56.2 |
+| Minimum 1-second sample | 55.5 |
+| Per camera | overview 56.3, close 56.3, top 55.9, fly 56, orbit 56.5 |
 
 Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 means
 "at the cap". Not measured: the exhibit's touch monitor at its native resolution; a 2-hour soak.
@@ -47,6 +47,18 @@ landmark, language and camera changes between loops. Budget: heap growth ≤ 10 
 | Lowest 1-second fps sample / quality tier at the end | 59.9 / 0 |
 | Requests outside localhost / page errors | 0 / 0 |
 
+Realism scene (`?scene=v2`, docs/13 R6), same soak:
+
+| Measure | Value |
+|---|---|
+| Run | `soak_v2.json` (2026-11-12T19:04:25.731Z, finished), target http://localhost:3100 |
+| Duration / guided-demo loops | 30.36 min of 30 planned / 60 loops |
+| JS heap after forced GC: warm baseline → end | 124.72 MB → 125.91 MB (**1 %**), maximum 125.99 MB |
+| Renderer geometries / textures / shader programs (start → end) | 99 → 100 / 86 → 70 / 54 → 51 |
+| DOM nodes (start → end) | 458 → 460 |
+| Lowest 1-second fps sample / quality tier at the end | 55.4 / 0 |
+| Requests outside localhost / page errors | 0 / 0 |
+
 Automatic quality tier (test "quality tier steps down…"): under 40 fps for 3 s → tier 1 (no ambient occlusion,
 pixel ratio 1, 2048 px shadow map, fewer cars and particles) → tier 2 (no shadows, no particles); 45 s at the
 display cap → one step back up, at most twice. A throttled background page (≈ 1 fps) never changes the tier.
@@ -54,7 +66,7 @@ Crash recovery (test "crash recovery…"): with the API blocked the banner appea
 the health check every 4 s clears the banner when the API returns.
 
 ## Offline
-Source: `eval/results/ui/network.json` (2026-11-12T18:20:01.403Z).
+Source: `eval/results/ui/network.json` (2026-11-12T18:31:02.573Z).
 Requests to any host other than localhost during load, an agent plan and a language switch: **0**.
 Fonts (Readex Pro, OFL) are files in the repo; the map is baked into `apps/web/public/geo/`.
 With the API blocked the app starts from the saved snapshot (`apps/web/public/cache/`) and says so (test "API down").
@@ -104,7 +116,7 @@ Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/
 3D-GloBFP calibration: raw 3D-GloBFP heights were compared with the OpenStreetMap-tagged height of the same 9143 buildings
 and mapped onto them (median tagged height per quantile bin, monotone). Raw 3D-GloBFP m → used m: 8.7 → 6.6, 12.4 → 6.6, 15.0 → 6.6, 17.3 → 6.6, 19.8 → 6.6, 22.5 → 6.6, 24.8 → 6.6, 27.4 → 6.6, 30.9 → 8.6, 36.0 → 25.0, 44.8 → 36.3, 64.6 → 55.0.
 
-Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15).
+Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 18.7 MB in 143 files.
 
 15 before/after pairs (5 camera presets × 10:00, 17:30, 21:30) in `eval/results/ui/realism/` (`node tests/polish.mjs before realism`, `node tests/polish.mjs after realism "?scene=v2"`), 1920×1080, dev mode, clock paused.
 
@@ -146,7 +158,14 @@ R4 models (Blender 5.3.0, `scripts/blender/build_models.py`; approximations from
 | car | 180 | 44 | 1500 | 6.7 kB | generic vehicle, no real model |
 | bus | 148 | 36 | 1500 | 5.0 kB | generic vehicle, no real model |
 
-`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T18:20:59.362Z, test "realism ring…"): average **56.1** fps, minimum 1-second sample 55.5.
+Visitor kiosk attract screen (3D full screen, `node tests/kiosk_fps.mjs`), every recorded run:
+
+| | Runs | Average fps, lowest – highest run | Lowest 1-second sample | Quality tier | Target |
+|---|---|---|---|---|---|
+| `/?kiosk=1` | 2 | 60 – 60 | 60 | 0 | http://localhost:3100 |
+| `/?kiosk=1&scene=v2` | 3 | 53.3 – 56.8 | 51 | 0 | http://localhost:3100 |
+
+`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T18:31:58.744Z, test "realism ring…"): average **56.1** fps, minimum 1-second sample 55.6.
 
 ## UI tests
 `apps/web/tests/ui.spec.ts` — 21 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
