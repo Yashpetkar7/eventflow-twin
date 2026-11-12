@@ -31,6 +31,9 @@ def test_unknown_profile_rejected():
 
 def test_historical_events_have_sources():
     for ev in events():
+        if ev.get("is_synthetic"):               # hypothetical demo scenario: must say so instead of citing a source
+            assert ev.get("is_assumption") is True and "hypothetical" in ev["name"].lower(), ev["id"]
+            continue
         assert ev.get("source_url"), ev["id"]
         if ev["attendance"] and ev.get("is_assumption") is not True:
             assert ev.get("sources"), f"{ev['id']}: non-assumption attendance needs sources"

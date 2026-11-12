@@ -99,9 +99,63 @@ def test_decisions_logged_append_only(client):
     assert client.post("/decisions", json={"plan_id": "p", "option_rank": 4, "decision": "approve"}).status_code == 422
 
 
-def test_agent_plan_stub_is_explicit(client):
-    fc = _forecast(client)
-    assert client.post("/agent/plan", json={"forecast_run_id": fc["run_id"]}).status_code == 501
+def test_agent_plan_numbers_come_from_the_simulator(client, tmp_path, monkeypatch):
+    from apps.api.eventflow.agents import planner
+    monkeypatch.setattr(planner, "CACHE", tmp_path / "cache")
+    fc = _forecast(client, attendance=40000)
+    plan = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
+    assert plan["mode"] == "offline" and plan["planner"] == "deterministic-template"
+    assert [s["key"] for s in plan["steps"]] == planner.STEP_KEYS
+    assert 1 <= len(plan["options"]) <= 3 and plan["verify"]["all_matched"] and plan["verify"]["numbers_checked"] > 0
+    for o in plan["options"]:
+        sim = client.post("/simulate", json={"forecast_run_id": fc["run_id"], "interventions": o["interventions"],
+                                             "scope": "corridor"}).json()
+        assert sim["summary"] == o["summary"] and sim["run_id"] == o["sources"][0]["run_id"]
+    # replay from the offline cache is identical
+    again = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
+    assert again["cached"] and again["options"] == plan["options"]
+    # Arabic template passes the same number check
+    ar = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor", "locale": "ar"}).json()
+    assert ar["verify"]["all_matched"] and ar["options"][0]["summary"] == plan["options"][0]["summary"]
+
+
+def test_agent_plan_without_hotspot_recommends_nothing(client, tmp_path, monkeypatch):
+    from apps.api.eventflow.agents import planner
+    monkeypatch.setattr(planner, "CACHE", tmp_path / "cache")
+    fc = _forecast(client)                       # 15,000 visitors: no station over the threshold
+    plan = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
+    assert plan["options"] == [] and plan["hotspot"] is None
+
+
+def test_verify_numbers_catches_an_invented_figure():
+    from apps.api.eventflow.agents.planner import verify_numbers
+    assert verify_numbers("from 106 to 0, peak 92%", {"106", "0", "92"}) == (3, True)
+    assert verify_numbers("from 106 to 12", {"106", "0"}) == (2, False)
+    assert verify_numbers("من ١٠٦ إلى ٠", {"106", "0"}) == (2, True)
+
+
+def test_exhibit_what_ifs(client):
+    base = _forecast(client)
+    hot = _forecast(client, weather="hot")
+    assert base["metro_share_used"] == 0.45 and hot["metro_share_used"] == 0.55 and hot["run_id"] != base["run_id"]
+    assert base["event"]["id"] == "dfw2026_d1"
+    wide = _forecast(client, exit_sigma_min=60)
+    peak = lambda fc: max(r["event_entries_p50"] for r in fc["rows"] if r["station_id"] == "EMT")
+    assert peak(wide) < peak(base) < peak(hot)
+    r = client.post("/forecast", json={"custom_event": {"near_station": "FIC", "start": "19:00", "end": "22:00",
+                                                        "attendance": 20000, "weekend": True}})
+    assert r.status_code == 200 and r.json()["event"]["id"] == "custom" and r.json()["weekday"] == 5
+    assert client.post("/forecast", json={"custom_event": {"near_station": "NOPE", "start": "19:00", "end": "22:00",
+                                                           "attendance": 1}}).status_code == 404
+
+
+def test_threshold_and_corridor_scope(client):
+    fc = _forecast(client, attendance=30000)
+    lo = client.post("/simulate", json={"forecast_run_id": fc["run_id"], "scope": "corridor", "threshold": 0.7}).json()
+    hi = client.post("/simulate", json={"forecast_run_id": fc["run_id"], "scope": "corridor", "threshold": 0.95}).json()
+    assert lo["summary"]["threshold"] == 0.7 and len(lo["hourly"]) == 6 * 24
+    assert lo["summary"]["overcap_station_hours"] >= hi["summary"]["overcap_station_hours"]
+    assert all(r["trains_per_hour"] >= 0 for r in lo["hourly"]) and lo["run_id"] != hi["run_id"]
 
 
 def test_evidence(client):

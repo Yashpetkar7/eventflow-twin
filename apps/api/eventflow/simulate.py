@@ -109,6 +109,26 @@ def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], 
     return out, sum(added.values())
 
 
+def trains_table(stations: list[str], headway_override: dict[tuple[str, int], float] | None = None,
+                 weekday: int = 2) -> dict[str, list[float]]:
+    """Boardable trains per hour in the busier direction of each station's primary line, including any
+    extra-train override. Shown in the UI ("trains per hour now") and used to pace the animated trains."""
+    cfg = corridor()
+    primary = {s["id"]: s["line"] for s in cfg["stations"]}
+    override = headway_override or {}
+    out = {}
+    for s in stations:
+        line, row = primary.get(s, "Red"), []
+        for h in range(24):
+            t0, t1 = scheduled_tph(s, line, h, weekday)
+            if (line, h) in override:
+                floor = 60.0 / override[(line, h)]
+                t0, t1 = (max(t0, floor) if t0 > 0 else 0.0), (max(t1, floor) if t1 > 0 else 0.0)
+            row.append(round(max(t0, t1), 1))
+        out[s] = row
+    return out
+
+
 def hourly_to_bins(series: list[float], bph: int | None = None) -> list[float]:
     """Spread an hourly series evenly over its bins (conserves totals)."""
     bph = bph or bins_per_hour()
@@ -161,12 +181,17 @@ def _hours_to_bins(hours: list[int], bph: int) -> list[int]:
     return [h * bph + j for h in sorted(set(hours)) for j in range(bph)]
 
 
-def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2) -> SimResult:
-    """Pure function: same inputs → same outputs. Raises InterventionError on invalid interventions."""
+def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2, *,
+             threshold: float | None = None, report: list[str] | None = None) -> SimResult:
+    """Pure function: same inputs → same outputs. Raises InterventionError on invalid interventions.
+
+    `threshold` overrides the comfort threshold (planner what-if). `report` limits the rows and the summary to
+    those stations (e.g. the featured corridor); every station still takes part in the simulation itself."""
     cfg = corridor()
     cap_cfg, iv_cfg = cfg["capacity"], cfg["interventions"]
     bph = bins_per_hour()
-    n, bin_min, thr = 24 * bph, 60 / bph, cap_cfg["overcap_threshold"]
+    n, bin_min = 24 * bph, 60 / bph
+    thr = cap_cfg["overcap_threshold"] if threshold is None else float(threshold)
     stations = list(demand.keys())
     for s in stations:
         for part in ("base", "event"):
@@ -228,7 +253,8 @@ def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2
     rows, hourly = [], []
     overcap_bins, excess, peak_lf, max_wait, delay_pax_min, end_queue, total_dem = 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     no_service = 0.0
-    for s in stations:
+    tph = trains_table(stations, hw_override, weekday)
+    for s in (stations if report is None else [x for x in stations if x in set(report)]):
         q = 0.0
         hour_acc: dict[int, dict] = {}
         for b in range(n):
@@ -261,7 +287,8 @@ def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2
             acc["overcap_bins"] += lf > thr
         end_queue += q
         hourly += [{"station_id": s, "hour": h, "demand": round(a["demand"], 1), "capacity": round(a["capacity"], 1),
-                    "peak_lf": round(a["peak_lf"], 3), "overcap_bins": a["overcap_bins"]} for h, a in hour_acc.items()]
+                    "peak_lf": round(a["peak_lf"], 3), "overcap_bins": a["overcap_bins"],
+                    "trains_per_hour": tph[s][h]} for h, a in hour_acc.items()]
 
     summary = {
         "overcap_station_hours": round(overcap_bins / bph, 2),
@@ -274,6 +301,7 @@ def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2
         "end_of_day_queue": round(end_queue, 1),
         "no_service_pax": round(no_service, 1),
         "bins_per_hour": bph,
+        "threshold": thr,
     }
     return SimResult(rows=rows, hourly=hourly, summary=summary, effects=effects, diverted_off_metro=round(diverted, 1))
 

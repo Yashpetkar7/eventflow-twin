@@ -39,3 +39,20 @@ events:
     is_assumption: true
     profile: default
     source_url: "https://www.dubaifutureweek.com/en"
+
+  - id: downtown_night
+    name: "Downtown celebration night (hypothetical scenario)"
+    name_ar: "ليلة احتفال وسط المدينة (سيناريو افتراضي)"   # Arabic: native-speaker check pending
+    venue: "Burj Park, Downtown Dubai"
+    venue_ar: "حديقة برج، وسط مدينة دبي"
+    lat: 25.1950
+    lon: 55.2740
+    date: "2026-11-21"         # a Saturday; only the weekday profile is used. NOT a scheduled event.
+    start: "20:00"
+    end: "22:00"
+    attendance: 25000          # ASSUMPTION (exhibit mockup scenario; no published figure)
+    is_assumption: true
+    is_synthetic: true
+    profile: default
+    note: "Hypothetical night-time scenario for the demonstrator. Not a real or scheduled event."
+    note_ar: "سيناريو ليلي افتراضي لأغراض العرض. ليست فعالية حقيقية أو مجدولة."

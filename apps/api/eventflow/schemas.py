@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.4.0"   # 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.5.0"   # 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -53,12 +53,28 @@ class Event(BaseModel):
 
 
 # ---------- forecast ----------
+Weather = Literal["normal", "hot", "rain"]
+Scope = Literal["network", "corridor"]
+
+
+class CustomEvent(BaseModel):
+    """Visitor-built what-if event next to a station (always labelled an assumption)."""
+    near_station: str
+    start: str = Field(pattern=HHMM)
+    end: str = Field(pattern=HHMM)
+    weekend: bool = False
+    attendance: int = Field(ge=0, le=200_000)
+
+
 class ForecastRequest(BaseModel):
     event_id: str | None = Field(None, description="Event from /events; null = background only")
     date: str | None = Field(None, description="YYYY-MM-DD; picks the weekday profile (defaults to the event date)")
     weekday: int | None = Field(None, ge=0, le=6, description="0=Mon … 6=Sun; overrides date")
     attendance: int | None = Field(None, ge=0, le=200_000, description="What-if override of event attendance")
     end_time: str | None = Field(None, pattern=HHMM, description="What-if override of event end time (HH:MM)")
+    weather: Weather = Field("normal", description="Weather what-if: sets the metro share of event trips (assumption)")
+    exit_sigma_min: float | None = Field(None, ge=10, le=90, description="What-if venue exit window (σ, minutes)")
+    custom_event: CustomEvent | None = Field(None, description="Build-your-own scenario; overrides event_id")
 
 
 class ForecastRow(BaseModel):
@@ -71,6 +87,7 @@ class ForecastRow(BaseModel):
     exits_p50: float
     exits_p90: float
     event_entries_p50: float
+    event_exits_p50: float = 0.0
 
 
 class ForecastResponse(BaseModel):
@@ -82,6 +99,10 @@ class ForecastResponse(BaseModel):
     weekday: int
     attendance_used: float | None
     end_used: str | None
+    metro_share_used: float | None = None
+    exit_sigma_used: float | None = None
+    weather: Weather = "normal"
+    event: Event | None = Field(None, description="The event behind this run (resolved custom event included)")
     band_note: str
     rows: list[ForecastRow]
     source: Source
@@ -92,6 +113,8 @@ class SimulateRequest(BaseModel):
     forecast_run_id: str
     interventions: list[Intervention] = Field(default_factory=list)
     detail: bool = Field(False, description="Include the 15-minute rows (large); hourly rows are always returned")
+    threshold: float | None = Field(None, ge=0.5, le=1.0, description="What-if comfort threshold (default: corridor.yaml)")
+    scope: Scope = Field("network", description="'corridor' = rows and summary for the featured corridor stations only")
 
 
 class SimRow(BaseModel):
@@ -112,6 +135,7 @@ class SimHourRow(BaseModel):
     capacity: float
     peak_lf: float
     overcap_bins: int
+    trains_per_hour: float = Field(0.0, description="Boardable trains/hour, busier direction of the primary line")
 
 
 class SimSummary(BaseModel):
@@ -125,6 +149,7 @@ class SimSummary(BaseModel):
     end_of_day_queue: float
     no_service_pax: float = Field(description="Demand in bins with no scheduled metro service (not queued)")
     bins_per_hour: int
+    threshold: float = Field(0.85, description="Comfort threshold these figures were computed against")
 
 
 class SimulateResponse(BaseModel):
@@ -147,6 +172,10 @@ class AgentPlanRequest(BaseModel):
     goal: str = Field("Keep every station under 85% load during the exit surge", max_length=500)
     locale: Literal["en", "ar"] = "en"
     notes: str | None = Field(None, max_length=1000, description="Untrusted planner notes (treated as data)")
+    threshold: float | None = Field(None, ge=0.5, le=1.0)
+    scope: Scope = "network"
+    priority: Literal["cost", "balanced", "impact"] = "balanced"
+    applied: list[Intervention] = Field(default_factory=list, description="Already-approved interventions to plan on top of")
 
 
 class PlanOption(BaseModel):
@@ -158,6 +187,18 @@ class PlanOption(BaseModel):
     score: float
     rationale: str
     sources: list[Source]
+    what: str = Field("", description="One-sentence description of the actions (template)")
+    risk: str = Field("", description="One qualitative risk (fixed text per action type, no numbers)")
+    cost_added: float = Field(0.0, description="Cost proxy added on top of the already-approved plans")
+    new_hotspots: list[str] = Field(default_factory=list, description="Stations pushed over the threshold by this option")
+    figures: int = Field(0, description="Figures on this card that were checked against the simulator output")
+
+
+class AgentStep(BaseModel):
+    key: str
+    label: str
+    detail: str = ""
+    tool: str | None = None
 
 
 class VerifyReport(BaseModel):
@@ -174,6 +215,10 @@ class AgentPlanResponse(BaseModel):
     baseline_summary: SimSummary
     options: list[PlanOption]
     verify: VerifyReport
+    steps: list[AgentStep] = Field(default_factory=list)
+    planner: str = Field("", description="Which planner produced this: 'deterministic-template' or an LLM model id")
+    hotspot: dict | None = Field(None, description="Worst station and hours the plan targets (from the diagnose tool)")
+    cached: bool = False
 
 
 # ---------- decisions ----------

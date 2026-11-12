@@ -1,7 +1,7 @@
 """EventFlow Twin API (contract v1, see schemas.py and docs/03_ARCHITECTURE.md).
 
 Every response that carries numbers includes `is_synthetic` and a `source` {tool, run_id}.
-/agent/plan is implemented by Stream B; until then it answers 501 with a clear message.
+/agent/plan runs the deterministic planner pipeline (agents/planner.py); numbers only ever come from /simulate.
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from fastapi.responses import JSONResponse
 
 from .config import ROOT, corridor, events
 from .forecast import NoDataError, build_forecast, config_hash, load_panel, make_run_id
-from .interventions import InterventionError
+from .interventions import InterventionError, validate_interventions
 from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
@@ -80,23 +80,37 @@ def list_events():
 @app.post("/forecast", response_model=ForecastResponse)
 def forecast(req: ForecastRequest):
     try:
-        run = build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time)
-    except KeyError:
-        raise HTTPException(404, f"Unknown event_id '{req.event_id}'")
+        run = build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time,
+                             weather=req.weather, exit_sigma_min=req.exit_sigma_min,
+                             custom=req.custom_event.model_dump() if req.custom_event else None)
+    except KeyError as e:
+        raise HTTPException(404, f"Unknown event or station {e}")
     except ValueError as e:     # bad date string
         raise HTTPException(422, str(e))
     _remember(run)
-    return {**{k: v for k, v in run.items() if k not in ("demand", "event")},
+    return {**{k: v for k, v in run.items() if k != "demand"},
             "source": {"tool": "forecast", "run_id": run["run_id"]}}
 
 
-def run_simulation(forecast_run_id: str, interventions: list, detail: bool = False) -> dict:
+def corridor_ids() -> list[str]:
+    return [s["id"] for s in corridor()["stations"] if s.get("in_corridor")]
+
+
+def run_simulation(forecast_run_id: str, interventions: list, detail: bool = False,
+                   threshold: float | None = None, scope: str = "network") -> dict:
     """Shared by /simulate, the agent tools and the eval suites."""
     run = get_run(forecast_run_id)
-    ivs = [i.model_dump() if hasattr(i, "model_dump") else i for i in interventions]
-    base = simulate(run["demand"], weekday=run["weekday"])
-    res = simulate(run["demand"], ivs, weekday=run["weekday"])
-    run_id = make_run_id("sim", {"fc": forecast_run_id, "iv": ivs})
+    # canonical form (validated, defaults filled, fixed order) so the same plan always gets the same run id
+    ivs = [i.model_dump() for i in validate_interventions(list(interventions))]
+    report = corridor_ids() if scope == "corridor" else None
+    base = simulate(run["demand"], weekday=run["weekday"], threshold=threshold, report=report)
+    res = simulate(run["demand"], ivs, weekday=run["weekday"], threshold=threshold, report=report)
+    key = {"fc": forecast_run_id, "iv": ivs}
+    if threshold is not None:
+        key["thr"] = threshold
+    if scope != "network":
+        key["scope"] = scope
+    run_id = make_run_id("sim", key)
     delta = {k: round(res.summary[k] - base.summary[k], 3) for k in res.summary if k != "bins_per_hour"}
     return {"run_id": run_id, "source_forecast": forecast_run_id, "is_synthetic": run["is_synthetic"],
             "summary": res.summary, "baseline_summary": base.summary, "delta": delta, "effects": res.effects,
@@ -106,13 +120,18 @@ def run_simulation(forecast_run_id: str, interventions: list, detail: bool = Fal
 
 @app.post("/simulate", response_model=SimulateResponse)
 def simulate_ep(req: SimulateRequest):
-    return run_simulation(req.forecast_run_id, req.interventions, req.detail)
+    return run_simulation(req.forecast_run_id, req.interventions, req.detail, req.threshold, req.scope)
 
 
 @app.post("/agent/plan", response_model=AgentPlanResponse)
 def agent_plan(req: AgentPlanRequest):
-    get_run(req.forecast_run_id)
-    raise HTTPException(501, "Agent planner not implemented yet (Stream B). Use fixtures/agent_plan.json in the UI.")
+    """Plan → simulate each candidate → rank → explain → verify every number. See agents/planner.py."""
+    from .agents.planner import make_plan
+    run = get_run(req.forecast_run_id)
+    plan = make_plan(run, req, run_simulation)
+    with _LOCK:
+        _PLANS[plan["plan_id"]] = plan
+    return plan
 
 
 @app.post("/decisions", response_model=DecisionResponse)

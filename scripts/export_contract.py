@@ -2,7 +2,7 @@
 
 The web app builds against these fixtures until the live API is wired in, so front end and back end can be
 built in parallel. Fixtures are produced by the REAL code paths (no hand-typed numbers). The agent-plan fixture
-is assembled deterministically from real /simulate results and is labelled as a fixture, not agent output. It uses the attendance-40000 what-if of the DFW scenario because at
+is the real /agent/plan answer (deterministic offline planner). It uses the attendance-40000 what-if of the DFW scenario because at
 the assumed 15000 the real (GTFS) timetable shows no crowding, which would make an empty plan.
 
     python scripts/export_contract.py
@@ -20,9 +20,7 @@ sys.path.insert(0, str(ROOT))
 from fastapi.testclient import TestClient  # noqa: E402
 
 from apps.api.eventflow import main  # noqa: E402
-from apps.api.eventflow.forecast import make_run_id  # noqa: E402
 from apps.api.eventflow.schemas import CONTRACT_VERSION, AgentPlanResponse  # noqa: E402
-from apps.api.eventflow.simulate import score  # noqa: E402
 
 OUT = ROOT / "contract"
 FIX = OUT / "fixtures"
@@ -73,20 +71,10 @@ def main_() -> None:
         sims.append((title, ivs, r.json()))
     dump("simulate_option.json", sims[0][2])
 
-    run = main.get_run(fc["run_id"])
-    from apps.api.eventflow.simulate import simulate
-    base_res = simulate(run["demand"], weekday=run["weekday"])
-    scored = sorted(((score(base_res, simulate(run["demand"], ivs, weekday=run["weekday"])), t, ivs, s)
-                     for t, ivs, s in sims),
-                    key=lambda x: (-x[0], x[3]["summary"]["overcap_station_hours"]))
-    base = sims[0][2]["baseline_summary"]
-    options = [{"rank": i, "title": t, "interventions": ivs, "summary": s["summary"], "delta": s["delta"],
-                "score": round(sc, 1), "rationale": template_rationale(t, s["summary"], base),
-                "sources": [s["source"], fc["source"]]} for i, (sc, t, ivs, s) in enumerate(scored, 1)]
-    plan = {"plan_id": make_run_id("plan", {"fc": fc["run_id"], "fixture": True}), "forecast_run_id": fc["run_id"],
-            "mode": "offline", "is_synthetic": fc["is_synthetic"], "baseline_summary": base, "options": options,
-            "verify": {"numbers_checked": 0, "all_matched": True, "fallback_used": True}}
-    AgentPlanResponse.model_validate(plan)        # fixture must satisfy the frozen contract
+    # The agent-plan fixture is the real endpoint's answer for the 40,000-visitor what-if (corridor scope).
+    plan = c.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
+    plan["cached"] = False
+    AgentPlanResponse.model_validate(plan)
     dump("agent_plan.json", plan)
     dump("decision_response.json", {"logged": True, "decision_id": "dec_fixture01", "timestamp": "2026-11-18T18:05:00+04:00",
                                     "plan_known": True})

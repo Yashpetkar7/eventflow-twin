@@ -19,7 +19,7 @@ from pathlib import Path
 import pandas as pd
 
 from .config import ROOT, corridor, events
-from .event_model import overlay
+from .event_model import overlay, timing_params, to_min
 from .simulate import Demand, bins_per_hour, hourly_to_bins
 
 REAL = ROOT / "data/processed/station_hour.parquet"
@@ -107,24 +107,62 @@ def make_run_id(prefix: str, payload: dict) -> str:
     return f"{prefix}_{hashlib.sha256(blob).hexdigest()[:12]}"
 
 
+CUSTOM_DATES = {False: "2026-11-18", True: "2026-11-21"}   # a Wednesday / a Saturday: only the weekday profile is used
+
+
+def custom_event(spec: dict) -> dict:
+    """A visitor-built what-if event next to a corridor station (labelled assumption, never a real event)."""
+    st = next((x for x in corridor()["stations"] if x["id"] == spec["near_station"]), None)
+    if st is None:
+        raise KeyError(spec["near_station"])
+    if to_min(spec["end"]) <= to_min(spec["start"]):
+        raise ValueError("custom_event: end must be after start")
+    return {"id": "custom", "name": "Custom event", "name_ar": "فعالية مخصصة",
+            "venue": f"Near {st['name_en']}", "venue_ar": f"بالقرب من {st.get('name_ar') or st['name_en']}",
+            # ~180 m from the station entrance so the venue marker does not sit on the platform
+            "lat": st["lat"] + 0.0012, "lon": st["lon"] + 0.0012,
+            "date": CUSTOM_DATES[bool(spec.get("weekend"))], "start": spec["start"], "end": spec["end"],
+            "attendance": int(spec["attendance"]), "is_assumption": True, "is_synthetic": True,
+            "profile": "default", "source_url": None, "sources": [],
+            "note": "Visitor-built what-if scenario. Not a real or scheduled event.",
+            "note_ar": "سيناريو افتراضي من إعداد الزائر. ليست فعالية حقيقية أو مجدولة."}
+
+
+def weather_metro_share(weather: str | None) -> float | None:
+    """Metro share of event trips under a weather what-if (corridor.yaml event_model.weather_metro_share)."""
+    if not weather:
+        return None
+    table = corridor()["event_model"].get("weather_metro_share") or {}
+    if weather not in table:
+        raise ValueError(f"unknown weather '{weather}' (known: {sorted(table)})")
+    return float(table[weather])
+
+
 def build_forecast(event_id: str | None = None, date: str | None = None, weekday: int | None = None,
-                   attendance: float | None = None, end: str | None = None) -> dict:
+                   attendance: float | None = None, end: str | None = None, *, weather: str | None = None,
+                   exit_sigma_min: float | None = None, custom: dict | None = None) -> dict:
     """Return {run_id, demand (bins, p50), rows (hourly p10/p50/p90), meta...}. Pure for fixed data+config."""
     panel = load_panel()
-    ev = find_event(event_id)
+    ev = custom_event(custom) if custom else find_event(event_id)
     if weekday is None:
         day = date or (ev or {}).get("date")
         weekday = dt.date.fromisoformat(day).weekday() if day else 2
     payload = {"event_id": event_id, "date": date, "weekday": weekday, "attendance": attendance, "end": end,
                "dataset": panel.dataset_version, "config": config_hash()}
+    # new what-ifs only enter the hash when used, so earlier run ids (fixtures, cache, evals) stay valid
+    extra = {"weather": weather if weather not in (None, "normal") else None, "exit_sigma_min": exit_sigma_min,
+             "custom": custom}
+    payload.update({k: v for k, v in extra.items() if v is not None})
     run_id = make_run_id("fc", payload)
 
     bph = bins_per_hour()
     bg = background_quantiles(panel, weekday)
     lo, hi = corridor()["event_model"]["attendance_band"]
-    ov = {k: overlay(ev, bins_per_hour=1, attendance=attendance, end=end, scale=m) for k, m in
+    share = weather_metro_share(weather)
+    kw = {"attendance": attendance, "end": end, "metro_share": share, "exit_sigma_min": exit_sigma_min}
+    ov = {k: overlay(ev, bins_per_hour=1, scale=m, **kw) for k, m in
           (("p10", lo), ("p50", 1.0), ("p90", hi))} if ev else {}
-    ov_bins = overlay(ev, bins_per_hour=bph, attendance=attendance, end=end) if ev else {}
+    ov_bins = overlay(ev, bins_per_hour=bph, **kw) if ev else {}
 
     demand: Demand = {}
     rows = []
@@ -135,11 +173,13 @@ def build_forecast(event_id: str | None = None, date: str | None = None, weekday
             row = {"station_id": s, "hour": h}
             for col in ("entries", "exits"):
                 for qn in ("p10", "p50", "p90"):
-                    extra = ov[qn][s][col][h] if ev else 0.0
-                    row[f"{col}_{qn}"] = round(cols[col][qn][h] + extra, 1)
+                    extra_trips = ov[qn][s][col][h] if ev else 0.0
+                    row[f"{col}_{qn}"] = round(cols[col][qn][h] + extra_trips, 1)
             row["event_entries_p50"] = round(ov["p50"][s]["entries"][h], 1) if ev else 0.0
+            row["event_exits_p50"] = round(ov["p50"][s]["exits"][h], 1) if ev else 0.0
             rows.append(row)
 
+    em = timing_params(ev) if ev else {}
     return {
         "run_id": run_id,
         "model": "empirical-weekday-quantiles + parametric-event-overlay (v1)",
@@ -150,6 +190,9 @@ def build_forecast(event_id: str | None = None, date: str | None = None, weekday
         "weekday": weekday,
         "attendance_used": (attendance if attendance is not None else ev["attendance"]) if ev else None,
         "end_used": (end or ev["end"]) if ev else None,
+        "metro_share_used": (share if share is not None else em["metro_share"]) if ev else None,
+        "exit_sigma_used": (exit_sigma_min if exit_sigma_min is not None else em["exit_sigma_min"]) if ev else None,
+        "weather": weather or "normal",
         "band_note": "p10/p90 = background weekday quantiles + event surge at attendance × "
                      f"{lo}/{hi} (assumption band, not a calibrated interval)",
         "demand": demand,

@@ -60,13 +60,19 @@ def timing_params(event: dict) -> dict:
 
 
 def overlay(event: dict, *, bins_per_hour: int | None = None, attendance: float | None = None,
-            end: str | None = None, scale: float = 1.0) -> dict[str, dict[str, list[float]]]:
+            end: str | None = None, scale: float = 1.0, metro_share: float | None = None,
+            exit_sigma_min: float | None = None) -> dict[str, dict[str, list[float]]]:
     """Extra trips caused by `event`: {station_id: {"entries": [n_bins], "exits": [n_bins]}}.
 
     `attendance` / `end` override the event's values (live what-if sliders); `scale` multiplies the whole
-    surge (used for the p10/p90 attendance band). Totals are conserved exactly: Σ entries = trips_out.
+    surge (used for the p10/p90 attendance band). `metro_share` (weather what-if) and `exit_sigma_min`
+    (venue exit window) override the configured assumptions. Totals are conserved exactly: Σ entries = trips_out.
     """
     em = timing_params(event)
+    if metro_share is not None:
+        em["metro_share"] = float(metro_share)
+    if exit_sigma_min is not None:
+        em["exit_sigma_min"] = float(exit_sigma_min)
     bph = bins_per_hour or corridor().get("bins_per_hour", 4)
     att = float(event["attendance"] if attendance is None else attendance) * scale
     trips_in = att * em["metro_share"]

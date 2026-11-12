@@ -30,6 +30,8 @@ capacity:
   overcap_threshold: 0.85
 event_model:                   # parametric overlay (docs/05 §5.2) – all ASSUMPTIONS, calibrate in Phase 2
   metro_share: 0.45
+  # Weather what-if: share of event trips made by metro [ASSUMPTION – values from the exhibit mockup, not calibrated]
+  weather_metro_share: {normal: 0.45, hot: 0.55, rain: 0.60}
   return_factor: 1.0
   arrival_offset_min: -60
   arrival_sigma_min: 45
@@ -50,6 +52,8 @@ interventions:
   robotaxi_trips_per_hour: 2
   cost_proxy: {extra_trains_per_train_hour: 3.0, shuttle_bus_hour: 1.0, robotaxi_vehicle_hour: 0.4, staggered_exit: 2.0, wayfinding_redirect: 0.5}
   ranking_lambda: 20
+  # Planner priority → λ in score = Δexcess − λ·Δcost (cost: avoid spend · balanced · impact: relieve most) [ASSUMPTION]
+  priority_lambda: {cost: 60, balanced: 20, impact: 5}
   # Hard parameter bounds; requests outside these are rejected (HTTP 422), never silently clipped.
   bounds:
     max_buses: 30

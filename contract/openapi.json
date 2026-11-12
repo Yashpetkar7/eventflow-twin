@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.4.0"
+    "version": "1.5.0"
   },
   "paths": {
     "/healthz": {
@@ -144,6 +144,7 @@
     "/agent/plan": {
       "post": {
         "summary": "Agent Plan",
+        "description": "Plan → simulate each candidate → rank → explain → verify every number. See agents/planner.py.",
         "operationId": "agent_plan_agent_plan_post",
         "requestBody": {
           "content": {
@@ -310,6 +311,72 @@
             ],
             "title": "Notes",
             "description": "Untrusted planner notes (treated as data)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "network"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "default": "balanced"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Applied",
+            "description": "Already-approved interventions to plan on top of"
           }
         },
         "type": "object",
@@ -352,6 +419,37 @@
           },
           "verify": {
             "$ref": "#/components/schemas/VerifyReport"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AgentStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "planner": {
+            "type": "string",
+            "title": "Planner",
+            "description": "Which planner produced this: 'deterministic-template' or an LLM model id",
+            "default": ""
+          },
+          "hotspot": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hotspot",
+            "description": "Worst station and hours the plan targets (from the diagnose tool)"
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached",
+            "default": false
           }
         },
         "type": "object",
@@ -365,6 +463,78 @@
           "verify"
         ],
         "title": "AgentPlanResponse"
+      },
+      "AgentStep": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "default": ""
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "AgentStep"
+      },
+      "CustomEvent": {
+        "properties": {
+          "near_station": {
+            "type": "string",
+            "title": "Near Station"
+          },
+          "start": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "End"
+          },
+          "weekend": {
+            "type": "boolean",
+            "title": "Weekend",
+            "default": false
+          },
+          "attendance": {
+            "type": "integer",
+            "maximum": 200000.0,
+            "minimum": 0.0,
+            "title": "Attendance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "near_station",
+          "start",
+          "end",
+          "attendance"
+        ],
+        "title": "CustomEvent",
+        "description": "Visitor-built what-if event next to a station (always labelled an assumption)."
       },
       "DecisionList": {
         "properties": {
@@ -865,6 +1035,42 @@
             ],
             "title": "End Time",
             "description": "What-if override of event end time (HH:MM)"
+          },
+          "weather": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "hot",
+              "rain"
+            ],
+            "title": "Weather",
+            "description": "Weather what-if: sets the metro share of event trips (assumption)",
+            "default": "normal"
+          },
+          "exit_sigma_min": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": 10.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Sigma Min",
+            "description": "What-if venue exit window (σ, minutes)"
+          },
+          "custom_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomEvent"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Build-your-own scenario; overrides event_id"
           }
         },
         "type": "object",
@@ -917,6 +1123,49 @@
               }
             ],
             "title": "End Used"
+          },
+          "metro_share_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metro Share Used"
+          },
+          "exit_sigma_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Sigma Used"
+          },
+          "weather": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "hot",
+              "rain"
+            ],
+            "title": "Weather",
+            "default": "normal"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Event"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The event behind this run (resolved custom event included)"
           },
           "band_note": {
             "type": "string",
@@ -986,6 +1235,11 @@
           "event_entries_p50": {
             "type": "number",
             "title": "Event Entries P50"
+          },
+          "event_exits_p50": {
+            "type": "number",
+            "title": "Event Exits P50",
+            "default": 0.0
           }
         },
         "type": "object",
@@ -1084,6 +1338,38 @@
             },
             "type": "array",
             "title": "Sources"
+          },
+          "what": {
+            "type": "string",
+            "title": "What",
+            "description": "One-sentence description of the actions (template)",
+            "default": ""
+          },
+          "risk": {
+            "type": "string",
+            "title": "Risk",
+            "description": "One qualitative risk (fixed text per action type, no numbers)",
+            "default": ""
+          },
+          "cost_added": {
+            "type": "number",
+            "title": "Cost Added",
+            "description": "Cost proxy added on top of the already-approved plans",
+            "default": 0.0
+          },
+          "new_hotspots": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "New Hotspots",
+            "description": "Stations pushed over the threshold by this option"
+          },
+          "figures": {
+            "type": "integer",
+            "title": "Figures",
+            "description": "Figures on this card that were checked against the simulator output",
+            "default": 0
           }
         },
         "type": "object",
@@ -1267,6 +1553,12 @@
           "overcap_bins": {
             "type": "integer",
             "title": "Overcap Bins"
+          },
+          "trains_per_hour": {
+            "type": "number",
+            "title": "Trains Per Hour",
+            "description": "Boardable trains/hour, busier direction of the primary line",
+            "default": 0.0
           }
         },
         "type": "object",
@@ -1370,6 +1662,12 @@
           "bins_per_hour": {
             "type": "integer",
             "title": "Bins Per Hour"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold",
+            "description": "Comfort threshold these figures were computed against",
+            "default": 0.85
           }
         },
         "type": "object",
@@ -1431,6 +1729,30 @@
             "title": "Detail",
             "description": "Include the 15-minute rows (large); hourly rows are always returned",
             "default": false
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold",
+            "description": "What-if comfort threshold (default: corridor.yaml)"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "description": "'corridor' = rows and summary for the featured corridor stations only",
+            "default": "network"
           }
         },
         "type": "object",

@@ -42,5 +42,25 @@
     "sources": [],
     "note": null,
     "note_ar": null
+  },
+  {
+    "id": "downtown_night",
+    "name": "Downtown celebration night (hypothetical scenario)",
+    "name_ar": "ليلة احتفال وسط المدينة (سيناريو افتراضي)",
+    "venue": "Burj Park, Downtown Dubai",
+    "venue_ar": "حديقة برج، وسط مدينة دبي",
+    "lat": 25.195,
+    "lon": 55.274,
+    "date": "2026-11-21",
+    "start": "20:00",
+    "end": "22:00",
+    "attendance": 25000,
+    "is_assumption": true,
+    "is_synthetic": true,
+    "source_url": null,
+    "profile": "default",
+    "sources": [],
+    "note": "Hypothetical night-time scenario for the demonstrator. Not a real or scheduled event.",
+    "note_ar": "سيناريو ليلي افتراضي لأغراض العرض. ليست فعالية حقيقية أو مجدولة."
   }
 ]

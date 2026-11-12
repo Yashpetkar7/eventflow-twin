@@ -98,7 +98,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Agent Plan */
+        /**
+         * Agent Plan
+         * @description Plan → simulate each candidate → rank → explain → verify every number. See agents/planner.py.
+         */
         post: operations["agent_plan_agent_plan_post"];
         delete?: never;
         options?: never;
@@ -174,6 +177,25 @@ export interface components {
              * @description Untrusted planner notes (treated as data)
              */
             notes?: string | null;
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default network
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /**
+             * Priority
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            /**
+             * Applied
+             * @description Already-approved interventions to plan on top of
+             */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
         };
         /** AgentPlanResponse */
         AgentPlanResponse: {
@@ -192,6 +214,59 @@ export interface components {
             /** Options */
             options: components["schemas"]["PlanOption"][];
             verify: components["schemas"]["VerifyReport"];
+            /** Steps */
+            steps?: components["schemas"]["AgentStep"][];
+            /**
+             * Planner
+             * @description Which planner produced this: 'deterministic-template' or an LLM model id
+             * @default
+             */
+            planner: string;
+            /**
+             * Hotspot
+             * @description Worst station and hours the plan targets (from the diagnose tool)
+             */
+            hotspot?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Cached
+             * @default false
+             */
+            cached: boolean;
+        };
+        /** AgentStep */
+        AgentStep: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /** Tool */
+            tool?: string | null;
+        };
+        /**
+         * CustomEvent
+         * @description Visitor-built what-if event next to a station (always labelled an assumption).
+         */
+        CustomEvent: {
+            /** Near Station */
+            near_station: string;
+            /** Start */
+            start: string;
+            /** End */
+            end: string;
+            /**
+             * Weekend
+             * @default false
+             */
+            weekend: boolean;
+            /** Attendance */
+            attendance: number;
         };
         /** DecisionList */
         DecisionList: {
@@ -365,6 +440,20 @@ export interface components {
              * @description What-if override of event end time (HH:MM)
              */
             end_time?: string | null;
+            /**
+             * Weather
+             * @description Weather what-if: sets the metro share of event trips (assumption)
+             * @default normal
+             * @enum {string}
+             */
+            weather: "normal" | "hot" | "rain";
+            /**
+             * Exit Sigma Min
+             * @description What-if venue exit window (σ, minutes)
+             */
+            exit_sigma_min?: number | null;
+            /** @description Build-your-own scenario; overrides event_id */
+            custom_event?: components["schemas"]["CustomEvent"] | null;
         };
         /** ForecastResponse */
         ForecastResponse: {
@@ -384,6 +473,18 @@ export interface components {
             attendance_used: number | null;
             /** End Used */
             end_used: string | null;
+            /** Metro Share Used */
+            metro_share_used?: number | null;
+            /** Exit Sigma Used */
+            exit_sigma_used?: number | null;
+            /**
+             * Weather
+             * @default normal
+             * @enum {string}
+             */
+            weather: "normal" | "hot" | "rain";
+            /** @description The event behind this run (resolved custom event included) */
+            event?: components["schemas"]["Event"] | null;
             /** Band Note */
             band_note: string;
             /** Rows */
@@ -410,6 +511,11 @@ export interface components {
             exits_p90: number;
             /** Event Entries P50 */
             event_entries_p50: number;
+            /**
+             * Event Exits P50
+             * @default 0
+             */
+            event_exits_p50: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -435,6 +541,35 @@ export interface components {
             rationale: string;
             /** Sources */
             sources: components["schemas"]["Source"][];
+            /**
+             * What
+             * @description One-sentence description of the actions (template)
+             * @default
+             */
+            what: string;
+            /**
+             * Risk
+             * @description One qualitative risk (fixed text per action type, no numbers)
+             * @default
+             */
+            risk: string;
+            /**
+             * Cost Added
+             * @description Cost proxy added on top of the already-approved plans
+             * @default 0
+             */
+            cost_added: number;
+            /**
+             * New Hotspots
+             * @description Stations pushed over the threshold by this option
+             */
+            new_hotspots?: string[];
+            /**
+             * Figures
+             * @description Figures on this card that were checked against the simulator output
+             * @default 0
+             */
+            figures: number;
         };
         /** RedirectParams */
         RedirectParams: {
@@ -499,6 +634,12 @@ export interface components {
             peak_lf: number;
             /** Overcap Bins */
             overcap_bins: number;
+            /**
+             * Trains Per Hour
+             * @description Boardable trains/hour, busier direction of the primary line
+             * @default 0
+             */
+            trains_per_hour: number;
         };
         /** SimRow */
         SimRow: {
@@ -544,6 +685,12 @@ export interface components {
             no_service_pax: number;
             /** Bins Per Hour */
             bins_per_hour: number;
+            /**
+             * Threshold
+             * @description Comfort threshold these figures were computed against
+             * @default 0.85
+             */
+            threshold: number;
         };
         /** SimulateRequest */
         SimulateRequest: {
@@ -557,6 +704,18 @@ export interface components {
              * @default false
              */
             detail: boolean;
+            /**
+             * Threshold
+             * @description What-if comfort threshold (default: corridor.yaml)
+             */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @description 'corridor' = rows and summary for the featured corridor stations only
+             * @default network
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
         };
         /** SimulateResponse */
         SimulateResponse: {
