@@ -35,13 +35,14 @@ export function placeStations(data: SceneJson, corridor: Corridor, stations: Sta
 
 /** Elongated shell: pinched at both ends, arched across — the Dubai Metro "oyster" silhouette. */
 function shellGeometry(L: number, W: number, H: number, segU = 44, segV = 16) {
-  const pos: number[] = [], idx: number[] = [];
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
   for (let i = 0; i <= segU; i++) {
     const u = i / segU, taper = Math.pow(Math.sin(Math.PI * u), 0.5);
     const ridge = 1 + 0.1 * Math.sin(Math.PI * u * 2 - 0.6);            // gentle asymmetry along the spine
     for (let j = 0; j <= segV; j++) {
       const th = (Math.PI * j) / segV;
       pos.push((u - 0.5) * L, Math.sin(th) * H * (0.12 + 0.88 * taper) * ridge, Math.cos(th) * (W / 2) * (0.1 + 0.9 * taper));
+      uv.push(u, j / segV);
     }
   }
   for (let i = 0; i < segU; i++) for (let j = 0; j < segV; j++) {
@@ -50,9 +51,23 @@ function shellGeometry(L: number, W: number, H: number, segU = 44, segV = 16) {
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
   return g;
+}
+
+/** Ribbed panels across the shell (bump only — the roof stays one soft gold surface). */
+function ribTexture() {
+  const c = document.createElement("canvas");
+  c.width = 256; c.height = 8;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "#808080"; g.fillRect(0, 0, 256, 8);
+  for (let x = 0; x < 256; x += 8) { g.fillStyle = "#b8b8b8"; g.fillRect(x + 1, 0, 5, 8); g.fillStyle = "#3c3c3c"; g.fillRect(x + 7, 0, 1, 8); }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(5, 1);
+  return t;
 }
 
 export function Metro({ corridor, places }: { corridor: Corridor; places: StationPlace[] }) {
@@ -76,18 +91,21 @@ export function Metro({ corridor, places }: { corridor: Corridor; places: Statio
       box: new THREE.BoxGeometry(1, 1, 1), hit: new THREE.BoxGeometry(150, 600, 150),
     };
   }, [corridor]);
+  const ribs = useMemo(() => ribTexture(), []);
   const mats = useMemo(() => ({
     conc: new THREE.MeshStandardMaterial({ color: 0xe6e2da, roughness: 0.72 }),
-    red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, emissive: 0x550000, roughness: 0.5 }),
-    shell: new THREE.MeshStandardMaterial({ color: 0xd9b56c, metalness: 0.78, roughness: 0.3, side: THREE.DoubleSide }),
+    red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, emissive: 0x7a0000, roughness: 0.5 }),
+    // champagne-gold shell: metallic with a soft clear-coat sheen, picks up the sky of the hour
+    shell: new THREE.MeshPhysicalMaterial({ color: 0xd8b56e, metalness: 0.82, roughness: 0.3, clearcoat: 0.55, clearcoatRoughness: 0.28, envMapIntensity: 1.25, bumpMap: ribs, bumpScale: 0.6, side: THREE.DoubleSide }),
     glass: new THREE.MeshStandardMaterial({ color: 0x9fc3d8, metalness: 0.35, roughness: 0.12, transparent: true, opacity: 0.62, emissive: 0xffe2b0, emissiveIntensity: 0 }),
     hit: new THREE.MeshBasicMaterial({ visible: false }),
-  }), []);
+  }), [ribs]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => v instanceof THREE.BufferGeometry && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
-  }, [built, mats]);
-  useFrame(() => { mats.glass.emissiveIntensity = live.night * 0.55; });
+    ribs.dispose();
+  }, [built, mats, ribs]);
+  useFrame(() => { mats.glass.emissiveIntensity = live.night * 0.9; mats.red.emissiveIntensity = 1 + live.night * 1.5; });
 
   const pick = (id: string) => (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 6) return;                       // a drag, not a tap
@@ -137,12 +155,14 @@ export function Trains({ corridor }: { corridor: Corridor }) {
   }), []);
   const mats = useMemo(() => ({
     body: new THREE.MeshStandardMaterial({ color: 0xf4f6f8, metalness: 0.4, roughness: 0.3 }),
-    win: new THREE.MeshStandardMaterial({ color: 0x1d2a3a, metalness: 0.6, roughness: 0.2, emissive: 0xbcd4ff, emissiveIntensity: 0 }),
+    win: new THREE.MeshStandardMaterial({ color: 0x1d2a3a, metalness: 0.6, roughness: 0.2, emissive: 0xfff0cf, emissiveIntensity: 0 }),
     red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, roughness: 0.5 }),
   }), []);
   useEffect(() => () => { Object.values(geo).forEach((g) => g.dispose()); Object.values(mats).forEach((m) => m.dispose()); }, [geo, mats]);
   const st = useRef({ phase: 0, spacing: 2400 });
   const N = MAX_TRAINS * 2 * CARS;
+  const tmpv = useMemo(() => ({ m: new THREE.Matrix4(), q: new THREE.Quaternion(), sc: new THREE.Vector3(1, 1, 1), p: new THREE.Vector3(),
+    up: new THREE.Vector3(0, 1, 0), tmp: { x: 0, z: 0, tx: 0, tz: 0 }, zero: new THREE.Matrix4().makeScale(0, 0, 0) }), []);
 
   useFrame((_, dtRaw) => {
     const body = refs.body.current, win = refs.win.current, red = refs.red.current;
@@ -155,9 +175,8 @@ export function Trains({ corridor }: { corridor: Corridor }) {
     const target = tph > 0 ? Math.max(520, Math.min(L, (3600 / tph) * 12)) : L * 4;
     st.current.spacing += (target - st.current.spacing) * Math.min(1, dt * 2);
     st.current.phase = (st.current.phase + dt * TRAIN_SPEED) % 1e7;
-    mats.win.emissiveIntensity = live.night * 1.5;
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(1, 1, 1), p = new THREE.Vector3();
-    const up = new THREE.Vector3(0, 1, 0), tmp = { x: 0, z: 0, tx: 0, tz: 0 }, zero = new THREE.Matrix4().makeScale(0, 0, 0);
+    mats.win.emissiveIntensity = live.night * 3.2;               // glowing carriage windows after dark
+    const { m, q, sc, p, up, tmp, zero } = tmpv;
     let k = 0;
     for (const dir of [1, -1]) {
       const count = tph > 0 ? Math.min(MAX_TRAINS, Math.ceil(L / st.current.spacing)) : 0;

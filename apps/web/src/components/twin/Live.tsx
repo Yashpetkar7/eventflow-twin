@@ -23,14 +23,18 @@ export function Columns({ places }: { places: StationPlace[] }) {
   const heights = useRef<Record<string, number>>({});
   const geo = useMemo(() => ({
     glass: new THREE.CylinderGeometry(COL_R + 3.5, COL_R + 3.5, 1, 36, 1, true).translate(0, 0.5, 0),
-    ring: new THREE.TorusGeometry(COL_R + 4.4, 1.0, 10, 56).rotateX(Math.PI / 2),
+    ring: new THREE.TorusGeometry(COL_R + 4.4, 1.25, 10, 56).rotateX(Math.PI / 2),
+    cap: new THREE.TorusGeometry(COL_R, 0.7, 8, 48).rotateX(Math.PI / 2),
+    foot: new THREE.CylinderGeometry(COL_R + 6, COL_R + 6, 1.2, 40).translate(0, 0.6, 0),
     bar: new THREE.CylinderGeometry(COL_R, COL_R, 1, 36).translate(0, 0.5, 0),
     pulse: new THREE.RingGeometry(COL_R + 9, COL_R + 14, 56).rotateX(-Math.PI / 2),
   }), []);
   const mats = useMemo(() => places.map(() => ({
     glass: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, side: THREE.BackSide, depthWrite: false, fog: false }),
-    ring: new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.6, roughness: 0.4, fog: false }),
-    bar: new THREE.MeshStandardMaterial({ color: 0x0e9f6e, roughness: 0.4, metalness: 0.0, fog: false, envMapIntensity: 0.3 }),
+    ring: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }),
+    cap: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, transparent: true, opacity: 0.9 }),
+    foot: new THREE.MeshBasicMaterial({ color: 0x151b28, fog: false, transparent: true, opacity: 0.55 }),
+    bar: new THREE.MeshStandardMaterial({ color: 0x0e9f6e, roughness: 0.45, metalness: 0.0, fog: false, envMapIntensity: 0.15 }),
     pulse: new THREE.MeshBasicMaterial({ color: 0xb0124f, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, fog: false }),
   })), [places]);
   useEffect(() => () => { Object.values(geo).forEach((g) => g.dispose()); mats.forEach((m) => Object.values(m).forEach((x) => x.dispose())); }, [geo, mats]);
@@ -43,7 +47,7 @@ export function Columns({ places }: { places: StationPlace[] }) {
     places.forEach((p, i) => {
       const g = groups.current[p.id], pulse = pulses.current[p.id];
       if (!g || !pulse) return;
-      const [glass, ring, bar] = g.children;
+      const [glass, ring, bar, cap] = g.children;
       const lf = lfAt(s.cur, p.id, s.time), over = lf > thr;
       const k = columnScale(camera.position.distanceTo(g.position));
       const target = Math.max(0.02, Math.min(1.7, lf)) * CAP_H;
@@ -51,15 +55,15 @@ export function Columns({ places }: { places: StationPlace[] }) {
       heights.current[p.id] = cur;
       const thrH = thr * CAP_H;
       g.scale.setScalar(k);
-      glass.scale.y = thrH; ring.position.y = thrH; bar.scale.y = cur;
+      glass.scale.y = thrH; ring.position.y = thrH; bar.scale.y = cur; cap.position.y = cur;
       col.copy(over ? RISK : lf > thr * 0.72 ? WARN : OK);
       const m = mats[i];
       m.bar.color.copy(col);
       const beat = s.reducedMotion ? 0.45 : 0.35 + 0.25 * Math.sin(live.animT * 6);
-      m.bar.emissive.copy(col).multiplyScalar(over ? beat + 0.1 : 0.3 + live.night * 0.3);
-      m.glass.opacity = 0.3 - 0.16 * live.night;
-      m.ring.emissive.setHex(over ? 0xffd0dc : 0xffffff);
-      m.ring.emissiveIntensity = 0.6 + live.night * 0.5;
+      // self-lit so the colour reads the same at noon, golden hour and night
+      m.bar.emissive.copy(col).multiplyScalar(over ? beat + 0.25 : 0.42 + live.night * 0.3 + live.golden * 0.12);
+      m.glass.opacity = 0.3 - 0.14 * live.night;
+      m.ring.color.setHex(over ? 0xffd9e2 : 0xffffff);
       const ph = s.reducedMotion ? 0.35 : (live.animT * 0.8) % 1;
       m.pulse.opacity = over ? 0.55 * (1 - ph) : 0;
       pulse.scale.setScalar(over ? k * (1 + ph * 1.6) : k);
@@ -75,6 +79,8 @@ export function Columns({ places }: { places: StationPlace[] }) {
             <mesh geometry={geo.glass} material={mats[i].glass} renderOrder={3} />
             <mesh geometry={geo.ring} material={mats[i].ring} />
             <mesh geometry={geo.bar} material={mats[i].bar} castShadow />
+            <mesh geometry={geo.cap} material={mats[i].cap} />
+            <mesh geometry={geo.foot} material={mats[i].foot} />
           </group>
           <mesh geometry={geo.pulse} material={mats[i].pulse} position={[p.x, 1.6, p.z]} renderOrder={4}
             ref={(m) => { if (m) pulses.current[p.id] = m; }} />

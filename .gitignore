@@ -28,3 +28,7 @@ eval/results/*.tmp
 apps/web/public/map/*.pmtiles
 apps/web/public/map/*.tmp
 apps/web/public/map/maplibre-gl-worker.mjs
+
+# sync-conflict copies (the project folder sits in a synced Desktop)
+* 2.*
+* 3.*

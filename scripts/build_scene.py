@@ -430,7 +430,7 @@ def ground_map(buildings, minor, major, water, parks, pitches, szr, px_per_m: fl
     gx0, gx1, gz0, gz1 = X0 - pad, X1 + pad, Z0 - pad, Z1 + pad
     w, h = int((gx1 - gx0) * px_per_m), int((gz1 - gz0) * px_per_m)
     tx = lambda x, z: ((x - gx0) * px_per_m, (z - gz0) * px_per_m)                                # noqa: E731
-    sand, paved, street, park, wat = (214, 196, 160), (205, 197, 182), (150, 150, 153), (126, 160, 104), (58, 132, 168)
+    sand, paved, street, park, wat = (219, 196, 152), (201, 194, 180), (128, 128, 132), (108, 148, 92), (52, 124, 160)
     img = Image.new("RGB", (w, h), sand)
     # paved city blocks = the neighbourhood of buildings (blurred mask so the city fades into the sand)
     mask = Image.new("L", (w, h), 0)
@@ -446,7 +446,7 @@ def ground_map(buildings, minor, major, water, parks, pitches, szr, px_per_m: fl
     for ring in parks:
         d.polygon([tx(x, z) for x, z in ring], fill=park)
     for ring in pitches:
-        d.polygon([tx(x, z) for x, z in ring], fill=(112, 150, 96))
+        d.polygon([tx(x, z) for x, z in ring], fill=(96, 140, 86))
     for wd, line in minor:
         d.line([tx(x, z) for x, z in line], fill=street, width=max(1, round(wd * px_per_m)), joint="curve")
     for r in major:                                # soft kerb under the 3D road ribbons
@@ -456,7 +456,7 @@ def ground_map(buildings, minor, major, water, parks, pitches, szr, px_per_m: fl
     for ring in water:
         d.polygon([tx(x, z) for x, z in ring], fill=wat)
     for b in buildings:                            # contact shadow under every footprint
-        d.polygon([tx(b[i], b[i + 1]) for i in range(2, len(b), 2)], fill=(176, 168, 154))
+        d.polygon([tx(b[i], b[i + 1]) for i in range(2, len(b), 2)], fill=(158, 151, 139))
     return img.filter(ImageFilter.GaussianBlur(0.6))
 
 

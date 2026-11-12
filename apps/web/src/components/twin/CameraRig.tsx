@@ -26,10 +26,10 @@ export function CameraRig({ places, corridor }: { places: StationPlace[]; corrid
   const preset = (k: string): Partial<Cam> => {
     const s = useTwin.getState(), p = places.find((x) => x.id === s.selected) ?? places[0];
     switch (k) {
-      case "close": return { theta: -0.42, phi: 1.02, r: 640, tx: p?.x ?? 0, ty: 70, tz: p?.z ?? 0 };
-      case "top": return { theta: 0, phi: 0.06, r: overviewR() * 1.02, tx: 100, ty: 0, tz: -300 };
-      case "fly": return { theta: -Math.PI / 2 + 0.07, phi: 1.2, r: 430, ty: 46 };
-      case "orbit": return { phi: 0.95, r: overviewR() * 0.8, tx: 60, ty: 40, tz: -420 };
+      case "close": return { theta: -0.46, phi: 1.08, r: 620, tx: p?.x ?? 0, ty: 70, tz: p?.z ?? 0 };
+      case "top": return { theta: 0, phi: 0.06, r: overviewR() * 1.02, tx: 60, ty: 0, tz: -300 };
+      case "fly": return { phi: 1.34, r: 360, ty: 52 };                                   // low, looking down the corridor to the skyline
+      case "orbit": return { phi: 1.2, r: overviewR() * 0.58, tx: 200, ty: 120, tz: -380 };  // flatter: horizon, haze and sky in frame
       default: return { theta: -0.1, phi: 0.93, r: overviewR(), tx: 60, ty: 40, tz: -520 };
     }
   };
@@ -91,10 +91,11 @@ export function CameraRig({ places, corridor }: { places: StationPlace[]; corrid
     const dt = Math.min(0.05, dtRaw), s = useTwin.getState(), d = dst.current, c = cur.current;
     if (s.cam === "fly") {
       const L = corridor.metro.length;
-      fly.current = (fly.current + dt * (s.reducedMotion ? 0 : 95)) % (L - 700);
-      const q = corridor.metro.at(350 + fly.current, { x: 0, z: 0, tx: 0, tz: 0 });
-      d.tx = q.x; d.tz = q.z + 14;
-      d.theta = Math.atan2(-q.tx, -q.tz) + 0.07;
+      fly.current = (fly.current + dt * (s.reducedMotion ? 0 : 80)) % (L - 1500);
+      const q = corridor.metro.at(900 + fly.current, { x: 0, z: 0, tx: 0, tz: 0 });
+      // fly beside the viaduct, over the sea-side carriageway, so the station columns pass by instead of through the lens
+      d.tx = q.x - q.tz * 125; d.tz = q.z + q.tx * 125;
+      d.theta = Math.atan2(-q.tx, -q.tz) + 0.2;
       unwind();
     }
     if (s.cam === "orbit" && !s.reducedMotion) d.theta += dt * 0.08;

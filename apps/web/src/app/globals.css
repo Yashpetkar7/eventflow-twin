@@ -90,6 +90,8 @@ input[type="range"] { width: 100%; accent-color: var(--navy); height: 26px; marg
 .camtools { position: absolute; bottom: 10px; inset-inline-end: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; z-index: 3; max-width: 52%; }
 .camtools button { border: 0; background: rgba(255, 255, 255, 0.94); color: #151B28; border-radius: 10px; padding: 7px 10px; font-size: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); min-height: 34px; }
 .camtools button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
+.camtools .recentre { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.camtools .recentre.moved { background: #D90F0F; color: #fff; }       /* the view has been moved: one tap brings it back */
 .attrib { position: absolute; bottom: 2px; inset-inline-start: 50%; transform: translateX(-50%); font-size: 9.5px; color: rgba(20, 28, 45, 0.6); z-index: 3; pointer-events: none; white-space: nowrap; }
 [dir="rtl"] .attrib { transform: translateX(50%); }
 .hud.night ~ .attrib { color: rgba(255, 255, 255, 0.6); }

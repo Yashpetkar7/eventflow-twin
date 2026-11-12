@@ -14,6 +14,7 @@ One command for the booth (offline cache → API → production build → kiosk 
 |---|---|
 | `/` | Workspace |
 | `/?lang=ar` | Arabic, full right-to-left (the 3D scene is not mirrored) |
+| Recentre button / `Home` key | Brings the 3D view back to the last chosen camera preset after dragging or zooming away |
 | `/?kiosk=1` | Touch kiosk: targets ≥ 48 px, no selection / context menu, 60 s idle → guided demo (`&idle=10` for rehearsals) |
 
 `NEXT_PUBLIC_API_URL` overrides the API address (default `http://localhost:8000`).
@@ -42,6 +43,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 | `…/twin/Live.tsx` | Crowd columns (capacity glass, threshold ring, demand bar, pulse), venue beacon, crowd particles, illustrative traffic |
 | `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
 | `tests/ui.spec.ts` | Playwright: screenshots → `eval/results/ui/`, fps → `eval/results/ui/fps.json` (`make ui-test`) |
+| `tests/polish.mjs` | Before/after captures for a visual pass: `node tests/polish.mjs before|after` → `eval/results/ui/polish/` |
 
 ## Rules
 - Offline: no remote tiles, fonts or scripts. Map © OpenStreetMap contributors (shown on the canvas and in the footer).
@@ -54,4 +56,6 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 - Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
 - Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
-- Dev mode can serve stale CSS after edits to `globals.css` (restart `npm run dev`).
+- Sun timing is stylised (golden hour 16:30–18:30) rather than the real mid-November sunset.
+- Landmarks are stylised low-poly models, not surveyed geometry. Hand-modelled glTF assets (e.g. via Blender) could replace
+  two or three of them later without touching the rest of the scene.

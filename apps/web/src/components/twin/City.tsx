@@ -71,7 +71,7 @@ function facadeMaterial(uniforms: { uNight: { value: number } }) {
           eftW = winAcc * on;
           diffuseColor.rgb = mix(diffuseColor.rgb, glassAcc, eftW * 0.92);
           diffuseColor.rgb *= 1.0 - 0.45 * uNight;
-          totalEmissiveRadiance += lampAcc * uNight * on * litAcc * 2.1;
+          totalEmissiveRadiance += lampAcc * uNight * on * litAcc * 1.55;
         }`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.16, eftW);`)
       .replace("#include <metalnessmap_fragment>", `#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.6, eftW);`);
@@ -79,9 +79,34 @@ function facadeMaterial(uniforms: { uNight: { value: number } }) {
   return m;
 }
 
+const NOISE = /* glsl */ `
+  float eftN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(eftHash(i), eftHash(i + vec2(1, 0)), f.x), mix(eftHash(i + vec2(0, 1)), eftHash(i + vec2(1, 1)), f.x), f.y); }`;
+
+/** Ground: the baked map (or plain sand) modulated by world-space noise — fine grain plus soft dune-scale drift. */
+function groundMaterial(map: THREE.Texture | null) {
+  const m = new THREE.MeshStandardMaterial({ map, color: map ? 0xffffff : 0xd8c298, roughness: 0.97, metalness: 0 });
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec2 vGw;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvGw = (modelMatrix * vec4(position, 1.0)).xz;");
+    sh.fragmentShader = sh.fragmentShader
+      .replace("#include <common>", `#include <common>\nvarying vec2 vGw;\n${HASH}\n${NOISE}`)
+      .replace("#include <color_fragment>", /* glsl */ `#include <color_fragment>
+        {
+          float drift = eftN(vGw * 0.0016) * 0.6 + eftN(vGw * 0.006) * 0.4;
+          float grain = eftN(vGw * 0.11) * 0.6 + eftN(vGw * 0.45) * 0.4;
+          float fade = 1.0 - smoothstep(0.05, 0.9, fwidth(vGw.x) * 0.45);
+          diffuseColor.rgb *= 0.9 + 0.16 * drift + 0.09 * (grain - 0.5) * fade;
+          diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.05, 0.99, 0.9), 0.5);   // warm sand cast
+        }`);
+  };
+  return m;
+}
+
 /** Lane markings for the Sheikh Zayed Road carriageways (aW = width in metres, uv.y = 0 on the median side). */
 function highwayMaterial() {
-  const m = new THREE.MeshStandardMaterial({ color: 0x33363c, roughness: 0.88, metalness: 0.0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+  const m = new THREE.MeshStandardMaterial({ color: 0x33363c, roughness: 0.86, metalness: 0.0, emissive: 0xffb469, emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace("#include <common>", `#include <common>\nattribute float aW; varying vec3 vRd;`)
@@ -103,8 +128,11 @@ function highwayMaterial() {
           float line = (1.0 - smoothstep(0.08, 0.08 + aa, d)) * between * dash;
           float edgeL = 1.0 - smoothstep(0.1, 0.1 + aa, abs(y));
           float edgeR = 1.0 - smoothstep(0.1, 0.1 + aa, abs(y - inner));
-          float wear = 0.9 + 0.2 * eftHash(floor(vec2(vRd.x * 0.35, ly * 3.0)));
-          diffuseColor.rgb *= wear;
+          // lane wear: darker tyre tracks either side of each lane centre, patchy along the road
+          float lanePos = fract(ly) - 0.5;
+          float tracks = (1.0 - smoothstep(0.0, 0.06, abs(abs(lanePos) - 0.22))) * step(0.0, ly) * step(ly, lanes);
+          float wearPatch = 0.86 + 0.28 * eftHash(floor(vec2(vRd.x * 0.07, ly)));
+          diffuseColor.rgb *= wearPatch * (1.0 - 0.16 * tracks * vis);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86), line * vis * 0.85);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.90, 0.75, 0.25), edgeL * vis * 0.9);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86), edgeR * vis * 0.85);
@@ -130,16 +158,11 @@ export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }
     const uvs = ground.attributes.uv, p = ground.attributes.position;
     for (let i = 0; i < uvs.count; i++) uvs.setXY(i, (p.getX(i) - g.x0) / (g.x1 - g.x0), (p.getZ(i) - g.z0) / (g.z1 - g.z0));
 
-    const sand = canvasTexture(256, 256, (c, w, h) => {
-      const rnd = mulberry(5);
-      c.fillStyle = "#D6C4A0"; c.fillRect(0, 0, w, h);
-      for (let i = 0; i < 2600; i++) {
-        c.fillStyle = `rgba(${150 + rnd() * 60 | 0},${120 + rnd() * 50 | 0},${80 + rnd() * 40 | 0},.08)`;
-        c.fillRect(rnd() * w, rnd() * h, 2, 2);
-      }
+    const glow = canvasTexture(64, 64, (c) => {
+      const g = c.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.25, "rgba(255,255,255,0.55)"); g.addColorStop(1, "rgba(255,255,255,0)");
+      c.fillStyle = g; c.fillRect(0, 0, 64, 64);
     });
-    sand.wrapS = sand.wrapT = THREE.RepeatWrapping;
-    sand.repeat.set(160, 160);
 
     const roadsByClass = [0, 1, 2].map((cls) => ribbons(data.roads.filter((r) => r[0] === cls).map((r) => ({ pts: pairs(r, 2), w: r[1], y: 0.42 - cls * 0.1 }))));
     const szr = ribbons(corridor.szr.map(({ path, lanes }) => ({
@@ -186,11 +209,11 @@ export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }
         if (Math.abs(tmp.z) > 420) continue;            // only along the corridor itself
         const hw = roadWidth(lanes[Math.min(path.n - 1, Math.round(s / path.step))]) / 2;
         palms.push(tmp.x - tmp.tz * (hw + 4.5), tmp.z + tmp.tx * (hw + 4.5), 0.85 + rnd() * 0.4);
-        if (Math.round(s / 34) % 2 === 0) lamps.push(tmp.x + tmp.tz * (hw + 1.2), 11.5, tmp.z - tmp.tx * (hw + 1.2));
+        lamps.push(tmp.x + tmp.tz * (hw + 1.2), 11.5, tmp.z - tmp.tx * (hw + 1.2));        // median street light
       }
     }
     return {
-      ground, sand,
+      ground, glow,
       water: flatPolygons(data.water, 0.35),
       buildings: buildingsGeometry(data.buildings),
       ghosts: buildingsGeometry(data.ghosts.map((b) => [b[0], b[1], ...b.slice(2)])),
@@ -199,19 +222,19 @@ export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }
   }, [data, corridor, groundTex]);
 
   const mats = useMemo(() => ({
-    ground: new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.96, metalness: 0 }),
-    sand: new THREE.MeshStandardMaterial({ map: built.sand, roughness: 1, metalness: 0 }),
-    water: new THREE.MeshStandardMaterial({ color: 0x2e86ad, roughness: 0.1, metalness: 0.45, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+    ground: groundMaterial(groundTex),
+    sand: groundMaterial(null),
+    water: new THREE.MeshStandardMaterial({ color: 0x2a7fa6, roughness: 0.06, metalness: 0.6, envMapIntensity: 1.25, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     facade: facadeMaterial(uniforms),
     ghost: new THREE.MeshBasicMaterial({ color: 0xb8cfe4, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide }),
-    road: new THREE.MeshStandardMaterial({ color: 0x45484e, roughness: 0.92, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+    road: new THREE.MeshStandardMaterial({ color: 0x45484e, roughness: 0.92, emissive: 0xffb469, emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     highway: highwayMaterial(),
     deck: new THREE.MeshStandardMaterial({ color: 0xbdb8ae, roughness: 0.85 }),
     glass: new THREE.MeshStandardMaterial({ color: 0x9fc3d8, metalness: 0.3, roughness: 0.15, transparent: true, opacity: 0.6 }),
     trunk: new THREE.MeshStandardMaterial({ color: 0x8a6a45, roughness: 0.9 }),
     leaf: new THREE.MeshStandardMaterial({ color: 0x4f8a3c, roughness: 0.8 }),
-    lamp: new THREE.PointsMaterial({ color: 0xffd9a0, size: 9, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
-  }), [groundTex, built.sand, uniforms]);
+    lamp: new THREE.PointsMaterial({ color: 0xffcf8a, size: 9, sizeAttenuation: true, map: built.glow, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+  }), [groundTex, built.glow, uniforms]);
 
   const palmGeo = useMemo(() => {
     const trunk = new THREE.CylinderGeometry(0.28, 0.42, 9, 6).translate(0, 4.5, 0);
@@ -240,7 +263,9 @@ export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }
     uniforms.uNight.value = live.night;
     mats.ghost.opacity = (0.1 - 0.06 * live.night) * Math.max(0, Math.min(1, (live.camDist - 1400) / 2200));
     mats.lamp.opacity = live.night * 0.95;
-    mats.lamp.size = Math.max(7, Math.min(40, live.camDist * 0.006));
+    mats.lamp.size = Math.max(16, Math.min(90, live.camDist * 0.0125));
+    mats.highway.emissiveIntensity = live.night * 0.34;          // sodium-lit carriageways read as glowing arteries from above
+    mats.road.emissiveIntensity = live.night * 0.13;
   });
 
   return (

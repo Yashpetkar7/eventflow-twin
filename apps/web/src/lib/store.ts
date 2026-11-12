@@ -134,7 +134,7 @@ interface State {
   log: LogEntry[];
   time: number; playing: boolean; speed: number;
   selected: string; tab: Tab; view: "3d" | "table"; layers: Record<LayerKey, boolean>;
-  cam: CamMode; camNonce: number;
+  cam: CamMode; lastCam: Exclude<CamMode, "free">; camNonce: number;
   kiosk: boolean; tourStep: number | null; sceneReady: boolean; glFailed: boolean; reducedMotion: boolean;
 
   init: () => Promise<void>;
@@ -147,6 +147,7 @@ interface State {
   setPlaying: (p: boolean) => void;
   select: (id: string, opts?: { tab?: boolean; fly?: boolean }) => void;
   setCam: (c: CamMode) => void;
+  recentre: () => void;
   runAgents: (locale: "en" | "ar") => Promise<void>;
   decide: (rank: number, d: Decision, user?: string) => Promise<void>;
   patchBuild: (p: Partial<BuildState>) => void;
@@ -240,7 +241,7 @@ export const useTwin = create<State>((set, get) => {
     time: 15.5, playing: false, speed: 1,
     selected: "WTC", tab: "station", view: "3d",
     layers: { buildings: true, landmarks: true, trains: true, traffic: true, flows: true, labels: true },
-    cam: "overview", camNonce: 0,
+    cam: "overview", lastCam: "overview", camNonce: 0,
     kiosk: false, tourStep: null, sceneReady: false, glFailed: false, reducedMotion: false,
 
     init: async () => {
@@ -270,7 +271,9 @@ export const useTwin = create<State>((set, get) => {
     setTime: (t) => set({ time: Math.max(T_MIN, Math.min(T_MAX, t)) }),
     setPlaying: (p) => set((s) => ({ playing: p, time: p && s.time >= T_MAX - 0.05 ? T_MIN : s.time })),
     select: (id, opts) => set((s) => ({ selected: id, tab: opts?.tab ? "station" : s.tab, camNonce: s.camNonce + (opts?.fly && s.cam === "close" ? 1 : 0) })),
-    setCam: (c) => set((s) => ({ cam: c, camNonce: s.camNonce + 1 })),
+    setCam: (c) => set((s) => ({ cam: c, lastCam: c === "free" ? s.lastCam : c, camNonce: s.camNonce + 1 })),
+    /** Back to the framing of the last chosen preset after dragging, panning or zooming away. */
+    recentre: () => set((s) => ({ cam: s.lastCam, view: "3d", camNonce: s.camNonce + 1 })),
 
     runAgents: async (locale) => {
       const s = get();
@@ -325,7 +328,7 @@ export const useTwin = create<State>((set, get) => {
         log: [{ ts: new Date().toISOString(), kind: "reset" }, ...s.log] });
       schedulePreview();
     },
-    jumpTo: (id, hour) => set((s) => ({ selected: id, time: Math.min(T_MAX, hour + 0.5), cam: "close", camNonce: s.camNonce + 1 })),
+    jumpTo: (id, hour) => set((s) => ({ selected: id, time: Math.min(T_MAX, hour + 0.5), cam: "close", lastCam: "close", camNonce: s.camNonce + 1 })),
   };
 });
 

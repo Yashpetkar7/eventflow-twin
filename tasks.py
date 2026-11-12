@@ -46,6 +46,7 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
               [[PY, "scripts/build_demo_cache.py"]]),
     "demo": ("Booth mode: offline agent cache, then API + production web app in kiosk mode",
              [[PY, "scripts/build_demo_cache.py"], [PY, "scripts/run_demo.py"]]),
+    "ui-metrics": ("Write docs/metrics.md from eval/results/ui (run after the Playwright tests)", [[PY, "scripts/ui_metrics.py"]]),
     "api": ("Run FastAPI on :8000", [[PY, "-m", "uvicorn", "apps.api.eventflow.main:app", "--reload", "--port", "8000"]]),
     "web": ("Run Next.js on :3000", [["npm", "run", "dev"]]),
 }

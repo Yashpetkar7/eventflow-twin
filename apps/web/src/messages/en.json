@@ -32,9 +32,20 @@
   "planning": "Planning settings",
   "thr": "Comfort threshold",
   "prio": "Agents prioritise",
-  "prioL": { "cost": "Lower cost", "balanced": "Balanced", "impact": "Biggest impact" },
+  "prioL": {
+    "cost": "Lower cost",
+    "balanced": "Balanced",
+    "impact": "Biggest impact"
+  },
   "layers": "3D layers",
-  "layerL": { "buildings": "Buildings", "landmarks": "Landmarks", "trains": "Metro trains", "traffic": "Road traffic", "flows": "Crowd flows", "labels": "Labels" },
+  "layerL": {
+    "buildings": "Buildings",
+    "landmarks": "Landmarks",
+    "trains": "Metro trains",
+    "traffic": "Road traffic",
+    "flows": "Crowd flows",
+    "labels": "Labels"
+  },
   "trafficNote": "Road traffic is illustrative, not simulated.",
   "view": "View",
   "v3d": "3D twin",
@@ -44,9 +55,28 @@
   "lgWarn": "Busy",
   "lgRisk": "Over threshold",
   "lgRing": "Threshold ring",
-  "cam": { "overview": "Overview", "close": "Station close-up", "top": "Top-down", "fly": "Fly-through", "orbit": "Auto-orbit" },
-  "tabs": { "station": "Station", "ai": "AI plan", "build": "My plan", "alerts": "Alerts", "report": "Report" },
-  "kpi": { "peak": "Corridor peak load", "over": "Over-threshold station-hours", "trains": "Trains per hour now", "plans": "Plans applied" },
+  "cam": {
+    "overview": "Overview",
+    "close": "Station close-up",
+    "top": "Top-down",
+    "fly": "Fly-through",
+    "orbit": "Auto-orbit"
+  },
+  "recentre": "Recentre",
+  "recentreHint": "Back to the last camera view (Home key)",
+  "tabs": {
+    "station": "Station",
+    "ai": "AI plan",
+    "build": "My plan",
+    "alerts": "Alerts",
+    "report": "Report"
+  },
+  "kpi": {
+    "peak": "Corridor peak load",
+    "over": "Over-threshold station-hours",
+    "trains": "Trains per hour now",
+    "plans": "Plans applied"
+  },
   "load": "Load {time}",
   "riders": "riders this hour",
   "peakToday": "Peak today",
@@ -62,8 +92,14 @@
   "planCached": "Replayed from the offline demo cache.",
   "planError": "The planner could not answer: {msg}",
   "steps": {
-    "0": "Read the goal", "1": "Forecast demand", "2": "Find hotspots", "3": "Propose plans",
-    "4": "Simulate each plan", "5": "Rank by impact and cost", "6": "Explain in plain words", "7": "Check every number"
+    "0": "Read the goal",
+    "1": "Forecast demand",
+    "2": "Find hotspots",
+    "3": "Propose plans",
+    "4": "Simulate each plan",
+    "5": "Rank by impact and cost",
+    "6": "Explain in plain words",
+    "7": "Check every number"
   },
   "noHot": "No station goes over the threshold in this scenario, so the agents recommend no action. Try raising attendance or picking a hot day.",
   "rankL": "Option {n}",
@@ -98,19 +134,53 @@
   "build": {
     "title": "Build your own plan",
     "intro": "Combine actions and see the effect live. Applies to the hotspot hours:",
-    "trains": "Extra trains", "off": "Off", "way": "Wayfinding", "from": "From", "to": "To",
-    "bus": "Feeder shuttles", "buses": "{n} buses", "rt": "Robotaxi staging", "vehicles": "{n} vehicles", "at": "At",
-    "stag": "Staggered exit", "min": "{n} min", "preview": "Effect of your plan", "approveMine": "Approve my plan",
-    "mine": "Your plan", "nothing": "Turn on at least one action.", "error": "The simulator rejected this plan: {msg}"
+    "trains": "Extra trains",
+    "off": "Off",
+    "way": "Wayfinding",
+    "from": "From",
+    "to": "To",
+    "bus": "Feeder shuttles",
+    "buses": "{n} buses",
+    "rt": "Robotaxi staging",
+    "vehicles": "{n} vehicles",
+    "at": "At",
+    "stag": "Staggered exit",
+    "min": "{n} min",
+    "preview": "Effect of your plan",
+    "approveMine": "Approve my plan",
+    "mine": "Your plan",
+    "nothing": "Turn on at least one action.",
+    "error": "The simulator rejected this plan: {msg}"
   },
-  "alerts": { "title": "Station-hours over threshold", "none": "No alerts. Every station stays under the threshold all day.", "jump": "Show {station} at {time}" },
+  "alerts": {
+    "title": "Station-hours over threshold",
+    "none": "No alerts. Every station stays under the threshold all day.",
+    "jump": "Show {station} at {time}"
+  },
   "report": {
-    "title": "Event brief", "save": "Save brief (.md)", "snap": "Save 3D snapshot (.png)", "saved": "Saved",
-    "evidence": "Evidence", "dataset": "Demand data", "contract": "API contract", "file": "from {file}",
-    "forecast": "Forecast backtest (LightGBM vs seasonal-naive)", "mase": "MASE", "coverage": "80% interval coverage",
-    "simulator": "Simulator property checks", "passed": "{a} of {b} checks passed", "logged": "Decisions in the audit log"
+    "title": "Event brief",
+    "save": "Save brief (.md)",
+    "snap": "Save 3D snapshot (.png)",
+    "saved": "Saved",
+    "evidence": "Evidence",
+    "dataset": "Demand data",
+    "contract": "API contract",
+    "file": "from {file}",
+    "forecast": "Forecast backtest (LightGBM vs seasonal-naive)",
+    "mase": "MASE",
+    "coverage": "80% interval coverage",
+    "simulator": "Simulator property checks",
+    "passed": "{a} of {b} checks passed",
+    "logged": "Decisions in the audit log"
   },
-  "tableH": { "station": "Station", "demand": "Riders this hour", "cap": "Capacity/hour", "load": "Load", "trains": "Trains/hour", "peak": "Peak today" },
+  "tableH": {
+    "station": "Station",
+    "demand": "Riders this hour",
+    "cap": "Capacity/hour",
+    "load": "Load",
+    "trains": "Trains/hour",
+    "peak": "Peak today"
+  },
   "tourSteps": {
     "0": "GITEX Global 2025, day 1 at Dubai World Trade Centre. Watch the corridor through the day in the 3D twin.",
     "1": "What if it is a hot day? More visitors take the metro, and World Trade Centre station rises above its threshold ring.",
@@ -128,7 +198,11 @@
   "canvasAria": "3D digital twin of the Sheikh Zayed Road corridor. Drag to rotate, scroll or pinch to zoom, tap a station to select it. The table view shows the same data.",
   "apiDown": "The planning service is not reachable. Showing the last saved results; reconnecting automatically.",
   "apiError": "Could not load data: {msg}",
-  "lm": { "burj": "Burj Khalifa", "mof": "Museum of the Future", "venue": "Event: {name}" },
+  "lm": {
+    "burj": "Burj Khalifa",
+    "mof": "Museum of the Future",
+    "venue": "Event: {name}"
+  },
   "howTitle": "How EventFlow Twin works",
   "how1": "Forecast: background demand per station and hour, plus an event surge shared across stations by walking distance.",
   "how2": "Capacity: trains per hour from the RTA timetable × train capacity × the share available at one station. Station-hours above the comfort threshold are flagged.",

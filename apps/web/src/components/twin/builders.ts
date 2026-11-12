@@ -38,7 +38,7 @@ export function buildingsGeometry(list: number[][], opts: { roof?: boolean } = {
       per += len;
     }
     if (opts.roof !== false) {
-      roof.setHex(0xc9c4b8).lerp(c, 0.25).offsetHSL(0, 0, (sd - 0.5) * 0.08);      // roofs: neutral concrete, a hint of the façade
+      roof.setHex(0xb9ad98).lerp(c, 0.3).offsetHSL(0, 0, (sd - 0.5) * 0.08);      // roofs: neutral concrete, a hint of the façade
       const contour: THREE.Vector2[] = [];
       for (let i = 0; i < n; i++) contour.push(new THREE.Vector2(b[2 + i * 2], b[3 + i * 2]));
       const tris = THREE.ShapeUtils.triangulateShape(contour, []);

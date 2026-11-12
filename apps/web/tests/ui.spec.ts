@@ -115,6 +115,24 @@ test("my plan: live preview from /simulate, approve", async ({ page }) => {
   await expect(page.locator(".kpi").nth(3)).toContainText("1");
 });
 
+test("recentre brings the 3D view back after dragging and zooming", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "Top-down" }).click();
+  const box = (await page.locator(".view canvas").boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 240, box.y + box.height / 2 + 90, { steps: 8 });
+  await page.mouse.up();
+  await page.mouse.wheel(0, -600);
+  const cam = () => page.evaluate(() => (window as unknown as { __twin: { getState: () => { cam: string } } }).__twin.getState().cam);
+  expect(await cam()).toBe("free");
+  await expect(page.locator(".camtools .recentre")).toHaveClass(/moved/);
+  await page.getByRole("button", { name: "Recentre" }).click();
+  expect(await cam()).toBe("top");                                   // back to the preset that was active
+  await page.keyboard.press("Home");
+  expect(await cam()).toBe("top");
+});
+
 test("table view and WebGL fallback", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "Table", exact: true }).click();
