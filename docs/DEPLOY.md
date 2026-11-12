@@ -39,7 +39,8 @@ effort. Claude: `LLM_FALLBACKS=off` disables the server-side refusal fallback if
 Vercel project **`eventflow-twin`** (account krishnamathur008-1499) exists and the first deploy is live at
 **https://eventflow-twin.vercel.app**. ⚠️ Vercel assigns a project's *first* deployment to production, so this URL is
 public (the per-deployment hash URLs are behind Vercel login). It has not been shared; the site asks search engines not
-to index it. Whether to keep it public is K1 (Dr. Rachit). Checks on that URL: `python scripts/smoke_live.py
+to index it. Whether to keep it public is K1 (Dr. Rachit). **Krishna's interim decision (12 Nov): keep it public
+until Dr. Rachit replies — do not share the link and do not lock it until then.** Checks on that URL: `python scripts/smoke_live.py
 https://eventflow-twin.vercel.app` → `OK … contract 1.7.0, storage ephemeral, 3 events, 3 plan options, numbers
 verified, is_synthetic=True`; the 5 remote Playwright checks below → 5 passed.
 To take it offline without deleting the project: Project → Settings → Deployment Protection → protect production too,
