@@ -4,11 +4,11 @@
 // interpolates between 15-minute bins for animation.
 import { create } from "zustand";
 import {
-  api, ApiError, setFallbackListener, type AgentPlanResponse, type EventInfo, type ForecastRequest, type ForecastResponse, type Intervention,
+  api, ApiError, setFallbackListener, type AgentPlanResponse, type BreakpointResponse, type EventInfo, type ForecastRequest, type ForecastResponse, type Intervention,
   type SimulateResponse, type Station,
 } from "./api";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
-import { forecastBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
+import { breakpointBody, forecastBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
 
 export type { Priority, Scenario, Weather };
 export type CamMode = "overview" | "close" | "top" | "fly" | "orbit" | "landmark" | "free";
@@ -128,6 +128,7 @@ interface State {
   stations: Station[]; events: EventInfo[];
   scenario: Scenario; threshold: number; priority: Priority;
   forecast: ForecastResponse | null; forecastReq: ForecastRequest | null; base: SimView | null; cur: SimView | null;
+  breaks: BreakpointResponse | null;     // at what crowd size each station crosses the threshold (POST /breakpoint)
   flows: Record<string, { out: number[]; in: number[] }>;
   applied: Applied[];
   plan: AgentPlanResponse | null; planStatus: "idle" | "running" | "ready" | "error"; planStep: number; planError: string | null;
@@ -181,9 +182,10 @@ export const useTwin = create<State>((set, get) => {
       const spec = opts.forecast || !s.forecast || !s.forecastReq ? forecastBody(s.scenario) : s.forecastReq;
       const fc = opts.forecast || !s.forecast ? await api.forecast(spec, signal) : s.forecast;
       const ivs = mergeInterventions(get().applied.map((a) => a.ivs));
-      const [baseR, curR] = await Promise.all([
+      const [baseR, curR, breaks] = await Promise.all([
         api.simulate(simulateBody(fc.run_id, [], get().threshold, spec), signal),
         ivs.length ? api.simulate(simulateBody(fc.run_id, ivs, get().threshold, spec), signal) : null,
+        api.breakpoint(breakpointBody(fc.run_id, get().threshold, spec), signal).catch(() => null),   // optional panel
       ]);
       if (id !== reqId) return;
       const base = buildView(baseR), cur = curR ? buildView(curR) : base;
@@ -192,7 +194,7 @@ export const useTwin = create<State>((set, get) => {
         const f = (flows[r.station_id] ??= { out: Array(24).fill(0), in: Array(24).fill(0) });
         f.out[r.hour] = r.event_entries_p50; f.in[r.hour] = r.event_exits_p50 ?? 0;
       }
-      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, flows, loading: false, ready: true, plan: null, planStatus: "idle", decisions: {}, planError: null };
+      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, plan: null, planStatus: "idle", decisions: {}, planError: null };
       if (opts.jump) {
         const pk = peakOf(base, corridorIds(get()));
         Object.assign(patch, { time: Math.min(T_MAX, pk.time), selected: pk.id, camNonce: get().camNonce + 1 });
@@ -243,7 +245,7 @@ export const useTwin = create<State>((set, get) => {
     stations: [], events: [],
     scenario: { eventId: "", attendance: null, exitSigma: null, weather: "normal", custom: { near: "FIC", start: "19:00", end: "22:00", weekend: false } },
     threshold: 0.85, priority: "balanced",
-    forecast: null, forecastReq: null, base: null, cur: null, flows: {},
+    forecast: null, forecastReq: null, base: null, cur: null, breaks: null, flows: {},
     applied: [], plan: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
     build: BUILD0, preview: null, previewError: null, log: [],
     time: 15.5, playing: false, speed: 1,

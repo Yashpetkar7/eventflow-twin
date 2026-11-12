@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { hhmm, N, useFmt } from "@/lib/i18n";
 import { alertsOf, hourOf, lfAt, T_MIN, useTwin, type SimView, type Tab } from "@/lib/store";
 import { AiTab, BuildTab } from "./PlanTabs";
+import { BreakCard } from "./BreakCard";
 import { ReportTab } from "./ReportTab";
 
 const TABS: Tab[] = ["station", "ai", "build", "alerts", "report"];
@@ -73,6 +74,7 @@ function StationTab() {
           <LoadChart id={selected} cur={cur} base={base} showBase={hasPlans} label={t("chartAria", { station: f.station(st) })} />
         </div>
       </div>
+      <BreakCard />
       <div className="row" style={{ flexWrap: "wrap" }}>
         {stations.map((s) => <button key={s.id} type="button" className="pill" aria-pressed={s.id === selected} onClick={() => useTwin.getState().select(s.id, { fly: true })}>{f.station(s)}</button>)}
       </div>

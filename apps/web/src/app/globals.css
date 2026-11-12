@@ -178,6 +178,17 @@ table.data th { color: var(--ink-3); font-weight: 500; }
 .ctl { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
 .ctl .head { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: 500; }
 .ctl .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* break-point card */
+.brk-head { margin: 8px 0 2px; font-size: 14px; font-weight: 600; }
+.brk-bar { position: relative; height: 12px; border-radius: 6px; background: var(--muted); margin: 10px 0 6px; overflow: visible; }
+.brk-fill { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 6px; opacity: 0.85; }
+.brk-line { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-inline-start: -1.5px; border-radius: 2px; background: var(--ink); }
+.brk-grid { margin-top: 12px; border-block-start: 1px solid var(--line); padding-block-start: 8px; }
+.brk-g { display: grid; grid-template-columns: 42px 1fr 64px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 12px; padding: 2px 4px; border-radius: 6px; }
+.brk-g.def { background: var(--navy-soft); font-weight: 600; }
+.brk-gbar { height: 8px; background: var(--muted); border-radius: 4px; overflow: hidden; }
+.brk-gbar i { display: block; height: 100%; border-radius: 4px; }
+.brk-gst { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ftr { padding: 6px 18px; font-size: 11px; color: var(--ink-3); border-block-start: 1px solid var(--line); background: var(--surface); }
 .banner.demo { background: var(--navy-soft); color: var(--navy); }
 .banner { background: var(--amber-soft); color: var(--amber-ink); font-size: 12.5px; padding: 6px 18px; border-block-end: 1px solid var(--line); }

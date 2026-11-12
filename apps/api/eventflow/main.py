@@ -24,7 +24,7 @@ from .config import ROOT, corridor, events
 from .forecast import NoDataError, build_forecast, config_hash, load_panel, make_run_id
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
-from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -153,6 +153,13 @@ def run_simulation(forecast_run_id: str, interventions: list, detail: bool = Fal
 def simulate_ep(req: SimulateRequest):
     get_run(req.forecast_run_id, req.forecast)          # rebuild first if this instance has never seen the run
     return run_simulation(req.forecast_run_id, req.interventions, req.detail, req.threshold, req.scope)
+
+
+@app.post("/breakpoint", response_model=BreakpointResponse)
+def breakpoint_ep(req: BreakpointRequest):
+    """At what crowd size does each corridor station cross the comfort threshold (exact; see breakpoint.py)?"""
+    from .breakpoint import break_points
+    return break_points(get_run(req.forecast_run_id, req.forecast), req.threshold, corridor_ids())
 
 
 @app.post("/agent/plan", response_model=AgentPlanResponse)

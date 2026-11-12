@@ -38,6 +38,10 @@ export function planBody(runId: string, applied: unknown[], threshold: number, p
   return { forecast_run_id: runId, forecast, locale, threshold, scope: "corridor", priority, applied } as S["AgentPlanRequest"];
 }
 
+export function breakpointBody(runId: string, threshold: number, forecast: S["ForecastRequest"]): S["BreakpointRequest"] {
+  return { forecast_run_id: runId, forecast, threshold } as S["BreakpointRequest"];
+}
+
 /** Stable request key: sorted keys, undefined dropped. Shared by the client cache and scripts/snapshot.mjs. */
 export function canon(v: unknown): string {
   if (v === null || v === undefined) return "null";

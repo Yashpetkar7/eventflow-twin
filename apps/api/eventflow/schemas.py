@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.6.0"   # 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.7.0"   # 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -165,6 +165,44 @@ class SimulateResponse(BaseModel):
     diverted_off_metro: float
     rows: list[SimRow]
     hourly: list[SimHourRow]
+    source: Source
+
+
+# ---------- break points ----------
+class BreakpointRequest(BaseModel):
+    forecast_run_id: str
+    forecast: ForecastRequest | None = Field(None, description="As in SimulateRequest.forecast")
+    threshold: float | None = Field(None, ge=0.5, le=1.0, description="Comfort threshold (default: corridor.yaml)")
+
+
+class StationBreak(BaseModel):
+    station_id: str
+    served: bool = Field(description="The event sends metro trips to this station")
+    break_attendance: int | None = Field(description="Visitors at which the station first exceeds the threshold (rounded up to 100); null if never")
+    first_time: str | None = Field(description="HH:MM of the 15-minute bin that crosses first")
+
+
+class BreakGridRow(BaseModel):
+    boardable_share: float = Field(description="Assumed share of a train's capacity free for boarders at one station")
+    break_attendance: int | None
+    station_id: str | None
+    first_time: str | None
+
+
+class BreakpointResponse(BaseModel):
+    run_id: str
+    forecast_run_id: str
+    is_synthetic: bool
+    event_id: str | None
+    attendance_used: float | None
+    metro_share_used: float | None
+    threshold: float
+    boardable_share_default: float
+    corridor_break_attendance: int | None
+    corridor_break_station: str | None
+    stations: list[StationBreak]
+    grid: list[BreakGridRow]
+    note: str
     source: Source
 
 

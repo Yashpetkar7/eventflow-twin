@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.6.0"
+    "version": "1.7.0"
   },
   "paths": {
     "/healthz": {
@@ -124,6 +124,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SimulateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/breakpoint": {
+      "post": {
+        "summary": "Breakpoint Ep",
+        "description": "At what crowd size does each corridor station cross the comfort threshold (exact; see breakpoint.py)?",
+        "operationId": "breakpoint_ep_breakpoint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BreakpointRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BreakpointResponse"
                 }
               }
             }
@@ -508,6 +547,212 @@
           "label"
         ],
         "title": "AgentStep"
+      },
+      "BreakGridRow": {
+        "properties": {
+          "boardable_share": {
+            "type": "number",
+            "title": "Boardable Share",
+            "description": "Assumed share of a train's capacity free for boarders at one station"
+          },
+          "break_attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Break Attendance"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "first_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boardable_share",
+          "break_attendance",
+          "station_id",
+          "first_time"
+        ],
+        "title": "BreakGridRow"
+      },
+      "BreakpointRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "As in SimulateRequest.forecast"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold",
+            "description": "Comfort threshold (default: corridor.yaml)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id"
+        ],
+        "title": "BreakpointRequest"
+      },
+      "BreakpointResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "attendance_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Used"
+          },
+          "metro_share_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metro Share Used"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "boardable_share_default": {
+            "type": "number",
+            "title": "Boardable Share Default"
+          },
+          "corridor_break_attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corridor Break Attendance"
+          },
+          "corridor_break_station": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corridor Break Station"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/StationBreak"
+            },
+            "type": "array",
+            "title": "Stations"
+          },
+          "grid": {
+            "items": {
+              "$ref": "#/components/schemas/BreakGridRow"
+            },
+            "type": "array",
+            "title": "Grid"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "forecast_run_id",
+          "is_synthetic",
+          "event_id",
+          "attendance_used",
+          "metro_share_used",
+          "threshold",
+          "boardable_share_default",
+          "corridor_break_attendance",
+          "corridor_break_station",
+          "stations",
+          "grid",
+          "note",
+          "source"
+        ],
+        "title": "BreakpointResponse"
       },
       "CustomEvent": {
         "properties": {
@@ -1984,6 +2229,51 @@
           "lon"
         ],
         "title": "Station"
+      },
+      "StationBreak": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "served": {
+            "type": "boolean",
+            "title": "Served",
+            "description": "The event sends metro trips to this station"
+          },
+          "break_attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Break Attendance",
+            "description": "Visitors at which the station first exceeds the threshold (rounded up to 100); null if never"
+          },
+          "first_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Time",
+            "description": "HH:MM of the 15-minute bin that crosses first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "served",
+          "break_attendance",
+          "first_time"
+        ],
+        "title": "StationBreak"
       },
       "ValidationError": {
         "properties": {

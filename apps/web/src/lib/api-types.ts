@@ -89,6 +89,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/breakpoint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Breakpoint Ep
+         * @description At what crowd size does each corridor station cross the comfort threshold (exact; see breakpoint.py)?
+         */
+        post: operations["breakpoint_ep_breakpoint_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/agent/plan": {
         parameters: {
             query?: never;
@@ -250,6 +270,62 @@ export interface components {
             detail: string;
             /** Tool */
             tool?: string | null;
+        };
+        /** BreakGridRow */
+        BreakGridRow: {
+            /**
+             * Boardable Share
+             * @description Assumed share of a train's capacity free for boarders at one station
+             */
+            boardable_share: number;
+            /** Break Attendance */
+            break_attendance: number | null;
+            /** Station Id */
+            station_id: string | null;
+            /** First Time */
+            first_time: string | null;
+        };
+        /** BreakpointRequest */
+        BreakpointRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description As in SimulateRequest.forecast */
+            forecast?: components["schemas"]["ForecastRequest"] | null;
+            /**
+             * Threshold
+             * @description Comfort threshold (default: corridor.yaml)
+             */
+            threshold?: number | null;
+        };
+        /** BreakpointResponse */
+        BreakpointResponse: {
+            /** Run Id */
+            run_id: string;
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /** Event Id */
+            event_id: string | null;
+            /** Attendance Used */
+            attendance_used: number | null;
+            /** Metro Share Used */
+            metro_share_used: number | null;
+            /** Threshold */
+            threshold: number;
+            /** Boardable Share Default */
+            boardable_share_default: number;
+            /** Corridor Break Attendance */
+            corridor_break_attendance: number | null;
+            /** Corridor Break Station */
+            corridor_break_station: string | null;
+            /** Stations */
+            stations: components["schemas"]["StationBreak"][];
+            /** Grid */
+            grid: components["schemas"]["BreakGridRow"][];
+            /** Note */
+            note: string;
+            source: components["schemas"]["Source"];
         };
         /**
          * CustomEvent
@@ -808,6 +884,26 @@ export interface components {
              */
             in_corridor: boolean;
         };
+        /** StationBreak */
+        StationBreak: {
+            /** Station Id */
+            station_id: string;
+            /**
+             * Served
+             * @description The event sends metro trips to this station
+             */
+            served: boolean;
+            /**
+             * Break Attendance
+             * @description Visitors at which the station first exceeds the threshold (rounded up to 100); null if never
+             */
+            break_attendance: number | null;
+            /**
+             * First Time
+             * @description HH:MM of the 15-minute bin that crosses first
+             */
+            first_time: string | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -961,6 +1057,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SimulateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    breakpoint_ep_breakpoint_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BreakpointRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakpointResponse"];
                 };
             };
             /** @description Validation Error */

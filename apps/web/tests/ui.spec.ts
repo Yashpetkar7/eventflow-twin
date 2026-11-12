@@ -215,6 +215,26 @@ test("every simulate and plan request carries the forecast spec (stateless API)"
   expect(bodies.at(-1)!.body.forecast).toMatchObject({ weather: "hot" });
 });
 
+test("break point: the Station tab says at what crowd size the station crosses the line", async ({ page, request }) => {
+  await open(page);
+  const card = page.getByTestId("break-card");
+  await expect(card).toBeVisible();
+  // the number on screen is the API's number for the selected station
+  const st = await page.evaluate(() => (window as unknown as { __twin: { getState: () => { selected: string; breaks: { stations: { station_id: string; break_attendance: number | null }[] } } } }).__twin.getState());
+  const expected = st.breaks.stations.find((s) => s.station_id === st.selected)!.break_attendance!;
+  await expect(card).toContainText(expected.toLocaleString("en-GB"));
+  await expect(card.locator(".brk-g")).toHaveCount(5);
+  await expect(card.locator(".brk-g.def")).toContainText("35%");
+  // an unserved station says so instead of showing a number
+  await page.locator(".tabpanel").getByRole("button", { name: "Business Bay" }).click();
+  await expect(card).toContainText("sends no metro trips");
+  await page.locator(".tabpanel").getByRole("button", { name: "World Trade Centre" }).click();
+  await settle(page, 1200);
+  await page.screenshot({ path: `${OUT}/break_point_card.png` });
+  const api = await request.get("http://localhost:8000/healthz");
+  expect((await api.json()).contract).toBe("1.7.0");
+});
+
 test("table view and WebGL fallback", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "Table", exact: true }).click();

@@ -3,7 +3,7 @@
 // says so in a banner. Request bodies come from src/lib/requests.ts — the same builders the app uses.
 //   npm run snapshot        (the API must be running: python tasks.py api)
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { forecastBody, planBody, requestKey, simulateBody } from "../src/lib/requests.ts";
+import { breakpointBody, forecastBody, planBody, requestKey, simulateBody } from "../src/lib/requests.ts";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const OUT = new URL("../public/cache/", import.meta.url).pathname;
@@ -32,6 +32,7 @@ for (const [i, ev] of [...events, { id: "custom" }].entries()) {
     const spec = forecastBody({ eventId: ev.id, attendance: null, exitSigma: null, weather, custom });
     const fc = await record("/forecast", spec);
     await record("/simulate", simulateBody(fc.run_id, [], THR, spec));
+    await record("/breakpoint", breakpointBody(fc.run_id, THR, spec));
     for (const locale of ["en", "ar"]) {
       const plan = await record("/agent/plan", planBody(fc.run_id, [], THR, "balanced", locale, spec));
       // the re-simulation after approving the top option (the guided demo's path)

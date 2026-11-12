@@ -20,6 +20,8 @@ export type AgentPlanRequest = S["AgentPlanRequest"];
 export type AgentPlanResponse = S["AgentPlanResponse"];
 export type PlanOption = S["PlanOption"];
 export type DecisionRequest = S["DecisionRequest"];
+export type BreakpointRequest = S["BreakpointRequest"];
+export type BreakpointResponse = S["BreakpointResponse"];
 export type DecisionResponse = S["DecisionResponse"];
 export type Intervention = NonNullable<S["SimulateRequest"]["interventions"]>[number];
 
@@ -116,6 +118,7 @@ export const api = {
   forecast: (req: ForecastRequest, signal?: AbortSignal) => call<ForecastResponse>("/forecast", req, { signal }),
   simulate: (req: SimulateRequest, signal?: AbortSignal) => call<SimulateResponse>("/simulate", req, { signal }),
   agentPlan: (req: AgentPlanRequest) => call<AgentPlanResponse>("/agent/plan", req),
+  breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),
   decide: (req: DecisionRequest) => call<DecisionResponse>("/decisions", req, { cache: false }),
   evidence: () => call<Evidence>("/evidence"),
 };
