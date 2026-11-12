@@ -287,3 +287,24 @@ body.kiosk .tag { padding: 9px 12px; font-size: 14px; }
   .ftr { font-size: 10.5px; padding: 8px 12px 18px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---- public link: first-visit welcome sheet */
+dialog.welcome h3 { font-size: 24px; }
+dialog.welcome .lead { font-size: 16px; color: var(--ink); line-height: 1.45; margin: 0 0 8px; }
+dialog.welcome ol { margin: 0 0 14px; padding-inline-start: 20px; display: grid; gap: 4px; }
+dialog.welcome .wbtns { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+dialog.welcome .wbtns .btn { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding-inline: 18px; text-decoration: none; flex: 1 1 220px; }
+dialog.welcome .note { font-size: 12px; }
+
+/* ---- "Print / save as PDF" on the Report tab: one page with the scoreboard, decisions and evidence */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body { background: #fff !important; }
+  .hdr, .rail, .stage, .ftr, .banner, .tabs, .tour, dialog, .card:has([data-testid="print-brief"]) { display: none !important; }
+  .shell { height: auto !important; min-height: 0 !important; display: block !important; }
+  .app { display: block !important; }
+  .panel { position: static !important; width: 100% !important; max-width: none !important; height: auto !important; overflow: visible !important; box-shadow: none !important; border: 0 !important; }
+  .tabpanel { overflow: visible !important; height: auto !important; }
+  .tabpanel::before { content: "EventFlow Twin: event brief. Research prototype, synthetic demand, simulated results. Not an RTA system and not endorsed by RTA."; display: block; font-size: 12px; margin-bottom: 10px; }
+  .card { break-inside: avoid; box-shadow: none !important; border: 1px solid #c8ccd4 !important; }
+}

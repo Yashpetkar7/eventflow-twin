@@ -210,7 +210,8 @@
     "simulator": "Simulator property checks",
     "passed": "{a} of {b} checks passed",
     "logged": "Decisions in the audit log",
-    "ephemeral": "Public demo: decisions are kept for this session only, not stored."
+    "ephemeral": "Public demo: decisions are kept for this session only, not stored.",
+    "print": "Print / save as PDF"
   },
   "tableH": {
     "station": "Station",
@@ -252,5 +253,14 @@
   "credits": "Data credits",
   "creditsNote": "{n} buildings in the 20 km ring; {e} of them have no height in any dataset and use an ESTIMATED height.",
   "footer": "Research prototype by SP Jain MAIB students. Baseline demand is synthetic; attendance, metro share and capacity values are assumptions. Train frequency: RTA open data (GTFS). Map: © OpenStreetMap contributors; building heights are estimated where untagged and sea-side towers are cut to podium height. Not an RTA system and not endorsed by RTA.",
-  "longestWait": "Longest wait (inside or outside the gates)"
+  "longestWait": "Longest wait (inside or outside the gates)",
+  "welcome": {
+    "title": "EventFlow Twin",
+    "lead": "A research prototype: will Dubai's metro cope when a big event ends, and what would you do about it?",
+    "p1": "Pick an event and watch the stations fill up in a 3D twin of Sheikh Zayed Road.",
+    "p2": "AI agents propose plans. A simulator calculates every number. You approve.",
+    "story": "Start the 2-minute visitor story",
+    "work": "Open the planner workspace",
+    "note": "Synthetic demand, simulated results. Not an RTA system and not endorsed by RTA."
+  }
 }

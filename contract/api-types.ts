@@ -554,6 +554,11 @@ export interface components {
              * @description What-if venue exit window (σ, minutes)
              */
             exit_sigma_min?: number | null;
+            /**
+             * Metro Share
+             * @description What-if share of event trips made by metro; overrides the weather what-if's share (assumption)
+             */
+            metro_share?: number | null;
             /** @description Build-your-own scenario; overrides event_id */
             custom_event?: components["schemas"]["CustomEvent"] | null;
         };

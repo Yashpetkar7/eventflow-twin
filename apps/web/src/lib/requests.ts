@@ -11,6 +11,7 @@ export interface Scenario {
   attendance: number | null;       // null = the event's own figure
   exitSigma: number | null;        // null = the event profile's exit window
   weather: Weather;
+  metroShare?: number | null;      // what-if share of event trips by metro (null/absent = the weather's share)
   custom: { near: string; start: string; end: string; weekend: boolean };
 }
 
@@ -26,6 +27,7 @@ export function forecastBody(s: Scenario): S["ForecastRequest"] {
     if (s.attendance !== null) body.attendance = s.attendance;
   }
   if (s.exitSigma !== null) body.exit_sigma_min = s.exitSigma;
+  if (s.metroShare != null) body.metro_share = s.metroShare;
   return body as S["ForecastRequest"];
 }
 
