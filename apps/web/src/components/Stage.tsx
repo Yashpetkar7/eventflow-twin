@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { nightFactor } from "@/lib/daylight";
 import { LANDMARK_KEYS, LANDMARK_STATION, type LandmarkKey } from "@/lib/landmarks";
+import { loadManifest, type Manifest } from "@/lib/manifest";
 import { HOURS, hourOf, lfAt, T_MAX, T_MIN, useTwin } from "@/lib/store";
 import { LabelLayer } from "./LabelLayer";
 
@@ -201,6 +202,27 @@ function HeatStrip() {
   );
 }
 
+/** Map attribution; with the realism ring (?scene=v2) it opens the data credits: one row per dataset, from the bake's manifest. */
+function Credits() {
+  const t = useTranslations();
+  const [m, setM] = useState<Manifest | null>(null);
+  useEffect(() => { loadManifest().then(setM); }, []);
+  if (!m) return <div className="attrib">© OpenStreetMap contributors · RTA open data (GTFS)</div>;
+  return (
+    <details className="attrib credits" data-testid="credits">
+      <summary>© OpenStreetMap contributors · Overture Maps · Copernicus Sentinel-2 · ESA WorldCover · RTA GTFS · <u>{t("credits")}</u></summary>
+      <div className="credits-panel" dir="ltr">
+        <p>{t("creditsNote", { n: m.counts.buildings, e: m.counts.estimated })}</p>
+        <table>
+          <tbody>
+            {m.provenance.map((p) => <tr key={p.dataset}><th>{p.dataset}</th><td>{p.source}</td><td>{p.licence}</td><td>{p.date}</td><td>{p.count}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
 export function Stage() {
   const t = useTranslations();
   const view = useTwin((s) => s.view);
@@ -239,7 +261,7 @@ export function Stage() {
             </div>
             {show3d && <CameraBar />}
           </div>
-          {show3d && <div className="attrib">© OpenStreetMap contributors · RTA open data (GTFS)</div>}
+          {show3d && <Credits />}
         </div>
         {(view === "table" || glFailed) && <TableView />}
         {glFailed && <div className="banner" style={{ position: "absolute", insetInline: 0, bottom: 0, zIndex: 6 }} role="status">{t("glfail")}</div>}

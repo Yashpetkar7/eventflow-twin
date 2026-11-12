@@ -108,6 +108,13 @@ input[type="range"] { width: 100%; accent-color: var(--navy); height: 26px; marg
 .mapctl button { width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.95); color: #151B28; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); display: grid; place-items: center; }
 .mapctl button.moved { background: #D90F0F; color: #fff; }       /* the view has been moved: one tap brings it back */
 .mapctl button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
+.credits { pointer-events: auto; position: relative; }
+.credits summary { cursor: pointer; list-style: none; }
+.credits summary::-webkit-details-marker { display: none; }
+.credits-panel { position: absolute; bottom: 18px; inset-inline: 0; margin: 0 auto; max-width: 980px; max-height: 46vh; overflow: auto; padding: 10px 12px; background: rgba(255, 255, 255, 0.97); border: 1px solid rgba(20, 28, 45, 0.18); border-radius: 8px; box-shadow: 0 8px 28px rgba(20, 28, 45, 0.22); font-size: 11px; line-height: 1.35; color: #141c2d; text-align: start; white-space: normal; text-shadow: none; }
+.credits-panel table { border-collapse: collapse; width: 100%; }
+.credits-panel th, .credits-panel td { text-align: start; vertical-align: top; padding: 3px 6px; border-top: 1px solid rgba(20, 28, 45, 0.1); font-weight: 400; }
+.credits-panel th { font-weight: 600; }
 .attrib { font-size: 9.5px; color: rgba(20, 28, 45, 0.62); text-align: center; pointer-events: none; white-space: nowrap; text-shadow: 0 0 4px rgba(255, 255, 255, 0.7); }
 .tag.lm { pointer-events: auto; cursor: pointer; }
 .tag.lm.venue { pointer-events: none; }

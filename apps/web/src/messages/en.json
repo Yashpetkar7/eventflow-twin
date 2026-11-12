@@ -242,5 +242,7 @@
   "how5": "Nothing is applied until a human approves it, and every decision is logged.",
   "howAlign": "Designed around RTA AI Strategy priorities: congestion reduction, agentic AI and human approval of every decision.",
   "close": "Close",
+  "credits": "Data credits",
+  "creditsNote": "{n} buildings in the 20 km ring; {e} of them have no height in any dataset and use an ESTIMATED height.",
   "footer": "Research prototype by SP Jain MAIB students. Baseline demand is synthetic; attendance, metro share and capacity values are assumptions. Train frequency: RTA open data (GTFS). Map: © OpenStreetMap contributors; building heights are estimated where untagged and sea-side towers are cut to podium height. Not an RTA system and not endorsed by RTA."
 }

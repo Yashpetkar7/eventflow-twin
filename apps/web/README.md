@@ -26,6 +26,15 @@ One command for the booth (offline cache → API → production build → kiosk 
 python tasks.py osm      # once, needs internet: OpenStreetMap → data/raw/osm (git-ignored)
 python tasks.py scene    # → public/geo/corridor_scene.json + ground.png (committed; the exhibit never goes online)
 ```
+**Realism ring (`/?scene=v2`, docs/13 R1 — off by default until R6):**
+```bash
+pip install -r requirements-realism.txt
+python tasks.py realism-data                 # once, needs internet: Overture, Sentinel-2, WorldCover, DEM, 3D-GloBFP → data/raw/realism
+python scripts/build_scene.py --only v2      # → public/geo/v2/ (manifest + 16 chunks; committed)
+```
+`twin/Ring.tsx` streams the chunks (satellite ground × baked AO, Overture buildings with satellite-sampled roofs) over a
+40 km overview; the credits link under the 3D view lists every dataset from the manifest. Counts: `docs/metrics.md`.
+
 Real metres, rotated so Max → Business Bay runs left → right with the camera on the sea side (`scripts/scene_frame.py`).
 Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line track.
 
@@ -56,6 +65,8 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 
 ## Known limits (honest list)
 - The planner is deterministic with template explanations; no live LLM path yet (the response says so).
+- `?scene=v2`: 32 % of the ring's building heights are still estimated; 3D-GloBFP heights are calibrated against OSM tags (decision #77); the
+  ground is 10 m satellite data, soft in close-ups and dark at night until R2; façades are still the simple window grid (R3).
 - Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
 - Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
