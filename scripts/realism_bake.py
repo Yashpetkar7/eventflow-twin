@@ -33,6 +33,7 @@ CLASSES = ["tower", "midrise", "villa", "lowrise", "industrial", "mosque", "stad
 SOURCES = ["osm_height", "osm_levels", "overture_height", "overture_floors", "globfp_calibrated", "landmark_list", "estimated"]
 GROUND_PX = 512          # per 5 km chunk ≈ Sentinel-2's 10 m
 AO_PX = 1024
+MIN_WATER_M2 = 2500.0    # the mask is 10 m / px: pools and fountains under 50 m × 50 m would only smear into puddles
 
 
 # ---------------------------------------------------------------- pure rules (tested in tests/test_realism_bake.py)
@@ -169,11 +170,15 @@ def worldcover_mask(extent, w: int, h: int, water_rings):
         a = sample(f, lat, lon, bilinear=False)
         wc = np.where(np.isnan(wc), a, wc)
     veg = np.where(np.isin(wc, (10, 95)), 255, np.where(np.isin(wc, (20, 30, 40, 90)), 128, 0)).astype("uint8")
-    wimg = Image.fromarray(((wc == 80) * 255).astype("uint8"))
-    d = ImageDraw.Draw(wimg)
     x0, x1, z0, z1 = extent
-    for ring in water_rings:
-        d.polygon([((x - x0) * w / (x1 - x0), (z - z0) * h / (z1 - z0)) for x, z in ring], fill=255)
+    px = lambda ring: [((x - x0) * w / (x1 - x0), (z - z0) * h / (z1 - z0)) for x, z in ring]      # noqa: E731
+    poly = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(poly)
+    for outer, holes in water_rings:               # largest first: a lake on an island is drawn after the sea's hole
+        d.polygon(px(outer), fill=255)
+        for hole in holes:
+            d.polygon(px(hole), fill=0)
+    wimg = Image.fromarray(np.maximum((wc == 80) * 255, np.asarray(poly)).astype("uint8"))
     return Image.merge("RGB", [Image.fromarray(veg), wimg, Image.fromarray(((wc == 50) * 255).astype("uint8"))])
 
 
@@ -213,14 +218,24 @@ def _rings(geojson: str) -> list[list[tuple[float, float]]]:
     return [[project(lat, lon, F) for lon, lat in p[0]] for p in polys if p and len(p[0]) >= 4]
 
 
-def load_water() -> list[list[tuple[float, float]]]:
+def load_water() -> list[tuple[list, list]]:
+    """Overture water polygons as (outer ring, holes), largest first. The Gulf's `bay` outline is left out: it is a
+    coarse shape of the whole Persian Gulf that also covers the coast (it turned Jumeirah into sea in the first bake)."""
     import duckdb
+    from build_scene import area
     con = duckdb.connect()
     con.execute("INSTALL spatial; LOAD spatial;")
     f = (RAW / "overture/water.parquet").as_posix()
     rows = con.execute(f"SELECT ST_AsGeoJSON(geometry) FROM read_parquet('{f}') "
-                       "WHERE ST_GeometryType(geometry) IN ('POLYGON', 'MULTIPOLYGON')").fetchall()
-    return [r for (gj,) in rows for r in _rings(gj)]
+                       "WHERE ST_GeometryType(geometry) IN ('POLYGON', 'MULTIPOLYGON') AND subtype <> 'physical'").fetchall()
+    out = []
+    for (gj,) in rows:
+        g = json.loads(gj)
+        for poly in ([g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]):
+            rings = [[project(lat, lon, F) for lon, lat in ring] for ring in poly if len(ring) >= 4]
+            if rings and abs(area(rings[0])) >= MIN_WATER_M2:
+                out.append((rings[0], rings[1:]))
+    return sorted(out, key=lambda t: -abs(area(t[0])))
 
 
 def calibration(pairs: list[tuple[float, float]], bins: int = 12) -> list[tuple[float, float]]:

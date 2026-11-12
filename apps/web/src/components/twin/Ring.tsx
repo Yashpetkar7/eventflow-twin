@@ -1,11 +1,14 @@
 "use client";
-// Realism ring (?scene=v2 — docs/13_REALISM_FABLE_TASKS.md, R1): the Sentinel-2 ground and the Overture buildings of the
+// Realism ring (?scene=v2 — docs/13_REALISM_FABLE_TASKS.md, R1 + R2): the Sentinel-2 ground and the Overture buildings of the
 // 20 km ring, streamed chunk by chunk (nearest to the corridor first) over a low-resolution 40 km overview.
 // Everything is read from public/geo/v2/ — nothing leaves localhost.
 import { useEffect, useMemo, useState } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { groundMaterial, solidTexture } from "./atmosphere";
 import { buildingsGeometry } from "./builders";
 import type { ChunkJson, Manifest } from "@/lib/manifest";
+import { live } from "./sceneData";
 
 const DIR = "/geo/v2/";
 type Box = [number, number, number, number];
@@ -26,42 +29,37 @@ async function texture(file: string, srgb: boolean): Promise<THREE.Texture> {
   return t;
 }
 
-/** Satellite colour, darkened by the ambient occlusion baked from the footprints. */
-function groundMaterial(map: THREE.Texture, ao: THREE.Texture | null): THREE.MeshStandardMaterial {
-  const m = new THREE.MeshStandardMaterial({ map, roughness: 0.97, metalness: 0 });
-  if (ao) m.onBeforeCompile = (sh) => {
-    sh.uniforms.uAo = { value: ao };
-    sh.fragmentShader = sh.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform sampler2D uAo;")
-      .replace("#include <map_fragment>", "#include <map_fragment>\ndiffuseColor.rgb *= texture2D(uAo, vMapUv).r;");
-  };
-  return m;
-}
-
-interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; far: THREE.BufferGeometry | null; near: THREE.BufferGeometry | null }
+interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; mask: THREE.Texture; far: THREE.BufferGeometry | null; near: THREE.BufferGeometry | null }
 
 export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: THREE.Material; show: boolean }) {
   const [overview, setOverview] = useState<THREE.MeshStandardMaterial | null>(null);
   const [chunks, setChunks] = useState<Loaded[]>([]);
-  const base = useMemo(() => ({
-    wide: plane(manifest.overview.extent, -2),
-    far: new THREE.MeshStandardMaterial({ color: 0xd8c298, roughness: 0.97 }),          // beyond the overview: desert inland …
-    sea: new THREE.MeshStandardMaterial({ color: 0x1c3a48, roughness: 0.4 }),           // … and the Gulf on the sea side
-  }), [manifest]);
+  const time = useMemo(() => ({ value: 0 }), []);                                       // one clock for every water surface
+  const base = useMemo(() => {
+    const seaTex = solidTexture(0x16384a);
+    return {
+      wide: plane(manifest.overview.extent, -2), seaTex,
+      far: new THREE.MeshStandardMaterial({ color: 0xd8c298, roughness: 0.97 }),        // beyond the overview: desert inland …
+      sea: groundMaterial({ map: seaTex }, time, true),                                 // … and the open Gulf on the sea side
+    };
+  }, [manifest, time]);
+  useFrame(() => { time.value = live.animT; });
 
   useEffect(() => {
     let dead = false;
     const made: Loaded[] = [];
-    let ov: THREE.MeshStandardMaterial | null = null;
+    let ov: THREE.MeshStandardMaterial | null = null, ovMaskTex: THREE.Texture | null = null;
     const e = manifest.extent, M = 300;
     const mid = (c: { extent: Box }) => Math.hypot((c.extent[0] + c.extent[1]) / 2, (c.extent[2] + c.extent[3]) / 2);
     (async () => {
-      ov = groundMaterial(await texture(manifest.overview.file, true), null);
+      const [ovMap, ovMask] = await Promise.all([texture(manifest.overview.file, true), texture(manifest.overview.mask, false)]);
+      ovMaskTex = ovMask;
+      ov = groundMaterial({ map: ovMap, mask: ovMask }, time);
       if (dead) return;
       setOverview(ov);
       for (const c of [...manifest.chunks].sort((a, b) => mid(a) - mid(b))) {
-        const [json, map, ao] = await Promise.all([
-          fetch(DIR + c.buildings).then((r) => r.json() as Promise<ChunkJson>), texture(c.ground, true), texture(c.ao, false)]);
+        const [json, map, ao, mask] = await Promise.all([
+          fetch(DIR + c.buildings).then((r) => r.json() as Promise<ChunkJson>), texture(c.ground, true), texture(c.ao, false), texture(c.mask, false)]);
         if (dead) return;
         // only buildings by the corridor cast shadows (the shadow box follows the corridor camera): one mesh each
         const part = (near: boolean) => {
@@ -69,7 +67,7 @@ export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: T
           json.buildings.forEach((b, i) => { if ((b[2] > e[0] - M && b[2] < e[1] + M && b[3] > e[2] - M && b[3] < e[3] + M) === near) { bs.push(b); roofs.push(json.roof[i]); } });
           return bs.length ? buildingsGeometry(bs, { roofs }) : null;
         };
-        made.push({ id: c.id, plane: plane(c.extent, 0), mat: groundMaterial(map, ao), ao, far: part(false), near: part(true) });
+        made.push({ id: c.id, plane: plane(c.extent, 0), mat: groundMaterial({ map, ao, mask }, time), ao, mask, far: part(false), near: part(true) });
         setChunks([...made]);
         document.documentElement.dataset.sceneV2 = `${made.length}/${manifest.chunks.length}`;     // read by the UI tests
         await new Promise((r) => setTimeout(r, 0));                                                 // let a frame through
@@ -77,11 +75,11 @@ export function Ring({ manifest, facade, show }: { manifest: Manifest; facade: T
     })().catch(() => { /* a missing chunk leaves the overview in place */ });
     return () => {
       dead = true;
-      ov?.map?.dispose(); ov?.dispose();
-      for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.far?.dispose(); c.near?.dispose(); }
+      ov?.map?.dispose(); ov?.dispose(); ovMaskTex?.dispose();
+      for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.mask.dispose(); c.far?.dispose(); c.near?.dispose(); }
     };
-  }, [manifest]);
-  useEffect(() => () => { base.wide.dispose(); base.far.dispose(); base.sea.dispose(); }, [base]);
+  }, [manifest, time]);
+  useEffect(() => () => { base.wide.dispose(); base.far.dispose(); base.sea.dispose(); base.seaTex.dispose(); }, [base]);
 
   return (
     <group>

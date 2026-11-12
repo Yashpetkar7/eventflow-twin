@@ -2,10 +2,12 @@
 // The WebGL canvas: loaded lazily (behind the static poster) and only when WebGL is available.
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { EffectComposer, N8AO, SMAA, ToneMapping } from "@react-three/postprocessing";
+import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
+import { nightFactor } from "@/lib/daylight";
 import { useTwin } from "@/lib/store";
+import { installHaze } from "./atmosphere";
 import { CameraRig } from "./CameraRig";
 import { buildCorridor, City } from "./City";
 import { LabelProjector } from "./Labels";
@@ -16,7 +18,10 @@ import { loadManifest, type Manifest } from "@/lib/manifest";
 import { landmarkSpots, live, loadScene, type SceneJson } from "./sceneData";
 import { Sky } from "./Sky";
 
-declare global { interface Window { __eft?: { fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number } } }
+declare global { interface Window { __eft?: { fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number; sun: { elevation: number; azimuth: number } | null } } }
+
+// `?tone=agx` swaps the tone curve of the realism scene for a side-by-side with ACES (docs/13 R2).
+const AGX = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tone") === "agx";
 
 /** Frames per second (published for the Playwright tests) and the automatic quality tier:
  *  below 40 fps for 3 s → step down (tier 1: no ambient occlusion, pixel ratio 1, smaller shadow map, fewer cars and
@@ -31,7 +36,7 @@ function Stats() {
     const measured = a.n / a.t, s = useTwin.getState(), fps = s.fpsOverride ?? measured;
     live.fps = measured;
     a.t = 0; a.n = 0; a.warm++;
-    window.__eft = { fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0 };
+    window.__eft = { fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0, sun: live.sun };
     // a hidden or throttled page reports ~1 fps: that is not a slow GPU, so it never changes the tier
     if (a.warm < 8 || (s.fpsOverride === null && measured < 5)) return;
     a.low = fps < 40 ? a.low + 1 : 0;
@@ -53,9 +58,11 @@ function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest |
   const corridor = useMemo(() => buildCorridor(data), [data]);
   const places = useMemo(() => placeStations(data, corridor, stations), [data, corridor, stations]);
   const spots = useMemo(() => landmarkSpots(data), [data]);
+  // realism scene, full quality: bloom for the night lights only (lit windows are the only thing brighter than 1)
+  const glow = useTwin((s) => !!manifest && tier === 0 && nightFactor(s.time) > 0.3);
   return (
     <>
-      <Sky frame={data.meta.frame} tier={tier} />
+      <Sky frame={data.meta.frame} tier={tier} real={!!manifest} />
       <City data={data} corridor={corridor} manifest={manifest} />
       <Landmarks data={data} />
       <Metro corridor={corridor} places={places} />
@@ -68,8 +75,9 @@ function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest |
       <LabelProjector places={places} spots={spots} />
       <EffectComposer multisampling={0} enableNormalPass={false}>
         {tier > 0 ? <></> : <N8AO aoRadius={16} distanceFalloff={1.2} intensity={2.4} quality="medium" color="#1a2030" />}
+        {glow ? <Bloom mipmapBlur intensity={0.55} luminanceThreshold={1.05} luminanceSmoothing={0.2} /> : <></>}
         <SMAA />
-        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        <ToneMapping mode={manifest && AGX ? ToneMappingMode.AGX : ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>
       <Stats />
       <Ready />
@@ -80,7 +88,7 @@ function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest |
 export default function TwinCanvas({ label }: { label: string }) {
   const [data, setData] = useState<{ scene: SceneJson; manifest: Manifest | null } | null>(null);
   const tier = useTwin((s) => s.tier);
-  useEffect(() => { Promise.all([loadScene(), loadManifest()]).then(([scene, manifest]) => setData({ scene, manifest })).catch(() => useTwin.setState({ glFailed: true })); }, []);
+  useEffect(() => { Promise.all([loadScene(), loadManifest()]).then(([scene, manifest]) => { if (manifest) installHaze(); setData({ scene, manifest }); }).catch(() => useTwin.setState({ glFailed: true })); }, []);
   if (!data) return null;
   return (
     <Canvas

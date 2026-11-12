@@ -303,6 +303,8 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   const external: string[] = [], failed: string[] = [];
   page.on("request", (r) => { const h = new URL(r.url()).hostname; if (!["localhost", "127.0.0.1"].includes(h) && !/^(data|blob):/.test(r.url())) external.push(r.url()); });
   page.on("response", (r) => { if (r.url().includes("/geo/v2/") && !r.ok()) failed.push(r.url()); });
+  const shaderErrors: string[] = [];
+  page.on("console", (m) => { if (m.type() === "error" && /shader|WebGLProgram|GLSL/i.test(m.text())) shaderErrors.push(m.text().slice(0, 300)); });
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
   await expect(page.getByTestId("synthetic-badge")).toBeVisible();
@@ -314,6 +316,15 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   await settle(page, 2500);
   await page.screenshot({ path: `${OUT}/realism_v2_credits.png` });
   await page.getByTestId("credits").locator("summary").click();
+  // R2: the sun comes from the scenario date (GITEX day 1, 13 Oct 2025) and the clock — solar noon ≈ 12:05, sunset ≈ 17:50
+  const sunAt = async (h: number) => { await twin(page, `t.setState({ time: ${h}, playing: false })`); await page.waitForTimeout(2200); return page.evaluate(() => (window as unknown as { __eft: { sun: { elevation: number; azimuth: number } } }).__eft.sun); };
+  const noon = await sunAt(12.09), dusk = await sunAt(17.83), night = await sunAt(21.5);
+  expect(Math.abs(noon.elevation - 57.2), JSON.stringify(noon)).toBeLessThan(1.5);
+  expect(Math.abs(noon.azimuth - 180), JSON.stringify(noon)).toBeLessThan(6);
+  expect(Math.abs(dusk.elevation), JSON.stringify(dusk)).toBeLessThan(2);
+  expect(dusk.azimuth).toBeGreaterThan(255); expect(dusk.azimuth).toBeLessThan(268);
+  expect(night.elevation).toBeLessThan(-40);
+  expect(shaderErrors, shaderErrors.join(" | ")).toEqual([]);                  // haze, ground and water shaders compiled, day and night
   expect(failed).toEqual([]);
   expect(external).toEqual([]);
   await twin(page, "t.setState({ playing: true, speed: 1 })");
