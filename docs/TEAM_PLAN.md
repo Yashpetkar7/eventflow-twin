@@ -1,5 +1,8 @@
 # Team plan — EventFlow Twin (Krishna · Atharva · Yash)
 
+> **12 Nov evening:** the status and task split below are out of date. Current tasks per person, with due dates and
+> "done when" checks: **`docs/12_TEAM_TASKS.md`**. The working rules in §2 still apply.
+
 Status at 11 Nov 2026 evening. Target: demo-ready **17 Nov** (works for both exhibit periods). Owners for streams
 A/B/C are **to be agreed on the team call**; the proposal is at the bottom.
 

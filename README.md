@@ -27,6 +27,7 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/08_EVAL_PLAN.md` | Metrics, gold sets, thresholds, CI gate | Build |
 | `docs/09_DECISIONS.md` | Decision log (ADR) | Ongoing |
 | `docs/10_RISKS_AND_INTEGRITY.md` | Risks, mitigations, honesty rules | Ongoing |
+| `docs/12_TEAM_TASKS.md` | **Who does what, 12–17 Nov** (Krishna, Atharva, Yash): tasks, owners, due dates, done-when checks | Now |
 | `docs/11_MVP_ROADMAP.md` | Roadmap from the exhibit demo to a deployed MVP (phases, research, what each phase proves) | Planning |
 | `docs/superpowers/plans/` | Task-by-task implementation plans (first: the Vercel live demo) | Build |
 | `docs/BOOTH_RUNBOOK.md`, `docs/metrics.md` | Booth start / recover / shutdown; measured fps, memory, network results | Exhibit |
