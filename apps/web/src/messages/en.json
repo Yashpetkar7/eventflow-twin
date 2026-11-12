@@ -16,8 +16,9 @@
     "after": "After approved plan",
     "compare": "Compare before and after the approved plan",
     "mapAria": "3D map of corridor stations coloured by load",
-    "mapLegend": "Geometry: RTA GTFS (open data) · column height = boarding demand · ring = above 85% comfort",
-    "venue": "Venue: {name}"
+    "mapLegend": "Map © OpenStreetMap contributors · metro & capacity: RTA open data (GTFS 2021) · column = boardings · ring = above 85% comfort",
+    "venue": "Venue: {name}",
+    "allDubai": "All Dubai"
   },
   "rail": {
     "scenario": "Scenario",
@@ -83,7 +84,9 @@
     "walk": "Guide visitors on foot from {from} to {to}",
     "shuttle": "Feeder shuttle from {from} to {to}",
     "stagger": "Stagger the exit and run a feeder shuttle",
-    "rationale": "{title}. Simulated over-capacity station-hours {ob} → {oa}; passengers above comfort {eb} → {ea}; peak load {pb} → {pa}; longest wait {wb} → {wa} min. Cost proxy {cost}."
+    "rationale": "{title}. Simulated over-capacity station-hours {ob} → {oa}; passengers above comfort {eb} → {ea}; peak load {pb} → {pa}; longest wait {wb} → {wa} min. Cost proxy {cost}.",
+    "intro": "The planner looks at the busiest stations in this scenario, proposes options from a fixed menu, and the simulator measures each one.",
+    "nothing": "Nothing exceeds the comfort threshold in this scenario."
   },
   "evidence": {
     "title": "Evidence",
@@ -154,5 +157,106 @@
     "lgbm_coverage80": "80% interval coverage",
     "property_pass_rate": "Simulator property checks passed",
     "conservation_error_max": "Max passenger-conservation error"
+  },
+  "nav": {
+    "overview": "Overview",
+    "twin": "Live twin",
+    "events": "Events",
+    "stations": "Stations",
+    "planner": "Planner",
+    "evidence": "Evidence",
+    "decisions": "Decisions",
+    "main": "Main navigation",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "dataStatus": "Data status",
+    "syntheticDemand": "Demand: synthetic (labelled)",
+    "realCapacity": "Capacity: RTA timetable 2021",
+    "network": "{stations} stations · {lines} lines"
+  },
+  "page": {
+    "overviewSub": "Network status for the selected scenario",
+    "twinSub": "3D map of Dubai with every metro station",
+    "eventsSub": "Scenarios the twin can simulate",
+    "stationsSub": "Every metro station: load, peak hour and capacity",
+    "plannerSub": "Propose, compare and approve interventions",
+    "evidenceSub": "How good the numbers are, and where they come from",
+    "decisionsSub": "Every human decision, newest first"
+  },
+  "overview": {
+    "peakLoad": "Network peak load",
+    "peakAt": "{station} at {hour}",
+    "overcap": "Over-capacity station-hours",
+    "overcapHint": "15-min bins above 85%, in hours",
+    "wait": "Longest platform wait",
+    "waitUnit": "min",
+    "waitHint": "extra wait beyond the next train",
+    "breakPoint": "Break point",
+    "breakHint": "visitors/day at which a served station first exceeds comfort",
+    "noBreak": "—",
+    "hotspots": "Busiest station-hours",
+    "openTwin": "Open in live twin",
+    "dayCurve": "Network boardings vs capacity by hour",
+    "demand": "Boardings",
+    "capacity": "Comfort capacity",
+    "scenario": "Scenario",
+    "noEvent": "Normal weekday — no event",
+    "attendance": "{value} visitors/day",
+    "byLine": "Peak load by line at {hour}",
+    "line": "{line} line",
+    "served": "Stations receiving event trips",
+    "assumptions": "Key assumptions",
+    "a1": "35% free space on arriving trains",
+    "a2": "45% of visitors travel by metro",
+    "a3": "Comfort threshold 85% of practical capacity",
+    "synthetic": "Background demand is synthetic until RTA ridership is ingested."
+  },
+  "events": {
+    "run": "Run this scenario",
+    "running": "Running",
+    "sourced": "Sourced",
+    "assumed": "Assumption",
+    "date": "Date",
+    "hours": "Hours",
+    "attendance": "Attendance",
+    "venue": "Venue",
+    "sources": "Sources",
+    "baseline": "Normal weekday",
+    "baselineText": "No event: background demand only. Useful to see the network's everyday peaks.",
+    "soon": "Coming next: drop a pin anywhere in Dubai to create your own event."
+  },
+  "stations": {
+    "search": "Search stations",
+    "all": "All lines",
+    "name": "Station",
+    "lines": "Lines",
+    "peak": "Peak load",
+    "peakHour": "Peak hour",
+    "boardings": "Boardings (day)",
+    "capacity": "Capacity at peak",
+    "count": "{n} stations",
+    "detail": "Station detail",
+    "close": "Close",
+    "interchange": "Interchange",
+    "corridor": "Featured corridor",
+    "sortBy": "Sort by"
+  },
+  "decisions": {
+    "total": "Decisions",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "time": "Time",
+    "option": "Option",
+    "decision": "Decision",
+    "what": "What was decided",
+    "plan": "Plan",
+    "empty": "No decisions yet. Approve or reject an option in the Planner.",
+    "export": "Export CSV",
+    "refresh": "Refresh"
+  },
+  "lineName": {
+    "Red": "Red",
+    "Green": "Green",
+    "Branch": "Jabal Ali branch"
   }
 }

@@ -15,6 +15,11 @@ from .config import corridor
 Hours = Annotated[list[Annotated[int, Field(ge=0, le=23)]], Field(min_length=1, max_length=24)]
 
 
+def _km(a_lat: float, a_lon: float, b_lat: float, b_lon: float) -> float:
+    from .event_model import _haversine_km
+    return _haversine_km(a_lat, a_lon, b_lat, b_lon)
+
+
 class InterventionError(ValueError):
     """Raised for any intervention that is malformed, out of bounds or refers to unknown stations."""
 
@@ -120,6 +125,11 @@ def validate_interventions(raw: list) -> list[Intervention]:
                 raise InterventionError(f"{where}: from_station and to_station must differ")
             if p.buses > b["max_buses"]:
                 raise InterventionError(f"{where}: buses {p.buses} > max {b['max_buses']}")
+            by_id = {s["id"]: s for s in cfg["stations"]}
+            a_, b_ = by_id[p.from_station], by_id[p.to_station]
+            km = _km(a_["lat"], a_["lon"], b_["lat"], b_["lon"])
+            if km > b.get("max_shuttle_km", 8):
+                raise InterventionError(f"{where}: {p.from_station}→{p.to_station} is {km:.1f} km; max {b.get('max_shuttle_km', 8)} km")
         elif isinstance(iv, RobotaxiStaging):
             _check_station(p.station, f"{where}.station")
             if p.vehicles > b["max_robotaxi_vehicles"]:

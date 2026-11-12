@@ -23,3 +23,8 @@ submission/tools/University_Nomination_Template*
 .ruff_cache/
 *.egg-info/
 eval/results/*.tmp
+
+# offline basemap tiles (30 MB): regenerate with python scripts/fetch_basemap.py --download
+apps/web/public/map/*.pmtiles
+apps/web/public/map/*.tmp
+apps/web/public/map/maplibre-gl-worker.mjs

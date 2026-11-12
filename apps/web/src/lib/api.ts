@@ -15,6 +15,8 @@ export type AgentPlanResponse = S["AgentPlanResponse"];
 export type PlanOption = S["PlanOption"];
 export type DecisionRequest = S["DecisionRequest"];
 export type DecisionResponse = S["DecisionResponse"];
+export type DecisionList = S["DecisionList"];
+export type DecisionRecord = S["DecisionRecord"];
 export type Source = S["Source"];
 export type Intervention = NonNullable<S["SimulateRequest"]["interventions"]>[number];
 
@@ -69,5 +71,6 @@ export const api = {
   agentPlan: (forecast_run_id: string, locale: "en" | "ar" = "en") =>
     call<AgentPlanResponse>("/agent/plan", { forecast_run_id, locale }),
   decide: (req: DecisionRequest) => call<DecisionResponse>("/decisions", req),
+  decisions: (limit = 200) => call<DecisionList>(`/decisions?limit=${limit}`),
   evidence: () => call<Evidence>("/evidence"),
 };

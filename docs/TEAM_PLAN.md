@@ -28,6 +28,12 @@ Decide together:
    origin–destination data lets Stream A compute on-board load per segment and replace it.
 3. The ranking flaw (§3 A6) still applies: with the new capacity the walking redirect ranks #1 on Δexcess − λ·cost.
 
+## 0b. Update 12 Nov — whole network, real Dubai map, product shell
+- **Whole Dubai Metro**: 53 stations (Red, Green, Jabal Ali branch) from the official RTA GTFS, capacity per line and direction (DECISIONS #32–36).
+- **Real offline map of Dubai** (OpenStreetMap, 3D buildings) — run `python tasks.py basemap` once per laptop (DECISIONS #37–38).
+- **Tabbed app** (Overview · Live twin · Events · Stations · Planner · Evidence · Decisions), EN/AR, kiosk on top (DECISIONS #39). See `apps/web/README.md`.
+- Demand everywhere is still labelled synthetic: **ridership data is now the main gap**.
+
 ## 1. What already exists (commit `2866ae4`+)
 | Area | State |
 |---|---|

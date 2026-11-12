@@ -27,6 +27,14 @@ export interface PreviewResult {
 }
 
 const LAMBDA = 20; // mirrors corridor.yaml interventions.ranking_lambda (preview only)
+const MAX_SHUTTLE_KM = 8; // mirrors corridor.yaml interventions.bounds.max_shuttle_km (the API enforces it)
+
+function km(a: Station, b: Station): number {
+  const r = 6371, rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * r * Math.asin(Math.sqrt(h));
+}
 
 interface Candidate { label: OptionLabel; interventions: Intervention[] }
 
@@ -49,7 +57,9 @@ function candidates(base: SimulateResponse, stations: Station[], hasEvent: boole
   const calm = (ids: string[]) => [...ids].sort((a, b) => (peakBy.get(a) ?? 0) - (peakBy.get(b) ?? 0))[0];
   const neighbours = [order[i - 1], order[i + 1]].filter(Boolean) as string[];
   const calmNeighbour = calm(neighbours);
-  const farCalm = calm(order.filter((s) => s !== hot && !neighbours.includes(s)));
+  const hotSt = stations.find((s) => s.id === hot)!;
+  // Feeder shuttle target: a calm station that is not a walkable neighbour but still nearby (not across the city).
+  const farCalm = calm(stations.filter((s) => s.id !== hot && !neighbours.includes(s.id) && km(hotSt, s) <= MAX_SHUTTLE_KM).map((s) => s.id));
 
   const out: Candidate[] = [
     { label: { kind: "trains" }, interventions: [{ type: "extra_trains", params: { headway_min: 2.5, hours, line: "Red" } }] },

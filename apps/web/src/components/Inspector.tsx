@@ -1,85 +1,90 @@
 "use client";
+// Reusable station + plan panels, all reading the shared twin (lib/twinContext).
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { PlanOption, SimSummary, Station } from "@/lib/api";
-import type { Twin } from "@/lib/useTwin";
-import type { OptionLabel, PlannerText } from "@/lib/previewPlanner";
+import type { OptionLabel } from "@/lib/previewPlanner";
+import { useShownSim, useTwinCtx } from "@/lib/twinContext";
 import { useFmt, useLocaleSwitch, useNames } from "@/lib/i18n";
 import { COMFORT, band } from "@/lib/load";
+import { LineChip } from "./ui";
 
 const BAND_TEXT = { ok: "text-ok", warn: "text-warn", risk: "text-risk" } as const;
 
-export default function Inspector({ twin, station, hour, view, plannerText }: {
-  twin: Twin; station: Station | null; hour: number; view: "before" | "after"; plannerText: PlannerText;
-}) {
+export function StationSummary({ station }: { station: Station | null }) {
   const t = useTranslations("inspector");
   const { fmt, pct, hh } = useFmt();
   const names = useNames();
-  const { locale } = useLocaleSwitch();
-  const rtl = locale === "ar";
-  const { forecast, baseline, after } = twin;
-  const shown = view === "after" && after ? after : baseline;
+  const { hour, view, twin } = useTwinCtx();
+  const shown = useShownSim();
   const row = shown?.hourly.find((r) => r.station_id === station?.id && r.hour === hour);
   const lf = row?.peak_lf ?? 0;
-
-  const chart = useMemo(() => {
-    if (!forecast || !baseline || !station) return [];
-    return Array.from({ length: 19 }, (_, i) => i + 5).map((h) => {
-      const f = forecast.rows.find((r) => r.station_id === station.id && r.hour === h);
-      const cap = baseline.hourly.find((r) => r.station_id === station.id && r.hour === h)?.capacity ?? 0;
-      const a = after?.hourly.find((r) => r.station_id === station.id && r.hour === h)?.demand;
-      return { hour: h, band: [f?.entries_p10 ?? 0, f?.entries_p90 ?? 0], p50: f?.entries_p50 ?? 0,
-        comfort: Math.round(cap * COMFORT), after: a };
-    });
-  }, [forecast, baseline, after, station]);
-
   return (
-    <aside className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto border-s border-line bg-surface/60 p-5">
-      <section>
+    <section>
+      <div className="flex flex-wrap items-center gap-2">
         <h2 className="label">{t("selected", { station: names.station(station) })}</h2>
-        <div className="glass mt-2 p-4">
-          <p className={`num text-[40px] font-semibold leading-none ${BAND_TEXT[band(lf)]}`}>{pct(lf)}</p>
-          <p className="mt-2 text-[13px] text-ink-2">
-            {t("peakAt", { hour: hh(hour) })}{lf > COMFORT ? t("aboveComfort") : ""}{view === "after" && after ? t("afterPlan") : ""}
-          </p>
-          {row && <p className="num mt-1 text-[12px] text-ink-3">{t("flow", { demand: fmt(row.demand), capacity: fmt(row.capacity) })}</p>}
-        </div>
-      </section>
-
-      <section className="glass p-4">
-        <h3 className="mb-1 text-[13px] font-medium text-ink-2">{t("chartTitle")}</h3>
-        <div className="h-44" role="img" aria-label={t("chartAria")}>
-          <ResponsiveContainer>
-            <ComposedChart data={chart} margin={{ top: 6, right: rtl ? -12 : 6, bottom: 0, left: rtl ? 6 : -12 }}>
-              <CartesianGrid stroke="rgba(27,31,42,0.06)" vertical={false} />
-              <XAxis dataKey="hour" reversed={rtl} tickFormatter={(h) => String(h).padStart(2, "0")} tick={{ fontSize: 10 }} interval={2} />
-              <YAxis orientation={rtl ? "right" : "left"} tick={{ fontSize: 10 }} width={44} tickFormatter={(v) => fmt(Number(v))} />
-              <Tooltip formatter={(v) => (Array.isArray(v) ? v.map((x) => fmt(Number(x))).join(" – ") : fmt(Number(v)))}
-                labelFormatter={(h) => hh(Number(h))} />
-              <Area dataKey="band" name={t("band")} stroke="none" fill="#1D4ED8" fillOpacity={0.14} isAnimationActive={false} />
-              <Line dataKey="p50" name={t("p50")} stroke="#1D4ED8" strokeWidth={2} dot={false} isAnimationActive={false} />
-              <Line dataKey="comfort" name={t("comfort")} stroke="#B4454F" strokeDasharray="5 4" dot={false} isAnimationActive={false} />
-              {after && <Line dataKey="after" name={t("afterLine")} stroke="#3F8F6B" strokeWidth={2} dot={false} isAnimationActive={false} />}
-              <ReferenceLine x={hour} stroke="#8A8F9C" strokeDasharray="2 3" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-        {forecast && locale === "en" && <p className="mt-1 text-[11px] leading-snug text-ink-3">{forecast.band_note}</p>}
-      </section>
-
-      <PlanPanel twin={twin} plannerText={plannerText} />
-      {after && baseline && <Scoreboard before={baseline.summary} after={after.summary} source={after.source.run_id} />}
-    </aside>
+        {station?.lines?.map((l) => <LineChip key={l} line={l} />)}
+      </div>
+      <div className="glass mt-2 p-4">
+        <p className={`num text-[40px] font-semibold leading-none ${BAND_TEXT[band(lf)]}`}>{pct(lf)}</p>
+        <p className="mt-2 text-[13px] text-ink-2">
+          {t("peakAt", { hour: hh(hour) })}{lf > COMFORT ? t("aboveComfort") : ""}{view === "after" && twin.after ? t("afterPlan") : ""}
+        </p>
+        {row && <p className="num mt-1 text-[12px] text-ink-3">{t("flow", { demand: fmt(row.demand), capacity: fmt(row.capacity) })}</p>}
+      </div>
+    </section>
   );
 }
 
-function PlanPanel({ twin, plannerText }: { twin: Twin; plannerText: PlannerText }) {
+export function StationChart({ stationId, height = "h-44" }: { stationId: string | null; height?: string }) {
+  const t = useTranslations("inspector");
+  const { fmt, hh } = useFmt();
+  const { locale } = useLocaleSwitch();
+  const rtl = locale === "ar";
+  const { twin, hour } = useTwinCtx();
+  const { forecast, baseline, after } = twin;
+  const chart = useMemo(() => {
+    if (!forecast || !baseline || !stationId) return [];
+    return Array.from({ length: 19 }, (_, i) => i + 5).map((h) => {
+      const f = forecast.rows.find((r) => r.station_id === stationId && r.hour === h);
+      const cap = baseline.hourly.find((r) => r.station_id === stationId && r.hour === h)?.capacity ?? 0;
+      const a = after?.hourly.find((r) => r.station_id === stationId && r.hour === h)?.demand;
+      return { hour: h, band: [f?.entries_p10 ?? 0, f?.entries_p90 ?? 0], p50: f?.entries_p50 ?? 0,
+        comfort: Math.round(cap * COMFORT), after: a };
+    });
+  }, [forecast, baseline, after, stationId]);
+  return (
+    <div>
+      <h3 className="mb-1 text-[13px] font-medium text-ink-2">{t("chartTitle")}</h3>
+      <div className={height} role="img" aria-label={t("chartAria")}>
+        <ResponsiveContainer>
+          <ComposedChart data={chart} margin={{ top: 6, right: rtl ? -12 : 6, bottom: 0, left: rtl ? 6 : -12 }}>
+            <CartesianGrid stroke="rgba(27,31,42,0.06)" vertical={false} />
+            <XAxis dataKey="hour" reversed={rtl} tickFormatter={(h) => String(h).padStart(2, "0")} tick={{ fontSize: 10 }} interval={2} />
+            <YAxis orientation={rtl ? "right" : "left"} tick={{ fontSize: 10 }} width={44} tickFormatter={(v) => fmt(Number(v))} />
+            <Tooltip formatter={(v) => (Array.isArray(v) ? v.map((x) => fmt(Number(x))).join(" – ") : fmt(Number(v)))}
+              labelFormatter={(h) => hh(Number(h))} />
+            <Area dataKey="band" name={t("band")} stroke="none" fill="#1D4ED8" fillOpacity={0.14} isAnimationActive={false} />
+            <Line dataKey="p50" name={t("p50")} stroke="#1D4ED8" strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line dataKey="comfort" name={t("comfort")} stroke="#B4454F" strokeDasharray="5 4" dot={false} isAnimationActive={false} />
+            {after && <Line dataKey="after" name={t("afterLine")} stroke="#3F8F6B" strokeWidth={2} dot={false} isAnimationActive={false} />}
+            <ReferenceLine x={hour} stroke="#8A8F9C" strokeDasharray="2 3" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      {forecast && locale === "en" && <p className="mt-1 text-[11px] leading-snug text-ink-3">{forecast.band_note}</p>}
+    </div>
+  );
+}
+
+export function PlanPanel({ columns = 1 }: { columns?: 1 | 2 | 3 }) {
   const t = useTranslations("plan");
+  const { twin } = useTwinCtx();
   const { plan, planLabels, planStatus, planError, requestPlan, decisions, decide, baseline, afterLoading, stations } = twin;
   const nothingToFix = baseline && baseline.summary.overcap_station_hours === 0;
   const preview = plan?.plan_id.startsWith("preview_");
-
+  const grid = columns === 3 ? "lg:grid-cols-3" : columns === 2 ? "lg:grid-cols-2" : "";
   return (
     <section className="flex flex-col gap-3">
       <button onClick={requestPlan} disabled={!baseline || planStatus === "loading"} data-tour="plan"
@@ -92,24 +97,25 @@ function PlanPanel({ twin, plannerText }: { twin: Twin; plannerText: PlannerText
           {planError.kind === "decision" ? t("notLogged", { error: planError.message }) : planError.message}
         </p>
       )}
-      {plan && preview && (
-        <p className="rounded-lg bg-muted px-3 py-2 text-[12px] leading-snug text-ink-2"><b>{t("preview")}</b> {t("previewText")}</p>
-      )}
+      {plan && preview && <p className="rounded-lg bg-muted px-3 py-2 text-[12px] leading-snug text-ink-2"><b>{t("preview")}</b> {t("previewText")}</p>}
       {plan && plan.options.length === 0 && <p className="text-[13px] text-ink-2">{nothingToFix ? t("nothing") : t("noGain")}</p>}
-      {plan?.options.map((o) => (
-        <OptionCard key={o.rank} option={o} base={plan.baseline_summary} decision={decisions[o.rank]} busy={afterLoading}
-          label={planLabels?.[o.rank]} plannerText={plannerText} stations={stations} onDecide={(d) => decide(o.rank, d)} />
-      ))}
+      <div className={`grid gap-3 ${grid}`}>
+        {plan?.options.map((o) => (
+          <OptionCard key={o.rank} option={o} base={plan.baseline_summary} decision={decisions[o.rank]} busy={afterLoading}
+            label={planLabels?.[o.rank]} stations={stations} onDecide={(d) => decide(o.rank, d)} />
+        ))}
+      </div>
     </section>
   );
 }
 
-function OptionCard({ option, base, decision, busy, label, plannerText, stations, onDecide }: {
+function OptionCard({ option, base, decision, busy, label, stations, onDecide }: {
   option: PlanOption; base: SimSummary; decision?: "approve" | "reject"; busy: boolean; label?: OptionLabel;
-  plannerText: PlannerText; stations: Station[]; onDecide: (d: "approve" | "reject") => void;
+  stations: Station[]; onDecide: (d: "approve" | "reject") => void;
 }) {
   const t = useTranslations("plan");
   const { fmt, pct } = useFmt();
+  const { plannerText } = useTwinCtx();
   const s = option.summary;
   // Preview options re-render their text in the current language; agent options arrive already localised.
   const title = label ? plannerText.title(label, stations) : option.title;
@@ -157,32 +163,50 @@ function OptionCard({ option, base, decision, busy, label, plannerText, stations
   );
 }
 
-function Scoreboard({ before, after, source }: { before: SimSummary; after: SimSummary; source: string }) {
+export function Scoreboard() {
   const t = useTranslations("plan");
   const { fmt, pct } = useFmt();
+  const { twin } = useTwinCtx();
+  const { baseline, after } = twin;
+  if (!baseline || !after) return null;
+  const before = baseline.summary, a = after.summary;
   const rows: [string, number, number, (n: number) => string, boolean][] = [
-    [t("overcap"), before.overcap_station_hours, after.overcap_station_hours, (n) => fmt(n, 2), true],
-    [t("excess"), before.excess_pax, after.excess_pax, (n) => fmt(n), true],
-    [t("peak"), before.peak_lf, after.peak_lf, pct, true],
-    [t("wait"), before.max_wait_min, after.max_wait_min, (n) => fmt(n, 1), true],
-    [t("cost"), before.cost_proxy, after.cost_proxy, (n) => fmt(n, 1), false],
+    [t("overcap"), before.overcap_station_hours, a.overcap_station_hours, (n) => fmt(n, 2), true],
+    [t("excess"), before.excess_pax, a.excess_pax, (n) => fmt(n), true],
+    [t("peak"), before.peak_lf, a.peak_lf, pct, true],
+    [t("wait"), before.max_wait_min, a.max_wait_min, (n) => fmt(n, 1), true],
+    [t("cost"), before.cost_proxy, a.cost_proxy, (n) => fmt(n, 1), false],
   ];
   return (
     <section className="glass p-4" aria-label={t("scoreAria")}>
       <h3 className="label mb-2">{t("scoreTitle")}</h3>
       <table className="num w-full text-[13px]">
         <tbody>
-          {rows.map(([k, b, a, f, lowerIsBetter]) => (
+          {rows.map(([k, b, x, f, lowerIsBetter]) => (
             <tr key={k} className="border-t border-line">
               <td className="py-1.5 text-ink-2">{k}</td>
               <td className="py-1.5 text-end text-ink-3">{f(b)}</td>
               <td className="px-1 text-ink-3 rtl:-scale-x-100">→</td>
-              <td className={`py-1.5 text-end font-semibold ${lowerIsBetter && a < b ? "text-ok" : ""}`}>{f(a)}</td>
+              <td className={`py-1.5 text-end font-semibold ${lowerIsBetter && x < b ? "text-ok" : ""}`}>{f(x)}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="mt-2 truncate text-[10px] text-ink-3" dir="ltr">{t("source", { id: source })}</p>
+      <p className="mt-2 truncate text-[10px] text-ink-3" dir="ltr">{t("source", { id: after.source.run_id })}</p>
     </section>
+  );
+}
+
+/** Right-hand panel of the Live twin tab. */
+export default function Inspector() {
+  const { twin, stationId } = useTwinCtx();
+  const station = twin.stations.find((s) => s.id === stationId) ?? null;
+  return (
+    <aside className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto border-s border-line bg-surface/70 p-5 backdrop-blur">
+      <StationSummary station={station} />
+      <section className="glass p-4"><StationChart stationId={stationId} /></section>
+      <PlanPanel />
+      <Scoreboard />
+    </aside>
   );
 }

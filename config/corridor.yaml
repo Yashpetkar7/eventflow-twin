@@ -53,6 +53,7 @@ interventions:
   # Hard parameter bounds; requests outside these are rejected (HTTP 422), never silently clipped.
   bounds:
     max_buses: 30
+    max_shuttle_km: 8             # a feeder shuttle serves a nearby station, not a cross-city trip [ASSUMPTION]
     max_robotaxi_vehicles: 60
     max_redirect_share: 0.5
     max_redirect_walk_min: 25     # wayfinding only between adjacent stations within this walk [ASSUMPTION]

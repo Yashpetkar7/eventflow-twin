@@ -122,7 +122,9 @@ export function useTwin(plannerText: PlannerText, locale: "en" | "ar") {
   const decide = useCallback(async (rank: number, decision: Decision) => {
     if (!plan || !forecast) return;
     try {
-      await api.decide({ plan_id: plan.plan_id, option_rank: rank, decision, user: "visitor" });
+      const option = plan.options.find((o) => o.rank === rank);
+      await api.decide({ plan_id: plan.plan_id, option_rank: rank, decision, user: "visitor",
+        option_title: option?.title.slice(0, 200), forecast_run_id: forecast.run_id, interventions: option?.interventions ?? [] });
     } catch (e) {
       setPlanError({ kind: "decision", message: (e as Error).message });
       return;                                    // never show an "applied" state that was not logged

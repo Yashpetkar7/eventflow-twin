@@ -147,6 +147,7 @@ def test_lf_bounds_and_nonnegative(heavy_demand):
     {"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "EMT", "buses": 2, "hours": [18]}},
     {"type": "shuttle_bus", "params": {"from_station": "XXX", "to_station": "FIC", "buses": 2, "hours": [18]}},
     {"type": "shuttle_bus", "params": {"from_station": "EMT", "to_station": "FIC", "buses": 999, "hours": [18]}},
+    {"type": "shuttle_bus", "params": {"from_station": "WTC", "to_station": "DISCOVERY_GARDENS", "buses": 5, "hours": [18]}},
     {"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "BBY", "share": 0.2}},
     {"type": "wayfinding_redirect", "params": {"from_station": "EMT", "to_station": "FIC", "share": 0.9}},
     {"type": "staggered_exit", "params": {"spread_minutes": 5}},
