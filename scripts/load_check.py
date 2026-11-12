@@ -5,8 +5,8 @@
 Three phases, all light enough to run against our own site (≈ 200 requests in under a minute):
   A  page and static API reads, 30 at once × 3 rounds         → latency p50 / p95, errors
   B  20 visitors at once, each forecast → AI plan (2 POSTs)     → latency of the real work, errors
+  D  abuse: 25 interventions in one request, a 2,000-char note  → refused with 422, nothing simulated (runs before C)
   C  70 POSTs in a row from one client                          → the courtesy rate limit answers 429 (per instance)
-  D  abuse: 25 interventions in one request, a 2,000-char note  → refused with 422, nothing simulated
 Only uses the public API; no keys. Do not point it at someone else's site.
 """
 from __future__ import annotations
@@ -77,13 +77,12 @@ def main() -> int:
     with cf.ThreadPoolExecutor(20) as ex:
         flows = [r for rows in ex.map(lambda i: visitor(api, i), range(20)) for r in rows]
     res["B_visitor_flows_20_concurrent"] = stats(flows)
-    burst = [call(f"{api}/forecast", {"event_id": "gitex2025_d1"}) for _ in range(70)]
-    res["C_rate_limit_70_in_a_row"] = stats(burst) | {"first_429_at": next((i + 1 for i, (c, _) in enumerate(burst) if c == 429), None)}
-    time.sleep(1)
     iv = {"type": "robotaxi_staging", "params": {"station": "WTC", "vehicles": 10, "hours": [15]}}
     abuse = [call(f"{api}/simulate", {"forecast_run_id": "fc_x", "interventions": [iv] * 25}),
              call(f"{api}/agent/plan", {"forecast_run_id": "fc_x", "notes": "x" * 2000})]
-    res["D_abuse_refused"] = {"codes": [c for c, _ in abuse], "expected": [422, 422]}
+    res["D_abuse_refused"] = {"codes": [c for c, _ in abuse], "expected": [422, 422]}     # before the burst uses up the limit
+    burst = [call(f"{api}/forecast", {"event_id": "gitex2025_d1"}) for _ in range(70)]
+    res["C_rate_limit_70_in_a_row"] = stats(burst) | {"first_429_at": next((i + 1 for i, (c, _) in enumerate(burst) if c == 429), None)}
     sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     rep = {"suite": "load_check", "git_sha": sha, "timestamp": dt.datetime.now().isoformat(timespec="seconds"),
            "models": None, "dataset_version": None, "metrics": res, "n": sum(v.get("n", 0) for v in res.values() if isinstance(v, dict)),

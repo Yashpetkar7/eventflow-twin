@@ -74,9 +74,23 @@ python tasks.py smoke https://<production-url>
 ```
 Share the link only after the smoke test prints `OK`. Roll back with `vercel rollback`.
 
-## Deploys from GitHub
-Connecting the GitHub repo in the Vercel dashboard gives a preview per pull request and production on `main`.
-Decide that together first (production on every merge to `main` is a publishing decision).
+## Deploys from GitHub (switch on once — Krishna + Yash, ~2 minutes)
+Not switched on yet (Claude Code was not allowed to change these account settings). To make every merge to `main`
+update https://eventflow-twin.vercel.app and every pull request get its own preview link:
+1. **Krishna:** Vercel dashboard → project **eventflow-twin** → Settings → **Git** → Connect Git Repository → GitHub →
+   `Yashpetkar7/eventflow-twin`. (CLI alternative in the repo folder: `vercel git connect`.)
+2. **Yash** (repo owner): GitHub will ask to install / allow the **Vercel** GitHub app on `Yashpetkar7/eventflow-twin` —
+   approve it for this repository only.
+3. Settings → Git → Production Branch = `main`. Settings → Deployment Protection → keep "Standard Protection"
+   (previews need a Vercel login; production stays as decided with Dr. Rachit).
+Until then, deploy by hand after merging: `vercel deploy --prod` then `python scripts/smoke_live.py https://eventflow-twin.vercel.app`
+and `python scripts/load_check.py https://eventflow-twin.vercel.app`.
+
+## Load check (12 Nov 2026, live site, previous version)
+`eval/results/load_20261112-1821.json`: 30 parallel page/API reads ×3 → 90/90 OK, p50 0.44 s, p95 5.1 s (cold starts);
+20 parallel visitors (forecast + AI plan) → 40/40 OK, p50 1.3 s, p95 1.8 s; the courtesy rate limit answered 429 from
+request 58 of 70 in a row. Abuse checks (25 interventions, 2,000-character note → 422) pass on the new code
+(`load_20261112-1823.json`, local); re-run on the live site after the next production deploy.
 
 ## If the build fails
 | Symptom | Fix |
