@@ -1,0 +1,20 @@
+# Station names in RTA's ridership data (data.dubai "Dubai Metro Ridership") → our station ids (config/corridor.yaml).
+# The ingest first matches names automatically (lower case, without "Metro Station" and punctuation, against name_en);
+# this file covers renamed stations and anything else it cannot match. The data runs 2017–2026, so OLD names appear.
+# `python tasks.py ingest` lists every name it could not map, with its row count — add those here and re-run.
+# Renames below are the widely reported ones; VERIFY each against the unmatched list before relying on it.
+aliases:
+  rashidiya: CENTREPOINT
+  aljafiliya: MAX
+  alkarama: ADCB
+  khalidbinalwaleed: BURJUMAN
+  nakheel: AL_KHAIL
+  dubaimarina: SOBHA_REALTY
+  jumeirahlakestowers: DMCC
+  noorbank: AL_SAFA
+  noorislamicbank: AL_SAFA
+  onpassive: AL_SAFA
+  firstabudhabibank: UMM_AL_SHEIF
+  fab: UMM_AL_SHEIF
+  route2020: EXPO
+  expo2020: EXPO

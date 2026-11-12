@@ -43,7 +43,25 @@ Most of the build tasks below were done on `main` in one pass with Claude Code (
   installs everything and ends with an offline self-check (`OK`). Krishna's mobile and student email are no longer in
   the public repo (`submission/tools/contact.local.json`, git-ignored, feeds the PDF).
 
-**What is left, by owner**
+**Update Thu 12 Nov, 18:00 — real ridership and Dr. Rachit's reply**
+- **Ridership (new, before Mon 16 noon):** the open dataset is huge (3,141 files × ~155 MB, each a mixed sample of
+  2017–2026). Read **`docs/14_RIDERSHIP_DATA.md`** first.
+  - **Yash:** download 10 CSV files from 10 different pages into `data/raw/ridership/` (§2), note them in
+    `data/raw/MANIFEST.md`, hand them to Atharva by USB/private drive.
+  - **Atharva:** download the DDSE monthly check-ins per station (§2), run `python tasks.py ingest` (§3), fix unmatched
+    station names in `config/station_aliases.yaml`, post the summary (coverage, sparsity, real vs synthetic, GITEX
+    uplift at World Trade Centre). Krishna decides on `--write-panel` (§4).
+  - The ingest is built and tested (`scripts/ingest.py`, `tests/test_ingest.py`) — no code needed unless the check
+    finds a surprise.
+- **When Dr. Rachit replies** (Krishna tells the team, then):
+  | He says | Who does what |
+  |---|---|
+  | Public link OK | Krishna: note it in `docs/09_DECISIONS.md`; reprint with `python scripts/build_exhibit_print.py --qr https://eventflow-twin.vercel.app`; add the link to `README.md` |
+  | Public link not OK | Krishna (or Claude): lock the site — Vercel → Project → Settings → Deployment Protection (`docs/DEPLOY.md` → Status) |
+  | Make the repo private | **Yash** (owner): GitHub → Settings → General → Danger Zone → Change visibility → Private. Vercel keeps working (it deploys from the CLI) |
+  | Changes to the nomination | Krishna edits `submission/tools/fill_template.py` (or asks Claude), regenerates the PDF, sends it back |
+
+
 - **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; decide whether the public site may ever use the OpenAI key (default: no — it stays offline); K8 booth kit.
 - **Atharva:** **the realism pass for the 3D twin with Fable 5.2 — `docs/13_REALISM_FABLE_TASKS.md` (R1–R6, merged by Mon 16)**; review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`).
 - **Yash:** C4 touch-monitor test; C5 Arabic review; then retake C6 (`node apps/web/tests/final_shots.mjs`).

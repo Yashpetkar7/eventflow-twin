@@ -27,3 +27,6 @@ Next once downloaded: `python tasks.py ingest` → calibrate the event model on 
 - Licence: © OpenStreetMap contributors, ODbL — credited in the UI (canvas corner + footer).
 - Baked by `python scripts/build_scene.py` into `apps/web/public/geo/corridor_scene.json` + `ground.png` (committed, so the
   exhibit needs no network).
+
+**Structure (checked 12 Nov 2026):** 3,141 files × ~155 MB `.csv.gz`; every file is a mixed sample of 2017–2026 (not a
+block of days). Download plan and ingest: `docs/14_RIDERSHIP_DATA.md`. Files downloaded so far: none.
