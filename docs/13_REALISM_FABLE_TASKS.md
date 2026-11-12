@@ -87,7 +87,7 @@ KIOSK RULES (docs/13 §4b):
     cd apps/web && npx playwright test                                   # workspace + kiosk (v1)
     cd apps/web && EFT_SCENE=v2 npx playwright test tests/kiosk.spec.ts  # kiosk on your scene
   and attach eval/results/ui/kiosk_v2/*.png to the PR. 50 fps floor applies to ?kiosk=1&scene=v2 too.
-- **Since 12 Nov (decision #101) the kiosk shows v2 by default at quality tier 1**; `?kiosk=1&scene=v1` shows the corridor scene. The workspace still needs `?scene=v2`.
+- **Since 12 Nov (decision #102) the kiosk shows v2 by default at quality tier 1**; `?kiosk=1&scene=v1` shows the corridor scene. The workspace still needs `?scene=v2`.
 ```
 
 ## 5. The prompts

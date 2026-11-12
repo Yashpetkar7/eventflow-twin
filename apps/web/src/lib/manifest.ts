@@ -1,7 +1,7 @@
 // The v2 scene manifest. No three.js here: the page shell (credits) reads it too.
 /** Realism ring (docs/13_REALISM_FABLE_TASKS.md, R1), baked by scripts/realism_bake.py → public/geo/v2/.
  *  The workspace shows it with `?scene=v2` (R6, decision #100: the corridor scene stays its default). The visitor kiosk
- *  (`?kiosk=1`) shows it by default at quality tier 1 or lower (decision #101); `?scene=v1` switches it off. */
+ *  (`?kiosk=1`) shows it by default at quality tier 1 or lower (decision #102); `?scene=v1` switches it off. */
 const Q = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
 const VISITOR_KIOSK = Q?.get("kiosk") === "1";
 export const SCENE_V2 = !!Q && (Q.get("scene") === "v2" || (VISITOR_KIOSK && Q.get("scene") !== "v1"));

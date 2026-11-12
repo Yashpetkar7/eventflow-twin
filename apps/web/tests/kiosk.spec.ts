@@ -11,7 +11,7 @@ type W = Window & { __twin: { getState: () => { ready: boolean; sceneReady: bool
 async function openKiosk(page: Page, q = "") {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.addInitScript(() => { try { localStorage.clear(); } catch { /* ignore */ } });
-  // The kiosk shows the realism scene by default (decision #101); EFT_SCENE=v1 runs the same checks on the corridor scene.
+  // The kiosk shows the realism scene by default (decision #102); EFT_SCENE=v1 runs the same checks on the corridor scene.
   const scene = process.env.EFT_SCENE ? `&scene=${process.env.EFT_SCENE}` : "";
   await page.goto(`/?kiosk=1${q}${scene}`);
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
@@ -126,7 +126,7 @@ test("kiosk: the realism scene is its default, held at quality tier 1; ?scene=v1
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/?kiosk=1&idle=600");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
-  expect(await page.evaluate(() => (window as unknown as T).__twin.getState().tier)).toBe(1);   // decision #101
+  expect(await page.evaluate(() => (window as unknown as T).__twin.getState().tier)).toBe(1);   // decision #102
   await expect(page.locator(".kcred")).toContainText("Overture");             // the realism datasets are credited
   await page.goto("/?kiosk=1&idle=600&scene=v1");
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
