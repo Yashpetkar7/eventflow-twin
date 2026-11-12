@@ -1,0 +1,54 @@
+{
+ "suite": "load_check",
+ "git_sha": "ac18f51",
+ "timestamp": "2026-11-12T18:32:40",
+ "models": null,
+ "dataset_version": null,
+ "metrics": {
+  "target": "https://eventflow-twin.vercel.app",
+  "A_reads_30_concurrent": {
+   "n": 90,
+   "codes": {
+    "200": 90
+   },
+   "p50_s": 0.403,
+   "p95_s": 5.213,
+   "max_s": 5.489,
+   "mean_s": 0.817
+  },
+  "B_visitor_flows_20_concurrent": {
+   "n": 40,
+   "codes": {
+    "200": 40
+   },
+   "p50_s": 1.481,
+   "p95_s": 2.718,
+   "max_s": 2.731,
+   "mean_s": 1.514
+  },
+  "D_abuse_refused": {
+   "codes": [
+    422,
+    422
+   ],
+   "expected": [
+    422,
+    422
+   ]
+  },
+  "C_rate_limit_70_in_a_row": {
+   "n": 70,
+   "codes": {
+    "200": 49,
+    "429": 21
+   },
+   "p50_s": 0.548,
+   "p95_s": 1.044,
+   "max_s": 1.129,
+   "mean_s": 0.582,
+   "first_429_at": 50
+  }
+ },
+ "n": 200,
+ "split": "live"
+}
