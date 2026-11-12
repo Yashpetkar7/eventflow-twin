@@ -116,7 +116,7 @@ Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/
 3D-GloBFP calibration: raw 3D-GloBFP heights were compared with the OpenStreetMap-tagged height of the same 9143 buildings
 and mapped onto them (median tagged height per quantile bin, monotone). Raw 3D-GloBFP m → used m: 8.7 → 6.6, 12.4 → 6.6, 15.0 → 6.6, 17.3 → 6.6, 19.8 → 6.6, 22.5 → 6.6, 24.8 → 6.6, 27.4 → 6.6, 30.9 → 8.6, 36.0 → 25.0, 44.8 → 36.3, 64.6 → 55.0.
 
-Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 18.7 MB in 143 files.
+Size: `apps/web/public/geo` 15.8 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 19.6 MB in 146 files.
 
 15 before/after pairs (5 camera presets × 10:00, 17:30, 21:30) in `eval/results/ui/realism/` (`node tests/polish.mjs before realism`, `node tests/polish.mjs after realism "?scene=v2"`), 1920×1080, dev mode, clock paused.
 
@@ -165,9 +165,46 @@ Visitor kiosk attract screen (3D full screen, `node tests/kiosk_fps.mjs`), every
 | `/?kiosk=1` | 2 | 60 – 60 | 60 | 0 | http://localhost:3100 |
 | `/?kiosk=1&scene=v2` | 3 | 53.3 – 56.8 | 51 | 0 | http://localhost:3100 |
 
-`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T18:31:58.744Z, test "realism ring…"): average **56.1** fps, minimum 1-second sample 55.6.
+R7 (frame rate at full quality, decision #103), measured on `ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)`, power source: AC Power. Production build, 1920×1080, Chrome without the display cap (`node tests/r7_fps.mjs`): median of 8 one-second samples per camera preset (10 for the kiosk), draw calls and triangles of one whole frame. Before = main (b3c774d) + the draw-call / triangle counters in TwinCanvas.tsx only; MIN_TIER set to 0 for the measurement so the kiosk row is at tier 0; after = e4e993c (branch b/realism-r7-perf) with MIN_TIER set to 0 for the measurement, so the kiosk row is at tier 0; the committed value stays 1.
+
+| View | Median fps before → after | Lowest sample before → after | Draw calls | Triangles (million) | Tier |
+|---|---|---|---|---|---|
+| 1000_overview | 263.9 → **361.7** | 263 → 353.1 | 331 → 235 | 3.87 → 1.24 | 0 → 0 |
+| 1000_close | 320.4 → **384.8** | 317.1 → 358.9 | 142 → 155 | 3.44 → 1.80 | 0 → 0 |
+| 1000_top | 280.2 → **401** | 278.9 → 378.9 | 326 → 230 | 3.64 → 1.00 | 0 → 0 |
+| 1000_orbit | 270.9 → **399.2** | 264.5 → 376.7 | 300 → 219 | 3.81 → 1.18 | 0 → 0 |
+| 2130_overview | 243.8 → **344.9** | 242.3 → 331 | 354 → 255 | 3.87 → 1.23 | 0 → 0 |
+| 2130_close | 286.7 → **369** | 285.7 → 335.4 | 166 → 178 | 3.53 → 1.84 | 0 → 0 |
+| 2130_top | 256.7 → **375.9** | 255.8 → 372.4 | 349 → 250 | 3.64 → 1.00 | 0 → 0 |
+| 2130_orbit | 249.3 → **374.4** | 243.8 → 362 | 332 → 239 | 3.81 → 1.17 | 0 → 0 |
+| kiosk_attract_1730_orbit | 174.5 → **223.5** | 157 → 213.7 | 312 → 219 | 3.75 → 1.15 | 0 → 0 |
+
+Each change on its own (same build, one switch flipped with `?r7off=` / `?r7on=`, see `apps/web/src/components/twin/perf.ts`); median fps, workspace views only. Repeats of the same run differ by a few per cent.
+
+| Run | 1000_overview | 1000_close | 1000_top | 1000_orbit | 2130_overview | 2130_close | 2130_top | 2130_orbit |
+|---|---|---|---|---|---|---|---|---|
+| r7off=cars | 354.4 | 354.7 | 394.7 | 375 | 337.7 | 337.5 | 366.3 | 350.6 |
+| r7off=order | 369.3 | 361.4 | 408.7 | 380 | 348 | 343.4 | 374.1 | 358.2 |
+| r7off=palms | 340.4 | 349.7 | 346.5 | 333.8 | 314.8 | 316.1 | 324.4 | 318.5 |
+| r7off=shadow | 326.9 | 360.7 | 344.6 | 329.4 | 301.6 | 338.9 | 310.5 | 310.3 |
+| r7on=tiles | 367.8 | 395.2 | 417.5 | 380.3 | 348 | 365.9 | 384.5 | 350.6 |
+
+Visitor kiosk at tier 0 with the display cap on (`node tests/kiosk_fps.mjs … v2`, `MIN_TIER` temporarily 0), every run. On this laptop the kiosk was already at the cap before R7, so these runs cannot show the gain; the booth laptop must be measured (decision #103).
+
+| | Runs | Average fps, lowest – highest run | Lowest 1-second sample | Quality tier |
+|---|---|---|---|---|
+| Before | 5 | 60 – 60 | 59.9 | 0 |
+| After | 5 | 60 – 60 | 60 | 0 |
+
+UI test "realism ring…" on the production build, lowest 1-second sample per camera preset — before: overview 60, close 60, top 60, fly 60, orbit 59.9 (tier 0); after: overview 60, close 60, top 59.9, fly 60, orbit 59.9 (tier 0).
+
+10-minute soak on `?scene=v2` after R7 (`realism_r7/soak_v2_10min.json`): 10.02 min, 20 loops, heap 125.08 → 125.31 MB (0.2 %, budget 10 %), lowest fps sample 59.9, tier at the end 0, requests outside localhost 0, page errors 0.
+
+15 before/after screenshot pairs: `eval/results/ui/realism_r7/index.html`.
+
+`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T21:41:21.756Z, test "realism ring…"): average **60** fps, minimum 1-second sample 59.9.
 
 ## UI tests
-`apps/web/tests/ui.spec.ts` — 21 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
+`apps/web/tests/ui.spec.ts` — 22 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
 My plan, recentre, landmarks, overlay overlap, quality tier, crash recovery, table + WebGL fallback, offline, API down,
 fps). Screenshots: `eval/results/ui/*.png`.

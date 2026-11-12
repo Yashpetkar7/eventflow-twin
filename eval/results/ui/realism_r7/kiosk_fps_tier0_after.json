@@ -1,0 +1,69 @@
+{
+  "suite": "ui_fps_kiosk",
+  "timestamp": "2026-11-12T21:25:16.414Z",
+  "target": "http://localhost:3100",
+  "url": "/?kiosk=1&scene=v2",
+  "viewport": "1920x1080 (3D full screen)",
+  "avg_fps": 60,
+  "min_fps": 60,
+  "tier_at_end": 0,
+  "samples": [
+    60,
+    60,
+    60.1,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60.1,
+    60,
+    60,
+    60,
+    60
+  ],
+  "runs": [
+    {
+      "timestamp": "2026-11-12T21:23:14.813Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T21:23:45.214Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T21:24:15.595Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T21:24:45.963Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T21:25:16.414Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    }
+  ]
+}

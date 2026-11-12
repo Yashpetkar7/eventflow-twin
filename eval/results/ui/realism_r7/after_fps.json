@@ -1,0 +1,180 @@
+{
+  "suite": "ui_fps_uncapped_r7",
+  "label": "after",
+  "git_sha": "e4e993c",
+  "uncommitted_changes": true,
+  "build": "e4e993c (branch b/realism-r7-perf) with MIN_TIER set to 0 for the measurement, so the kiosk row is at tier 0; the committed value stays 1",
+  "timestamp": "2026-11-12T21:22:44.296Z",
+  "target": "http://localhost:3100",
+  "url": "/?scene=v2",
+  "viewport": "1920x1080 (workspace: all layers on, clock paused; kiosk: 3D full screen)",
+  "chrome_flags": "--disable-frame-rate-limit --disable-gpu-vsync",
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)",
+  "power_source": "AC Power",
+  "cases": {
+    "1000_overview": {
+      "median_fps": 361.7,
+      "min_fps": 353.1,
+      "max_fps": 371.8,
+      "calls": 235,
+      "triangles": 1239251,
+      "tier": 0,
+      "samples": [
+        355.6,
+        366.7,
+        371.8,
+        356.6,
+        361.7,
+        363.6,
+        353.1,
+        361.7
+      ]
+    },
+    "1000_close": {
+      "median_fps": 384.8,
+      "min_fps": 358.9,
+      "max_fps": 389,
+      "calls": 155,
+      "triangles": 1802280,
+      "tier": 0,
+      "samples": [
+        363,
+        381.8,
+        384.8,
+        387.1,
+        358.9,
+        366.8,
+        387.5,
+        389
+      ]
+    },
+    "1000_top": {
+      "median_fps": 401,
+      "min_fps": 378.9,
+      "max_fps": 416.3,
+      "calls": 230,
+      "triangles": 1004017,
+      "tier": 0,
+      "samples": [
+        388.9,
+        401,
+        385.1,
+        416.3,
+        408.6,
+        378.9,
+        388.9,
+        406.6
+      ]
+    },
+    "1000_orbit": {
+      "median_fps": 399.2,
+      "min_fps": 376.7,
+      "max_fps": 412.5,
+      "calls": 219,
+      "triangles": 1180250,
+      "tier": 0,
+      "samples": [
+        412.5,
+        403.3,
+        395,
+        398.5,
+        406.6,
+        399.2,
+        376.7,
+        381.2
+      ]
+    },
+    "2130_overview": {
+      "median_fps": 344.9,
+      "min_fps": 331,
+      "max_fps": 361.3,
+      "calls": 255,
+      "triangles": 1231071,
+      "tier": 0,
+      "samples": [
+        331,
+        354.8,
+        344.9,
+        331.5,
+        335.2,
+        334.5,
+        361.3,
+        355.8
+      ]
+    },
+    "2130_close": {
+      "median_fps": 369,
+      "min_fps": 335.4,
+      "max_fps": 370.3,
+      "calls": 178,
+      "triangles": 1843612,
+      "tier": 0,
+      "samples": [
+        370.3,
+        369.2,
+        369,
+        369.6,
+        350.8,
+        335.4,
+        342.7,
+        349.4
+      ]
+    },
+    "2130_top": {
+      "median_fps": 375.9,
+      "min_fps": 372.4,
+      "max_fps": 377.8,
+      "calls": 250,
+      "triangles": 995837,
+      "tier": 0,
+      "samples": [
+        376.1,
+        377.8,
+        377.7,
+        373.5,
+        374.9,
+        372.9,
+        372.4,
+        375.9
+      ]
+    },
+    "2130_orbit": {
+      "median_fps": 374.4,
+      "min_fps": 362,
+      "max_fps": 381.7,
+      "calls": 239,
+      "triangles": 1172070,
+      "tier": 0,
+      "samples": [
+        363.9,
+        362,
+        374.4,
+        381.7,
+        380,
+        375.7,
+        367.7,
+        366.5
+      ]
+    },
+    "kiosk_attract_1730_orbit": {
+      "median_fps": 223.5,
+      "min_fps": 213.7,
+      "max_fps": 248.4,
+      "calls": 219,
+      "triangles": 1145599,
+      "tier": 0,
+      "samples": [
+        248.1,
+        248.4,
+        246.4,
+        244.9,
+        219.7,
+        217.8,
+        213.7,
+        214.4,
+        223.5,
+        214.3
+      ]
+    }
+  }
+}
