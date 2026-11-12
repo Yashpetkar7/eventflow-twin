@@ -27,6 +27,9 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/08_EVAL_PLAN.md` | Metrics, gold sets, thresholds, CI gate | Build |
 | `docs/09_DECISIONS.md` | Decision log (ADR) | Ongoing |
 | `docs/10_RISKS_AND_INTEGRITY.md` | Risks, mitigations, honesty rules | Ongoing |
+| `docs/11_MVP_ROADMAP.md` | Roadmap from the exhibit demo to a deployed MVP (phases, research, what each phase proves) | Planning |
+| `docs/superpowers/plans/` | Task-by-task implementation plans (first: the Vercel live demo) | Build |
+| `docs/BOOTH_RUNBOOK.md`, `docs/metrics.md` | Booth start / recover / shutdown; measured fps, memory, network results | Exhibit |
 | `submission/` | Email to Dr. Rachit, full nomination content, image shot-list, checklist | Day 1–3 |
 | `submission/EventFlow_Twin_RTA_Nomination_DRAFT.pdf` | **Filled RTA template** (KPI-focused summary, touch-screen demonstrator, 4 images). Private: git-ignored | Attach to the email today |
 | `submission/images/` | 4 concept images (hero UI, AI options, simulator chart, architecture) | In the PDF; replace with real screenshots later |
