@@ -140,7 +140,8 @@ def weather_metro_share(weather: str | None) -> float | None:
 
 def build_forecast(event_id: str | None = None, date: str | None = None, weekday: int | None = None,
                    attendance: float | None = None, end: str | None = None, *, weather: str | None = None,
-                   exit_sigma_min: float | None = None, custom: dict | None = None) -> dict:
+                   exit_sigma_min: float | None = None, custom: dict | None = None,
+                   metro_share: float | None = None) -> dict:
     """Return {run_id, demand (bins, p50), rows (hourly p10/p50/p90), meta...}. Pure for fixed data+config."""
     panel = load_panel()
     ev = custom_event(custom) if custom else find_event(event_id)
@@ -151,14 +152,14 @@ def build_forecast(event_id: str | None = None, date: str | None = None, weekday
                "dataset": panel.dataset_version, "config": config_hash()}
     # new what-ifs only enter the hash when used, so earlier run ids (fixtures, cache, evals) stay valid
     extra = {"weather": weather if weather not in (None, "normal") else None, "exit_sigma_min": exit_sigma_min,
-             "custom": custom}
+             "custom": custom, "metro_share": metro_share}
     payload.update({k: v for k, v in extra.items() if v is not None})
     run_id = make_run_id("fc", payload)
 
     bph = bins_per_hour()
     bg = background_quantiles(panel, weekday)
     lo, hi = corridor()["event_model"]["attendance_band"]
-    share = weather_metro_share(weather)
+    share = metro_share if metro_share is not None else weather_metro_share(weather)   # an explicit what-if wins over the weather's share
     kw = {"attendance": attendance, "end": end, "metro_share": share, "exit_sigma_min": exit_sigma_min}
     ov = {k: overlay(ev, bins_per_hour=1, scale=m, **kw) for k, m in
           (("p10", lo), ("p50", 1.0), ("p90", hi))} if ev else {}

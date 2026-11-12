@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const OUT = path.resolve(__dirname, "../../../eval/results/ui");
+const API = `http://localhost:${process.env.EFT_API_PORT ?? 8000}`;      // a second checkout runs its own API (playwright.config.ts)
 fs.mkdirSync(OUT, { recursive: true });
 
 type TwinState = { ready: boolean; sceneReady: boolean; glFailed: boolean; loading: boolean };
@@ -92,14 +93,14 @@ test("demo flow: hot day → agents → approve → re-simulated → report", as
 
 test("guided demo runs end to end and logs its approval as guided-demo", async ({ page, request }) => {
   await open(page);
-  const before = (await (await request.get("http://localhost:8000/decisions?limit=1")).json()).total;
+  const before = (await (await request.get(`${API}/decisions?limit=1`)).json()).total;
   await page.getByRole("button", { name: "Guided demo" }).click();
   await expect(page.locator(".tour")).toContainText("GITEX Global 2025");
   await expect(page.locator(".tour")).toContainText("hot day", { timeout: 30_000 });
   await expect(page.locator(".tour")).toContainText("stay in charge", { timeout: 40_000 });
   await expect(page.locator(".kpi").nth(3)).toContainText("1", { timeout: 20_000 });
   await expect(page.locator(".tour")).toHaveCount(0, { timeout: 30_000 });
-  const log = await (await request.get("http://localhost:8000/decisions?limit=1")).json();
+  const log = await (await request.get(`${API}/decisions?limit=1`)).json();
   expect(log.total).toBe(before + 1);
   expect(log.items[0].user).toBe("guided-demo");
 });
@@ -191,11 +192,11 @@ test("crash recovery: API drops mid-session, saved results stay, banner clears o
   await open(page);
   await page.getByRole("button", { name: "Hot day" }).click();
   await idle(page);
-  await page.route("http://localhost:8000/**", (r) => r.abort());
+  await page.route(`${API}/**`, (r) => r.abort());
   await page.getByRole("button", { name: "Normal", exact: true }).click();        // answered from the saved results
   await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable", { timeout: 10_000 });
   await expect(page.locator(".kpi").first()).toContainText("%");
-  await page.unroute("http://localhost:8000/**");
+  await page.unroute(`${API}/**`);
   await expect(page.locator(".banner:not(.demo)")).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
 });
 
@@ -231,7 +232,7 @@ test("break point: the Station tab says at what crowd size the station crosses t
   await page.locator(".tabpanel").getByRole("button", { name: "World Trade Centre" }).click();
   await settle(page, 1200);
   await page.screenshot({ path: `${OUT}/break_point_card.png` });
-  const api = await request.get("http://localhost:8000/healthz");
+  const api = await request.get(`${API}/healthz`);
   const version = fs.readFileSync(path.resolve(__dirname, "../../../contract/VERSION"), "utf8").trim();
   expect((await api.json()).contract).toBe(version);
 });
@@ -291,8 +292,28 @@ test("offline: no request leaves localhost", async ({ page }) => {
   expect(external).toEqual([]);
 });
 
+test("public link: the welcome sheet offers the visitor story; the Report tab prints a one-page brief", async ({ page }) => {
+  await open(page, "/?welcome=1");
+  const sheet = page.getByTestId("welcome");
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText("Not an RTA system");
+  await page.screenshot({ path: `${OUT}/welcome_sheet.png` });
+  await sheet.getByRole("button", { name: "Open the planner workspace" }).click();
+  await expect(sheet).toBeHidden();
+  await page.locator("#tab-report").click();
+  await expect(page.getByTestId("print-brief")).toBeVisible();
+  await page.emulateMedia({ media: "print" });                                 // what "Print / save as PDF" puts on paper
+  await expect(page.locator(".stage")).toBeHidden();
+  await expect(page.locator(".rail")).toBeHidden();
+  await expect(page.locator(".tabpanel .score").first()).toBeVisible();
+  await page.emulateMedia({ media: "screen" });
+  await page.goto("/?welcome=1");
+  await page.getByTestId("welcome-story").click();
+  await expect(page.getByTestId("kiosk")).toBeVisible({ timeout: 60_000 });    // the story button opens the visitor kiosk
+});
+
 test("API down: saved results keep the twin alive", async ({ page }) => {
-  await page.route("http://localhost:8000/**", (r) => r.abort());
+  await page.route(`${API}/**`, (r) => r.abort());
   await page.goto("/");
   await page.waitForFunction(() => (window as unknown as TwinWindow).__twin?.getState().ready, null, { timeout: 60_000 });
   await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable");

@@ -110,6 +110,7 @@ export function ReportTab() {
         <div className="row" style={{ flexWrap: "wrap" }}>
           <button type="button" className="btn navy" onClick={brief}>{t("report.save")}</button>
           <button type="button" className="btn ghost" onClick={snapshot}>{t("report.snap")}</button>
+          <button type="button" className="btn ghost" onClick={() => window.print()} data-testid="print-brief">{t("report.print")}</button>
         </div>
         {saved && <div className="note" role="status" style={{ marginTop: 6 }}>{t("report.saved")}</div>}
       </div>

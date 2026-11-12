@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.8.0"
+    "version": "1.9.0"
   },
   "paths": {
     "/healthz": {
@@ -1400,6 +1400,20 @@
             ],
             "title": "Exit Sigma Min",
             "description": "What-if venue exit window (σ, minutes)"
+          },
+          "metro_share": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.8,
+                "minimum": 0.2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metro Share",
+            "description": "What-if share of event trips made by metro; overrides the weather what-if's share (assumption)"
           },
           "custom_event": {
             "anyOf": [
