@@ -4,16 +4,16 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 Regenerate with `make ui-test` (API + web app must be able to start) and `python tasks.py scene`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T07:06:06.214Z), Playwright → Chrome, `ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)`.
+Source: `eval/results/ui/fps.json` (2026-11-12T07:11:12.273Z), Playwright → Chrome, `ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)`.
 
 | Measure | Value |
 |---|---|
 | Viewport | 1920x1080 (3D canvas 1230×771, device pixel ratio 1) |
 | Layers | all on, clock playing |
 | Build | next dev |
-| Average fps (5 camera presets × 5 s) | **60** |
-| Minimum 1-second sample | 59.9 |
-| Per camera | overview 60, close 60, top 60, fly 60, orbit 60 |
+| Average fps (5 camera presets × 5 s) | **59.8** |
+| Minimum 1-second sample | 57.2 |
+| Per camera | overview 59.9, close 59.1, top 60, fly 60, orbit 60 |
 
 Budget: ≥ 50 fps → **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 is "at the cap",
 not the scene's ceiling. Not yet measured: the exhibit's touch monitor at its native resolution, a 2-hour soak.
