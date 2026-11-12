@@ -28,7 +28,7 @@ Most of the build tasks below were done on `main` in one pass with Claude Code (
 
 **What is left, by owner**
 - **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; create the Anthropic key with a spend cap, then one live run of B4 (below); K8 booth kit.
-- **Atharva:** review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`); when the key exists, run `DEMO_MODE=live LLM_MODEL=claude-opus-5-5 python -m eval.suites.agents` and `… redteam` and compare with the offline numbers; write down cost and latency.
+- **Atharva:** **the realism pass for the 3D twin with Fable 5.2 — `docs/13_REALISM_FABLE_TASKS.md` (R1–R6, merged by Mon 16)**; review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`); when the key exists, run `DEMO_MODE=live LLM_MODEL=claude-opus-5-5 python -m eval.suites.agents` and `… redteam` and compare with the offline numbers; write down cost and latency.
 - **Yash:** C4 touch-monitor test; C5 Arabic review; then retake C6 (`node apps/web/tests/final_shots.mjs`).
 
 ## 1. Get the new `main` running (everyone, tonight, ~15 minutes)

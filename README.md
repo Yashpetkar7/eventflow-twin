@@ -31,6 +31,7 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/11_MVP_ROADMAP.md` | Roadmap from the exhibit demo to a deployed MVP (phases, research, what each phase proves) | Planning |
 | `docs/superpowers/plans/` | Task-by-task implementation plans (first: the Vercel live demo) | Build |
 | `docs/BOOTH_RUNBOOK.md`, `docs/metrics.md` | Booth start / recover / shutdown; measured fps, memory, network results | Exhibit |
+| `docs/13_REALISM_FABLE_TASKS.md` | **Realism pass for the 3D twin** (owner Atharva, Fable 5.2): why it looks blocky, setup incl. Blender MCP, six ready-to-paste prompts | Now |
 | `docs/DEPLOY.md` | Live demo on Vercel (one URL, no env vars needed), smoke test, turning on Claude | Deploy |
 | `submission/` | Email to Dr. Rachit, full nomination content, image shot-list, checklist | Day 1–3 |
 | `submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf` | **Filled RTA template, v2** (wording matched to the build, real screenshots). Private: git-ignored — regenerate with `fill_template.py` | Krishna checks, then to Dr. Rachit |
