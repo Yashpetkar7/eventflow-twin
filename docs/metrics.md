@@ -4,16 +4,16 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 nothing is typed by hand. Regenerate: `make ui-test`, then `python scripts/ui_metrics.py`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T16:00:00.775Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+Source: `eval/results/ui/fps.json` (2026-11-12T16:44:03.937Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
 
 | Measure | Value |
 |---|---|
 | Viewport | 1920x1080 (3D canvas 1230×771, device pixel ratio 1) |
 | Layers | all on, clock playing |
 | Build | next dev |
-| Average fps (5 camera presets × 5 s) | **56.3** |
-| Minimum 1-second sample | 55.2 |
-| Per camera | overview 56.5, close 56.2, top 56.3, fly 56.4, orbit 56.2 |
+| Average fps (5 camera presets × 5 s) | **59.8** |
+| Minimum 1-second sample | 58 |
+| Per camera | overview 58.9, close 60.1, top 60, fly 60, orbit 60 |
 
 Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 means
 "at the cap". Not measured: the exhibit's touch monitor at its native resolution; a 2-hour soak.
@@ -54,7 +54,7 @@ Crash recovery (test "crash recovery…"): with the API blocked the banner appea
 the health check every 4 s clears the banner when the API returns.
 
 ## Offline
-Source: `eval/results/ui/network.json` (2026-11-12T15:58:30.780Z).
+Source: `eval/results/ui/network.json` (2026-11-12T16:42:25.009Z).
 Requests to any host other than localhost during load, an agent plan and a language switch: **0**.
 Fonts (Readex Pro, OFL) are files in the repo; the map is baked into `apps/web/public/geo/`.
 With the API blocked the app starts from the saved snapshot (`apps/web/public/cache/`) and says so (test "API down").
@@ -82,7 +82,7 @@ Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/
 | Building heights, ESTIMATED | Seeded estimate from footprint area and type (scripts/build_scene.py) | n/a (not data) | 2026-11-12 | 23179 buildings (31.7 %) |
 | Ground image | Copernicus Sentinel-2 L2A, median of 8 near-cloudless dates 2025-10-14 – 2025-11-28, via Microsoft Planetary Computer; colour-graded | Contains modified Copernicus Sentinel data 2025 (free and open) | 2025-10-13/2025-11-30 | 45 scenes, 10 m |
 | Land-cover masks (vegetation, water, built-up, bare) | ESA WorldCover 10 m 2021 v200 | CC BY 4.0 (© ESA WorldCover project 2021) | 2021 | 16 chunk masks + 1 overview |
-| Water outline | Overture Maps Foundation, base theme (water), release 2026-10-21.0 | ODbL 1.0 | 2026-10-21 | 2899 polygons |
+| Water outline | Overture Maps Foundation, base theme (water), release 2026-10-21.0 | ODbL 1.0 | 2026-10-21 | 361 polygons |
 | Terrain height | Copernicus DEM GLO-30 (AWS Open Data), resampled to 78 m | © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA; free licence | 2011–2015 | 1 texture, -16–82 m |
 | Ground ambient occlusion | Baked from the footprints and heights above (scripts/realism_bake.py) | derived | 2026-11-12 | 16 chunk textures + corridor |
 
@@ -113,7 +113,14 @@ Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 M
 | Before, corridor scene (`before_fps.json`, 2026-11-12T15:03:53.507Z) | 60 | 60 |
 | After, `?scene=v2` (`after_fps.json`, 2026-11-12T15:05:22.412Z) | 60 | 60 |
 
-`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T15:59:18.579Z, test "realism ring…"): average **56.4** fps, minimum 1-second sample 55.6.
+R2 (light, haze, ground and sea): 15 before/after pairs plus an AgX set in `eval/results/ui/realism_r2/`, clock paused.
+
+| | Average fps | Minimum | Quality tier at the end |
+|---|---|---|---|
+| Before, R1 scene (`before_fps.json`, 2026-11-12T16:07:20.181Z) | 43.3 | 41.1 | 0 |
+| After, R2 scene (`after_fps.json`, 2026-11-12T16:27:55.342Z) | 59.9 | 59 | 0 |
+
+`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T16:43:21.209Z, test "realism ring…"): average **60** fps, minimum 1-second sample 60.
 
 ## UI tests
 `apps/web/tests/ui.spec.ts` — 21 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
