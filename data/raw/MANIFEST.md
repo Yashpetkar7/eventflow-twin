@@ -21,6 +21,17 @@ and download date recorded here. Related aggregates on the same portal (DDSE): "
 Station – Red Line", "Number of Metro Ridership by Lines".
 Next once downloaded: `python tasks.py ingest` → calibrate the event model on GITEX 2025 (roadmap Phase 4).
 
+## Metro ridership — first download (12 Nov 2026, Atharva with Claude Code)
+| File(s) | Source | Downloaded | Size | Licence |
+|---|---|---|---|---|
+| `ridership/metro_ridership_2026-07-21_18-21-58_{0001,0301,0617,0917,1217,1517,1817,2117,2417,2717}.csv.gz` — the first CSV on pages 1, 11, 21 … 91 of the file list | https://data.dubai/en/l/466403 (RTA, "Dubai Metro Ridership", tagged Open; no login asked) | 2026-11-12 | 10 files × ~8.07 MB gzip (80.7 MB); each unpacks to ~154.5 MB and ~1.05 million rows — the "147 MB" on the portal is the **unpacked** size | Dubai Open Data Licence; attribute "RTA, data.dubai" |
+| `ddse/ridership_by_station_raw.json` → `ddse/station_month.csv` (`station,month,checkins`) | https://data.dubai/en/e/statistic/35681/726542 ("Number of Metro Ridership by Station – Red Line", DDSE); the page's download is this JSON | 2026-11-12 | 1.6 MB; 6,074 rows, 35 Red Line station names, monthly Apr 2010 – Aug 2026, **all of 2025 included** | Dubai Open Data Licence; attribute "DDSE, data.dubai" |
+
+What the files really contain (10.48 million rows read): dates 2017-01-01 … 2026-07-11, every file a mix of all years.
+**Time of day is missing for whole periods** (`txn_time` = `00:00:00.000`): all of Jan – Jul 2024, Mar 2025, and
+**Jun 2025 – Mar 2026** (so GITEX 2025 has daily counts only). Fully timed: Sep 2024 – Jan 2025 and Apr – Jul 2026.
+Some older rows have no station name. Check report: `eval/results/ridership_check_20261112-1947.json`.
+
 ## OpenStreetMap extract for the 3D twin (added 12 Nov 2026)
 - `data/raw/osm/*.json` — Overpass API responses for the corridor box (buildings in 9 tiles, roads, rail/footbridges, water/parks),
   fetched by `python scripts/fetch_osm_corridor.py` (git-ignored; refetch any time, results differ slightly as OSM changes).
@@ -29,7 +40,7 @@ Next once downloaded: `python tasks.py ingest` → calibrate the event model on 
   exhibit needs no network).
 
 **Structure (checked 12 Nov 2026):** 3,141 files × ~155 MB `.csv.gz`; every file is a mixed sample of 2017–2026 (not a
-block of days). Download plan and ingest: `docs/14_RIDERSHIP_DATA.md`. Files downloaded so far: none.
+block of days). Download plan and ingest: `docs/14_RIDERSHIP_DATA.md`. Files downloaded so far: 10 (table above); the "~155 MB" is the unpacked size, the download is ~8 MB per file.
 
 ## Realism ring for the 3D twin (added 12 Nov 2026, docs/13 R1)
 `data/raw/realism/` (git-ignored, ~710 MB), fetched by `python scripts/fetch_realism_data.py` (needs `pip install -r requirements-realism.txt`, no account):
