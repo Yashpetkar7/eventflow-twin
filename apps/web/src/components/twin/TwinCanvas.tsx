@@ -74,7 +74,8 @@ function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest |
       <CameraRig places={places} corridor={corridor} spots={spots} />
       <LabelProjector places={places} spots={spots} />
       <EffectComposer multisampling={0} enableNormalPass={false}>
-        {tier > 0 ? <></> : <N8AO aoRadius={16} distanceFalloff={1.2} intensity={2.4} quality="medium" color="#1a2030" />}
+        {/* realism scene: ground contact shadows are baked (R1) and the scene has six times the geometry, so the screen-space pass runs on its cheaper setting */}
+        {tier > 0 ? <></> : <N8AO aoRadius={16} distanceFalloff={1.2} intensity={2.4} quality={manifest ? "performance" : "medium"} color="#1a2030" />}
         {glow ? <Bloom mipmapBlur intensity={0.55} luminanceThreshold={1.05} luminanceSmoothing={0.2} /> : <></>}
         <SMAA />
         <ToneMapping mode={manifest && AGX ? ToneMappingMode.AGX : ToneMappingMode.ACES_FILMIC} />

@@ -307,6 +307,7 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   page.on("console", (m) => { if (m.type() === "error" && /shader|WebGLProgram|GLSL/i.test(m.text())) shaderErrors.push(m.text().slice(0, 300)); });
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
+  expect(await page.evaluate(() => document.documentElement.dataset.sceneV2Builder)).toBe("worker");    // R3: geometry is built off the main thread
   await expect(page.getByTestId("synthetic-badge")).toBeVisible();
   await expect(page.locator(".labels, .label").first()).toBeAttached();         // station overlays still on top
   await page.getByTestId("credits").locator("summary").click();
