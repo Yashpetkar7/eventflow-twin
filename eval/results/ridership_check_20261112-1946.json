@@ -1,0 +1,94 @@
+{
+ "suite": "ridership_check",
+ "git_sha": "d689583",
+ "timestamp": "2026-11-12T19:46:14",
+ "models": null,
+ "dataset_version": "rta_metro_ridership_open:10files:2024-09-01..2025-01-31",
+ "metrics": {
+  "files_read": 10,
+  "rows_read": 10484646,
+  "rows_in_window": 712150,
+  "mapped_share": 0.952,
+  "duplicate_share": 0.3661,
+  "data_date_min": "2017-01-01",
+  "data_date_max": "2026-07-11",
+  "window": [
+   "2024-09-01",
+   "2025-01-31"
+  ],
+  "days_in_window_with_data": 134,
+  "evenness_cv_of_daily_sample": 0.255,
+  "untimed_share_in_window": 0.0,
+  "median_sample_taps_per_corridor_station_hour": 6.0,
+  "panel_ready": false,
+  "panel_blocker": "sample too thin: median 6.0 taps per corridor station-hour < 20",
+  "scale_factor": 314.1,
+  "scale_method": "official monthly check-ins per station (station_month.csv); fallback \u00d7314.1",
+  "corridor_stations": {
+   "MAX": {
+    "weekday_entries_per_day_scaled": 19962,
+    "sample_taps": 9182,
+    "sample_entries_per_weekday": 39.6,
+    "synthetic_weekday_entries_per_day": 10440,
+    "real_over_synthetic": 1.912,
+    "hourly_shape_correlation": 0.907
+   },
+   "WTC": {
+    "weekday_entries_per_day_scaled": 19536,
+    "sample_taps": 11709,
+    "sample_entries_per_weekday": 60.0,
+    "synthetic_weekday_entries_per_day": 13334,
+    "real_over_synthetic": 1.465,
+    "hourly_shape_correlation": 0.805
+   },
+   "EMT": {
+    "weekday_entries_per_day_scaled": 22237,
+    "sample_taps": 11372,
+    "sample_entries_per_weekday": 61.4,
+    "synthetic_weekday_entries_per_day": 14952,
+    "real_over_synthetic": 1.487,
+    "hourly_shape_correlation": 0.8
+   },
+   "FIC": {
+    "weekday_entries_per_day_scaled": 17585,
+    "sample_taps": 9274,
+    "sample_entries_per_weekday": 49.4,
+    "synthetic_weekday_entries_per_day": 16366,
+    "real_over_synthetic": 1.074,
+    "hourly_shape_correlation": 0.842
+   },
+   "BKD": {
+    "weekday_entries_per_day_scaled": 36221,
+    "sample_taps": 20357,
+    "sample_entries_per_weekday": 103.0,
+    "synthetic_weekday_entries_per_day": 23963,
+    "real_over_synthetic": 1.512,
+    "hourly_shape_correlation": 0.466
+   },
+   "BBY": {
+    "weekday_entries_per_day_scaled": 38256,
+    "sample_taps": 18455,
+    "sample_entries_per_weekday": 88.8,
+    "synthetic_weekday_entries_per_day": 17949,
+    "real_over_synthetic": 2.131,
+    "hourly_shape_correlation": 0.745
+   }
+  },
+  "gitex_2025_wtc": {
+   "station": "WTC",
+   "status": "no data for these days in the files read"
+  },
+  "gitex_2025_emt": {
+   "station": "EMT",
+   "status": "no data for these days in the files read"
+  },
+  "unmatched_station_names": [],
+  "txn_types": {
+   "Check in": 358419,
+   "Check out": 353731
+  }
+ },
+ "n": 677978,
+ "split": "all",
+ "is_synthetic": false
+}

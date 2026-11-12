@@ -10,10 +10,15 @@ before the exhibit. Never commit raw data: `data/raw/` is git-ignored (on some l
 |---|---|
 | Dataset | **Dubai Metro Ridership**, RTA, tagged Open — <https://data.dubai/en/l/466403> (last updated 9 Nov 2026) |
 | Licence | Dubai Open Data Licence (PDF linked on the page) — attribute "RTA, data.dubai" |
-| Files | **3,141** files `metro_ridership_<export-time>_<NNNN>.csv.gz`, each **~155 MB** gzip (~490 GB in all); the same chunks are offered as `.json.gz` (~280 MB) — **take the CSV** |
+| Files | **3,141** files `metro_ridership_<export-time>_<NNNN>.csv.gz`. **Corrected 12 Nov after the first download:** each file is **~8 MB** to download (the portal's "147 MB" is the unpacked CSV, ~1.05 million rows), so the whole dataset is ~25 GB, not 490 GB — **take the CSV** |
 | Rows | one fare-gate tap: `end_location, end_zone, line_name, start_location, start_zone, txn_date, txn_time, txn_type ("Check in"/"Check out"), load_timestamp`; station names like `Burj Khalifa/ Dubai Mall Metro Station` |
 | Dates | 2017 → July 2026. **Every file is a mixed sample across all dates**, not a block of days: the first 2 MB of files 0001, 1487, 2987 and 3141 each spanned 2017–2026. So you cannot download "October 2025" — each file holds a slice of every day |
 | Related | DDSE statistics (official monthly/quarterly **check-ins per station**): "Number of Metro Ridership by Station – Red Line" (<https://data.dubai/en/e/statistic/35681/726542>), "… by Lines" (<https://data.dubai/en/e/statistic/35681/726514>) |
+
+**Time of day is missing for whole periods (found 12 Nov):** `txn_time` is `00:00:00.000` for every tap in Jan – Jul 2024,
+Mar 2025 and **Jun 2025 – Mar 2026**; Sep 2024 – Jan 2025 and Apr – Jul 2026 are fully timed. So GITEX 2025 (13–17 Oct 2025)
+can only be measured per day, and an hourly panel for the default window is impossible at any sample size. The ingest
+counts untimed taps in the day's total but in no hour, and reports `untimed_share_in_window` and `panel_blocker`.
 
 Consequence: a few files give the **shape** of every day (hourly profile per station) but only a fraction of its
 taps. Scale to absolute numbers with the official monthly station totals (best) or by `3141 / files read`.
@@ -52,9 +57,24 @@ It prints, and saves in `eval/results/ridership_check_<time>.json`:
   weeks either side, the uplift ratio and its 95 % range. A range that includes 1.0 = no effect detectable at this
   sample size (then download more files before claiming anything).
 
-Each file takes a minute or two to read (about 20 million rows). Post the printed summary in the team chat.
+Ten files (10.5 million rows) take about a minute to read. Post the printed summary in the team chat.
 
 ## 4. Decide (Krishna, with Atharva) — before Mon 16 noon, or after the exhibit
+
+> **Decided 12 Nov 2026 (Krishna): option 1 — keep the synthetic panel for the exhibit.** The first real run
+> (`eval/results/ridership_check_20261112-1947.json`, 10 files, 10.48 M rows, scaled to official DDSE monthly check-ins)
+> found that **every tap from Jun 2025 to Mar 2026 has no time of day** (`txn_time` 00:00:00.000), so an hourly panel for
+> GITEX 2025 cannot be built at any sample size. What we quote at the booth, all daily totals:
+> - Real weekday entries vs our synthetic demand: Max 16,951 vs 10,440 (×1.62) · World Trade Centre 16,720 vs 13,334
+>   (×1.25) · Emirates Towers 19,458 vs 14,952 (×1.30) · Financial Centre 15,403 vs 16,366 (×0.94) · Burj Khalifa/Dubai
+>   Mall 31,938 vs 23,963 (×1.33) · Business Bay 34,473 vs 17,949 (×1.92) — the synthetic demand is lower than reality at
+>   five of six stations, so the twin's crowding is if anything understated.
+> - GITEX 2025 (13–17 Oct) at World Trade Centre vs the same weekdays four weeks either side: **arrivals by metro ×1.65**
+>   (95 % range 1.48–1.84); departures ×0.84 (0.73–0.97). Emirates Towers departures ×1.14 (1.01–1.28). A direction, not a
+>   calibration: about 77 sample arrivals per GITEX day.
+>
+> **After the exhibit: option 2** — a real hourly panel from the last fully timed period (Sep 2024 – Jan 2025, includes
+> GITEX 2024, 14–18 Oct 2024), about 40 files for a median of 20 sample taps per station-hour.
 | If the check shows | Then |
 |---|---|
 | `panel_ready: true`, names mapped ≥ 98 %, ratios and shapes look sane | `python scripts/ingest.py --ddse … --write-panel`, then §5. The twin now runs on **real** ridership |
