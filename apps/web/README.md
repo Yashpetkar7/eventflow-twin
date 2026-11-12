@@ -52,6 +52,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 | `…/twin/Metro.tsx` | Viaduct + piers, six stations (oyster-shell roofs, glass footbridges), instanced trains paced by `trains_per_hour` |
 | `…/twin/Landmarks.tsx` | Burj Khalifa, Emirates Towers, Museum of the Future, DWTC tower, Dubai Frame at their OSM positions |
 | `…/twin/Live.tsx` | Crowd columns (capacity glass, threshold ring, demand bar, pulse), venue beacon, crowd particles, illustrative traffic |
+| `…/twin/atmosphere.ts`, `src/lib/sun.ts` | Realism scene only: haze for every material, ground + water shader on the R1 bake, real sun position |
 | `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
 | `tests/ui.spec.ts` | Playwright: screenshots → `eval/results/ui/`, fps → `eval/results/ui/fps.json` (`make ui-test`) |
 | `tests/soak.mjs` | Booth soak: guided demo in a loop for N minutes, heap / GPU-object / fps / network log → `eval/results/ui/soak.json` |
@@ -70,6 +71,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 - Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
 - Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
-- Sun timing is stylised (golden hour 16:30–18:30) rather than the real mid-November sunset.
+- Sun timing is stylised (golden hour 16:30–18:30) in the default scene; `?scene=v2` uses the real sun for the event date (R2).
+- `?scene=v2` shadows are one camera-following map, not cascades; water depth near the shore is approximated from the mask.
 - Landmarks are stylised low-poly models, not surveyed geometry. Hand-modelled glTF assets (e.g. via Blender) could replace
   two or three of them later without touching the rest of the scene.

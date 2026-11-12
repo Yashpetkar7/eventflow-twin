@@ -281,8 +281,8 @@ export function City({ data, corridor, manifest }: { data: SceneJson; corridor: 
           <mesh geometry={built.ground} material={mats.ground} receiveShadow />
         </>
       )}
-      <mesh geometry={built.water} material={mats.water} />
-      {built.roadsByClass.map((g, i) => <mesh key={i} geometry={g} material={mats.road} receiveShadow />)}
+      {!manifest && <mesh geometry={built.water} material={mats.water} />}
+      {built.roadsByClass.map((g, i) => <mesh key={i} geometry={g} material={manifest ? mats.highway : mats.road} receiveShadow />)}
       <mesh geometry={built.szr} material={mats.highway} receiveShadow />
       <mesh geometry={built.decks} material={mats.deck} castShadow receiveShadow />
       <mesh geometry={built.rails} material={mats.glass} />

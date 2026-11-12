@@ -7,6 +7,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { compass, type Frame } from "@/lib/geo";
 import { nightFactor } from "@/lib/daylight";
+import { sunPosition } from "@/lib/sun";
 import { useTwin } from "@/lib/store";
 import { live } from "./sceneData";
 
@@ -18,6 +19,12 @@ const SKY: Stop[] = [
   [15.6, 0x3f86d8, 0xbfd9ee], [16.6, 0x4a86cf, 0xf1dbb4], [17.6, 0x5a7fc0, 0xf3cc9c], [18.4, 0x4a5f9c, 0xf0a070],
   [18.9, 0x25356b, 0x9a6f86], [19.5, 0x0f1836, 0x2c3a66], [20.3, 0x050914, 0x121a30], [24, 0x050914, 0x121a30],
 ];
+// Realism scene (docs/13 R2): the same sky colours, keyed by the real sun's elevation in degrees instead of the clock.
+const SKY_E: Stop[] = [
+  [-90, 0x050914, 0x121a30], [-12, 0x050914, 0x121a30], [-7, 0x0f1836, 0x2c3a66], [-3.5, 0x25356b, 0x9a6f86], [-0.5, 0x4a5f9c, 0xf0a070],
+  [4, 0x5a7fc0, 0xf3cc9c], [10, 0x4a86cf, 0xf1dbb4], [18, 0x3f86d8, 0xbfd9ee], [90, 0x3f86d8, 0xbfd9ee],
+];
+const DUST = new THREE.Color(0xd9c8a8);            // desert dust in the daytime haze
 const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 const DOME_VERT = /* glsl */ `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
@@ -46,7 +53,8 @@ const DOME_FRAG = /* glsl */ `
     gl_FragColor = vec4(c, 1.0);
   }`;
 
-export function Sky({ frame, tier = 0 }: { frame: Frame; tier?: number }) {
+/** `real`: sun from the scenario date and the clock (solar declination + equation of time) instead of the stylised day. */
+export function Sky({ frame, tier = 0, real = false }: { frame: Frame; tier?: number; real?: boolean }) {
   const { scene, gl } = useThree();
   const sun = useRef<THREE.DirectionalLight>(null), hemi = useRef<THREE.HemisphereLight>(null);
   const uniforms = useMemo(() => ({
@@ -91,21 +99,26 @@ export function Sky({ frame, tier = 0 }: { frame: Frame; tier?: number }) {
   }, [tier]);
 
   useFrame((state, dt) => {
-    const h = useTwin.getState().time, nf = nightFactor(h);
+    const st = useTwin.getState(), h = st.time;
+    const sp = real ? sunPosition(st.events.find((e) => e.id === st.scenario.eventId)?.date ?? "2025-10-13", h) : null;
+    const nf = sp ? 1 - smooth(-8, 2, sp.elevation) : nightFactor(h);
     live.night = nf; live.daylight = 1 - nf; live.animT += Math.min(0.05, dt);
+    live.sun = sp;
+    const stops = sp ? SKY_E : SKY, key = sp ? sp.elevation : h;
     let i = 0;
-    while (i < SKY.length - 2 && SKY[i + 1][0] < h) i++;
-    const k = (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]);
-    c.top.copy(c.a.setHex(SKY[i][1])).lerp(c.b.setHex(SKY[i + 1][1]), k);
-    c.hor.copy(c.a.setHex(SKY[i][2])).lerp(c.b.setHex(SKY[i + 1][2]), k);
+    while (i < stops.length - 2 && stops[i + 1][0] < key) i++;
+    const k = (key - stops[i][0]) / (stops[i + 1][0] - stops[i][0]);
+    c.top.copy(c.a.setHex(stops[i][1])).lerp(c.b.setHex(stops[i + 1][1]), k);
+    c.hor.copy(c.a.setHex(stops[i][2])).lerp(c.b.setHex(stops[i + 1][2]), k);
     uniforms.uTop.value.copy(c.top); uniforms.uHor.value.copy(c.hor); uniforms.uNight.value = nf; uniforms.uT.value = live.animT;
 
     // sun: rises east-south-east, culminates in the south, sets west-south-west — on the camera's side, so the
     // skyline is front-lit and shadows fall away from the viewer at golden hour
     const day = Math.max(0, Math.min(1, (h - SUNRISE) / (SUNSET - SUNRISE)));
-    const up = h > SUNRISE - 0.2 && h < SUNSET + 0.25;
-    const elev = up ? Math.max(0.11, Math.sin(Math.PI * day) * 0.85) : 0.7;           // radians; the moon stands high
-    const [dx, dz] = compass(frame, up ? 106 + 148 * day : 205);
+    const up = sp ? sp.elevation > -1.5 : h > SUNRISE - 0.2 && h < SUNSET + 0.25;
+    // radians; the moon stands high. The light never drops under 6 degrees so shadows stay finite at sunrise and sunset.
+    const elev = !up ? 0.7 : sp ? Math.max(0.11, (sp.elevation * Math.PI) / 180) : Math.max(0.11, Math.sin(Math.PI * day) * 0.85);
+    const [dx, dz] = compass(frame, !up ? 205 : sp ? sp.azimuth : 106 + 148 * day);
     c.dir.set(dx * Math.cos(elev), Math.sin(elev), dz * Math.cos(elev));
     uniforms.uSun.value.copy(c.dir);
     const golden = up ? 1 - smooth(0.16, 0.55, elev) : 0;                             // 1 = low sun
@@ -117,12 +130,17 @@ export function Sky({ frame, tier = 0 }: { frame: Frame; tier?: number }) {
     if (fog) {
       fog.color.copy(c.hor).lerp(c.top, 0.12 + 0.22 * golden);
       fog.near = 5200 - 700 * golden; fog.far = 46000 - 9000 * golden - 12000 * nf;     // warm evening haze sits a little closer
+      if (real) {                                    // haze chunk (atmosphere.ts): fog.far = visibility, dusty by day, darker at night
+        fog.color.lerp(DUST, 0.3 * (1 - nf)).multiplyScalar(1 - 0.35 * nf);
+        fog.far = 30000 - 7000 * golden - 9000 * nf;
+      }
     }
 
     if (sun.current) {
       const t = live.camTarget, half = Math.max(420, Math.min(3200, live.camDist * 0.66));
       sun.current.color.copy(c.sun);
       sun.current.intensity = up ? (1 - nf) * (2.25 + 1.9 * golden) + 0.25 * nf : 0.55;
+      if (real) sun.current.intensity *= 1 + 0.9 * live.golden;      // exposure: a camera opens up when the real sun is low
       sun.current.position.set(t.x + c.dir.x * 7000, c.dir.y * 7000, t.z + c.dir.z * 7000);
       sun.current.target.position.set(t.x, 0, t.z);
       sun.current.target.updateMatrixWorld();
@@ -139,6 +157,7 @@ export function Sky({ frame, tier = 0 }: { frame: Frame; tier?: number }) {
       hemi.current.color.copy(c.fillDay).lerp(c.fillGold, golden).lerp(c.fillNight, nf);
       hemi.current.groundColor.copy(c.bounceDay).lerp(c.bounceNight, nf);
       hemi.current.intensity = 0.36 - 0.1 * golden + 0.04 * nf;
+      if (real) hemi.current.intensity += 0.55 * live.golden;        // … and the sky does most of the lighting then
     }
 
     // refresh the reflection probe when the sky has changed enough (at most ~3 times a second)

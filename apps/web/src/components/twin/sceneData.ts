@@ -104,6 +104,7 @@ export function mulberry(a: number) {
 // Shared live values written by the scene each frame and read by sibling components (no React state at 60 fps).
 export const live = {
   camDist: 5000, camTarget: new THREE.Vector3(), night: 0, daylight: 1, golden: 0, animT: 0,
+  sun: null as { elevation: number; azimuth: number } | null,      // real sun (degrees) in the realism scene, else null
   columnTop: {} as Record<string, number>,          // world y of the label anchor above each station column
   stationPos: {} as Record<string, THREE.Vector3>,
   venue: new THREE.Vector3(), venueOn: false,

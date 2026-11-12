@@ -1,0 +1,25 @@
+{
+  "label": "after",
+  "timestamp": "2026-11-12T16:27:55.342Z",
+  "viewport": "1920x1080",
+  "avg_fps": 59.9,
+  "min_fps": 59,
+  "tier_at_end": 0,
+  "per_shot": {
+    "1000_overview": 60,
+    "1000_close": 60,
+    "1000_top": 59,
+    "1000_fly": 60,
+    "1000_orbit": 60,
+    "1730_overview": 60,
+    "1730_close": 60,
+    "1730_top": 60,
+    "1730_fly": 60,
+    "1730_orbit": 60,
+    "2130_overview": 60,
+    "2130_close": 60,
+    "2130_top": 60,
+    "2130_fly": 60,
+    "2130_orbit": 60
+  }
+}

@@ -46,6 +46,12 @@ def realism_rows() -> list[str]:
                 "| | Average fps | Minimum |", "|---|---|---|",
                 f"| Before, corridor scene (`before_fps.json`, {before['timestamp']}) | {before['avg_fps']} | {before['min_fps']} |",
                 f"| After, `?scene=v2` (`after_fps.json`, {after['timestamp']}) | {after['avg_fps']} | {after['min_fps']} |", ""]
+    b2, a2 = load(UI / "realism_r2/before_fps.json"), load(UI / "realism_r2/after_fps.json")
+    if b2 and a2:
+        out += ["R2 (light, haze, ground and sea): 15 before/after pairs plus an AgX set in `eval/results/ui/realism_r2/`, clock paused. Both sets were captured on battery at different times, so the fps columns are not a before/after comparison — the measured frame rate is the mains-power line below.", "",
+                "| | Average fps | Minimum | Quality tier at the end |", "|---|---|---|---|",
+                f"| Before, R1 scene (`before_fps.json`, {b2['timestamp']}) | {b2['avg_fps']} | {b2['min_fps']} | {b2.get('tier_at_end')} |",
+                f"| After, R2 scene (`after_fps.json`, {a2['timestamp']}) | {a2['avg_fps']} | {a2['min_fps']} | {a2.get('tier_at_end')} |", ""]
     v2fps = load(UI / "fps_v2.json")
     if v2fps:
         out += [f"`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, {v2fps['timestamp']}, test \"realism ring…\"): "
