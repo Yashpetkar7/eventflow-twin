@@ -26,7 +26,8 @@ from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, Dec
 from .simulate import simulate
 
 app = FastAPI(title="EventFlow Twin API", version=CONTRACT_VERSION)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+# The web app runs on the same machine (any local port: dev 3000, booth build, test builds). Nothing remote is allowed.
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
                    allow_methods=["GET", "POST"], allow_headers=["*"])
 
 DECISIONS_LOG = ROOT / "data/processed/decisions_log.jsonl"

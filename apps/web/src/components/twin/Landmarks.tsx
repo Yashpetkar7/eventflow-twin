@@ -160,8 +160,8 @@ export function Landmarks({ data }: { data: SceneJson }) {
     // blue-silver curtain wall: mostly mirror, so it takes the colour of the sky of the hour
     burj: new THREE.MeshStandardMaterial({ color: 0x8ea3ba, metalness: 0.88, roughness: 0.2, envMapIntensity: 1.35, emissive: 0xbcd3f2, emissiveIntensity: 0, flatShading: true }),
     steel: new THREE.MeshStandardMaterial({ color: 0x9aa7b4, metalness: 0.82, roughness: 0.27, envMapIntensity: 1.25, emissive: 0x9cb6dc, emissiveIntensity: 0, flatShading: true, side: THREE.DoubleSide }),
-    mof: new THREE.MeshPhysicalMaterial({ color: 0xdfe5ea, metalness: 0.9, roughness: 0.18, clearcoat: 0.6, clearcoatRoughness: 0.2, envMapIntensity: 1.3,
-      emissiveMap: built.strokes, emissive: 0xffe6bd, emissiveIntensity: 0, bumpMap: built.strokes, bumpScale: -1.6, roughnessMap: built.strokes }),
+    mof: new THREE.MeshPhysicalMaterial({ color: 0xe6e8ea, metalness: 0.72, roughness: 0.3, clearcoat: 0.5, clearcoatRoughness: 0.25, envMapIntensity: 0.9,
+      emissiveMap: built.strokes, emissive: 0xffe6bd, emissiveIntensity: 0, bumpMap: built.strokes, bumpScale: -1.1 }),
     mound: new THREE.MeshStandardMaterial({ color: 0x5f9248, roughness: 0.92 }),
     dwtc: new THREE.MeshStandardMaterial({ map: built.honey, bumpMap: built.honey, bumpScale: 1.2, emissiveMap: built.honeyLit, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.62 }),
     crown: new THREE.MeshStandardMaterial({ color: 0xe9e2d4, roughness: 0.6 }),

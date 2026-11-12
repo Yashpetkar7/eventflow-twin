@@ -23,6 +23,7 @@ function Workspace() {
   const apiDown = useTwin((s) => s.apiDown);
   const error = useTwin((s) => s.error);
   const tourStep = useTwin((s) => s.tourStep);
+  const expanded = useTwin((s) => s.expanded);
   const [how, setHow] = useState(false);
   const dlg = useRef<HTMLDialogElement>(null);
 
@@ -54,7 +55,7 @@ function Workspace() {
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", minHeight: 640 }}>
       <Header onHow={() => setHow(true)} onTour={() => void runTour(locale)} />
       {(apiDown || error) && <div className="banner" role="status">{apiDown ? t("apiDown") : t("apiError", { msg: error ?? "" })}</div>}
-      <main className="app">
+      <main className={`app${expanded ? " expanded" : ""}`}>
         <Rail />
         <Stage />
         <Panel />

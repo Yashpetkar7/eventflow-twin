@@ -7,14 +7,16 @@ import {
   api, ApiError, setFallbackListener, type AgentPlanResponse, type EventInfo, type ForecastResponse, type Intervention,
   type SimulateResponse, type Station,
 } from "./api";
+import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
 import { forecastBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
 
 export type { Priority, Scenario, Weather };
-export type CamMode = "overview" | "close" | "top" | "fly" | "orbit" | "free";
+export type CamMode = "overview" | "close" | "top" | "fly" | "orbit" | "landmark" | "free";
 export type Tab = "station" | "ai" | "build" | "alerts" | "report";
 export type LayerKey = "buildings" | "landmarks" | "trains" | "traffic" | "flows" | "labels";
 export type Decision = "approve" | "reject";
 
+const LOG_MAX = 200;                 // the on-screen decision log is bounded (the server keeps the full audit trail)
 export const CORRIDOR_ORDER = ["MAX", "WTC", "EMT", "FIC", "BKD", "BBY"];
 export const T_MIN = 5, T_MAX = 23.75;
 export const HOURS = Array.from({ length: 19 }, (_, i) => i + 5);
@@ -136,6 +138,10 @@ interface State {
   selected: string; tab: Tab; view: "3d" | "table"; layers: Record<LayerKey, boolean>;
   cam: CamMode; lastCam: Exclude<CamMode, "free">; camNonce: number;
   kiosk: boolean; tourStep: number | null; sceneReady: boolean; glFailed: boolean; reducedMotion: boolean;
+  focus: string | null;               // landmark the camera is framing
+  expanded: boolean;                  // side panels folded away so the 3D twin fills the screen
+  tier: 0 | 1 | 2;                    // automatic quality tier (0 = full; see TwinCanvas)
+  fpsOverride: number | null;         // test hook for the quality tier
 
   init: () => Promise<void>;
   selectEvent: (id: string) => void;
@@ -148,6 +154,7 @@ interface State {
   select: (id: string, opts?: { tab?: boolean; fly?: boolean }) => void;
   setCam: (c: CamMode) => void;
   recentre: () => void;
+  focusLandmark: (key: string) => void;
   runAgents: (locale: "en" | "ar") => Promise<void>;
   decide: (rank: number, d: Decision, user?: string) => Promise<void>;
   patchBuild: (p: Partial<BuildState>) => void;
@@ -243,6 +250,7 @@ export const useTwin = create<State>((set, get) => {
     layers: { buildings: true, landmarks: true, trains: true, traffic: true, flows: true, labels: true },
     cam: "overview", lastCam: "overview", camNonce: 0,
     kiosk: false, tourStep: null, sceneReady: false, glFailed: false, reducedMotion: false,
+    focus: null, expanded: false, tier: 0, fpsOverride: null,
 
     init: async () => {
       setFallbackListener((down) => { if (get().apiDown !== down) set({ apiDown: down }); });
@@ -271,7 +279,10 @@ export const useTwin = create<State>((set, get) => {
     setTime: (t) => set({ time: Math.max(T_MIN, Math.min(T_MAX, t)) }),
     setPlaying: (p) => set((s) => ({ playing: p, time: p && s.time >= T_MAX - 0.05 ? T_MIN : s.time })),
     select: (id, opts) => set((s) => ({ selected: id, tab: opts?.tab ? "station" : s.tab, camNonce: s.camNonce + (opts?.fly && s.cam === "close" ? 1 : 0) })),
-    setCam: (c) => set((s) => ({ cam: c, lastCam: c === "free" ? s.lastCam : c, camNonce: s.camNonce + 1 })),
+    setCam: (c) => set((s) => ({ cam: c, lastCam: c === "free" ? s.lastCam : c, focus: c === "landmark" ? s.focus : null, camNonce: s.camNonce + 1 })),
+    /** Fly to a landmark and frame it with its surroundings. */
+    focusLandmark: (key) => set((s) => ({ cam: "landmark", lastCam: "landmark", focus: key, view: "3d", camNonce: s.camNonce + 1,
+      selected: LANDMARK_STATION[key as LandmarkKey] ?? s.selected })),
     /** Back to the framing of the last chosen preset after dragging, panning or zooming away. */
     recentre: () => set((s) => ({ cam: s.lastCam, view: "3d", camNonce: s.camNonce + 1 })),
 
@@ -298,7 +309,7 @@ export const useTwin = create<State>((set, get) => {
       try {
         const r = await api.decide({ plan_id: s.plan.plan_id, option_rank: rank, decision: d, user, option_title: opt.title.slice(0, 200),
           forecast_run_id: s.forecast.run_id, interventions: opt.interventions });
-        set({ log: [{ ts: r.timestamp, kind: d, title: opt.title }, ...get().log], decisionError: null });
+        set({ log: [{ ts: r.timestamp, kind: d, title: opt.title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
       } catch (e) {
         set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
         return;                                    // never show "applied" for a decision that was not logged
@@ -314,7 +325,7 @@ export const useTwin = create<State>((set, get) => {
       try {
         const r = await api.decide({ plan_id: `my_plan_${s.preview.resp.run_id}`, option_rank: 1, decision: "approve", user: "visitor",
           option_title: title, forecast_run_id: s.forecast.run_id, interventions: ivs });
-        set({ log: [{ ts: r.timestamp, kind: "approve", title }, ...get().log], decisionError: null });
+        set({ log: [{ ts: r.timestamp, kind: "approve" as const, title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
       } catch (e) {
         set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
         return;
@@ -325,7 +336,7 @@ export const useTwin = create<State>((set, get) => {
       const s = get();
       if (!s.applied.length && !s.plan) return;
       set({ applied: [], plan: null, planStatus: "idle", decisions: {}, cur: s.base, preview: null,
-        log: [{ ts: new Date().toISOString(), kind: "reset" }, ...s.log] });
+        log: [{ ts: new Date().toISOString(), kind: "reset" as const }, ...s.log].slice(0, LOG_MAX) });
       schedulePreview();
     },
     jumpTo: (id, hour) => set((s) => ({ selected: id, time: Math.min(T_MAX, hour + 0.5), cam: "close", lastCam: "close", camNonce: s.camNonce + 1 })),

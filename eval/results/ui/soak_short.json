@@ -1,0 +1,175 @@
+{
+ "suite": "ui_soak",
+ "timestamp": "2026-11-12T08:05:44.330Z",
+ "finished": true,
+ "target": "http://localhost:3100",
+ "planned_minutes": 6,
+ "minutes": 6.02,
+ "loops": 12,
+ "baseline_heap_mb": 41.67,
+ "final_heap_mb": 41.53,
+ "heap_growth_pct": -0.3,
+ "max_heap_mb": 42.01,
+ "geometries": [
+  53,
+  53
+ ],
+ "textures": [
+  30,
+  30
+ ],
+ "programs": [
+  45,
+  46
+ ],
+ "dom_nodes": [
+  396,
+  398
+ ],
+ "min_fps": 59.9,
+ "tier_final": 0,
+ "external_requests": 0,
+ "page_errors": [],
+ "samples": [
+  {
+   "min": 0,
+   "loop": 0,
+   "heap_mb": 37.09,
+   "fps": 0,
+   "dom_nodes": 438
+  },
+  {
+   "min": 0.5,
+   "loop": 1,
+   "heap_mb": 40.56,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 45,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 396
+  },
+  {
+   "min": 0.99,
+   "loop": 2,
+   "heap_mb": 41.1,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 45,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 398
+  },
+  {
+   "min": 1.5,
+   "loop": 3,
+   "heap_mb": 41.67,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 45,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 464
+  },
+  {
+   "min": 2,
+   "loop": 4,
+   "heap_mb": 41.91,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 398
+  },
+  {
+   "min": 2.5,
+   "loop": 5,
+   "heap_mb": 41.81,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 396
+  },
+  {
+   "min": 3.01,
+   "loop": 6,
+   "heap_mb": 41.93,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 398
+  },
+  {
+   "min": 3.5,
+   "loop": 7,
+   "heap_mb": 42.01,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60.1,
+   "tier": 0,
+   "dom_nodes": 464
+  },
+  {
+   "min": 4,
+   "loop": 8,
+   "heap_mb": 41.62,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 398
+  },
+  {
+   "min": 4.51,
+   "loop": 9,
+   "heap_mb": 41.48,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 59.9,
+   "tier": 0,
+   "dom_nodes": 396
+  },
+  {
+   "min": 5.01,
+   "loop": 10,
+   "heap_mb": 41.49,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 59.9,
+   "tier": 0,
+   "dom_nodes": 398
+  },
+  {
+   "min": 5.5,
+   "loop": 11,
+   "heap_mb": 41.53,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 464
+  },
+  {
+   "min": 6.02,
+   "loop": 12,
+   "heap_mb": 41.56,
+   "geometries": 53,
+   "textures": 30,
+   "programs": 46,
+   "fps": 60,
+   "tier": 0,
+   "dom_nodes": 398
+  }
+ ],
+ "note": "min_fps excludes sample 0 (taken before the first one-second fps reading)"
+}

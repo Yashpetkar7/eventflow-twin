@@ -14,7 +14,9 @@ One command for the booth (offline cache → API → production build → kiosk 
 |---|---|
 | `/` | Workspace |
 | `/?lang=ar` | Arabic, full right-to-left (the 3D scene is not mirrored) |
-| Recentre button / `Home` key | Brings the 3D view back to the last chosen camera preset after dragging or zooming away |
+| Recentre (target button on the right edge, red once the view has moved) / `Home` | Back to the last chosen camera view |
+| Landmarks menu, or tap a landmark label | Flies to the landmark and frames it with its area; selects the station that serves it |
+| Zoom + / − and Full-width map (right edge; `Esc` to leave) | Touch-friendly zoom; folds the side panels away so the twin fills the screen |
 | `/?kiosk=1` | Touch kiosk: targets ≥ 48 px, no selection / context menu, 60 s idle → guided demo (`&idle=10` for rehearsals) |
 
 `NEXT_PUBLIC_API_URL` overrides the API address (default `http://localhost:8000`).
@@ -43,6 +45,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 | `…/twin/Live.tsx` | Crowd columns (capacity glass, threshold ring, demand bar, pulse), venue beacon, crowd particles, illustrative traffic |
 | `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
 | `tests/ui.spec.ts` | Playwright: screenshots → `eval/results/ui/`, fps → `eval/results/ui/fps.json` (`make ui-test`) |
+| `tests/soak.mjs` | Booth soak: guided demo in a loop for N minutes, heap / GPU-object / fps / network log → `eval/results/ui/soak.json` |
 | `tests/polish.mjs` | Before/after captures for a visual pass: `node tests/polish.mjs before|after` → `eval/results/ui/polish/` |
 
 ## Rules

@@ -7,12 +7,12 @@ import * as THREE from "three";
 import { useTwin } from "@/lib/store";
 import type { Corridor } from "./City";
 import type { StationPlace } from "./Metro";
-import { live } from "./sceneData";
+import { camBus, live, type LandmarkSpot } from "./sceneData";
 
 interface Cam { theta: number; phi: number; r: number; tx: number; ty: number; tz: number }
 const R_MIN = 140, R_MAX = 12000;
 
-export function CameraRig({ places, corridor }: { places: StationPlace[]; corridor: Corridor }) {
+export function CameraRig({ places, corridor, spots }: { places: StationPlace[]; corridor: Corridor; spots: LandmarkSpot[] }) {
   const { camera, gl, size } = useThree();
   const cur = useRef<Cam>({ theta: -0.1, phi: 0.93, r: 7600, tx: 60, ty: 40, tz: -520 });
   const dst = useRef<Cam>({ ...cur.current });
@@ -27,6 +27,10 @@ export function CameraRig({ places, corridor }: { places: StationPlace[]; corrid
     const s = useTwin.getState(), p = places.find((x) => x.id === s.selected) ?? places[0];
     switch (k) {
       case "close": return { theta: -0.46, phi: 1.08, r: 620, tx: p?.x ?? 0, ty: 70, tz: p?.z ?? 0 };
+      case "landmark": {                                 // the landmark and its neighbourhood, seen from the sea side
+        const l = spots.find((x) => x.key === s.focus) ?? spots[0];
+        return l ? { theta: -0.38, phi: 1.16, r: l.r, tx: l.x, ty: l.h * 0.42, tz: l.z } : {};
+      }
       case "top": return { theta: 0, phi: 0.06, r: overviewR() * 1.02, tx: 60, ty: 0, tz: -300 };
       case "fly": return { phi: 1.34, r: 360, ty: 52 };                                   // low, looking down the corridor to the skyline
       case "orbit": return { phi: 1.2, r: overviewR() * 0.58, tx: 200, ty: 120, tz: -380 };  // flatter: horizon, haze and sky in frame
@@ -44,7 +48,14 @@ export function CameraRig({ places, corridor }: { places: StationPlace[]; corrid
       Object.assign(dst.current, preset(s.cam));
       unwind();
     }
-  }), [places, size.width, size.height]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [places, spots, size.width, size.height]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    camBus.zoom = (f) => {
+      dst.current.r = Math.min(R_MAX, Math.max(R_MIN, dst.current.r * f));
+      if (useTwin.getState().cam !== "free") useTwin.setState({ cam: "free" });
+    };
+    return () => { camBus.zoom = () => {}; };
+  }, []);
   useEffect(() => { Object.assign(dst.current, preset(useTwin.getState().cam)); Object.assign(cur.current, dst.current); }, [places.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

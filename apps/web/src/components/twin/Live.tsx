@@ -14,7 +14,8 @@ import { live, mulberry, type SceneJson } from "./sceneData";
 const OK = new THREE.Color(0x0e9f6e), WARN = new THREE.Color(0xe39a00), RISK = new THREE.Color(0xc1123f);
 const COL_BASE = 31, CAP_H = 110, COL_R = 13;      // column sits on the station roof; CAP_H = 100 % load
 
-/** Column size grows with camera distance so the data stays the most visible thing in every view. */
+/** Column size grows with the camera's working distance so the data stays the most visible thing in every view.
+ *  One scale for all columns: in low views the far ones shrink with perspective instead of looming on the skyline. */
 const columnScale = (dist: number) => Math.max(1, Math.min(6.2, dist / 950));
 
 export function Columns({ places }: { places: StationPlace[] }) {
@@ -49,7 +50,7 @@ export function Columns({ places }: { places: StationPlace[] }) {
       if (!g || !pulse) return;
       const [glass, ring, bar, cap] = g.children;
       const lf = lfAt(s.cur, p.id, s.time), over = lf > thr;
-      const k = columnScale(camera.position.distanceTo(g.position));
+      const k = columnScale(live.camDist);
       const target = Math.max(0.02, Math.min(1.7, lf)) * CAP_H;
       const cur = (heights.current[p.id] ?? 0) + (target - (heights.current[p.id] ?? 0)) * Math.min(1, dt * 6);
       heights.current[p.id] = cur;
@@ -99,7 +100,7 @@ export function VenueBeacon({ data }: { data: SceneJson }) {
     ring: new THREE.MeshBasicMaterial({ color: 0x2f5bff, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false, fog: false }),
   }), []);
   useEffect(() => () => Object.values(mats).forEach((m) => m.dispose()), [mats]);
-  useFrame(({ camera }) => {
+  useFrame(() => {
     const s = useTwin.getState(), ev = s.forecast?.event;
     if (!g.current || !ring.current) return;
     g.current.visible = live.venueOn = !!ev;
@@ -107,7 +108,7 @@ export function VenueBeacon({ data }: { data: SceneJson }) {
     const [x, z] = project(data.meta.frame, ev.lat, ev.lon);
     live.venue.set(x, 0, z);
     g.current.position.set(x, 0, z);
-    const k = columnScale(camera.position.distanceTo(g.current.position));
+    const k = columnScale(live.camDist);
     g.current.scale.set(k, 1, k);
     const ph = s.reducedMotion ? 0.3 : (live.animT * 0.6) % 1;
     ring.current.scale.setScalar(1 + ph * 2.2);
@@ -125,7 +126,7 @@ const P_MAX = 2600;
 /** Crowd flows: venue → stations during the exit surge, stations → venue on arrival. Rates = the forecast's
  *  event entries / exits for the current hour (decorative density, not a count). */
 export function Crowd({ places }: { places: StationPlace[] }) {
-  const visible = useTwin((s) => s.layers.flows && !s.reducedMotion);
+  const visible = useTwin((s) => s.layers.flows && !s.reducedMotion && s.tier < 2);
   const pts = useRef<THREE.Points>(null);
   const pos = useMemo(() => new Float32Array(P_MAX * 3).fill(-999), []);
   const parts = useMemo(() => Array.from({ length: P_MAX }, () => ({ live: false, t: 0, dur: 1, ax: 0, az: 0, bx: 0, bz: 0, wob: 0 })), []);
@@ -148,7 +149,7 @@ export function Crowd({ places }: { places: StationPlace[] }) {
         const side = (vx - p.x) * -p.tz + (vz - p.z) * p.tx > 0 ? p.zMax : p.zMin;   // the entrance on the venue's side
         const ex = p.x - p.tz * side, ez = p.z + p.tx * side;
         for (const [key, rate, ax, az, bx, bz] of [[`${p.id}o`, f.out[h], vx, vz, ex, ez], [`${p.id}i`, f.in[h], ex, ez, vx, vz]] as const) {
-          let n = (acc.current[key] ?? 0) + (rate / 700) * dt * 6;
+          let n = (acc.current[key] ?? 0) + (rate / 700) * dt * 6 * (s.tier === 0 ? 1 : 0.45);
           while (n >= 1) {
             n -= 1;
             let tries = 0;
@@ -217,7 +218,7 @@ export function Traffic({ corridor }: { corridor: Corridor }) {
     let ev = 0;
     for (const id in st.flows) ev += st.flows[id].out[hourOf(h)];
     const press = Math.min(2.2, 0.35 + (g(8, 1.2) + g(18, 1.6) + 0.35 * g(13, 3)) * 0.8 + ev / 9000);
-    const nVis = Math.round(CARS * Math.min(1, 0.25 + press * 0.42)), vel = 26 / (1 + press * 0.9);
+    const nVis = Math.round(CARS * Math.min(1, 0.25 + press * 0.42) * (st.tier === 0 ? 1 : st.tier === 1 ? 0.6 : 0.35)), vel = 26 / (1 + press * 0.9);
     const { m: mm, q, p, one, up, s, zero } = tmp;
     const night = live.night > 0.3;
     for (let i = 0; i < CARS; i++) {

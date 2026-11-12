@@ -64,6 +64,23 @@
   },
   "recentre": "Recentre",
   "recentreHint": "Back to the last camera view (Home key)",
+  "landmarks": "Landmarks",
+  "nearest": "Nearest station: {station}",
+  "backToOverview": "Back to the overview",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "expandMap": "Full-width map",
+  "collapseMap": "Show the side panels",
+  "lmName": {
+    "burj": "Burj Khalifa",
+    "mall": "The Dubai Mall",
+    "mof": "Museum of the Future",
+    "et": "Emirates Towers",
+    "difc": "DIFC",
+    "dwtc": "World Trade Centre tower",
+    "frame": "Dubai Frame",
+    "canal": "Dubai Water Canal"
+  },
   "tabs": {
     "station": "Station",
     "ai": "AI plan",
@@ -199,8 +216,6 @@
   "apiDown": "The planning service is not reachable. Showing the last saved results; reconnecting automatically.",
   "apiError": "Could not load data: {msg}",
   "lm": {
-    "burj": "Burj Khalifa",
-    "mof": "Museum of the Future",
     "venue": "Event: {name}"
   },
   "howTitle": "How EventFlow Twin works",

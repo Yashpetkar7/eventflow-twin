@@ -75,26 +75,45 @@ input[type="range"] { width: 100%; accent-color: var(--navy); height: 26px; marg
 .tag b { font-weight: 600; }
 .tag.over { border-color: var(--risk); color: #7A0B35; }
 .tag.sel { background: #0F2F8F; color: #fff; }
-.tag.lm { background: rgba(21, 27, 40, 0.72); color: #fff; font-size: 11px; pointer-events: none; border: 0; }
-.hud { position: absolute; top: 12px; inset-inline-start: 12px; max-width: 40%; pointer-events: none; color: #0E1525; z-index: 3; background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 14px; padding: 9px 13px 10px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); }
-.hud.night { color: #fff; background: rgba(14, 20, 34, 0.6); }
-.clock { font-size: 44px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
-.hud .sub { font-size: 13.5px; font-weight: 500; margin-top: 4px; }
-.kpis { position: absolute; top: 12px; inset-inline-end: 12px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 62%; z-index: 3; }
-.kpi { background: rgba(255, 255, 255, 0.92); color: #151B28; border-radius: 12px; padding: 7px 11px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1); min-width: 96px; }
+.tag.lm { background: rgba(21, 27, 40, 0.74); color: #fff; font-size: 11px; border: 0; }
+/* overlays on the 3D view: one bar at the top (clock + KPIs) and one at the bottom (legend + cameras), both
+   flex rows that wrap, so nothing can overlap at any width; everything else is the map */
+.viewtop { position: absolute; top: 10px; inset-inline: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; z-index: 3; pointer-events: none; }
+.hudcol { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; min-width: 0; }
+.hud { pointer-events: none; color: #0E1525; background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 14px; padding: 8px 12px 9px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); max-width: 430px; }
+.hud.night { color: #fff; background: rgba(14, 20, 34, 0.66); }
+.clock { font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.hud .sub { font-size: 12.5px; font-weight: 500; margin-top: 4px; line-height: 1.35; }
+.focuschip { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: #0F2F8F; color: #fff; border-radius: 12px; padding: 7px 8px 7px 12px; font-size: 13px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); }
+.focuschip .note { color: rgba(255, 255, 255, 0.82); }
+.focuschip button { border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; border-radius: 9px; width: 34px; height: 34px; flex: none; }
+.kpis { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; pointer-events: auto; }
+.kpi { background: rgba(255, 255, 255, 0.92); color: #151B28; border-radius: 12px; padding: 6px 11px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1); min-width: 92px; }
 .kpi b { display: block; font-size: 19px; font-weight: 600; line-height: 1.1; }
 .kpi span { font-size: 11px; color: #5A6273; }
 .kpi.bad b { color: #B0124F; }
-.legend { position: absolute; bottom: 10px; inset-inline-start: 12px; display: flex; gap: 10px; background: rgba(255, 255, 255, 0.9); color: #151B28; border-radius: 10px; padding: 6px 10px; font-size: 11.5px; flex-wrap: wrap; z-index: 3; max-width: 46%; }
+.viewbottom { position: absolute; bottom: 6px; inset-inline: 12px; display: flex; flex-direction: column; gap: 4px; z-index: 3; pointer-events: none; }
+.viewrow { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap-reverse; }
+.legend { display: flex; gap: 10px; background: rgba(255, 255, 255, 0.9); color: #151B28; border-radius: 10px; padding: 6px 10px; font-size: 11.5px; flex-wrap: wrap; pointer-events: auto; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; }
-.camtools { position: absolute; bottom: 10px; inset-inline-end: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; z-index: 3; max-width: 52%; }
-.camtools button { border: 0; background: rgba(255, 255, 255, 0.94); color: #151B28; border-radius: 10px; padding: 7px 10px; font-size: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); min-height: 34px; }
+.camtools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; pointer-events: auto; margin-inline-start: auto; }
+.camtools button { border: 0; background: rgba(255, 255, 255, 0.94); color: #151B28; border-radius: 10px; padding: 7px 11px; font-size: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); min-height: 34px; white-space: nowrap; }
 .camtools button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
-.camtools .recentre { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-.camtools .recentre.moved { background: #D90F0F; color: #fff; }       /* the view has been moved: one tap brings it back */
-.attrib { position: absolute; bottom: 2px; inset-inline-start: 50%; transform: translateX(-50%); font-size: 9.5px; color: rgba(20, 28, 45, 0.6); z-index: 3; pointer-events: none; white-space: nowrap; }
-[dir="rtl"] .attrib { transform: translateX(50%); }
-.hud.night ~ .attrib { color: rgba(255, 255, 255, 0.6); }
+.lmwrap { position: relative; }
+.lmmenu { position: absolute; bottom: calc(100% + 6px); inset-inline-end: 0; background: rgba(255, 255, 255, 0.98); border-radius: 12px; padding: 6px; display: grid; gap: 4px; min-width: 210px; box-shadow: 0 12px 32px rgba(15, 25, 50, 0.22); z-index: 5; }
+.camtools .lmmenu button { text-align: start; box-shadow: none; background: transparent; font-size: 13px; }
+.camtools .lmmenu button:hover { background: var(--navy-soft); }
+.camtools .lmmenu button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
+.mapctl { position: absolute; inset-inline-end: 12px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 3; }
+.mapctl button { width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.95); color: #151B28; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); display: grid; place-items: center; }
+.mapctl button.moved { background: #D90F0F; color: #fff; }       /* the view has been moved: one tap brings it back */
+.mapctl button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
+.attrib { font-size: 9.5px; color: rgba(20, 28, 45, 0.62); text-align: center; pointer-events: none; white-space: nowrap; text-shadow: 0 0 4px rgba(255, 255, 255, 0.7); }
+.tag.lm { pointer-events: auto; cursor: pointer; }
+.tag.lm.venue { pointer-events: none; }
+.tag.lm.sel { background: #0F2F8F; }
+.app.expanded { grid-template-columns: 0 minmax(0, 1fr) 0; }
+.app.expanded .rail, .app.expanded .panel { display: none; }
 .glfail { position: absolute; inset: 0; display: grid; place-items: center; padding: 30px; text-align: center; color: var(--ink-2); background: var(--bg); z-index: 4; }
 .tableview { position: absolute; inset: 0; overflow: auto; padding: 18px; background: var(--bg); z-index: 5; }
 table.data { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); border-radius: 12px; overflow: hidden; }
@@ -173,7 +192,10 @@ dialog.how li, dialog.how p { font-size: 13.5px; color: var(--ink-2); }
 body.kiosk { font-size: 16.5px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; overscroll-behavior: none; }
 body.kiosk .adv { display: none; }
 body.kiosk .btn { min-height: 54px; }
-body.kiosk .clock { font-size: 58px; }
+body.kiosk .clock { font-size: 48px; }
+body.kiosk .mapctl button { width: 52px; height: 52px; }
+body.kiosk .focuschip button { width: 48px; height: 48px; }
+body.kiosk .camtools .lmmenu button { min-height: 48px; }
 body.kiosk .pill, body.kiosk .seg button, body.kiosk .tabs button, body.kiosk .camtools button, body.kiosk select, body.kiosk .tour button { min-height: 48px; }
 body.kiosk .scen button { min-height: 56px; }
 body.kiosk .checks label { min-height: 48px; }
@@ -190,16 +212,14 @@ body.kiosk .tag { padding: 9px 12px; font-size: 14px; }
   .app { display: flex; flex-direction: column; overflow: auto; }
   .stage { order: -1; flex: none; }
   .rail { border-inline-end: 0; border-block-end: 1px solid var(--line); overflow: visible; flex: none; }
-  .panel { flex: none; }
+  .panel { border-inline-start: 0; border-block-start: 1px solid var(--line); flex: none; }
   .tabpanel { overflow: visible; }
-  .view { min-height: 480px; flex: none; }
-  .hud { max-width: 70%; }
-  .clock { font-size: 34px; }
-  .panel { border-inline-start: 0; border-block-start: 1px solid var(--line); }
-  .kpis { max-width: none; top: auto; bottom: 96px; inset-inline: 12px; justify-content: flex-start; gap: 6px; }
-  .kpi { min-width: 0; padding: 5px 9px; }
+  .view { min-height: 560px; flex: none; }
+  .viewtop { flex-direction: column; }
+  .kpis { justify-content: flex-start; gap: 6px; }
+  .kpi { min-width: 0; padding: 4px 9px; }
   .kpi b { font-size: 15px; }
-  .legend, .camtools { max-width: 100%; }
-  .legend { bottom: 54px; }
+  .clock { font-size: 30px; }
+  .hud { max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

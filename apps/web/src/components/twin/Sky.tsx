@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { compass, type Frame } from "@/lib/geo";
+import { nightFactor } from "@/lib/daylight";
 import { useTwin } from "@/lib/store";
 import { live } from "./sceneData";
 
@@ -18,7 +19,6 @@ const SKY: Stop[] = [
   [18.9, 0x25356b, 0x9a6f86], [19.5, 0x0f1836, 0x2c3a66], [20.3, 0x050914, 0x121a30], [24, 0x050914, 0x121a30],
 ];
 const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-export const nightFactor = (h: number) => (h < 12 ? 1 - smooth(5.5, 6.8, h) : smooth(18.3, 19.6, h));
 
 const DOME_VERT = /* glsl */ `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
 const DOME_FRAG = /* glsl */ `
@@ -46,7 +46,7 @@ const DOME_FRAG = /* glsl */ `
     gl_FragColor = vec4(c, 1.0);
   }`;
 
-export function Sky({ frame }: { frame: Frame }) {
+export function Sky({ frame, tier = 0 }: { frame: Frame; tier?: number }) {
   const { scene, gl } = useThree();
   const sun = useRef<THREE.DirectionalLight>(null), hemi = useRef<THREE.HemisphereLight>(null);
   const uniforms = useMemo(() => ({
@@ -80,6 +80,15 @@ export function Sky({ frame }: { frame: Frame }) {
       probe.rt?.dispose(); pmrem.dispose(); probe.ball.geometry.dispose(); probe.floor.geometry.dispose(); probe.floorMat.dispose(); dome.dispose();
     };
   }, [scene, pmrem, probe, dome]);
+
+  // quality tier: half-size shadow map at tier 1, no shadows at tier 2
+  useEffect(() => {
+    const l = sun.current;
+    if (!l) return;
+    const n = tier === 0 ? 4096 : 2048;
+    l.castShadow = tier < 2;
+    if (l.shadow.mapSize.x !== n) { l.shadow.mapSize.set(n, n); l.shadow.map?.dispose(); l.shadow.map = null; }
+  }, [tier]);
 
   useFrame((state, dt) => {
     const h = useTwin.getState().time, nf = nightFactor(h);

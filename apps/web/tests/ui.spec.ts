@@ -126,11 +126,77 @@ test("recentre brings the 3D view back after dragging and zooming", async ({ pag
   await page.mouse.wheel(0, -600);
   const cam = () => page.evaluate(() => (window as unknown as { __twin: { getState: () => { cam: string } } }).__twin.getState().cam);
   expect(await cam()).toBe("free");
-  await expect(page.locator(".camtools .recentre")).toHaveClass(/moved/);
+  await expect(page.locator(".mapctl button").first()).toHaveClass(/moved/);
   await page.getByRole("button", { name: "Recentre" }).click();
   expect(await cam()).toBe("top");                                   // back to the preset that was active
   await page.keyboard.press("Home");
   expect(await cam()).toBe("top");
+});
+
+test("landmarks: tap one and the camera frames it with its area", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: /Landmarks/ }).click();
+  await page.locator(".lmmenu").getByRole("button", { name: "Burj Khalifa" }).click();
+  await expect(page.locator(".focuschip")).toContainText("Burj Khalifa");
+  await expect(page.locator(".focuschip")).toContainText("Nearest station: Burj Khalifa/Dubai Mall");
+  await settle(page, 4500);
+  await page.screenshot({ path: `${OUT}/landmark_burj_khalifa.png` });
+  // a landmark label in the 3D view is tappable too
+  await page.locator(".labels .tag.lm", { hasText: "The Dubai Mall" }).click();
+  await expect(page.locator(".focuschip")).toContainText("The Dubai Mall");
+  // full-width map and back
+  await page.getByRole("button", { name: "Full-width map" }).click();
+  await expect(page.locator(".rail")).toBeHidden();
+  await settle(page, 1500);
+  await page.screenshot({ path: `${OUT}/full_width_map.png` });
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".rail")).toBeVisible();
+  await page.locator(".focuschip button").click();
+  await expect(page.locator(".focuschip")).toHaveCount(0);
+});
+
+test("overlays never overlap each other or the labels (wide and narrow)", async ({ page }) => {
+  for (const [w, h] of [[1920, 1080], [1280, 800], [860, 1000], [560, 1100]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await open(page);
+    await settle(page, 2500);
+    const clash = await page.evaluate(() => {
+      const rect = (el: Element) => el.getBoundingClientRect();
+      const hits = (a: DOMRect, b: DOMRect) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+      const panels = [...document.querySelectorAll("[data-overlay]")].filter((e) => rect(e).width > 0);
+      const labels = [...document.querySelectorAll(".labels .tag")].filter((e) => { const r = rect(e); return r.right > 0 && r.bottom > 0 && r.width > 0; });
+      const out: string[] = [];
+      panels.forEach((a, i) => panels.slice(i + 1).forEach((b) => { if (hits(rect(a), rect(b))) out.push(`${a.className} × ${b.className}`); }));
+      labels.forEach((l) => panels.forEach((p) => { if (hits(rect(l), rect(p))) out.push(`label "${l.textContent}" × ${p.className}`); }));
+      return out;
+    });
+    expect(clash, `${w}×${h}: ${clash.join("; ")}`).toEqual([]);
+  }
+});
+
+test("quality tier steps down when the frame rate stays under 40 fps", async ({ page }) => {
+  await open(page);
+  await page.waitForFunction(() => ((window as unknown as TwinWindow).__eft?.frames ?? 0) > 500);     // past the warm-up
+  expect(await page.locator(".view").getAttribute("data-tier")).toBe("0");
+  await twin(page, "t.setState({ fpsOverride: 30 })");
+  await expect(page.locator(".view")).toHaveAttribute("data-tier", "1", { timeout: 8000 });
+  await expect(page.locator(".view")).toHaveAttribute("data-tier", "2", { timeout: 8000 });
+  await twin(page, "t.setState({ fpsOverride: null })");
+  await settle(page, 2000);
+  await expect(page.locator(".kpi").first()).toContainText("%");                                      // still rendering and usable
+  await page.screenshot({ path: `${OUT}/quality_tier_2.png` });
+});
+
+test("crash recovery: API drops mid-session, saved results stay, banner clears on reconnect", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "Hot day" }).click();
+  await idle(page);
+  await page.route("http://localhost:8000/**", (r) => r.abort());
+  await page.getByRole("button", { name: "Normal", exact: true }).click();        // answered from the saved results
+  await expect(page.locator(".banner")).toContainText("not reachable", { timeout: 10_000 });
+  await expect(page.locator(".kpi").first()).toContainText("%");
+  await page.unroute("http://localhost:8000/**");
+  await expect(page.locator(".banner")).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
 });
 
 test("table view and WebGL fallback", async ({ page }) => {

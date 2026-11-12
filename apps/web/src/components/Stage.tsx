@@ -1,15 +1,16 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
-import { HOURS, hourOf, lfAt, T_MAX, T_MIN, useTwin, type CamMode } from "@/lib/store";
-import { LabelLayer } from "./twin/Labels";
-import { nightFactor } from "./twin/Sky";
+import { nightFactor } from "@/lib/daylight";
+import { LANDMARK_KEYS, LANDMARK_STATION, type LandmarkKey } from "@/lib/landmarks";
+import { HOURS, hourOf, lfAt, T_MAX, T_MIN, useTwin } from "@/lib/store";
+import { LabelLayer } from "./LabelLayer";
 
 // The canvas (three.js and the scene code) is a separate chunk, loaded after the page shell and the poster.
 const TwinCanvas = dynamic(() => import("./twin/TwinCanvas"), { ssr: false });
-const CAMS: Exclude<CamMode, "free">[] = ["overview", "close", "top", "fly", "orbit"];
+const CAMS = ["overview", "close", "top", "fly", "orbit"] as const;
 
 function webglAvailable(): boolean {
   try {
@@ -33,9 +34,68 @@ function Hud() {
     return `${f.venue(ev)} · ${d}`;
   }, [ev, custom, stations, locale, f, t]);
   return (
-    <div className={`hud${nightFactor(time) > 0.5 ? " night" : ""}`}>
+    <div className={`hud${nightFactor(time) > 0.5 ? " night" : ""}`} data-overlay>
       <div className="clock"><N>{hhmm(time)}</N></div>
       {ev && <div className="sub"><b>{ev.id === "custom" ? t("custom") : f.event(ev)}</b><br />{sub}, <N>{ev.start}–{ev.end}</N></div>}
+    </div>
+  );
+}
+
+/** Shown while the camera frames a landmark: what it is, the station that serves it, and a way back. */
+function FocusChip() {
+  const t = useTranslations();
+  const f = useFmt();
+  const focus = useTwin((s) => s.focus) as LandmarkKey | null;
+  const stations = useTwin((s) => s.stations);
+  if (!focus) return null;
+  const st = stations.find((x) => x.id === LANDMARK_STATION[focus]);
+  return (
+    <div className="focuschip" data-overlay role="status">
+      <span><b>{t(`lmName.${focus}`)}</b><br /><span className="note">{t("nearest", { station: f.station(st) })}</span></span>
+      <button type="button" aria-label={t("backToOverview")} onClick={() => useTwin.getState().setCam("overview")}>✕</button>
+    </div>
+  );
+}
+
+/** Recentre, zoom and full-width map: big targets on the edge of the 3D view. */
+function MapControls() {
+  const t = useTranslations();
+  const cam = useTwin((s) => s.cam);
+  const expanded = useTwin((s) => s.expanded);
+  const zoom = (f: number) => void import("./twin/sceneData").then((m) => m.camBus.zoom(f));
+  return (
+    <div className="mapctl" data-overlay>
+      <button type="button" className={cam === "free" ? "moved" : ""} aria-label={t("recentre")} title={t("recentreHint")} onClick={() => useTwin.getState().recentre()}>
+        <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.6" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><path d="M8 0.8v2.6M8 12.6v2.6M0.8 8h2.6M12.6 8h2.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+      </button>
+      <button type="button" aria-label={t("zoomIn")} title={t("zoomIn")} onClick={() => zoom(0.72)}><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></button>
+      <button type="button" aria-label={t("zoomOut")} title={t("zoomOut")} onClick={() => zoom(1.38)}><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></button>
+      <button type="button" aria-pressed={expanded} aria-label={expanded ? t("collapseMap") : t("expandMap")} title={expanded ? t("collapseMap") : t("expandMap")} onClick={() => useTwin.setState({ expanded: !expanded })}>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d={expanded ? "M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" : "M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+    </div>
+  );
+}
+
+/** Camera presets plus a menu of landmarks to fly to. */
+function CameraBar() {
+  const t = useTranslations();
+  const cam = useTwin((s) => s.cam);
+  const focus = useTwin((s) => s.focus);
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="camtools" data-overlay>
+      {CAMS.map((k) => <button key={k} type="button" aria-pressed={cam === k} onClick={() => { setOpen(false); useTwin.setState({ view: "3d" }); useTwin.getState().setCam(k); }}>{t(`cam.${k}`)}</button>)}
+      <div className="lmwrap">
+        <button type="button" aria-expanded={open} aria-pressed={cam === "landmark"} onClick={() => setOpen(!open)}>{t("landmarks")} ▾</button>
+        {open && (
+          <div className="lmmenu">
+            {LANDMARK_KEYS.map((k) => (
+              <button key={k} type="button" aria-pressed={focus === k} onClick={() => { setOpen(false); useTwin.getState().focusLandmark(k); }}>{t(`lmName.${k}`)}</button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -53,7 +113,7 @@ function Kpis() {
   for (const s of stations) pk = Math.max(pk, lfAt(cur, s.id, time));
   const over = cur.resp.summary.overcap_station_hours;
   return (
-    <div className="kpis">
+    <div className="kpis" data-overlay>
       <div className={`kpi${pk > cur.thr ? " bad" : ""}`}><b><N>{f.pct(pk)}</N></b><span>{t("kpi.peak")}</span></div>
       <div className={`kpi${over > 0 ? " bad" : ""}`}><b><N>{f.num(over)}</N></b><span>{t("kpi.over")}</span></div>
       <div className="kpi"><b><N>{f.int(cur.by[selected]?.tph[hourOf(time)] ?? 0)}</N></b><span>{t("kpi.trains")}</span></div>
@@ -144,15 +204,15 @@ function HeatStrip() {
 export function Stage() {
   const t = useTranslations();
   const view = useTwin((s) => s.view);
-  const cam = useTwin((s) => s.cam);
   const ready = useTwin((s) => s.sceneReady);
   const glFailed = useTwin((s) => s.glFailed);
+  const tier = useTwin((s) => s.tier);
   useEffect(() => { if (!webglAvailable()) useTwin.setState({ glFailed: true, view: "table" }); }, []);
-  useEffect(() => {                                   // Home recentres the 3D view (unless the user is typing in a control)
+  useEffect(() => {                                   // Home recentres the 3D view; Escape leaves the full-width map
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Home" || (e.target as HTMLElement)?.closest?.("input, select, textarea")) return;
-      e.preventDefault();
-      useTwin.getState().recentre();
+      if ((e.target as HTMLElement)?.closest?.("input, select, textarea")) return;
+      if (e.key === "Home") { e.preventDefault(); useTwin.getState().recentre(); }
+      if (e.key === "Escape" && useTwin.getState().expanded) useTwin.setState({ expanded: false });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -160,28 +220,27 @@ export function Stage() {
   const show3d = !glFailed;
   return (
     <section className="stage">
-      <div className="view" data-testid="view">
+      <div className="view" data-testid="view" data-tier={tier}>
         {show3d && <TwinCanvas label={t("canvasAria")} />}
         {show3d && <div className={`poster${ready ? " hide" : ""}`} style={{ backgroundImage: "url(/poster.jpg)" }} aria-hidden="true" />}
         {show3d && <LabelLayer />}
-        <Hud />
-        <Kpis />
-        <div className="legend">
-          <span><i style={{ background: "var(--ok)" }} />{t("lgOk")}</span>
-          <span><i style={{ background: "var(--warn)" }} />{t("lgWarn")}</span>
-          <span><i style={{ background: "var(--risk)" }} />{t("lgRisk")} ▲</span>
-          <span><i style={{ background: "transparent", border: "2px solid #fff", outline: "1px solid #888" }} />{t("lgRing")}</span>
+        <div className="viewtop">
+          <div className="hudcol"><Hud />{show3d && <FocusChip />}</div>
+          <Kpis />
         </div>
-        {show3d && (
-          <div className="camtools">
-            <button type="button" className={`recentre${cam === "free" ? " moved" : ""}`} title={t("recentreHint")} onClick={() => useTwin.getState().recentre()}>
-              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.6" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><path d="M8 0.8v2.6M8 12.6v2.6M0.8 8h2.6M12.6 8h2.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-              {t("recentre")}
-            </button>
-            {CAMS.map((k) => <button key={k} type="button" aria-pressed={cam === k} onClick={() => { useTwin.setState({ view: "3d" }); useTwin.getState().setCam(k); }}>{t(`cam.${k}`)}</button>)}
+        {show3d && view === "3d" && <MapControls />}
+        <div className="viewbottom">
+          <div className="viewrow">
+            <div className="legend" data-overlay>
+              <span><i style={{ background: "var(--ok)" }} />{t("lgOk")}</span>
+              <span><i style={{ background: "var(--warn)" }} />{t("lgWarn")}</span>
+              <span><i style={{ background: "var(--risk)" }} />{t("lgRisk")} ▲</span>
+              <span><i style={{ background: "transparent", border: "2px solid #fff", outline: "1px solid #888" }} />{t("lgRing")}</span>
+            </div>
+            {show3d && <CameraBar />}
           </div>
-        )}
-        {show3d && <div className="attrib">© OpenStreetMap contributors · RTA open data (GTFS)</div>}
+          {show3d && <div className="attrib">© OpenStreetMap contributors · RTA open data (GTFS)</div>}
+        </div>
         {(view === "table" || glFailed) && <TableView />}
         {glFailed && <div className="banner" style={{ position: "absolute", insetInline: 0, bottom: 0, zIndex: 6 }} role="status">{t("glfail")}</div>}
       </div>

@@ -1,6 +1,7 @@
 // The baked corridor scene (scripts/build_scene.py → public/geo/corridor_scene.json) and path helpers.
 import * as THREE from "three";
 import type { Frame } from "@/lib/geo";
+import { LANDMARK_KEYS, type LandmarkKey } from "@/lib/landmarks";
 
 export interface SceneJson {
   meta: {
@@ -108,3 +109,28 @@ export const live = {
   venue: new THREE.Vector3(), venueOn: false,
   fps: 0,
 };
+
+/** Places a visitor can jump to. Modelled landmarks take their position from the baked scene; districts are
+ *  projected from fixed coordinates. `h` = height to frame, `r` = camera distance that shows the place and its area. */
+export interface LandmarkSpot { key: LandmarkKey; x: number; z: number; h: number; r: number }
+const DISTRICTS: Partial<Record<LandmarkKey, { lat: number; lon: number; h: number; r: number }>> = {
+  mall: { lat: 25.1975, lon: 55.2793, h: 60, r: 1500 },      // The Dubai Mall
+  difc: { lat: 25.2136, lon: 55.2798, h: 120, r: 1300 },     // DIFC Gate district
+  canal: { lat: 25.1885, lon: 55.2560, h: 20, r: 1700 },     // Dubai Water Canal at Sheikh Zayed Road
+};
+export function landmarkSpots(data: SceneJson): LandmarkSpot[] {
+  const f = data.meta.frame, lm = data.landmarks, out: LandmarkSpot[] = [];
+  const add = (key: LandmarkKey, src: { x: number; z: number } | undefined, h: number, r: number) => { if (src) out.push({ key, x: src.x, z: src.z, h, r }); };
+  add("burj", lm.burj, 828, 2300); add("mof", lm.mof, 95, 700); add("et", lm.et1, 355, 1150);
+  add("dwtc", lm.dwtc, 160, 950); add("frame", lm.frame, 150, 900);
+  for (const k of LANDMARK_KEYS) {
+    const d = DISTRICTS[k];
+    if (!d) continue;
+    const e = (d.lon - f.lon0) * f.m_lon, n = (d.lat - f.lat0) * f.m_lat;
+    out.push({ key: k, x: e * f.ux + n * f.uy, z: e * f.uy - n * f.ux, h: d.h, r: d.r });
+  }
+  return out;
+}
+
+/** Imperative camera actions for DOM buttons (set by the camera rig while it is mounted). */
+export const camBus: { zoom: (factor: number) => void } = { zoom: () => {} };

@@ -1,11 +1,11 @@
 {
   "suite": "ui_fps",
-  "timestamp": "2026-11-12T07:35:16.283Z",
+  "timestamp": "2026-11-12T07:58:01.187Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing",
-  "mode": "production build (python tasks.py demo: next build + next start, DEMO_MODE=offline)",
+  "mode": "next dev",
   "avg_fps": 60,
-  "min_fps": 59.8,
+  "min_fps": 59.9,
   "per_camera": {
     "overview": 60,
     "close": 60,

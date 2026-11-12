@@ -38,7 +38,9 @@ export const setFallbackListener = (fn: (down: boolean) => void) => { onFallback
 
 const LS = "eft.cache.";
 function remember(key: string, data: unknown, persist: boolean) {
+  mem.delete(key);
   mem.set(key, data);
+  if (mem.size > 120) mem.delete(mem.keys().next().value as string);      // bounded: a week-long booth run must not grow
   if (!persist) return;
   try { window.localStorage.setItem(LS + key, JSON.stringify(data)); } catch { /* quota or blocked: memory only */ }
 }
