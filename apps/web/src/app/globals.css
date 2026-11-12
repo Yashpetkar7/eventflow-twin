@@ -184,10 +184,20 @@ body.kiosk .camtools button, body.kiosk .tabs button { font-size: 14px; padding-
 body.kiosk .tag { padding: 9px 12px; font-size: 14px; }
 
 @media (max-width: 1150px) {
-  .app { grid-template-columns: 1fr; }
-  .rail { border-inline-end: 0; border-block-end: 1px solid var(--line); }
-  .view { min-height: 440px; }
+  /* narrow window: the twin first, then the controls and the panel; the page scrolls */
+  .app { display: flex; flex-direction: column; overflow: auto; }
+  .stage { order: -1; flex: none; }
+  .rail { border-inline-end: 0; border-block-end: 1px solid var(--line); overflow: visible; flex: none; }
+  .panel { flex: none; }
+  .tabpanel { overflow: visible; }
+  .view { min-height: 480px; flex: none; }
+  .hud { max-width: 70%; }
+  .clock { font-size: 34px; }
   .panel { border-inline-start: 0; border-block-start: 1px solid var(--line); }
-  .kpis { max-width: 100%; top: auto; bottom: 52px; }
+  .kpis { max-width: none; top: auto; bottom: 96px; inset-inline: 12px; justify-content: flex-start; gap: 6px; }
+  .kpi { min-width: 0; padding: 5px 9px; }
+  .kpi b { font-size: 15px; }
+  .legend, .camtools { max-width: 100%; }
+  .legend { bottom: 54px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
