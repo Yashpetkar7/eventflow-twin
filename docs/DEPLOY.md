@@ -34,6 +34,16 @@ link, run `python tasks.py eval-fast && python tasks.py gate` with the same vari
 suites measure the live path, and note cost and latency. OpenAI: `LLM_REASONING=off` for a model without reasoning
 effort. Claude: `LLM_FALLBACKS=off` disables the server-side refusal fallback if the API rejects it.
 
+## Status (12 Nov 2026)
+Vercel project **`eventflow-twin`** (account krishnamathur008-1499) exists and the first deploy is live at
+**https://eventflow-twin.vercel.app**. ⚠️ Vercel assigns a project's *first* deployment to production, so this URL is
+public (the per-deployment hash URLs are behind Vercel login). It has not been shared; the site asks search engines not
+to index it. Whether to keep it public is K1 (Dr. Rachit). Checks on that URL: `python scripts/smoke_live.py
+https://eventflow-twin.vercel.app` → `OK … contract 1.7.0, storage ephemeral, 3 events, 3 plan options, numbers
+verified, is_synthetic=True`; the 5 remote Playwright checks below → 5 passed.
+To take it offline without deleting the project: Project → Settings → Deployment Protection → protect production too,
+or remove the alias with `vercel alias rm eventflow-twin.vercel.app` (another account could then claim that name).
+
 ## First deploy (about 10 minutes)
 ```bash
 npm i -g vercel                      # or pnpm add -g vercel; CLI 60+ (services support)

@@ -37,3 +37,6 @@ apps/web/public/map/maplibre-gl-worker.mjs
 /build/
 *.egg-info/
 .vercel
+.env*
+!.env.example
+exhibit/video/

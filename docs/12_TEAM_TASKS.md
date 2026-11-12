@@ -26,6 +26,17 @@ Most of the build tasks below were done on `main` in one pass with Claude Code (
 | C6 | Six 1920×1080 screenshots in `submission/images/final/` (`apps/web/tests/final_shots.mjs`). Retake after C5 if the Arabic changes |
 | K2 (draft) | `submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf` (git-ignored; regenerate with `fill_template.py`): real screenshots, wording corrected. **Krishna checks and sends it to Dr. Rachit** |
 
+**Update Thu 12 Nov, 17:30 (Krishna's list, done with Claude Code):**
+- **K5 done:** Vercel project `eventflow-twin`; live at https://eventflow-twin.vercel.app (first deploy = production,
+  so it is public — not shared yet; see `docs/DEPLOY.md` → Status). Smoke test OK, 5/5 remote UI checks passed.
+- **K3:** the ridership dataset is now listed as *Open* on data.dubai ("Dubai Metro Ridership",
+  https://data.dubai/en/l/466403, updated 9 Nov 2026) — download by hand, see `data/raw/MANIFEST.md`.
+- **K2 / K1:** checklist ticked except "lead confirmed" and "sent"; email ready in
+  `submission/EMAIL_V2_TO_DR_RACHIT.md` (asks about the public link and making the repo private). Krishna sends.
+- **K8 (part):** poster evidence box and the 90-second script filled with measured numbers (`exhibit/`); backup video
+  recorded with `apps/web/tests/backup_video.mjs` → `exhibit/video/eventflow_backup_demo.mp4` (git-ignored, 59 s).
+  Still to do: rehearse 3×, USB stick, second laptop.
+
 **What is left, by owner**
 - **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; set a monthly budget limit on the **OpenAI** key and get it to Atharva privately (not in WhatsApp or the repo — e.g. add him to the OpenAI project so he makes his own key), then one live run of B4 (below); K8 booth kit.
 - **Atharva:** **the realism pass for the 3D twin with Fable 5.2 — `docs/13_REALISM_FABLE_TASKS.md` (R1–R6, merged by Mon 16)**; review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`); with the OpenAI key in your `.env`, run `DEMO_MODE=live LLM_MODEL=gpt-5 python -m eval.suites.agents` and `… redteam` and compare with the offline numbers; write down cost and latency.

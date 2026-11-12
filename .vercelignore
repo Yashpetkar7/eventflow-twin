@@ -21,3 +21,7 @@ docs
 *.zip
 *.pdf
 .DS_Store
+.env
+.env.local
+.env.*.local
+.vercel
