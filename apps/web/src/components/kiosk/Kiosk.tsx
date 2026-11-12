@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
+import { SCENE_V2 } from "@/lib/manifest";
 import { CORRIDOR_ORDER, T_MAX, T_MIN, useTwin, type SimView } from "@/lib/store";
 import { LabelLayer } from "../LabelLayer";
 import { K, type KText } from "./strings";
@@ -36,10 +37,10 @@ function busiest(v: SimView | null, ids: string[]): { id: string; lf: number; ti
   return best;
 }
 
-/** Extra data credits when the realism scene is on (?scene=v2): read from the same manifest the 3D code uses, so the
- *  kiosk never imports the realism code (docs/13 §4b). Empty for the default corridor scene. */
+/** Extra data credits when the realism scene is on (the kiosk's default; ?scene=v1 turns it off): read from the same
+ *  manifest the 3D code uses, so the kiosk never imports the realism code (docs/13 §4b). Empty for the corridor scene. */
 async function sceneCredits(): Promise<string[]> {
-  if (new URLSearchParams(window.location.search).get("scene") !== "v2") return [];
+  if (!SCENE_V2) return [];
   try {
     const r = await fetch("/geo/v2/manifest.json");
     if (!r.ok) return [];

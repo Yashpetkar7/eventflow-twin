@@ -8,6 +8,7 @@ import {
   type SimulateResponse, type Station,
 } from "./api";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
+import { MIN_TIER } from "./manifest";
 import { breakpointBody, forecastBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
 
 export type { Priority, Scenario, Weather };
@@ -261,7 +262,7 @@ export const useTwin = create<State>((set, get) => {
     layers: { buildings: true, landmarks: true, trains: true, traffic: true, flows: true, labels: true },
     cam: "overview", lastCam: "overview", camNonce: 0,
     kiosk: false, tourStep: null, sceneReady: false, glFailed: false, reducedMotion: false,
-    focus: null, expanded: false, tier: 0, fpsOverride: null,
+    focus: null, expanded: false, tier: MIN_TIER, fpsOverride: null,
 
     init: async () => {
       setFallbackListener((down) => { if (get().apiDown !== down) set({ apiDown: down }); });

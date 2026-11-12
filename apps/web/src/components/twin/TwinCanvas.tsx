@@ -15,7 +15,7 @@ import { Landmarks } from "./Landmarks";
 import { Columns, Crowd, Traffic, VenueBeacon } from "./Live";
 import { Metro, placeStations, Trains } from "./Metro";
 import { loadModels, type Models } from "./models";
-import { loadManifest, type Manifest } from "@/lib/manifest";
+import { loadManifest, MIN_TIER, type Manifest } from "@/lib/manifest";
 import { landmarkSpots, live, loadScene, type SceneJson } from "./sceneData";
 import { Sky } from "./Sky";
 
@@ -43,7 +43,7 @@ function Stats() {
     a.low = fps < 40 ? a.low + 1 : 0;
     a.high = fps >= 57 ? a.high + 1 : 0;
     if (a.low >= 3 && s.tier < 2) { useTwin.setState({ tier: (s.tier + 1) as 1 | 2 }); a.low = 0; a.high = 0; }
-    else if (a.high >= 45 && s.tier > 0 && a.recoveries < 2) { useTwin.setState({ tier: (s.tier - 1) as 0 | 1 }); a.recoveries++; a.high = 0; }
+    else if (a.high >= 45 && s.tier > MIN_TIER && a.recoveries < 2) { useTwin.setState({ tier: (s.tier - 1) as 0 | 1 }); a.recoveries++; a.high = 0; }
   });
   return null;
 }
