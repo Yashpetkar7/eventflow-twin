@@ -9,6 +9,7 @@ import { hourOf, lfAt, useTwin } from "@/lib/store";
 import { canvasTexture } from "./builders";
 import { LANE, roadWidth, SHOULDER, type Corridor } from "./City";
 import type { StationPlace } from "./Metro";
+import type { Models } from "./models";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
 const OK = new THREE.Color(0x0e9f6e), WARN = new THREE.Color(0xe39a00), RISK = new THREE.Color(0xc1123f);
@@ -186,9 +187,21 @@ export function Crowd({ places }: { places: StationPlace[] }) {
 const CARS = 1500, CAR_COLORS = [0xffffff, 0xd9dde3, 0x1f2329, 0xc9c3b6, 0x8a1f1f, 0x2b4a7a, 0xe8d9a8, 0xf2f2f2, 0x9aa0a8];
 /** Road traffic on Sheikh Zayed Road. ILLUSTRATIVE ONLY: density follows a fixed daily profile plus the event
  *  surge so the scene feels alive; it is not simulated and no number is derived from it. */
-export function Traffic({ corridor }: { corridor: Corridor }) {
+const BUS_EVERY = 40, TAXI_ROOFS = [0xc8102e, 0x1f5fbf, 0x1f8a4c, 0xf2b01e, 0xd9538f, 0xe8731a];      // roof colours of Dubai's taxi fleets; no logos
+export function Traffic({ corridor, models = null }: { corridor: Corridor; models?: Models | null }) {
   const visible = useTwin((s) => s.layers.traffic);
   const mesh = useRef<THREE.InstancedMesh>(null), lights = useRef<THREE.Points>(null);
+  // realism scene (docs/13 R5): Blender car and bus, cream taxis with a coloured roof, red tail lights at night
+  const roofs = useRef<THREE.InstancedMesh>(null), glass = useRef<THREE.InstancedMesh>(null), busBody = useRef<THREE.InstancedMesh>(null), busGlass = useRef<THREE.InstancedMesh>(null), tails = useRef<THREE.Points>(null);
+  const car = models?.car.full, bus = models?.bus.full, BUSES = Math.ceil(CARS / BUS_EVERY);
+  const xmats = useMemo(() => ({
+    paint: new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.5, vertexColors: true }),
+    glass: new THREE.MeshStandardMaterial({ color: 0x1b222c, roughness: 0.25, metalness: 0.6, vertexColors: true }),
+    bus: new THREE.MeshStandardMaterial({ color: 0xe9e4d6, roughness: 0.5, metalness: 0.3, vertexColors: true }),
+    tail: new THREE.PointsMaterial({ color: 0xff2a1a, size: 4, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
+  }), []);
+  const tpos = useMemo(() => new Float32Array(CARS * 3).fill(-999), []);
+  useEffect(() => () => { Object.values(xmats).forEach((m) => m.dispose()); }, [xmats]);
   const cars = useMemo(() => {
     const rnd = mulberry(7);
     return Array.from({ length: CARS }, (_, i) => {
@@ -196,8 +209,8 @@ export function Traffic({ corridor }: { corridor: Corridor }) {
       return { c, s: rnd() * (corridor.szr[c]?.path.length ?? 1), lane: Math.floor(rnd() * 7), v: 0.8 + rnd() * 0.5 };
     });
   }, [corridor]);
-  const geo = useMemo(() => new THREE.BoxGeometry(4.5, 1.5, 1.9).translate(0, 0.75, 0), []);
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.5 }), []);
+  const geo = useMemo(() => car?.body ?? new THREE.BoxGeometry(4.5, 1.5, 1.9).translate(0, 0.75, 0), [car]);
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.5, vertexColors: !!car }), [car]);
   const lpos = useMemo(() => new Float32Array(CARS * 3).fill(-999), []);
   const lmat = useMemo(() => new THREE.PointsMaterial({ color: 0xfff1cc, size: 5, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }), []);
   useEffect(() => () => { geo.dispose(); mat.dispose(); lmat.dispose(); }, [geo, mat, lmat]);
@@ -205,9 +218,14 @@ export function Traffic({ corridor }: { corridor: Corridor }) {
     const m = mesh.current;
     if (!m) return;
     const col = new THREE.Color();
-    for (let i = 0; i < CARS; i++) m.setColorAt(i, col.setHex(CAR_COLORS[i % CAR_COLORS.length]));
+    for (let i = 0; i < CARS; i++) {
+      const taxi = !!car && i % 8 === 3;                                  // one car in eight is a taxi: cream body, coloured roof
+      m.setColorAt(i, col.setHex(taxi ? 0xf1e7c9 : CAR_COLORS[i % CAR_COLORS.length]));
+      roofs.current?.setColorAt(i, col.setHex(taxi ? TAXI_ROOFS[(i >> 3) % TAXI_ROOFS.length] : CAR_COLORS[i % CAR_COLORS.length]));
+    }
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, []);
+    if (roofs.current?.instanceColor) roofs.current.instanceColor.needsUpdate = true;
+  }, [car, geo]);
   const tmp = useMemo(() => ({ m: new THREE.Matrix4(), q: new THREE.Quaternion(), p: new THREE.Vector3(), one: new THREE.Vector3(1, 1, 1), up: new THREE.Vector3(0, 1, 0), s: { x: 0, z: 0, tx: 0, tz: 0 }, zero: new THREE.Matrix4().makeScale(0, 0, 0) }), []);
 
   useFrame((_, dtRaw) => {
@@ -223,18 +241,29 @@ export function Traffic({ corridor }: { corridor: Corridor }) {
     const night = live.night > 0.3;
     for (let i = 0; i < CARS; i++) {
       const c = cars[i], ch = corridor.szr[c.c];
-      if (i >= nVis) { m.setMatrixAt(i, zero); lpos[i * 3 + 1] = -999; continue; }
+      const isBus = !!bus && st.tier === 0 && i % BUS_EVERY === 0, bi = i / BUS_EVERY;
+      if (bus && i % BUS_EVERY === 0 && (!isBus || i >= nVis)) { busBody.current?.setMatrixAt(bi, zero); busGlass.current?.setMatrixAt(bi, zero); }
+      if (i >= nVis) { m.setMatrixAt(i, zero); roofs.current?.setMatrixAt(i, zero); glass.current?.setMatrixAt(i, zero); lpos[i * 3 + 1] = -999; tpos[i * 3 + 1] = -999; continue; }
       c.s += vel * c.v * dt;
       if (c.s > ch.path.length - 2) c.s -= ch.path.length - 4;
       ch.path.at(c.s, s);
       const lanes = Math.max(1, Math.round(ch.lanes[Math.min(ch.path.n - 1, Math.round(c.s / ch.path.step))]));
       const across = SHOULDER + (Math.min(c.lane, lanes - 1) + 0.5) * LANE, off = roadWidth(lanes) / 2 - across;
-      p.set(s.x + s.tz * off, 0.7, s.z - s.tx * off);
+      p.set(s.x + s.tz * off, car ? 0.64 : 0.7, s.z - s.tx * off);
       q.setFromAxisAngle(up, Math.atan2(-s.tz, s.tx));
-      m.setMatrixAt(i, mm.compose(p, q, one));
-      if (night) { lpos[i * 3] = p.x + s.tx * 2.4; lpos[i * 3 + 1] = 1.6; lpos[i * 3 + 2] = p.z + s.tz * 2.4; }
+      mm.compose(p, q, one);
+      if (isBus) { busBody.current?.setMatrixAt(bi, mm); busGlass.current?.setMatrixAt(bi, mm); m.setMatrixAt(i, zero); roofs.current?.setMatrixAt(i, zero); glass.current?.setMatrixAt(i, zero); }
+      else { m.setMatrixAt(i, mm); roofs.current?.setMatrixAt(i, mm); glass.current?.setMatrixAt(i, mm); }
+      const front = isBus ? 6.1 : 2.4;
+      if (night) {
+        lpos[i * 3] = p.x + s.tx * front; lpos[i * 3 + 1] = 1.6; lpos[i * 3 + 2] = p.z + s.tz * front;
+        tpos[i * 3] = p.x - s.tx * front; tpos[i * 3 + 1] = st.tier === 0 ? 1.5 : -999; tpos[i * 3 + 2] = p.z - s.tz * front;
+      }
     }
     m.instanceMatrix.needsUpdate = true;
+    for (const r of [roofs, glass, busBody, busGlass]) if (r.current) r.current.instanceMatrix.needsUpdate = true;
+    xmats.tail.opacity = night ? 0.85 : 0; xmats.tail.size = Math.max(3, Math.min(18, live.camDist * 0.0026));
+    if (tails.current) { tails.current.visible = night; tails.current.geometry.attributes.position.needsUpdate = true; }
     lmat.opacity = night ? 0.9 : 0;
     lmat.size = Math.max(3.5, Math.min(22, live.camDist * 0.003));
     if (lights.current) { lights.current.visible = night; lights.current.geometry.attributes.position.needsUpdate = true; }
@@ -243,6 +272,17 @@ export function Traffic({ corridor }: { corridor: Corridor }) {
   return (
     <group visible={visible}>
       <instancedMesh ref={mesh} args={[geo, mat, CARS]} castShadow frustumCulled={false} />
+      {car && bus && (
+        <>
+          <instancedMesh ref={roofs} args={[car.roof, xmats.paint, CARS]} frustumCulled={false} />
+          <instancedMesh ref={glass} args={[car.win, xmats.glass, CARS]} frustumCulled={false} />
+          <instancedMesh ref={busBody} args={[bus.body, xmats.bus, BUSES]} castShadow frustumCulled={false} />
+          <instancedMesh ref={busGlass} args={[bus.win, xmats.glass, BUSES]} frustumCulled={false} />
+          <points ref={tails} material={xmats.tail} frustumCulled={false}>
+            <bufferGeometry><bufferAttribute attach="attributes-position" args={[tpos, 3]} /></bufferGeometry>
+          </points>
+        </>
+      )}
       <points ref={lights} material={lmat} frustumCulled={false}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[lpos, 3]} /></bufferGeometry>
       </points>

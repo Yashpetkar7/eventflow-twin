@@ -308,7 +308,7 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
   expect(await page.evaluate(() => document.documentElement.dataset.sceneV2Builder)).toBe("worker");
-  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("8");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
+  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("13");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
   await expect(page.getByTestId("synthetic-badge")).toBeVisible();
   await expect(page.locator(".labels, .label").first()).toBeAttached();         // station overlays still on top
   await page.getByTestId("credits").locator("summary").click();

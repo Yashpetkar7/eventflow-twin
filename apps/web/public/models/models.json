@@ -69,8 +69,8 @@
    "triangles": 4192,
    "triangles_lod1": 1048,
    "budget": 25000,
-   "bytes": 78492,
-   "bytes_lod1": 35148,
+   "bytes": 78536,
+   "bytes_lod1": 35104,
    "size_m": [
     116.0,
     92.0,
@@ -185,6 +185,102 @@
     "win",
     "red",
     "steel"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "palm_a": {
+   "height_m": 9.0,
+   "source": "https://en.wikipedia.org/wiki/Date_palm",
+   "triangles": 528,
+   "triangles_lod1": 132,
+   "budget": 1500,
+   "bytes": 18244,
+   "bytes_lod1": 7672,
+   "size_m": [
+    8.7,
+    9.2,
+    9.6
+   ],
+   "materials": [
+    "trunk",
+    "leaf"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "palm_b": {
+   "height_m": 11.0,
+   "source": "https://en.wikipedia.org/wiki/Date_palm",
+   "triangles": 576,
+   "triangles_lod1": 143,
+   "budget": 1500,
+   "bytes": 20492,
+   "bytes_lod1": 8004,
+   "size_m": [
+    9.4,
+    8.8,
+    11.6
+   ],
+   "materials": [
+    "trunk",
+    "leaf"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "palm_c": {
+   "height_m": 7.2,
+   "source": "https://en.wikipedia.org/wiki/Date_palm",
+   "triangles": 480,
+   "triangles_lod1": 119,
+   "budget": 1500,
+   "bytes": 15800,
+   "bytes_lod1": 7044,
+   "size_m": [
+    8.7,
+    8.2,
+    7.8
+   ],
+   "materials": [
+    "trunk",
+    "leaf"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "car": {
+   "length_m": 4.5,
+   "source": "generic vehicle, no real model",
+   "triangles": 180,
+   "triangles_lod1": 44,
+   "budget": 1500,
+   "bytes": 6736,
+   "bytes_lod1": 5400,
+   "size_m": [
+    4.5,
+    2.0,
+    1.5
+   ],
+   "materials": [
+    "body",
+    "win",
+    "roof"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "bus": {
+   "length_m": 12.0,
+   "source": "generic vehicle, no real model",
+   "triangles": 148,
+   "triangles_lod1": 36,
+   "budget": 1500,
+   "bytes": 4952,
+   "bytes_lod1": 3760,
+   "size_m": [
+    12.0,
+    2.9,
+    3.4
+   ],
+   "materials": [
+    "body",
+    "win"
    ],
    "preview_engine": "BLENDER_EEVEE"
   }
