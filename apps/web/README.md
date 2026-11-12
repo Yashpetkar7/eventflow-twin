@@ -52,6 +52,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 | `…/twin/Metro.tsx` | Viaduct + piers, six stations (oyster-shell roofs, glass footbridges), instanced trains paced by `trains_per_hour` |
 | `…/twin/Landmarks.tsx` | Burj Khalifa, Emirates Towers, Museum of the Future, DWTC tower, Dubai Frame at their OSM positions |
 | `…/twin/Live.tsx` | Crowd columns (capacity glass, threshold ring, demand bar, pulse), venue beacon, crowd particles, illustrative traffic |
+| `…/twin/models.tsx` | Realism scene only: loads the Blender-built landmarks, station and metro car (`public/models/*.glb`, built by `scripts/blender/build_models.py`) |
 | `…/twin/buildingsV2.ts`, `buildings.worker.ts`, `facade.ts` | Realism scene only: per-type building geometry built in a web worker, and the seven-type façade shader |
 | `…/twin/atmosphere.ts`, `src/lib/sun.ts` | Realism scene only: haze for every material, ground + water shader on the R1 bake, real sun position |
 | `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
@@ -74,5 +75,5 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
 - Sun timing is stylised (golden hour 16:30–18:30) in the default scene; `?scene=v2` uses the real sun for the event date (R2).
 - `?scene=v2` shadows are one camera-following map, not cascades; water depth near the shore is approximated from the mask.
-- Landmarks are stylised low-poly models, not surveyed geometry. Hand-modelled glTF assets (e.g. via Blender) could replace
+- Landmarks are stylised low-poly models, not surveyed geometry; in `?scene=v2` they are built in Blender (R4), still approximations from public dimensions. Hand-modelled glTF assets (e.g. via Blender) could replace
   two or three of them later without touching the rest of the scene.
