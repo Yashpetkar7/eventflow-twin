@@ -113,7 +113,7 @@ Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 M
 | Before, corridor scene (`before_fps.json`, 2026-11-12T15:03:53.507Z) | 60 | 60 |
 | After, `?scene=v2` (`after_fps.json`, 2026-11-12T15:05:22.412Z) | 60 | 60 |
 
-R2 (light, haze, ground and sea): 15 before/after pairs plus an AgX set in `eval/results/ui/realism_r2/`, clock paused.
+R2 (light, haze, ground and sea): 15 before/after pairs plus an AgX set in `eval/results/ui/realism_r2/`, clock paused. Both sets were captured on battery at different times, so the fps columns are not a before/after comparison — the measured frame rate is the mains-power line below.
 
 | | Average fps | Minimum | Quality tier at the end |
 |---|---|---|---|
