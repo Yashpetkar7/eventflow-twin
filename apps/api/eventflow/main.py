@@ -8,6 +8,7 @@ from __future__ import annotations
 import datetime as dt
 import glob
 import json
+import os
 import threading
 import uuid
 from collections import OrderedDict
@@ -30,7 +31,10 @@ app = FastAPI(title="EventFlow Twin API", version=CONTRACT_VERSION)
 app.add_middleware(CORSMiddleware, allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
                    allow_methods=["GET", "POST"], allow_headers=["*"])
 
-DECISIONS_LOG = ROOT / "data/processed/decisions_log.jsonl"
+# Writable state. Laptop / booth: <repo>/data (kept between runs). Serverless: a temp directory per instance —
+# set EVENTFLOW_DATA_DIR=/tmp/eventflow and EVENTFLOW_STORAGE=ephemeral so the UI can say decisions are not kept.
+DATA_DIR = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data")
+DECISIONS_LOG = DATA_DIR / "processed/decisions_log.jsonl"
 DUBAI = ZoneInfo("Asia/Dubai")
 _RUNS: "OrderedDict[str, dict]" = OrderedDict()   # forecast runs; deterministic ids so safe to rebuild
 _PLANS: dict[str, dict] = {}                       # filled by Stream B's agent endpoint
@@ -84,7 +88,7 @@ def get_run(run_id: str, spec: ForecastRequest | None = None) -> dict:
 
 @app.get("/healthz")
 def healthz():
-    return {"ok": True, "contract": CONTRACT_VERSION}
+    return {"ok": True, "contract": CONTRACT_VERSION, "storage": os.environ.get("EVENTFLOW_STORAGE", "persistent")}
 
 
 @app.get("/stations", response_model=list[Station])

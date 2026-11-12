@@ -29,3 +29,10 @@ def demand():
 def heavy_demand():
     """A surge big enough that every intervention has crowding to act on."""
     return make_demand(base_per_bin=250.0, event_scale=2.0)
+
+
+@pytest.fixture(autouse=True)
+def _isolated_plan_cache(tmp_path, monkeypatch):
+    """New plan-cache entries go to a temp folder, never into the committed data/demo_cache."""
+    from apps.api.eventflow.agents import planner
+    monkeypatch.setattr(planner, "CACHE_WRITE", tmp_path / "plan_cache_write")

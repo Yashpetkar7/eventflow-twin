@@ -38,3 +38,22 @@ def test_agent_plan_on_a_cold_instance(client, tmp_path, monkeypatch):
     r = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor",
                                          "forecast": {**SPEC, "attendance": 40000}})
     assert r.status_code == 200 and r.json()["verify"]["all_matched"]
+
+
+def test_healthz_reports_storage(client, monkeypatch):
+    assert client.get("/healthz").json()["storage"] == "persistent"
+    monkeypatch.setenv("EVENTFLOW_STORAGE", "ephemeral")
+    assert client.get("/healthz").json()["storage"] == "ephemeral"
+
+
+def test_plan_cache_reads_shipped_and_writes_to_data_dir(client, tmp_path, monkeypatch):
+    from apps.api.eventflow.agents import planner
+    shipped, writable = tmp_path / "shipped", tmp_path / "writable"
+    monkeypatch.setattr(planner, "CACHE", shipped)
+    monkeypatch.setattr(planner, "CACHE_WRITE", writable)
+    monkeypatch.setenv("DEMO_MODE", "offline")
+    fc = client.post("/forecast", json={**SPEC, "attendance": 40000}).json()
+    first = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
+    assert not first["cached"] and list(writable.glob("plan_*.json")) and not shipped.exists()
+    again = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
+    assert again["cached"] and again["options"] == first["options"]

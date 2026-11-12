@@ -16,12 +16,15 @@ from __future__ import annotations
 import json
 import os
 import re
+from pathlib import Path
 from typing import Callable
 
 from ..config import ROOT, corridor
 from ..forecast import config_hash, make_run_id
 
-CACHE = ROOT / "data/demo_cache"
+CACHE = ROOT / "data/demo_cache"                    # shipped with the build (read)
+# new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
+CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
 
 STEP_KEYS = ["intake", "forecast", "diagnose", "propose", "simulate", "rank", "explain", "verify"]
@@ -234,13 +237,14 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     key = {"fc": run["run_id"], "applied": applied, "thr": thr_req, "scope": req.scope, "priority": req.priority,
            "locale": locale, "config": config_hash(), "planner": PLANNER}
     plan_id = make_run_id("plan", key)
-    cache_file = CACHE / f"{plan_id}.json"
+    name = f"{plan_id}.json"
     offline = os.environ.get("DEMO_MODE", "offline") == "offline"
-    if offline and cache_file.exists():
-        try:
-            return {**json.loads(cache_file.read_text(encoding="utf-8")), "cached": True}
-        except (OSError, json.JSONDecodeError):
-            pass                                    # a torn cache file must never break the demo: recompute
+    if offline:
+        for folder in (CACHE_WRITE, CACHE):
+            try:
+                return {**json.loads((folder / name).read_text(encoding="utf-8")), "cached": True}
+            except (OSError, json.JSONDecodeError):
+                continue                            # missing or torn entry: try the next folder, else recompute
 
     T = TEXT[locale]
     sim = lambda ivs: run_simulation(run["run_id"], ivs, False, thr_req, req.scope)               # noqa: E731
@@ -310,8 +314,8 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                                                  "peak_lf": hot["peak_lf"]},
             "cached": False}
     try:
-        CACHE.mkdir(parents=True, exist_ok=True)
-        cache_file.write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
+        CACHE_WRITE.mkdir(parents=True, exist_ok=True)
+        (CACHE_WRITE / name).write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
     except OSError:
-        pass
+        pass                                        # read-only filesystem: the plan is still returned
     return plan
