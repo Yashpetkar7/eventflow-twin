@@ -1,0 +1,70 @@
+{
+  "suite": "ui_fps_kiosk",
+  "timestamp": "2026-11-12T19:33:31.363Z",
+  "target": "http://localhost:3100",
+  "url": "/?kiosk=1&scene=v2",
+  "viewport": "1920x1080 (3D full screen)",
+  "avg_fps": 60,
+  "min_fps": 60,
+  "tier_at_end": 1,
+  "samples": [
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60
+  ],
+  "runs": [
+    {
+      "timestamp": "2026-11-12T19:31:02.988Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 59.9,
+      "tier_at_end": 1
+    },
+    {
+      "timestamp": "2026-11-12T19:31:36.165Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 57.9,
+      "min_fps": 48.2,
+      "tier_at_end": 1
+    },
+    {
+      "timestamp": "2026-11-12T19:32:12.406Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 59.1,
+      "tier_at_end": 1
+    },
+    {
+      "timestamp": "2026-11-12T19:32:55.241Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 1
+    },
+    {
+      "timestamp": "2026-11-12T19:33:31.363Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 1
+    }
+  ],
+  "note": "Visitor kiosk on the realism scene, now its default, held at quality tier 1 (decision #101). Production build (next build + next start), MacBook (Apple silicon, Chrome via ANGLE/Metal), mains power, 1920x1080 headless, 20 one-second samples per run after an 8 s settle. One browser pane with the app was also open during the runs."
+}
