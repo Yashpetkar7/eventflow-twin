@@ -205,6 +205,6 @@ UI test "realism ring…" on the production build, lowest 1-second sample per ca
 `?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T21:41:21.756Z, test "realism ring…"): average **60** fps, minimum 1-second sample 59.9.
 
 ## UI tests
-`apps/web/tests/ui.spec.ts` — 23 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
+`apps/web/tests/ui.spec.ts` — 24 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
 My plan, recentre, landmarks, overlay overlap, quality tier, crash recovery, table + WebGL fallback, offline, API down,
 fps). Screenshots: `eval/results/ui/*.png`.

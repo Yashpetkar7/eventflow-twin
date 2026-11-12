@@ -117,7 +117,7 @@ Nothing personal. The decision log stores the plan, the time and the word "visit
 in the kiosk browser's local storage (how many touched, which path, quiz right or wrong) and never leave the laptop.
 
 **"Does the realistic city slow the kiosk down?"**
-The kiosk runs it at a lighter quality level (tier 1) that averaged 58 to 60 frames a second in our runs on the two laptops we measured (`fps_kiosk_v2_tier1.json`, decision #100). If a laptop
+The kiosk runs it at a lighter quality level (tier 1) that averaged 58 to 60 frames a second in our runs on the two laptops we measured (decisions #100 and #102, `eval/results/ui/fps_kiosk_v2_tier1.json`). If a laptop
 cannot hold a usable frame rate, the kiosk reloads on the older city by itself. Frame-rate work (decision #103) cut the
 triangles per frame from 3.9 to 1.2 million; full quality in the kiosk waits for a measurement on the booth laptop.
 

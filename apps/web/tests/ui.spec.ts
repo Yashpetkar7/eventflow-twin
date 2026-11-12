@@ -292,6 +292,27 @@ test("offline: no request leaves localhost", async ({ page }) => {
   expect(external).toEqual([]);
 });
 
+test("workspace: the left column opens on the scenario; Settings holds the rarely used controls; a phone shows both", async ({ page }) => {
+  await open(page);
+  await expect(page.locator("#att")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hot day" })).toBeVisible();
+  await expect(page.locator("#thr")).toBeHidden();                              // planning settings and 3D layers are one tap away
+  await expect(page.locator(".rail .checks")).toBeHidden();
+  const rail = page.locator(".rail");
+  expect(await rail.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);    // the column no longer scrolls at 1080p
+  await page.getByTestId("rail-settings").click();
+  await expect(page.locator("#thr")).toBeVisible();
+  await expect(page.locator("#exitSig")).toBeVisible();
+  await expect(page.locator(".rail .checks")).toBeVisible();
+  await expect(page.locator("#att")).toBeHidden();
+  await settle(page, 800);
+  await page.screenshot({ path: `${OUT}/workspace_settings_tab.png` });
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.locator("#att")).toBeVisible();
+  await expect(page.locator("#thr")).toBeVisible();
+  await expect(page.locator(".railtabs")).toBeHidden();
+});
+
 test("public link: the welcome sheet offers the visitor story; the Report tab prints a one-page brief", async ({ page }) => {
   await open(page, "/?welcome=1");
   const sheet = page.getByTestId("welcome");

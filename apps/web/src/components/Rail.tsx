@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useShallow } from "zustand/react/shallow";
 import { N, useFmt } from "@/lib/i18n";
@@ -10,6 +11,7 @@ const PRIOS: Priority[] = ["cost", "balanced", "impact"];
 const LAYERS: LayerKey[] = ["buildings", "landmarks", "trains", "traffic", "flows", "labels"];
 
 export function Rail() {
+  const [rtab, setRtab] = useState<"scen" | "set">("scen");
   const t = useTranslations();
   const f = useFmt();
   // only the fields the rail shows: the playback clock must not re-render it 60 times a second
@@ -23,7 +25,7 @@ export function Rail() {
   const exitSigma = sc.exitSigma ?? s.forecast?.exit_sigma_used ?? 30;
   const share = s.forecast?.metro_share_used;
   return (
-    <aside className="rail">
+    <aside className="rail" data-rtab={rtab}>
       <section>
         <h2>{t("event")}</h2>
         <div className="scen">
@@ -64,14 +66,23 @@ export function Rail() {
           </div>
         )}
       </section>
-      <section className="field">
+      {/* Two tabs keep the column short: the everyday scenario controls, and the settings a planner changes rarely.
+          On a phone both show (globals.css). */}
+      <div className="railtabs" role="tablist" aria-label={t("railTabs")}>
+        <button type="button" role="tab" aria-selected={rtab === "scen"} onClick={() => setRtab("scen")}>{t("railScenario")}</button>
+        <button type="button" role="tab" aria-selected={rtab === "set"} onClick={() => setRtab("set")} data-testid="rail-settings">{t("railSettings")}</button>
+      </div>
+      <section className="field tab-scen">
         <label htmlFor="att"><span>{t("attendance")}</span><b><N>{f.int(attendance)}</N></b></label>
         <input id="att" type="range" min={5000} max={80000} step={1000} value={attendance} onChange={(e) => s.patchScenario({ attendance: +e.target.value })} />
+        <div className="note">{t("assumptionNote")}</div>
+      </section>
+      <section className="field tab-set">
         <label htmlFor="exitSig"><span>{t("exitWin")}</span><b><N>{t("exitVal", { n: f.int(exitSigma) })}</N></b></label>
         <input id="exitSig" type="range" min={15} max={90} step={5} value={exitSigma} onChange={(e) => s.patchScenario({ exitSigma: +e.target.value })} />
         <div className="note">{t("assumptionNote")}</div>
       </section>
-      <section>
+      <section className="tab-scen">
         <h2>{t("weather")}</h2>
         <div className="seg">
           {(["normal", "hot", "rain"] as Weather[]).map((w) => (
@@ -80,14 +91,14 @@ export function Rail() {
         </div>
         {share != null && <div className="note" style={{ marginTop: 6 }}>{t(`weatherNote.${s.forecast?.weather ?? "normal"}`, { pct: f.pct(share) })}</div>}
       </section>
-      <section className="field adv">
+      <section className="field adv tab-set">
         <h2>{t("planning")}</h2>
         <label htmlFor="thr"><span>{t("thr")}</span><b><N>{f.pct(s.threshold)}</N></b></label>
         <input id="thr" type="range" min={70} max={95} step={5} value={Math.round(s.threshold * 100)} onChange={(e) => s.setThreshold(+e.target.value / 100)} />
         <label htmlFor="prio"><span>{t("prio")}</span><b>{t(`prioL.${s.priority}`)}</b></label>
         <input id="prio" type="range" min={0} max={2} step={1} value={PRIOS.indexOf(s.priority)} onChange={(e) => s.setPriority(PRIOS[+e.target.value])} aria-valuetext={t(`prioL.${s.priority}`)} />
       </section>
-      <section className="adv">
+      <section className="adv tab-set">
         <h2>{t("layers")}</h2>
         <div className="checks">
           {LAYERS.map((k) => (

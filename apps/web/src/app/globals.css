@@ -308,3 +308,13 @@ dialog.welcome .note { font-size: 12px; }
   .tabpanel::before { content: "EventFlow Twin: event brief. Research prototype, synthetic demand, simulated results. Not an RTA system and not endorsed by RTA."; display: block; font-size: 12px; margin-bottom: 10px; }
   .card { break-inside: avoid; box-shadow: none !important; border: 1px solid #c8ccd4 !important; }
 }
+
+/* ---- left column: two tabs (Scenario · Settings) so the column fits without scrolling; a phone shows both */
+.railtabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--muted); }
+.railtabs button { flex: 1; min-height: 36px; border: 0; border-radius: 9px; background: transparent; font-size: 13px; font-weight: 550; color: var(--ink-2); }
+.railtabs button[aria-selected="true"] { background: var(--surface); color: var(--navy); font-weight: 600; box-shadow: 0 1px 5px rgba(0, 0, 0, .1); }
+@media (min-width: 641px) {
+  .rail[data-rtab="scen"] .tab-set, .rail[data-rtab="set"] .tab-scen { display: none; }
+}
+@media (max-width: 640px) { .railtabs { display: none; } }
+body.kiosk .railtabs { display: none; }
