@@ -47,6 +47,13 @@ function OptionCard({ o, base, verified }: { o: PlanOption; base: SimSummary; ve
   );
 }
 
+/** "openai:gpt-5" → "OpenAI gpt-5", "claude:claude-opus-5-5" → "Claude claude-opus-5-5" (planner id from the API). */
+function modelName(planner: string): string {
+  const [provider, ...rest] = planner.split(":");
+  const brand = ({ openai: "OpenAI", claude: "Claude" } as Record<string, string>)[provider] ?? provider;
+  return `${brand} ${rest.join(":")}`.trim();
+}
+
 export function AiTab() {
   const t = useTranslations();
   const { locale } = useLocale();
@@ -74,7 +81,7 @@ export function AiTab() {
         )}
         <div className="note" style={{ marginTop: 8 }}>{t("planNote")}</div>
         {plan && plan.planner === "deterministic-template" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planMode")}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
-        {plan && plan.planner.startsWith("claude:") && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planLive", { model: plan.planner.slice(7) })}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
+        {plan && plan.mode === "live" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planLive", { model: modelName(plan.planner) })}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
       </div>
       {status === "error" && <div className="warnbox" role="alert">{t("planError", { msg: planError ?? "" })}</div>}
       {decisionError && <div className="warnbox" role="alert">{t("decisionError", { msg: decisionError })}</div>}

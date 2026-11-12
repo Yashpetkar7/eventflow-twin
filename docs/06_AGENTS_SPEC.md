@@ -28,7 +28,7 @@ Write in {locale}. ≤ 90 words per option.
 - Human approval required before any "applied" state; decisions logged with timestamp, option, user label.
 
 ## Models
-- `LLM_MODEL` env (verify current Claude model ids at https://docs.claude.com). Low temperature (0–0.2) for propose/explain.
+- `LLM_MODEL` env (OpenAI, e.g. gpt-5, or Claude; verify current model ids with the provider). Implemented in `apps/api/eventflow/agents/llm.py`. Low temperature (0–0.2) for propose/explain.
 - Provider interface `LLMClient.complete(messages, schema=None)` so another provider (e.g., a sovereign UAE model) can be plugged in later.
 
 ## Offline cache

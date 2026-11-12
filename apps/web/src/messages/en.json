@@ -119,7 +119,7 @@
   "plan": "Plan with AI agents",
   "planNote": "Agents choose actions; the simulator calculates every number; you approve.",
   "planMode": "Offline planner: deterministic plan search with template explanations (no live language model).",
-  "planLive": "Claude ({model}) proposed extra plans and wrote the explanations; the simulator computed every number and each figure was checked.",
+  "planLive": "{model} proposed extra plans and wrote the explanations; the simulator computed every number and each figure was checked.",
   "planCached": "Replayed from the offline demo cache.",
   "planError": "The planner could not answer: {msg}",
   "steps": {

@@ -1,13 +1,16 @@
-"""Optional Claude steps for the planner (docs/06): a Proposer that suggests extra intervention bundles and an
-Explainer that writes the option texts. Numbers never come from here (CLAUDE.md rule 2): every candidate is
+"""Optional language-model steps for the planner (docs/06): a Proposer that suggests extra intervention bundles
+and an Explainer that writes the option texts. Numbers never come from here (CLAUDE.md rule 2): every candidate is
 validated against the menu bounds and simulated by code, ranking is code, and every number in the Explainer's
 text must match a simulator value or an input, else that option falls back to the template text (planner.py).
 
-Switched on only when all hold: DEMO_MODE=live, LLM_MODEL is set (e.g. claude-opus-5-5) and the Anthropic SDK
-finds credentials (ANTHROPIC_API_KEY). Otherwise the planner stays fully offline and deterministic.
+Switched on only when all hold: DEMO_MODE=live, LLM_MODEL is set and the provider's SDK finds its key.
+Providers (LLM_PROVIDER, else chosen from the model id):
+  openai     — OpenAI Responses API, strict JSON-schema output; OPENAI_API_KEY; e.g. LLM_MODEL=gpt-5
+  anthropic  — Claude Messages API, JSON-schema output; ANTHROPIC_API_KEY; e.g. LLM_MODEL=claude-opus-5-5
+Otherwise the planner stays fully offline and deterministic.
 
-Provider interface: anything with `model` and `complete_json(...)` works, so another provider (e.g. a sovereign
-UAE model) could be plugged in later behind the same checks — "portable to", not integrated.
+Provider interface: anything with `model`, `provider` and `complete_json(...)` works, so another provider (e.g. a
+sovereign UAE model) could be plugged in later behind the same checks — "portable to", not integrated.
 """
 from __future__ import annotations
 
@@ -26,6 +29,7 @@ class LLMUnavailable(RuntimeError):
 
 class LLMClient(Protocol):
     model: str
+    provider: str
 
     def complete_json(self, *, system: str, user: str, schema: dict, effort: str, max_tokens: int) -> dict: ...
 
@@ -33,6 +37,8 @@ class LLMClient(Protocol):
 class AnthropicLLM:
     """Claude through the official SDK: structured JSON output, adaptive thinking (the default on current models),
     explicit effort, and server-side refusal fallback (LLM_FALLBACKS=off disables it)."""
+
+    provider = "claude"
 
     def __init__(self, model: str):
         import anthropic                                       # imported lazily: the offline booth never needs it
@@ -66,6 +72,62 @@ class AnthropicLLM:
             raise LLMUnavailable("answer was not valid JSON") from e
 
 
+class OpenAILLM:
+    """OpenAI through the official SDK: Responses API, strict JSON-schema output (text.format), reasoning effort,
+    nothing stored server-side (store=False). max_output_tokens includes reasoning tokens, so it has a high floor."""
+
+    provider = "openai"
+    MIN_OUTPUT_TOKENS = 25000                                  # OpenAI's advice when reasoning is on
+
+    def __init__(self, model: str):
+        import openai                                          # imported lazily: the offline booth never needs it
+        self._openai = openai
+        self.client = openai.OpenAI(max_retries=2, timeout=90.0)    # reads OPENAI_API_KEY; raises if it is missing
+        self.model = model
+
+    def complete_json(self, *, system: str, user: str, schema: dict, effort: str, max_tokens: int) -> dict:
+        o = self._openai
+        kwargs: dict = {"model": self.model, "instructions": system, "input": user, "store": False,
+                        "max_output_tokens": max(max_tokens, self.MIN_OUTPUT_TOKENS),
+                        "text": {"format": {"type": "json_schema", "name": "planner_output", "schema": schema, "strict": True}}}
+        if os.environ.get("LLM_REASONING", "on") != "off":     # set LLM_REASONING=off for non-reasoning models
+            kwargs["reasoning"] = {"effort": effort}
+        try:
+            resp = self.client.responses.create(**kwargs)
+        except o.APIStatusError as e:
+            raise LLMUnavailable(f"HTTP {e.status_code}: {str(e)[:160]}") from e
+        except o.APIConnectionError as e:
+            raise LLMUnavailable("network unavailable") from e
+        if getattr(resp, "status", None) == "incomplete":
+            why = getattr(getattr(resp, "incomplete_details", None), "reason", None) or "incomplete"
+            raise LLMUnavailable("answer truncated" if why == "max_output_tokens" else f"answer incomplete ({why})")
+        for item in getattr(resp, "output", None) or []:
+            if getattr(item, "type", None) == "message":
+                if any(getattr(part, "type", None) == "refusal" for part in getattr(item, "content", None) or []):
+                    raise LLMUnavailable("the model declined")
+        text = getattr(resp, "output_text", "") or ""
+        if not text.strip():
+            raise LLMUnavailable("no text in the answer")
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            raise LLMUnavailable("answer was not valid JSON") from e
+
+
+def provider_for(model: str) -> str:
+    """LLM_PROVIDER if set, else guessed from the model id (claude-* → anthropic, anything else → openai)."""
+    p = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    if p:
+        return {"claude": "anthropic"}.get(p, p)
+    return "anthropic" if model.lower().startswith("claude") else "openai"
+
+
+def display_name(llm: LLMClient) -> str:
+    """How the plan steps name the model, e.g. "OpenAI gpt-5" or "Claude claude-opus-5-5"."""
+    brand = {"openai": "OpenAI", "claude": "Claude"}.get(getattr(llm, "provider", ""), "LLM")
+    return f"{brand} {llm.model}"
+
+
 def get_llm() -> LLMClient | None:
     """The configured model, or None to stay offline."""
     if os.environ.get("DEMO_MODE", "offline") != "live":
@@ -74,8 +136,8 @@ def get_llm() -> LLMClient | None:
     if not model:
         return None
     try:
-        return AnthropicLLM(model)
-    except Exception:                                          # SDK missing or no credentials configured
+        return {"openai": OpenAILLM, "anthropic": AnthropicLLM}[provider_for(model)](model)
+    except Exception:                                          # unknown provider, SDK missing or no key configured
         return None
 
 

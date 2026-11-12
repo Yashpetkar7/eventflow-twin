@@ -11,3 +11,4 @@ pytest>=8
 httpx>=0.27
 # Added by Claude Code in later phases: polars, duckdb, geopandas, osmnx, langgraph, anthropic, httpx
 anthropic>=2.8
+openai>=3.41

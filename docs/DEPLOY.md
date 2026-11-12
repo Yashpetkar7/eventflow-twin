@@ -21,14 +21,18 @@ Override any of them in Project → Settings → Environment Variables:
 `EVENTFLOW_DATA_DIR`, `EVENTFLOW_STORAGE`, `EVENTFLOW_RATE_LIMIT`, `DEMO_MODE`, and for the web app
 `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_PUBLIC_DEMO`.
 
-## Turning on Claude (optional)
-The planner stays offline and deterministic unless all of these are set (Project → Settings → Environment Variables,
-or `.env` on a laptop — never commit them):
-`DEMO_MODE=live`, `LLM_MODEL=claude-opus-5-5`, `ANTHROPIC_API_KEY=<key with a monthly spend cap>`.
-Then Claude proposes extra plans and writes the explanations; the simulator still computes every number and any
-text with an untraceable number falls back to the template (docs/09 #71). Before switching it on for the public link,
-run `python tasks.py eval-fast && python tasks.py gate` with the same variables so the agents and red-team suites
-measure the Claude path. `LLM_FALLBACKS=off` disables the server-side refusal fallback if the API rejects it.
+## Turning on the live language model (optional)
+The planner stays offline and deterministic unless these are set (Project → Settings → Environment Variables,
+or `.env` on a laptop — never commit them). **Our key is OpenAI:**
+`DEMO_MODE=live`, `LLM_MODEL=gpt-5` (or whichever GPT-5 model id the key can use), `OPENAI_API_KEY=<key with a
+monthly budget limit set in the OpenAI dashboard>`. The provider is taken from the model id (`claude-*` → Anthropic,
+anything else → OpenAI) or from `LLM_PROVIDER=openai|anthropic`. Claude works the same way with
+`LLM_MODEL=claude-opus-5-5` and `ANTHROPIC_API_KEY`.
+Then the model proposes extra plans and writes the explanations; the simulator still computes every number and any
+text with an untraceable number falls back to the template (docs/09 #71, #72). Before switching it on for the public
+link, run `python tasks.py eval-fast && python tasks.py gate` with the same variables so the agents and red-team
+suites measure the live path, and note cost and latency. OpenAI: `LLM_REASONING=off` for a model without reasoning
+effort. Claude: `LLM_FALLBACKS=off` disables the server-side refusal fallback if the API rejects it.
 
 ## First deploy (about 10 minutes)
 ```bash

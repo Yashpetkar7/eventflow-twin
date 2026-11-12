@@ -11,3 +11,4 @@ PyYAML==6.0.3
 scikit-learn==1.9.1
 uvicorn==0.54.0
 anthropic==2.8.0
+openai==3.41.0

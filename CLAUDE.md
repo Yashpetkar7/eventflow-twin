@@ -22,7 +22,7 @@ docs/02_PRD.md → docs/03_ARCHITECTURE.md → docs/05_MODELING_SPEC.md → docs
 ## Stack
 - Python 3.11+, uv (or pip), Polars + DuckDB, GeoPandas, LightGBM, scikit-learn, statsmodels (baseline), FastAPI, Pydantic v2, LangGraph + Anthropic SDK, NetworkX (graph), pytest.
 - Web: Next.js (App Router, TypeScript), Tailwind + `apps/web/src/app/tokens.css`, react-three-fiber + drei + postprocessing (3D twin on a baked OpenStreetMap scene, see apps/web/README.md), zustand, next-intl (en/ar, RTL), Playwright.
-- LLM: Anthropic Claude via `ANTHROPIC_API_KEY`; model id from env `LLM_MODEL` (verify current model ids at https://docs.claude.com before setting). Keep a provider interface so Jais/Core42 Compass could be swapped in later (mention only as "portable to", do not claim it is integrated).
+- LLM (optional, `DEMO_MODE=live`): OpenAI via `OPENAI_API_KEY` (the team's key, e.g. `LLM_MODEL=gpt-5`) or Anthropic Claude via `ANTHROPIC_API_KEY`; provider from the model id or `LLM_PROVIDER` (apps/api/eventflow/agents/llm.py). Verify current model ids with the provider before setting. Keep a provider interface so Jais/Core42 Compass could be swapped in later (mention only as "portable to", do not claim it is integrated).
 - Optional deploy: Vercel (web) + Azure Container Apps (API, scale-to-zero). Local/offline build is the priority.
 
 ## Commands (keep these working)

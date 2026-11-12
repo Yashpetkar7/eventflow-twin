@@ -70,9 +70,9 @@ TEXT = {
                    "propose": "{n} candidate plans from the fixed menu", "simulate": "{n} simulator runs",
                    "rank": "Top {n} by riders relieved − λ × cost", "explain": "Template text, numbers copied from the simulator",
                    "verify": "{n} figures checked, {ok}",
-                   "llm_propose": "Claude added {n} bundles ({d} outside the menu dropped)",
-                   "llm_explain": "Claude wrote {n} of {m}; the rest kept the verified template",
-                   "llm_off": "Claude unavailable ({why}); offline planner used"},
+                   "llm_propose": "{llm} added {n} bundles ({d} outside the menu dropped)",
+                   "llm_explain": "{llm} wrote {n} of {m}; the rest kept the verified template",
+                   "llm_off": "{llm} unavailable ({why}); offline planner used"},
         "ok": "all match", "bad": "mismatch found", "prio": {"cost": "lower cost", "balanced": "balanced", "impact": "biggest impact"},
     },
     "ar": {
@@ -102,9 +102,9 @@ TEXT = {
                    "propose": "{n} خطط مرشحة من القائمة المحددة", "simulate": "{n} عمليات محاكاة",
                    "rank": "أفضل {n} حسب الركاب المخفَّف عنهم − λ × التكلفة", "explain": "نص قالب، والأرقام منسوخة من المحاكي",
                    "verify": "تم التحقق من {n} رقمًا، {ok}",
-                   "llm_propose": "أضاف Claude {n} حزم (واستُبعدت {d} خارج القائمة)",
-                   "llm_explain": "كتب Claude {n} من {m}؛ والبقية بالنص المتحقَّق منه",
-                   "llm_off": "Claude غير متاح ({why})؛ استُخدم المخطِّط غير المتصل"},
+                   "llm_propose": "أضاف {llm} {n} حزم (واستُبعدت {d} خارج القائمة)",
+                   "llm_explain": "كتب {llm} {n} من {m}؛ والبقية بالنص المتحقَّق منه",
+                   "llm_off": "{llm} غير متاح ({why})؛ استُخدم المخطِّط غير المتصل"},
         "ok": "جميعها مطابقة", "bad": "وُجد عدم تطابق", "prio": {"cost": "تكلفة أقل", "balanced": "متوازن", "impact": "أكبر أثر"},
     },
 }
@@ -269,7 +269,7 @@ def _num(v: float) -> str:
 
 
 def describe(ivs: list[dict], locale: str) -> tuple[str, str]:
-    """Template description and risk for any bundle (used for Claude-proposed bundles and as the safe fallback)."""
+    """Template description and risk for any bundle (used for LLM-proposed bundles and as the safe fallback)."""
     G, parts = GENERIC[locale], []
     for iv in ivs:
         p = iv["params"]
@@ -312,7 +312,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     key = {"fc": run["run_id"], "applied": applied, "thr": thr_req, "scope": req.scope, "priority": req.priority,
            "locale": locale, "config": config_hash(), "planner": PLANNER, "rev": PLANNER_REV}
     goal, notes = getattr(req, "goal", DEFAULT_GOAL) or DEFAULT_GOAL, getattr(req, "notes", None)
-    if goal != DEFAULT_GOAL or notes:              # only the Claude steps read these; keep default ids stable
+    if goal != DEFAULT_GOAL or notes:              # only the LLM steps read these; keep default ids stable
         key["input"] = {"goal": goal, "notes": notes}
     plan_id = make_run_id("plan", key)
     name = f"{plan_id}.json"
@@ -326,6 +326,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
 
     T = TEXT[locale]
     llm = LLM_FACTORY()                            # None unless DEMO_MODE=live and LLM_MODEL is configured
+    llm_name = llm_mod.display_name(llm) if llm is not None else ""
     llm_used: list[str] = []
     llm_note: dict[str, str] = {}
     texts_for: list[dict] = []
@@ -346,7 +347,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     else:
         details["diagnose"] = T["detail"]["diagnose"].format(worst=_name(hot["station"], locale), hours=_hours_text(hot["hours"]))
         cands = propose(hot, bool(run.get("event")), any(i["type"] == "staggered_exit" for i in applied), scope_ids)
-        if llm is not None:                        # Claude may add bundles; code validates, simulates and ranks them
+        if llm is not None:                        # the LLM may add bundles; code validates, simulates and ranks them
             try:
                 ans = llm.complete_json(system=llm_mod.PROPOSER_SYSTEM, schema=llm_mod.PROPOSER_SCHEMA, effort="medium",
                                         max_tokens=16000, user=llm_mod.proposer_prompt(
@@ -365,9 +366,9 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                         cands.append({"key": "llm", "ivs": ivs, "ctx": {}, "label": str(b.get("label", ""))[:80]})
                         added += 1
                 llm_used.append("propose")
-                llm_note["propose"] = T["detail"]["llm_propose"].format(n=added, d=dropped)
+                llm_note["propose"] = T["detail"]["llm_propose"].format(llm=llm_name, n=added, d=dropped)
             except llm_mod.LLMUnavailable as e:
-                llm_note["propose"] = T["detail"]["llm_off"].format(why=str(e)[:80])
+                llm_note["propose"] = T["detail"]["llm_off"].format(llm=llm_name, why=str(e)[:80])
         n_cand = len(cands)
         base_over, b_fig = over_sets(base), summary_figures(base["summary"])
         scored = []
@@ -416,7 +417,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                             "score": o["score"], "rationale": rationale, "what": what, "risk": risk,
                             "cost_added": o["cost_added"], "new_hotspots": o["new_hot"], "figures": 7,
                             "sources": [o["res"]["source"], {"tool": "forecast", "run_id": run["run_id"]}]})
-    if llm is not None and options:                # Claude rewrites the texts; each must pass the number check
+    if llm is not None and options:                # the LLM rewrites the texts; each must pass the number check
         try:
             items = [{"rank": o["rank"], "ACTIONS": o["interventions"], "FIGURES": t_["figures"],
                       "new_hotspots": [_name(x, locale) for x in o["new_hotspots"]], "template_what": o["what"]}
@@ -440,9 +441,9 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                     n2, _ = _texts_ok({k: o[k] for k in ("title", "what", "risk", "rationale")}, t_["allowed"])
                     checked += n2
             llm_used.append("explain")
-            llm_note["explain"] = T["detail"]["llm_explain"].format(n=kept, m=len(options))
+            llm_note["explain"] = T["detail"]["llm_explain"].format(llm=llm_name, n=kept, m=len(options))
         except llm_mod.LLMUnavailable as e:
-            llm_note["explain"] = T["detail"]["llm_off"].format(why=str(e)[:80])
+            llm_note["explain"] = T["detail"]["llm_off"].format(llm=llm_name, why=str(e)[:80])
     details.update({"propose": T["detail"]["propose"].format(n=n_cand), "simulate": T["detail"]["simulate"].format(n=n_cand + 1),
                     "rank": T["detail"]["rank"].format(n=len(options)), "explain": T["detail"]["explain"],
                     "verify": T["detail"]["verify"].format(n=checked, ok=T["ok"] if all_ok else T["bad"])})
@@ -455,7 +456,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                        "fallback_used": (not live) or "explain" not in llm_used or bool(template_used)},
             "steps": [{"key": k, "label": STEP_LABELS[locale][i], "detail": details.get(k, ""), "tool": STEP_TOOLS[i]}
                       for i, k in enumerate(STEP_KEYS)],
-            "planner": f"claude:{llm.model}" if live else PLANNER,
+            "planner": f"{getattr(llm, 'provider', 'llm')}:{llm.model}" if live else PLANNER,
             "hotspot": None if hot is None else {"station": hot["station"], "hours": hot["hours"], "window": hot["window"],
                                                  "peak_lf": hot["peak_lf"]},
             "cached": False}

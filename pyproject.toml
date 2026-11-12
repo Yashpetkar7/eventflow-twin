@@ -13,7 +13,8 @@ dependencies = [
     "pyarrow==26.0.1",
     "PyYAML==6.0.3",
     "tzdata==2025.3",
-    "anthropic==2.8.0",          # optional Claude steps (agents/llm.py); unused unless LLM_MODEL is set
+    "anthropic==2.8.0",          # optional LLM steps (agents/llm.py), Claude provider; unused unless LLM_MODEL is set
+    "openai==3.41.0",            # optional LLM steps, OpenAI provider (e.g. LLM_MODEL=gpt-5); unused unless LLM_MODEL is set
 ]
 
 # Dependency-only package: Vercel installs this project with `uv pip install .`; the API code itself is served

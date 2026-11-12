@@ -1,4 +1,4 @@
-"""The optional Claude steps (agents/llm.py) driven by a stand-in model: no network, no key.
+"""The optional LLM steps (agents/llm.py) driven by a stand-in model: no network, no key.
 What must hold whatever the model says: numbers come from the simulator, out-of-menu proposals are never
 simulated, invented numbers never reach the screen, and an outage falls back to the offline planner."""
 import pytest
@@ -13,6 +13,7 @@ SPEC = {"event_id": "gitex2025_d1", "weather": "rain"}           # WTC over the 
 
 class FakeLLM:
     model = "fake-model"
+    provider = "openai"
 
     def __init__(self, propose=None, explain=None, fail=None):
         self.propose, self.explain, self.fail, self.prompts = propose, explain, fail, []
@@ -58,9 +59,9 @@ def honest_explainer(user):
                                       f"{it['FIGURES']['after']['peak']}%."} for it in items]}
 
 
-def test_claude_texts_are_used_when_every_number_traces(client, monkeypatch):
+def test_llm_texts_are_used_when_every_number_traces(client, monkeypatch):
     fc, plan = plan_with(client, monkeypatch, FakeLLM(explain=honest_explainer))
-    assert plan["planner"] == "claude:fake-model" and plan["mode"] == "live"
+    assert plan["planner"] == "openai:fake-model" and plan["mode"] == "live"
     assert plan["options"] and all(o["title"] == "Guide riders to a quieter station" for o in plan["options"])
     assert plan["verify"]["all_matched"] and not plan["verify"]["fallback_used"]
     for o in plan["options"]:                                    # numbers are still the simulator's
@@ -101,7 +102,7 @@ def test_outage_falls_back_to_the_offline_planner(client, monkeypatch):
     _, plan = plan_with(client, monkeypatch, FakeLLM(fail="network unavailable"))
     assert plan["planner"] == "deterministic-template" and plan["mode"] == "offline"
     assert [o["summary"] for o in plan["options"]] == [o["summary"] for o in offline["options"]]
-    assert "Claude unavailable (network unavailable)" in plan["steps"][3]["detail"]
+    assert "OpenAI fake-model unavailable (network unavailable)" in plan["steps"][3]["detail"]
 
 
 def test_untrusted_notes_stay_inside_the_data_block(client, monkeypatch):
@@ -114,7 +115,7 @@ def test_untrusted_notes_stay_inside_the_data_block(client, monkeypatch):
         assert start < user.index(payload) < end
 
 
-def test_claude_is_off_unless_configured(monkeypatch):
+def test_llm_is_off_unless_configured(monkeypatch):
     monkeypatch.setenv("DEMO_MODE", "offline")
     monkeypatch.setenv("LLM_MODEL", "claude-opus-5-5")
     assert llm_mod.get_llm() is None
@@ -127,3 +128,88 @@ def test_flat_proposer_items_become_typed_interventions():
     assert llm_mod.to_intervention(flat(type="wayfinding_redirect", from_station="WTC", to_station="EMT", share=0.3, hours=[16, 15, 15])) == \
         {"type": "wayfinding_redirect", "params": {"from_station": "WTC", "to_station": "EMT", "share": 0.3, "hours": [15, 16]}}
     assert llm_mod.to_intervention(flat(type="staggered_exit", spread_minutes=45)) == {"type": "staggered_exit", "params": {"spread_minutes": 45}}
+
+
+# ---------------------------------------------------------------- OpenAI provider (fake client, no network)
+from types import SimpleNamespace as NS
+
+
+class FakeResponses:
+    def __init__(self, resp=None, exc=None):
+        self.resp, self.exc, self.kwargs = resp, exc, None
+
+    def create(self, **kwargs):
+        self.kwargs = kwargs
+        if self.exc:
+            raise self.exc
+        return self.resp
+
+
+def openai_with(resp=None, exc=None):
+    import openai
+    o = llm_mod.OpenAILLM.__new__(llm_mod.OpenAILLM)        # skip __init__: no key, no client
+    o._openai, o.model = openai, "gpt-test"
+    o.client = NS(responses=FakeResponses(resp, exc))
+    return o
+
+
+def msg(*parts):
+    return NS(type="message", content=list(parts))
+
+
+def test_openai_request_uses_strict_schema_and_parses_json():
+    o = openai_with(NS(status="completed", output=[msg(NS(type="output_text", text='{"bundles": []}'))], output_text='{"bundles": []}'))
+    assert o.complete_json(system="S", user="U", schema=llm_mod.PROPOSER_SCHEMA, effort="medium", max_tokens=16000) == {"bundles": []}
+    k = o.client.responses.kwargs
+    assert k["model"] == "gpt-test" and k["instructions"] == "S" and k["input"] == "U" and k["store"] is False
+    assert k["text"]["format"] == {"type": "json_schema", "name": "planner_output", "schema": llm_mod.PROPOSER_SCHEMA, "strict": True}
+    assert k["reasoning"] == {"effort": "medium"} and k["max_output_tokens"] >= 25000
+
+
+@pytest.mark.parametrize("resp,why", [
+    (NS(status="incomplete", incomplete_details=NS(reason="max_output_tokens"), output=[], output_text=""), "answer truncated"),
+    (NS(status="completed", output=[msg(NS(type="refusal", refusal="no"))], output_text=""), "the model declined"),
+    (NS(status="completed", output=[], output_text=""), "no text in the answer"),
+    (NS(status="completed", output=[], output_text="not json"), "answer was not valid JSON"),
+])
+def test_openai_bad_answers_become_llm_unavailable(resp, why):
+    with pytest.raises(llm_mod.LLMUnavailable, match=why):
+        openai_with(resp).complete_json(system="S", user="U", schema=llm_mod.EXPLAINER_SCHEMA, effort="low", max_tokens=100)
+
+
+def test_openai_network_error_becomes_llm_unavailable():
+    import httpx, openai
+    exc = openai.APIConnectionError(request=httpx.Request("POST", "https://api.openai.com/v1/responses"))
+    with pytest.raises(llm_mod.LLMUnavailable, match="network unavailable"):
+        openai_with(exc=exc).complete_json(system="S", user="U", schema=llm_mod.EXPLAINER_SCHEMA, effort="low", max_tokens=100)
+
+
+def test_provider_is_chosen_from_the_model_id(monkeypatch):
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    assert llm_mod.provider_for("gpt-5") == "openai" and llm_mod.provider_for("claude-opus-5-5") == "anthropic"
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
+    assert llm_mod.provider_for("gpt-5") == "anthropic"
+
+
+def test_strict_schemas_meet_openai_rules():
+    """Strict mode: every object closes additionalProperties and requires all of its properties."""
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("type") == "object":
+                assert node.get("additionalProperties") is False
+                assert set(node.get("required", [])) == set(node.get("properties", {}))
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+    walk(llm_mod.PROPOSER_SCHEMA)
+    walk(llm_mod.EXPLAINER_SCHEMA)
+
+
+def test_openai_without_key_stays_offline(monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "live")
+    monkeypatch.setenv("LLM_MODEL", "gpt-5")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    assert llm_mod.get_llm() is None
