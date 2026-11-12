@@ -9,3 +9,10 @@ stops (2,584), trips, stop_times (111.8 MB), shapes, transfers, translations (Ar
 
 Not yet obtained: **metro ridership** (`rta_metro_ridership-open`, ~3,100 daily files). On 2026-11-11
 dubaipulse.gov.ae 301-redirected to data.dubai (marked "under development") and the dataset was not visible there.
+
+## OpenStreetMap extract for the 3D twin (added 12 Nov 2026)
+- `data/raw/osm/*.json` — Overpass API responses for the corridor box (buildings in 9 tiles, roads, rail/footbridges, water/parks),
+  fetched by `python scripts/fetch_osm_corridor.py` (git-ignored; refetch any time, results differ slightly as OSM changes).
+- Licence: © OpenStreetMap contributors, ODbL — credited in the UI (canvas corner + footer).
+- Baked by `python scripts/build_scene.py` into `apps/web/public/geo/corridor_scene.json` + `ground.png` (committed, so the
+  exhibit needs no network).
