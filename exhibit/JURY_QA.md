@@ -82,3 +82,42 @@ logged anonymously.
 **Next step?**
 Calibrate on GITEX 2025 with RTA's ridership (the ingest is built; the open data is on data.dubai), then a pilot on one
 event with RTA planners.
+
+## Added 13 Nov — the kiosk's new screens (decisions #104–#106)
+
+**"Is the 'New Year's Eve measures' screen RTA's real plan?"**
+No. It takes three measures RTA announced publicly for New Year's Eve 2026 (Burj Khalifa/Dubai Mall station closed to
+entry from 17:00, more trains, metro running after midnight; reported by Gulf News and WAM) and applies them to our
+*hypothetical* downtown night, in our simulator, on synthetic demand. It shows that the twin can express RTA's own
+levers and compare them with an AI plan. It does not reproduce the real night or RTA's settings, and we say so on screen.
+
+**"Where does the 'how many come by metro' slider come from?"**
+It is a what-if on one assumption in our event model: the share of event trips made by metro (45 % on a normal day in our
+model). RTA already uses event parking tariffs (AED 25 an hour around the World Trade Centre, as reported in 2025) and variable
+Salik tolls to encourage public transport. We do not know how many people those measures move, so we do not claim an
+effect; the slider shows whether the metro could absorb the shift.
+
+**"Why can a visitor close a station?"**
+To show resilience planning: the twin re-routes riders to the neighbouring station and the agents plan on top of the
+closure. Context for the team only (not on screen): after the April 2024 storm several stations were out of service
+for weeks, and RTA ran replacement buses and extended metro hours. If asked, say the drill is generic and is not a
+reconstruction of that event.
+
+**"Is the rider tip real travel advice?"**
+No. It reads the same simulation the planner sees and says where and when the trains are calmer after the event.
+"Quieter" means trains under 60 % full, a definition printed on the screen. It is a demonstration of what a rider
+service could do with the twin, on synthetic demand. RTA's S'hail app is the place for real journey information.
+
+**"The AI's 'strongest plan' is not its number one. Why?"**
+The agents rank by riders relieved minus a cost penalty, so the first card can be a cheaper plan. "You vs the AI"
+compares the visitor's idea with the AI option that removes the most riders from over the comfort line, and says so.
+
+**"What do you record about visitors?"**
+Nothing personal. The decision log stores the plan, the time and the word "visitor". The booth statistics are counters
+in the kiosk browser's local storage (how many touched, which path, quiz right or wrong) and never leave the laptop.
+
+**"Does the realistic city slow the kiosk down?"**
+The kiosk runs it at a lighter quality level (tier 1) that averaged 58 to 60 frames a second in our runs on the two laptops we measured (decisions #100 and #102, `eval/results/ui/fps_kiosk_v2_tier1.json`). If a laptop
+cannot hold a usable frame rate, the kiosk reloads on the older city by itself. Frame-rate work (decision #103) cut the
+triangles per frame from 3.9 to 1.2 million; full quality in the kiosk waits for a measurement on the booth laptop.
+

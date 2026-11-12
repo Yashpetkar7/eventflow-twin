@@ -30,18 +30,32 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
 4. Ten-minute check: tap **Guided demo** and let it finish; tap a station; open **Landmarks → Burj Khalifa**; press the
    red **Recentre** button after dragging the map; switch to Arabic and back.
 
-## The visitor kiosk (`?kiosk=1`, since 12 Nov)
-- **Attract screen** (golden-hour 3D city, "Will the metro cope?", today's visitor count) until someone touches it.
-- Four big steps with a highlighted stepper: **① Event** (pick an event + weather) → **② Crowd** (guess the busiest
-  station, the twin plays the day and reveals it, with its break point) → **③ AI plan** (agents work, 3 options, every
-  number checked) → **④ Your decision** (approve → before/after, visitor number, QR slot "link coming soon").
-- **Start again** and **عربي / English** are always visible; **Aa** = larger text and stronger contrast.
+## The visitor kiosk (`?kiosk=1`; kiosk plus since 13 Nov)
+- **Attract screen** (golden-hour 3D city, "Will the metro cope?", a live fact from the twin, today's visitor count)
+  until someone touches it. The kiosk shows the **realism city** at quality tier 1; `?kiosk=1&scene=v1` shows the older
+  corridor city (use it if a laptop struggles; the kiosk also switches to it by itself after 20 s under 24 fps).
+- **Two ways in**, plus a show:
+  - **I'm planning the event** — four steps with a highlighted stepper: **① Event** (pick one, or build **your own
+    event**, + weather) → **② Crowd** (guess the busiest station, the twin reveals it; optional **Stress-test it**:
+    crowd-size slider, share of visitors by metro, a closed station) → **③ AI plan** (**your idea first**, then 3
+    options; **How did the AI decide?** shows the agent's steps and the number check) → **④ Your decision** (approve →
+    before/after, you vs the AI, **Undo approval**, QR slot "link coming soon"). On the downtown night the result
+    screen also offers **RTA's New Year's Eve measures** (reported measures, labelled, simulated as a comparison).
+  - **I'm travelling to the event** — the busiest moment and our tip (station and time), **Fastest** or **Quieter**
+    (families, People of Determination).
+  - **Show me in 60 seconds** — the planner story plays by itself with captions; any touch takes over. Good for a
+    judge with one minute, and for a queue.
+- **Start again** and **عربي / English** are always visible; **Aa** = larger text; the **half-moon** = high contrast.
 - **60 s without a touch** → "Still there?" with a 10-second countdown → back to the attract screen for the next visitor
   (`&idle=30` for a shorter timer while rehearsing).
 - **Team only:** press and hold the **EventFlow Twin logo for 3 seconds** → the full workspace (all settings, My plan,
-  Report). The header's **Touch kiosk** button returns to the visitor kiosk.
-- The earlier kiosk (workspace with big targets + idle guided demo) is still at `?kiosk=classic` (used by the soak test
-  and the backup video).
+  Report with **Print / save as PDF**). The header's **Touch kiosk** button returns to the visitor kiosk.
+  Press and hold the **grey footer line for 3 seconds** → anonymous booth statistics for today (touches, paths chosen,
+  quiz answers, approvals), with **Save as file**. Copy the numbers into the evening report.
+- The earlier kiosk (workspace with big targets + idle guided demo) is still at `?kiosk=classic` (used by the soak test).
+- Backup videos (git-ignored, in `exhibit/video/`, copy both to the USB stick): `eventflow_kiosk_show.mp4` (the visitor
+  kiosk, 60 s: `node apps/web/tests/backup_video_kiosk.mjs <url>`) and `eventflow_backup_demo.mp4` (the workspace's
+  guided demo: `node apps/web/tests/backup_video.mjs <url>`).
 
 ## What visitors can do without help
 Pick an event · drag the time bar · tap a station or a landmark · **Plan with AI agents** → Approve / Reject · **My plan** ·

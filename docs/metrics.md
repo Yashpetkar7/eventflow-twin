@@ -116,7 +116,7 @@ Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/
 3D-GloBFP calibration: raw 3D-GloBFP heights were compared with the OpenStreetMap-tagged height of the same 9143 buildings
 and mapped onto them (median tagged height per quantile bin, monotone). Raw 3D-GloBFP m → used m: 8.7 → 6.6, 12.4 → 6.6, 15.0 → 6.6, 17.3 → 6.6, 19.8 → 6.6, 22.5 → 6.6, 24.8 → 6.6, 27.4 → 6.6, 30.9 → 8.6, 36.0 → 25.0, 44.8 → 36.3, 64.6 → 55.0.
 
-Size: `apps/web/public/geo` 15.8 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 19.6 MB in 146 files.
+Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 18.7 MB in 143 files.
 
 15 before/after pairs (5 camera presets × 10:00, 17:30, 21:30) in `eval/results/ui/realism/` (`node tests/polish.mjs before realism`, `node tests/polish.mjs after realism "?scene=v2"`), 1920×1080, dev mode, clock paused.
 
@@ -205,6 +205,6 @@ UI test "realism ring…" on the production build, lowest 1-second sample per ca
 `?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T21:41:21.756Z, test "realism ring…"): average **60** fps, minimum 1-second sample 59.9.
 
 ## UI tests
-`apps/web/tests/ui.spec.ts` — 22 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
+`apps/web/tests/ui.spec.ts` — 24 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
 My plan, recentre, landmarks, overlay overlap, quality tier, crash recovery, table + WebGL fallback, offline, API down,
 fps). Screenshots: `eval/results/ui/*.png`.

@@ -262,5 +262,8 @@
     "story": "Start the 2-minute visitor story",
     "work": "Open the planner workspace",
     "note": "Synthetic demand, simulated results. Not an RTA system and not endorsed by RTA."
-  }
+  },
+  "railTabs": "Scenario and settings",
+  "railScenario": "Scenario",
+  "railSettings": "Settings"
 }

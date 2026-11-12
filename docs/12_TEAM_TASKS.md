@@ -7,7 +7,24 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
-## 0. Status on Thu 12 Nov, evening — read this first
+## Status on Fri 13 Nov, 03:00 — newest first
+- **Live:** https://eventflow-twin.vercel.app on `main` with everything below (contract 1.9.0). Still public and unshared
+  until Dr. Rachit replies.
+- **Kiosk plus (PR #12, decisions #104–#106):** two ways in (planning / travelling / 60-second show), stress test, your
+  idea vs the AI, how the AI decided, undo, RTA's reported New Year's Eve measures as a labelled comparison, your own
+  event, high contrast, booth statistics. `docs/BOOTH_RUNBOOK.md` → "The visitor kiosk" has the walkthrough.
+- **Realism R1–R7 are all merged.** R7 (PR #11, decision #103) makes the realism scene cheaper to draw; the kiosk still
+  runs it at quality tier 1 (#102). **Atharva:** measure tier 0 on the Windows laptop with the commands in
+  `docs/13_REALISM_FABLE_TASKS.md` → "To switch the kiosk to tier 0"; we switch only if every lowest sample is ≥ 55 fps.
+- **K3 is closed:** ridership option 1 (#88). **Booth kit:** new kiosk backup video `exhibit/video/eventflow_kiosk_show.mp4`;
+  offline cache and API-down snapshot regenerated on contract 1.9.0; poster and handouts are unchanged (they show the
+  workspace, not the kiosk).
+- **Yash:** C5 now includes the new kiosk Arabic (`apps/web/src/components/kiosk/strings.ts`, everything after
+  "two ways in"); C4 touch test should cover the stress-test slider and the two long-press gestures; C6 can run now.
+- **Krishna:** rehearse with the new kiosk flow, copy both videos to the USB stick, laptop B check, print after Dr.
+  Rachit's answer on the QR code.
+
+## 0. Status on Thu 12 Nov, evening
 Most of the build tasks below were done on `main` in one pass with Claude Code (commits `ce466be` … on 12 Nov).
 **Do not redo them** — pull `main`, check the "Done when" line still holds on your laptop, and move to what is left.
 
