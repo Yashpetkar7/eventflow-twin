@@ -16,7 +16,9 @@ Updated 12 Nov 2026 (task K8): numbers filled from the API and `eval/results/` (
 **If asked about the AI:** "Offline it uses a deterministic plan search with template explanations; with a key it can
 also ask OpenAI GPT-5 for extra plans and wording – the same simulator and number check apply either way."
 **If asked about accuracy:** "Our ML forecaster beat a seasonal baseline in a backtest (MASE 0.78 vs 0.97), but on
-synthetic data – the real test is RTA's ridership, which is now on data.dubai."
+synthetic data. We have checked the demand against RTA's open ridership: the real numbers are higher at five of six
+stations, and during GITEX 2025 metro arrivals at World Trade Centre were about 1.65 times a normal day. The 2025 data
+has no time of day yet, so the hourly calibration uses 2024 next."
 
 **Arabic opener (have it checked by a native speaker):** "كم عدد الركّاب الذين سيغادرون هذا المبنى في الوقت نفسه؟ دعنا نتوقّع الزحام قبل وصوله."
 

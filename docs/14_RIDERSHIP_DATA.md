@@ -60,6 +60,21 @@ It prints, and saves in `eval/results/ridership_check_<time>.json`:
 Ten files (10.5 million rows) take about a minute to read. Post the printed summary in the team chat.
 
 ## 4. Decide (Krishna, with Atharva) — before Mon 16 noon, or after the exhibit
+
+> **Decided 12 Nov 2026 (Krishna): option 1 — keep the synthetic panel for the exhibit.** The first real run
+> (`eval/results/ridership_check_20261112-1947.json`, 10 files, 10.48 M rows, scaled to official DDSE monthly check-ins)
+> found that **every tap from Jun 2025 to Mar 2026 has no time of day** (`txn_time` 00:00:00.000), so an hourly panel for
+> GITEX 2025 cannot be built at any sample size. What we quote at the booth, all daily totals:
+> - Real weekday entries vs our synthetic demand: Max 16,951 vs 10,440 (×1.62) · World Trade Centre 16,720 vs 13,334
+>   (×1.25) · Emirates Towers 19,458 vs 14,952 (×1.30) · Financial Centre 15,403 vs 16,366 (×0.94) · Burj Khalifa/Dubai
+>   Mall 31,938 vs 23,963 (×1.33) · Business Bay 34,473 vs 17,949 (×1.92) — the synthetic demand is lower than reality at
+>   five of six stations, so the twin's crowding is if anything understated.
+> - GITEX 2025 (13–17 Oct) at World Trade Centre vs the same weekdays four weeks either side: **arrivals by metro ×1.65**
+>   (95 % range 1.48–1.84); departures ×0.84 (0.73–0.97). Emirates Towers departures ×1.14 (1.01–1.28). A direction, not a
+>   calibration: about 77 sample arrivals per GITEX day.
+>
+> **After the exhibit: option 2** — a real hourly panel from the last fully timed period (Sep 2024 – Jan 2025, includes
+> GITEX 2024, 14–18 Oct 2024), about 40 files for a median of 20 sample taps per station-hour.
 | If the check shows | Then |
 |---|---|
 | `panel_ready: true`, names mapped ≥ 98 %, ratios and shapes look sane | `python scripts/ingest.py --ddse … --write-panel`, then §5. The twin now runs on **real** ridership |

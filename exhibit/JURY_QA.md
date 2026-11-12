@@ -6,9 +6,20 @@ House rules: "prototype", "simulated", "designed for / aligned with RTA" — nev
 
 **Is this real RTA data?**
 Partly. The metro timetable — trains per hour for every station and direction — is RTA's official open GTFS data,
-and the 3D city is OpenStreetMap. Station demand is **synthetic and labelled** on screen: RTA's metro ridership has
-just appeared as open data on data.dubai (updated 9 Nov 2026), and calibrating on it is our next step. Event
-attendance, the share of visitors who take the metro and how full trains arrive are assumptions you can change.
+and the 3D city is OpenStreetMap. Station demand on screen is **synthetic and labelled**. We have already checked it
+against RTA's open metro ridership on data.dubai (a sample of 10 files, about 10.5 million taps, scaled to RTA's
+official monthly station totals): real weekday entries are **higher than our synthetic demand at five of six stations**
+— e.g. World Trade Centre about 16,700 a day vs 13,300 synthetic, Business Bay about 34,500 vs 17,900 — so if anything
+the twin understates the crowding. We kept the synthetic panel for the exhibit because the 2025 open data has **no time
+of day** (every tap from June 2025 to March 2026 shows 00:00), so an hour-by-hour GITEX 2025 profile cannot be built
+from it. Event attendance, the share of visitors who take the metro and how full trains arrive are assumptions you can
+change.
+
+**Did GITEX 2025 really show up in the ridership?**
+Yes, in arrivals: on the five GITEX days, metro arrivals at World Trade Centre were about **1.65× a normal weekday**
+(95 % range 1.48–1.84), from daily totals in our sample. Departures from that station were slightly *below* normal, so
+visitors seem to arrive by metro but leave in more ways. It is a direction, not yet a calibration — the next step is a
+real hourly panel from the last fully timed period (Sep 2024 – Jan 2025, which includes GITEX 2024).
 
 **Why replay GITEX 2025, a past event?**
 It is the biggest recurring event on this corridor, right beside World Trade Centre station, and because it has
