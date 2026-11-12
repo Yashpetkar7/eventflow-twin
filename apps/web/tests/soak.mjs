@@ -1,21 +1,22 @@
 // Booth soak test: the guided demo in a loop (kiosk mode), with scenario changes in between, for N minutes.
 // After every loop the JS heap is measured after a forced garbage collection, together with the renderer's
 // geometry / texture / shader-program counts, the frame rate and any request that left localhost.
-//   node tests/soak.mjs <minutes> [base url]      → eval/results/ui/soak.json   (run against the production build)
+//   node tests/soak.mjs <minutes> [base url] [scene]   → eval/results/ui/soak.json, or soak_<scene>.json (run against the production build)
+//   realism scene: node tests/soak.mjs 30 http://localhost:3100 v2
 import { chromium } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
-const minutes = Number(process.argv[2] ?? 120), base = process.argv[3] ?? "http://localhost:3000";
-const OUT = path.resolve(import.meta.dirname, "../../../eval/results/ui/soak.json");
+const minutes = Number(process.argv[2] ?? 120), base = process.argv[3] ?? "http://localhost:3000", scene = process.argv[4] ?? "";
+const OUT = path.resolve(import.meta.dirname, `../../../eval/results/ui/soak${scene ? "_" + scene : ""}.json`);
 const browser = await chromium.launch({ channel: "chrome", headless: true,
-  args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl", "--js-flags=--expose-gc", "--enable-precise-memory-info"] });
+  args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl", "--js-flags=--expose-gc", "--enable-precise-memory-info"] });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
 const external = [], errors = [];
 page.on("request", (r) => { const u = r.url(); if (!/^https?:\/\/(localhost|127\.0\.0\.1)[:/]/.test(u) && !u.startsWith("data:") && !u.startsWith("blob:")) external.push(u); });
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().slice(0, 200)); });
-await page.goto(`${base}/?kiosk=classic&idle=600`);
+await page.goto(`${base}/?kiosk=classic&idle=600${scene ? "&scene=" + scene : ""}`);
 await page.waitForFunction(() => window.__twin?.getState().sceneReady && window.__twin.getState().ready, null, { timeout: 90000 });
 
 const median = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];

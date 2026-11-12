@@ -1,0 +1,48 @@
+{
+  "suite": "ui_fps_kiosk",
+  "timestamp": "2026-11-12T19:17:34.967Z",
+  "target": "http://localhost:3100",
+  "url": "/?kiosk=1",
+  "viewport": "1920x1080 (3D full screen)",
+  "avg_fps": 60,
+  "min_fps": 60,
+  "tier_at_end": 0,
+  "samples": [
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60
+  ],
+  "runs": [
+    {
+      "timestamp": "2026-11-12T19:17:03.183Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    },
+    {
+      "timestamp": "2026-11-12T19:17:34.967Z",
+      "target": "http://localhost:3100",
+      "avg_fps": 60,
+      "min_fps": 60,
+      "tier_at_end": 0
+    }
+  ]
+}
