@@ -1,0 +1,280 @@
+{
+ "plan_id": "plan_5bc3a1459678",
+ "forecast_run_id": "fc_38414f2f23e3",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.5,
+  "excess_pax": 278.6,
+  "peak_lf": 0.997,
+  "max_wait_min": 0.0,
+  "delay_pax_min": 0.0,
+  "cost_proxy": 0.0,
+  "total_demand": 120369.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2537.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "توجيه المشاة فقط",
+   "interventions": [
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "EMT",
+      "share": 0.35,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.755,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.5,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.242,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 248.6,
+   "rationale": "توجيه 35% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا. نتيجة المحاكاة: ساعات المحطات فوق الحد من 0.5 إلى 0، والركاب فوق الحد من 279 إلى 0، وأعلى حمولة محطة من 100% إلى 76%. مؤشر التكلفة المضافة: 0.5. المخاطر: يعتمد على استجابة الزوار.",
+   "what": "توجيه 35% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا.",
+   "risk": "يعتمد على استجابة الزوار.",
+   "cost_added": 0.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_991951a3b8bd"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_38414f2f23e3"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "خروج متدرج + توجيه المشاة",
+   "interventions": [
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "EMT",
+      "share": 0.25,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.718,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.5,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.279,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 128.6,
+   "rationale": "توزيع خروج الزوار على 60 دقيقة إضافية وتوجيه 25% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا. نتيجة المحاكاة: ساعات المحطات فوق الحد من 0.5 إلى 0، والركاب فوق الحد من 279 إلى 0، وأعلى حمولة محطة من 100% إلى 72%. مؤشر التكلفة المضافة: 2.5. المخاطر: يتطلب تعاون المنظمين ولافتات واضحة.",
+   "what": "توزيع خروج الزوار على 60 دقيقة إضافية وتوجيه 25% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا.",
+   "risk": "يتطلب تعاون المنظمين ولافتات واضحة.",
+   "cost_added": 2.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_ace85ed5a249"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_38414f2f23e3"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "حافلات مغذية + سيارات أجرة ذاتية القيادة",
+   "interventions": [
+    {
+     "type": "shuttle_bus",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "BBY",
+      "buses": 6,
+      "hours": [
+       15
+      ]
+     }
+    },
+    {
+     "type": "robotaxi_staging",
+     "params": {
+      "station": "WTC",
+      "vehicles": 30,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.85,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 18.0,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.147,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 18.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": -801.4,
+   "rationale": "6 حافلات من المركز التجاري العالمي إلى الخليج التجاري و30 سيارة أجرة ذاتية القيادة عند المركز التجاري العالمي. نتيجة المحاكاة: ساعات المحطات فوق الحد من 0.5 إلى 0، والركاب فوق الحد من 279 إلى 0، وأعلى حمولة محطة من 100% إلى 85%. مؤشر التكلفة المضافة: 18. المخاطر: قد ينقل الازدحام إلى المحطة المستقبلة.",
+   "what": "6 حافلات من المركز التجاري العالمي إلى الخليج التجاري و30 سيارة أجرة ذاتية القيادة عند المركز التجاري العالمي.",
+   "risk": "قد ينقل الازدحام إلى المحطة المستقبلة.",
+   "cost_added": 18.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_f2ece29b3926"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_38414f2f23e3"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 26,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "قراءة الهدف",
+   "detail": "إبقاء كل المحطات تحت 85% · الأولوية: تكلفة أقل",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "التنبؤ بالطلب",
+   "detail": "التشغيل fc_38414f2f23e3",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "تحديد نقاط الازدحام",
+   "detail": "المركز التجاري العالمي، 15:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "اقتراح الخطط",
+   "detail": "6 خطط مرشحة من القائمة المحددة",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "محاكاة كل خطة",
+   "detail": "7 عمليات محاكاة",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "الترتيب حسب الأثر والتكلفة",
+   "detail": "أفضل 3 حسب الركاب المخفَّف عنهم − λ × التكلفة",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "الشرح بلغة بسيطة",
+   "detail": "نص قالب، والأرقام منسوخة من المحاكي",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "التحقق من كل رقم",
+   "detail": "تم التحقق من 26 رقمًا، جميعها مطابقة",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "WTC",
+  "hours": [
+   15
+  ],
+  "window": [
+   14,
+   15,
+   16
+  ],
+  "peak_lf": 0.997
+ },
+ "cached": false
+}

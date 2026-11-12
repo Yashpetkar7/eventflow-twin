@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.7.0"
+    "version": "1.8.0"
   },
   "paths": {
     "/healthz": {
@@ -321,6 +321,7 @@
         "properties": {
           "forecast_run_id": {
             "type": "string",
+            "maxLength": 40,
             "title": "Forecast Run Id"
           },
           "forecast": {
@@ -411,20 +412,29 @@
                 },
                 {
                   "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
                 }
               ],
               "discriminator": {
                 "propertyName": "type",
                 "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
                   "extra_trains": "#/components/schemas/ExtraTrains",
                   "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
                   "shuttle_bus": "#/components/schemas/ShuttleBus",
                   "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
                   "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
                 }
               }
             },
             "type": "array",
+            "maxItems": 24,
             "title": "Applied",
             "description": "Already-approved interventions to plan on top of"
           }
@@ -602,6 +612,7 @@
         "properties": {
           "forecast_run_id": {
             "type": "string",
+            "maxLength": 40,
             "title": "Forecast Run Id"
           },
           "forecast": {
@@ -758,6 +769,7 @@
         "properties": {
           "near_station": {
             "type": "string",
+            "maxLength": 40,
             "title": "Near Station"
           },
           "start": {
@@ -893,20 +905,29 @@
                 },
                 {
                   "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
                 }
               ],
               "discriminator": {
                 "propertyName": "type",
                 "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
                   "extra_trains": "#/components/schemas/ExtraTrains",
                   "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
                   "shuttle_bus": "#/components/schemas/ShuttleBus",
                   "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
                   "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
                 }
               }
             },
             "type": "array",
+            "maxItems": 24,
             "title": "Interventions"
           }
         },
@@ -925,6 +946,7 @@
         "properties": {
           "plan_id": {
             "type": "string",
+            "maxLength": 64,
             "title": "Plan Id"
           },
           "option_rank": {
@@ -990,20 +1012,29 @@
                 },
                 {
                   "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
                 }
               ],
               "discriminator": {
                 "propertyName": "type",
                 "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
                   "extra_trains": "#/components/schemas/ExtraTrains",
                   "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
                   "shuttle_bus": "#/components/schemas/ShuttleBus",
                   "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
                   "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
                 }
               }
             },
             "type": "array",
+            "maxItems": 24,
             "title": "Interventions"
           }
         },
@@ -1173,6 +1204,58 @@
         ],
         "title": "Event"
       },
+      "ExtendedHours": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "extended_hours",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/ExtendedHoursParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "ExtendedHours",
+        "description": "Run trains in hours when the line is normally closed (e.g. after midnight), at `headway_min`."
+      },
+      "ExtendedHoursParams": {
+        "properties": {
+          "line": {
+            "type": "string",
+            "title": "Line",
+            "default": "Red"
+          },
+          "hours": {
+            "items": {
+              "type": "integer",
+              "maximum": 23.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Hours"
+          },
+          "headway_min": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Headway Min"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "hours",
+          "headway_min"
+        ],
+        "title": "ExtendedHoursParams"
+      },
       "ExtraTrains": {
         "properties": {
           "type": {
@@ -1230,7 +1313,8 @@
           "event_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 64
               },
               {
                 "type": "null"
@@ -1525,6 +1609,50 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "MeteringParams": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "max_load": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Load"
+          },
+          "hours": {
+            "items": {
+              "type": "integer",
+              "maximum": 23.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Hours"
+          },
+          "to_station": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Station"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "station",
+          "max_load",
+          "hours"
+        ],
+        "title": "MeteringParams"
+      },
       "PlanOption": {
         "properties": {
           "rank": {
@@ -1554,15 +1682,23 @@
                 },
                 {
                   "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
                 }
               ],
               "discriminator": {
                 "propertyName": "type",
                 "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
                   "extra_trains": "#/components/schemas/ExtraTrains",
                   "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
                   "shuttle_bus": "#/components/schemas/ShuttleBus",
                   "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
                   "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
                 }
               }
@@ -1945,6 +2081,7 @@
         "properties": {
           "forecast_run_id": {
             "type": "string",
+            "maxLength": 40,
             "title": "Forecast Run Id"
           },
           "forecast": {
@@ -1975,20 +2112,29 @@
                 },
                 {
                   "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
                 }
               ],
               "discriminator": {
                 "propertyName": "type",
                 "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
                   "extra_trains": "#/components/schemas/ExtraTrains",
                   "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
                   "shuttle_bus": "#/components/schemas/ShuttleBus",
                   "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
                   "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
                 }
               }
             },
             "type": "array",
+            "maxItems": 24,
             "title": "Interventions"
           },
           "detail": {
@@ -2274,6 +2420,26 @@
           "first_time"
         ],
         "title": "StationBreak"
+      },
+      "StationMetering": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "station_metering",
+            "title": "Type"
+          },
+          "params": {
+            "$ref": "#/components/schemas/MeteringParams"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "params"
+        ],
+        "title": "StationMetering",
+        "description": "Entry metering at the gates (RTA's New Year's Eve practice): admit riders only up to `max_load` × boarding\ncapacity; the rest wait outside the station or, with `to_station`, are guided on foot to a neighbouring station.\n`max_load` 0 = the station is closed for those hours (then `to_station` is required)."
       },
       "ValidationError": {
         "properties": {

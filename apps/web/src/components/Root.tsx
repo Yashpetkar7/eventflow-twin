@@ -53,7 +53,7 @@ function Workspace() {
   useEffect(() => { if (how) dlg.current?.showModal(); else dlg.current?.close(); }, [how]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", minHeight: 640 }}>
+    <div className="shell" style={{ display: "flex", flexDirection: "column", height: "100dvh", minHeight: 640 }}>
       <Header onHow={() => setHow(true)} onTour={() => void runTour(locale)} />
       {isPublicDemo() && <div className="banner demo" role="note">{t("publicDemo")}</div>}
       {(apiDown || error) && <div className="banner" role="status">{apiDown ? t("apiDown") : t("apiError", { msg: error ?? "" })}</div>}

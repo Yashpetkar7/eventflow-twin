@@ -33,6 +33,9 @@ function OptionCard({ o, base, verified }: { o: PlanOption; base: SimSummary; ve
       <h3>{o.title}</h3>
       <p>{o.what}</p>
       <Delta b={base} a={o.summary} />
+      {o.interventions.some((iv) => iv.type === "station_metering") && (
+        <p className="note">{t("longestWait")}: <b><N>{t("build.min", { n: f.num(base.max_wait_min, 1) })} → {t("build.min", { n: f.num(o.summary.max_wait_min, 1) })}</N></b></p>
+      )}
       <p>{t("cost")}: <b><N>+{f.num(o.cost_added ?? 0)}</N></b>. {o.risk}</p>
       {names && <div className="warnbox">{t("newHot", { stations: names })}</div>}
       {verified ? <div className="verify">✓ {t("verified", { n: f.int(o.figures ?? 0) })}</div> : <div className="warnbox">{t("notVerified")}</div>}
@@ -109,7 +112,8 @@ export function BuildTab() {
   const sel = (id: string, value: string, opts: typeof stations, on: (v: string) => void, label: string) => (
     <select id={id} aria-label={label} value={value} onChange={(e) => on(e.target.value)}>{opts.map((s) => <option key={s.id} value={s.id}>{f.station(s)}</option>)}</select>
   );
-  const active = b.headway || b.wayShare || b.buses || b.rt || b.stag;
+  const active = b.headway || b.wayShare || b.buses || b.rt || b.stag || b.meterLoad || b.ext;
+  const meterNb = neighbours(b.meterAt);
   const newHot = preview && cur ? [...overStations(preview)].filter((id) => !overStations(cur).has(id)) : [];
   return (
     <>
@@ -143,6 +147,26 @@ export function BuildTab() {
         <div className="head">{t("build.stag")}</div>
         <div className="seg">{[0, 30, 60, 90].map((v) => <button key={v} type="button" aria-pressed={b.stag === v} onClick={() => patch({ stag: v })}>{v ? <N>{t("build.min", { n: f.int(v) })}</N> : t("build.off")}</button>)}</div>
       </div>
+      <div className="ctl">
+        <div className="head">{t("build.meter")}</div>
+        <div className="seg">{[0, 95, 85, 75, -1].map((v) => (
+          <button key={v} type="button" aria-pressed={b.meterLoad === v}
+            onClick={() => patch(v === -1 && !b.meterTo ? { meterLoad: v, meterTo: meterNb[0]?.id ?? "" } : { meterLoad: v })}>
+            {v === 0 ? t("build.off") : v < 0 ? t("build.closed") : <N>{f.pct(v / 100)}</N>}
+          </button>))}</div>
+        <div className="two">
+          <div><span className="note">{t("build.at")}</span>{sel("bMetA", b.meterAt, stations, (v) => patch({ meterAt: v, meterTo: neighbours(v).some((n) => n.id === b.meterTo) ? b.meterTo : (b.meterLoad < 0 ? neighbours(v)[0]?.id ?? "" : "") }), `${t("build.meter")} ${t("build.at")}`)}</div>
+          <div><span className="note">{t("build.restGo")}</span>
+            <select id="bMetT" aria-label={`${t("build.meter")} ${t("build.restGo")}`} value={b.meterTo} onChange={(e) => patch({ meterTo: e.target.value })}>
+              {b.meterLoad >= 0 && <option value="">{t("build.waitOutside")}</option>}
+              {meterNb.map((s) => <option key={s.id} value={s.id}>{f.station(s)}</option>)}
+            </select></div>
+        </div>
+      </div>
+      <div className="ctl">
+        <div className="head">{t("build.ext")}</div>
+        <div className="seg">{[0, 1, 3].map((v) => <button key={v} type="button" aria-pressed={b.ext === v} onClick={() => patch({ ext: v })}>{v === 0 ? t("build.off") : <N>{t("build.until", { time: v === 1 ? "01:00" : "03:00" })}</N>}</button>)}</div>
+      </div>
       <div className="card" aria-live="polite">
         {!active && <div className="empty">{t("build.nothing")}</div>}
         {active && previewError ? <div className="warnbox" role="alert">{t("build.error", { msg: previewError })}</div> : null}
@@ -151,6 +175,8 @@ export function BuildTab() {
             <h2>{t("build.preview")}</h2>
             <Delta b={cur.resp.summary} a={preview.resp.summary} />
             <p className="note" style={{ margin: "8px 0" }}>{t("sCost")}: <b><N>{f.num(cur.resp.summary.cost_proxy)} → {f.num(preview.resp.summary.cost_proxy)}</N></b></p>
+            {b.meterLoad !== 0 && <p className="note" style={{ margin: "4px 0" }}>{t("longestWait")}: <b><N>{t("build.min", { n: f.num(cur.resp.summary.max_wait_min, 1) })} → {t("build.min", { n: f.num(preview.resp.summary.max_wait_min, 1) })}</N></b></p>}
+            {b.ext > 0 && <p className="note" style={{ margin: "4px 0" }}>{t("build.noService")}: <b><N>{f.int(cur.resp.summary.no_service_pax)} → {f.int(preview.resp.summary.no_service_pax)}</N></b></p>}
             {newHot.length > 0 && <div className="warnbox">{t("newHot", { stations: newHot.map((id) => f.station(stations.find((s) => s.id === id))).join(", ") })}</div>}
             <div className="note">{t("sources", { run: preview.resp.run_id })}</div>
             <button type="button" className="btn navy" style={{ width: "100%", marginTop: 8 }} onClick={() => void approve(t("build.mine"))}>{t("build.approveMine")}</button>

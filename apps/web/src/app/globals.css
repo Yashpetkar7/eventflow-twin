@@ -235,4 +235,48 @@ body.kiosk .tag { padding: 9px 12px; font-size: 14px; }
   .clock { font-size: 30px; }
   .hud { max-width: 100%; }
 }
+@media (max-width: 640px) {
+  /* phones (visitors opening the public link): map first and big, events as swipeable cards right under it, then the
+     Station / AI plan panel, then the remaining controls; the whole page scrolls and the disclaimer sits at the end. */
+  .shell { height: auto !important; min-height: 100dvh !important; }
+  .app { overflow: visible; }
+  .hdr { padding: 6px 10px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .hdr::-webkit-scrollbar { display: none; }
+  .brand { flex: none; gap: 8px; }
+  .brand b { font-size: 16px; white-space: nowrap; }
+  .brand span { display: none; }
+  .pill { flex: none; padding: 5px 10px; font-size: 12px; min-height: 34px; white-space: nowrap; }
+  .badge { flex: none; font-size: 10.5px; padding: 4px 8px; }
+  .kioskbtn { display: none; }
+  .banner { padding: 5px 12px; font-size: 11.5px; }
+
+  .view { min-height: 0; height: 64svh; }
+  .viewtop { top: 8px; inset-inline: 8px; padding-inline-end: 48px; gap: 6px; }
+  .hud { padding: 6px 9px; border-radius: 12px; }
+  .clock { font-size: 22px; }
+  .hud .sub { font-size: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .kpis { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; gap: 5px; }
+  .kpis::-webkit-scrollbar { display: none; }
+  .kpi { flex: none; padding: 3px 8px; border-radius: 10px; }
+  .kpi b { font-size: 14px; }
+  .kpi span { font-size: 10px; }
+  .mapctl { inset-inline-end: 8px; top: 8px; gap: 5px; }
+  .viewbottom { inset-inline: 8px; bottom: 6px; }
+  .legend { font-size: 10px; gap: 6px; padding: 4px 8px; }
+  .camtools { gap: 4px; justify-content: flex-start; margin-inline-start: 0; }
+  .camtools button { padding: 6px 9px; font-size: 11.5px; min-height: 32px; }
+  .timebar { padding: 6px 10px; gap: 8px; }
+  .heat { overflow-x: auto; }
+
+  .stage { order: 0; }
+  .rail { display: contents; }
+  .rail > * { order: 3; background: var(--surface); padding: 12px 14px; border-block-end: 1px solid var(--line); margin: 0; }
+  .rail > :first-child { order: 1; }
+  .panel { order: 2; }
+  .scen { grid-auto-flow: column; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
+  .scen > * { scroll-snap-align: start; }
+  .tabs { padding: 6px 6px 0; }
+  .tabs button { padding: 9px 8px; }
+  .ftr { font-size: 10.5px; padding: 8px 12px 18px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

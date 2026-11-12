@@ -10,8 +10,9 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.7.0"   # 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.8.0"   # 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
+MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
 
 class Source(BaseModel):
@@ -59,7 +60,7 @@ Scope = Literal["network", "corridor"]
 
 class CustomEvent(BaseModel):
     """Visitor-built what-if event next to a station (always labelled an assumption)."""
-    near_station: str
+    near_station: str = Field(max_length=40)
     start: str = Field(pattern=HHMM)
     end: str = Field(pattern=HHMM)
     weekend: bool = False
@@ -67,7 +68,7 @@ class CustomEvent(BaseModel):
 
 
 class ForecastRequest(BaseModel):
-    event_id: str | None = Field(None, description="Event from /events; null = background only")
+    event_id: str | None = Field(None, max_length=64, description="Event from /events; null = background only")
     date: str | None = Field(None, description="YYYY-MM-DD; picks the weekday profile (defaults to the event date)")
     weekday: int | None = Field(None, ge=0, le=6, description="0=Mon … 6=Sun; overrides date")
     attendance: int | None = Field(None, ge=0, le=200_000, description="What-if override of event attendance")
@@ -110,10 +111,10 @@ class ForecastResponse(BaseModel):
 
 # ---------- simulate ----------
 class SimulateRequest(BaseModel):
-    forecast_run_id: str
+    forecast_run_id: str = Field(max_length=40)
     forecast: ForecastRequest | None = Field(
         None, description="The request that produced forecast_run_id. Lets an instance that has never seen the run rebuild it.")
-    interventions: list[Intervention] = Field(default_factory=list)
+    interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
     detail: bool = Field(False, description="Include the 15-minute rows (large); hourly rows are always returned")
     threshold: float | None = Field(None, ge=0.5, le=1.0, description="What-if comfort threshold (default: corridor.yaml)")
     scope: Scope = Field("network", description="'corridor' = rows and summary for the featured corridor stations only")
@@ -170,7 +171,7 @@ class SimulateResponse(BaseModel):
 
 # ---------- break points ----------
 class BreakpointRequest(BaseModel):
-    forecast_run_id: str
+    forecast_run_id: str = Field(max_length=40)
     forecast: ForecastRequest | None = Field(None, description="As in SimulateRequest.forecast")
     threshold: float | None = Field(None, ge=0.5, le=1.0, description="Comfort threshold (default: corridor.yaml)")
 
@@ -208,7 +209,7 @@ class BreakpointResponse(BaseModel):
 
 # ---------- agents (implemented by Stream B; shape frozen now) ----------
 class AgentPlanRequest(BaseModel):
-    forecast_run_id: str
+    forecast_run_id: str = Field(max_length=40)
     forecast: ForecastRequest | None = Field(None, description="As in SimulateRequest.forecast")
     goal: str = Field("Keep every station under 85% load during the exit surge", max_length=500)
     locale: Literal["en", "ar"] = "en"
@@ -216,7 +217,7 @@ class AgentPlanRequest(BaseModel):
     threshold: float | None = Field(None, ge=0.5, le=1.0)
     scope: Scope = "network"
     priority: Literal["cost", "balanced", "impact"] = "balanced"
-    applied: list[Intervention] = Field(default_factory=list, description="Already-approved interventions to plan on top of")
+    applied: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS, description="Already-approved interventions to plan on top of")
 
 
 class PlanOption(BaseModel):
@@ -264,14 +265,14 @@ class AgentPlanResponse(BaseModel):
 
 # ---------- decisions ----------
 class DecisionRequest(BaseModel):
-    plan_id: str
+    plan_id: str = Field(max_length=64)
     option_rank: int = Field(ge=1, le=3)
     decision: Literal["approve", "reject"]
     user: str = Field("visitor", max_length=40, pattern=r"^[\w .\-]+$", description="Anonymous label only")
     # What exactly was decided on, so the audit log stands on its own (treated as data, never executed).
     option_title: str | None = Field(None, max_length=200)
     forecast_run_id: str | None = Field(None, max_length=40)
-    interventions: list[Intervention] = Field(default_factory=list)
+    interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
 
 
 class DecisionResponse(BaseModel):
@@ -290,7 +291,7 @@ class DecisionRecord(BaseModel):
     user: str
     option_title: str | None = None
     forecast_run_id: str | None = None
-    interventions: list[Intervention] = Field(default_factory=list)
+    interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
 
 
 class DecisionList(BaseModel):

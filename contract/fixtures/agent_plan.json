@@ -1,6 +1,6 @@
 {
-  "plan_id": "plan_e7c8c6ab817f",
-  "forecast_run_id": "fc_b33851ab7931",
+  "plan_id": "plan_ea0a6268e59c",
+  "forecast_run_id": "fc_6bb2b8ec7312",
   "mode": "offline",
   "is_synthetic": true,
   "baseline_summary": {
@@ -69,11 +69,11 @@
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_bf72d9f61edf"
+          "run_id": "sim_a4e1d45b094d"
         },
         {
           "tool": "forecast",
-          "run_id": "fc_b33851ab7931"
+          "run_id": "fc_6bb2b8ec7312"
         }
       ],
       "what": "Spread venue exits over an extra 60 minutes and guide 25% of Emirates Towers riders to Financial Centre on foot.",
@@ -139,11 +139,11 @@
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_78d8aeab67aa"
+          "run_id": "sim_3dcb55d75d3d"
         },
         {
           "tool": "forecast",
-          "run_id": "fc_b33851ab7931"
+          "run_id": "fc_6bb2b8ec7312"
         }
       ],
       "what": "3-minute headway from 17:00 to 20:00, plus guiding 20% of Emirates Towers riders to Financial Centre.",
@@ -205,11 +205,11 @@
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_f68005e59b8a"
+          "run_id": "sim_6a67a18d71e7"
         },
         {
           "tool": "forecast",
-          "run_id": "fc_b33851ab7931"
+          "run_id": "fc_6bb2b8ec7312"
         }
       ],
       "what": "3-minute headway from 17:00 to 20:00, plus exits spread over an extra 60 minutes.",
@@ -234,7 +234,7 @@
     {
       "key": "forecast",
       "label": "Forecast demand",
-      "detail": "Run fc_b33851ab7931",
+      "detail": "Run fc_6bb2b8ec7312",
       "tool": "forecast"
     },
     {
@@ -246,13 +246,13 @@
     {
       "key": "propose",
       "label": "Propose plans",
-      "detail": "6 candidate plans from the fixed menu",
+      "detail": "8 candidate plans from the fixed menu",
       "tool": null
     },
     {
       "key": "simulate",
       "label": "Simulate each plan",
-      "detail": "7 simulator runs",
+      "detail": "9 simulator runs",
       "tool": "simulate"
     },
     {

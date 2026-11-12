@@ -1,0 +1,78 @@
+{
+ "plan_id": "plan_9ce2c50bf213",
+ "forecast_run_id": "fc_e94ce070b8ca",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.0,
+  "excess_pax": 0.0,
+  "peak_lf": 0.778,
+  "max_wait_min": 0.0,
+  "delay_pax_min": 0.0,
+  "cost_proxy": 0.0,
+  "total_demand": 114369.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2537.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "options": [],
+ "verify": {
+  "numbers_checked": 0,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "Read the goal",
+   "detail": "Keep every station under 85% · priority: balanced",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "Forecast demand",
+   "detail": "Run fc_e94ce070b8ca",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "Find hotspots",
+   "detail": "No station over 85%",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "Propose plans",
+   "detail": "0 candidate plans from the fixed menu",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "Simulate each plan",
+   "detail": "1 simulator runs",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "Rank by impact and cost",
+   "detail": "Top 0 by riders relieved − λ × cost",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "Explain in plain words",
+   "detail": "Template text, numbers copied from the simulator",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "Check every number",
+   "detail": "0 figures checked, all match",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": null,
+ "cached": false
+}

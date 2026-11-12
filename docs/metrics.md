@@ -4,7 +4,7 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 nothing is typed by hand. Regenerate: `make ui-test`, then `python scripts/ui_metrics.py`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T12:47:10.735Z), Playwright → Chrome, `ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)`.
+Source: `eval/results/ui/fps.json` (2026-11-12T14:19:28.194Z), Playwright → Chrome, `ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)`.
 
 | Measure | Value |
 |---|---|
@@ -12,8 +12,8 @@ Source: `eval/results/ui/fps.json` (2026-11-12T12:47:10.735Z), Playwright → Ch
 | Layers | all on, clock playing |
 | Build | next dev |
 | Average fps (5 camera presets × 5 s) | **60** |
-| Minimum 1-second sample | 59 |
-| Per camera | overview 60, close 59.8, top 60, fly 60, orbit 60 |
+| Minimum 1-second sample | 59.9 |
+| Per camera | overview 60, close 60, top 60, fly 60, orbit 60 |
 
 Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 means
 "at the cap". Not measured: the exhibit's touch monitor at its native resolution; a 2-hour soak.
@@ -54,7 +54,7 @@ Crash recovery (test "crash recovery…"): with the API blocked the banner appea
 the health check every 4 s clears the banner when the API returns.
 
 ## Offline
-Source: `eval/results/ui/network.json` (2026-11-12T12:46:28.170Z).
+Source: `eval/results/ui/network.json` (2026-11-12T14:18:46.084Z).
 Requests to any host other than localhost during load, an agent plan and a language switch: **0**.
 Fonts (Readex Pro, OFL) are files in the repo; the map is baked into `apps/web/public/geo/`.
 With the API blocked the app starts from the saved snapshot (`apps/web/public/cache/`) and says so (test "API down").
@@ -71,6 +71,6 @@ With the API blocked the app starts from the saved snapshot (`apps/web/public/ca
 | Red Line centreline | OpenStreetMap railway=subway (Red Line Metro) |
 
 ## UI tests
-`apps/web/tests/ui.spec.ts` — 18 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
+`apps/web/tests/ui.spec.ts` — 20 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
 My plan, recentre, landmarks, overlay overlap, quality tier, crash recovery, table + WebGL fallback, offline, API down,
 fps). Screenshots: `eval/results/ui/*.png`.

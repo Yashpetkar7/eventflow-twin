@@ -29,7 +29,8 @@ real accuracy test is RTA's ridership, which we will report as soon as we have i
 
 **What do the AI agents actually do?**
 A planning agent reads the goal, finds the hotspot, proposes intervention bundles from a fixed menu (extra trains,
-wayfinding to a neighbouring station, feeder shuttles, robotaxi staging, staggered exits), has the simulator measure
+wayfinding to a neighbouring station, feeder shuttles, robotaxi staging, staggered exits, and — when a platform is over
+full capacity — entry metering at the gates), has the simulator measure
 each one, ranks them and explains them. Offline — as at this booth — it is a deterministic plan search with template
 explanations. With a key it can also ask a language model (OpenAI GPT-5) for extra plans and wording; the same
 simulator and checks apply either way.
@@ -54,12 +55,19 @@ the 3D twin runs at **60 fps** at 1920×1080. There is also a web version for th
 
 **What would you need to deploy it for real?**
 RTA's station ridership (to calibrate), live passenger counts or GTFS-realtime feeds, organisers' attendance figures,
-validated capacity values from operations, and a pilot on one real event with RTA planners. Plus the two measures RTA
-uses most at New Year's Eve that we have not modelled yet: station closure / entry metering and extended hours.
+validated capacity values from operations, and a pilot on one real event with RTA planners.
+
+**Can it handle New Year's Eve at Burj Khalifa?**
+Yes, with the two measures RTA actually uses there. **Entry metering / station closure:** the gates admit riders only up
+to a set load and the rest are guided on foot to the next station or wait outside — the twin shows the trade-off (on our
+hypothetical downtown night, metering at 85 % with nobody guided away keeps the platform safe but the longest wait
+outside reaches about 188 minutes, so the planner does not recommend that version). **Extended service hours:** trains
+after midnight for riders who would otherwise find the metro closed. Try both in **My plan**.
 
 **Privacy?**
 Only station-level totals per 15 minutes. No card IDs, no cameras, no personal data; visitors' approvals here are
 logged anonymously.
 
 **Next step?**
-Calibrate on GITEX 2025 with RTA's ridership, add station closure and extended hours, then a pilot on one event.
+Calibrate on GITEX 2025 with RTA's ridership (the ingest is built; the open data is on data.dubai), then a pilot on one
+event with RTA planners.

@@ -84,16 +84,45 @@ class RedirectParams(_Base):
     hours: Hours = Field(default_factory=lambda: list(range(24)))
 
 
-for _m in (ExtraTrains, ShuttleBus, RobotaxiStaging, StaggeredExit, WayfindingRedirect):
+class StationMetering(_Base):
+    """Entry metering at the gates (RTA's New Year's Eve practice): admit riders only up to `max_load` × boarding
+    capacity; the rest wait outside the station or, with `to_station`, are guided on foot to a neighbouring station.
+    `max_load` 0 = the station is closed for those hours (then `to_station` is required)."""
+    type: Literal["station_metering"]
+    params: "MeteringParams"
+
+
+class MeteringParams(_Base):
+    station: str
+    max_load: float = Field(ge=0, le=1)
+    hours: Hours
+    to_station: str | None = None
+
+
+class ExtendedHours(_Base):
+    """Run trains in hours when the line is normally closed (e.g. after midnight), at `headway_min`."""
+    type: Literal["extended_hours"]
+    params: "ExtendedHoursParams"
+
+
+class ExtendedHoursParams(_Base):
+    line: str = "Red"
+    hours: Hours
+    headway_min: float = Field(gt=0)
+
+
+for _m in (ExtraTrains, ShuttleBus, RobotaxiStaging, StaggeredExit, WayfindingRedirect, StationMetering, ExtendedHours):
     _m.model_rebuild()
 
-Intervention = Annotated[Union[ExtraTrains, ShuttleBus, RobotaxiStaging, StaggeredExit, WayfindingRedirect],
-                         Field(discriminator="type")]
+Intervention = Annotated[Union[ExtraTrains, ShuttleBus, RobotaxiStaging, StaggeredExit, WayfindingRedirect,
+                               StationMetering, ExtendedHours], Field(discriminator="type")]
 _LIST = TypeAdapter(list[Intervention])
 
 # Application order is fixed by type so a bundle's result never depends on how it was listed:
 # reshape the surge first, then capacity, then demand moves, then diversion off the metro.
-APPLY_ORDER = {"staggered_exit": 0, "extra_trains": 1, "wayfinding_redirect": 2, "shuttle_bus": 3, "robotaxi_staging": 4}
+# Entry metering comes last: it acts on whatever demand reaches the gates after every other measure.
+APPLY_ORDER = {"staggered_exit": 0, "extra_trains": 1, "extended_hours": 1, "wayfinding_redirect": 2, "shuttle_bus": 3,
+               "robotaxi_staging": 4, "station_metering": 5}
 
 
 def _check_station(sid: str, field: str) -> None:
@@ -145,4 +174,21 @@ def validate_interventions(raw: list) -> list[Intervention]:
                 raise InterventionError(f"{where}: {p.to_station} is not a walkable neighbour of {p.from_station}")
             if p.share > b["max_redirect_share"]:
                 raise InterventionError(f"{where}: share {p.share} > max {b['max_redirect_share']}")
+        elif isinstance(iv, StationMetering):
+            _check_station(p.station, f"{where}.station")
+            lo, hi = b.get("metering_load", [0.5, 0.95])
+            if p.max_load != 0 and not lo <= p.max_load <= hi:
+                raise InterventionError(f"{where}: max_load {p.max_load} outside [{lo}, {hi}] (0 = closed)")
+            if p.max_load == 0 and not p.to_station:
+                raise InterventionError(f"{where}: a closed station needs to_station (where riders are guided)")
+            if p.to_station is not None:
+                _check_station(p.to_station, f"{where}.to_station")
+                if p.to_station not in cfg["neighbours"].get(p.station, []):
+                    raise InterventionError(f"{where}: {p.to_station} is not a walkable neighbour of {p.station}")
+        elif isinstance(iv, ExtendedHours):
+            if p.headway_min < cap["min_headway_min"]:
+                raise InterventionError(f"{where}: headway_min {p.headway_min} < minimum {cap['min_headway_min']}")
+            lines = set(cfg.get("lines") or {s["line"] for s in cfg["stations"]})
+            if p.line not in lines:
+                raise InterventionError(f"{where}: unknown line '{p.line}'")
     return sorted(items, key=lambda iv: APPLY_ORDER[iv.type])

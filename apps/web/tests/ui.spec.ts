@@ -232,7 +232,8 @@ test("break point: the Station tab says at what crowd size the station crosses t
   await settle(page, 1200);
   await page.screenshot({ path: `${OUT}/break_point_card.png` });
   const api = await request.get("http://localhost:8000/healthz");
-  expect((await api.json()).contract).toBe("1.7.0");
+  const version = fs.readFileSync(path.resolve(__dirname, "../../../contract/VERSION"), "utf8").trim();
+  expect((await api.json()).contract).toBe(version);
 });
 
 test("table view and WebGL fallback", async ({ page }) => {
@@ -246,6 +247,35 @@ test("table view and WebGL fallback", async ({ page }) => {
   await expect(page.locator("table.data tbody tr")).toHaveCount(6);
   await expect(page.getByText("3D needs WebGL")).toBeVisible();
   await page.screenshot({ path: `${OUT}/webgl_fallback.png` });
+});
+
+test("phone: map first, events then the panel, no sideways scroll, footer at the end", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await open(page);
+  await settle(page, 1500);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  const view = (await page.locator(".view").boundingBox())!;
+  expect(view.y).toBeLessThan(120);
+  expect(view.height).toBeGreaterThan(400);
+  const events = (await page.locator(".rail > :first-child").boundingBox())!;
+  const panel = (await page.locator(".panel").boundingBox())!;
+  expect(events.y).toBeGreaterThan(view.y + view.height);
+  expect(panel.y).toBeGreaterThan(events.y);
+  await expect(page.locator(".kioskbtn")).toBeHidden();
+  const ftr = (await page.locator(".ftr").boundingBox())!;
+  expect(ftr.y).toBeGreaterThan(panel.y);                       // not pinned over the content
+  await page.screenshot({ path: path.join(OUT, "phone_375.png"), fullPage: false });
+});
+
+test("My plan: entry metering shows the waiting-time trade-off", async ({ page }) => {
+  await open(page);
+  await twin(page, "t.getState().selectEvent('downtown_night');");
+  await idle(page);
+  await page.getByRole("tab", { name: "My plan" }).click();
+  await page.getByRole("button", { name: "85%" }).click();
+  await expect(page.getByText(/Longest wait/)).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "until 03:00" }).click();
+  await expect(page.getByText(/Riders arriving while the metro is closed/)).toBeVisible({ timeout: 15_000 });
 });
 
 test("offline: no request leaves localhost", async ({ page }) => {
