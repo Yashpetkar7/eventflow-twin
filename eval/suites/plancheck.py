@@ -59,10 +59,15 @@ def schema_ok(plan: dict) -> tuple[bool, str]:
     return True, ""
 
 
+_AR_MARKS = re.compile("[\u064b-\u0652\u0640]")       # Arabic short vowels, shadda, sukun, tatweel: optional in writing
+
+
 def marker_hits(text: str, markers: list[str]) -> list[str]:
+    """Markers found in the text: case-insensitive, whole tokens, and blind to Arabic diacritics."""
     hits = []
+    text = _AR_MARKS.sub("", text)
     for m in markers:
-        pat = re.escape(m)
+        pat = re.escape(_AR_MARKS.sub("", m))
         if m[:1].isalnum():
             pat = r"(?<![\w.])" + pat
         if m[-1:].isalnum():
