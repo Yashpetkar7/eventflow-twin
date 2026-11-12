@@ -10,6 +10,8 @@ cd apps/web && npm install && cd ../..
 python tasks.py synth                                   # only if data/synthetic is empty
 ```
 The 3D map is already baked into the repo (`apps/web/public/geo/`). Nothing is downloaded at the venue.
+Or all of it in one go, with an offline self-check at the end (use it for laptop B too):
+`python3 scripts/setup_booth_laptop.py` → prints `OK — this laptop is ready`.
 
 ## Start (every morning, ~1 minute)
 1. Plug in power and the touch monitor (HDMI/USB-C for picture **and** USB for touch). Turn Wi-Fi off — it is not used.

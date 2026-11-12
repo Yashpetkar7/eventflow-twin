@@ -40,3 +40,5 @@ apps/web/public/map/maplibre-gl-worker.mjs
 .env*
 !.env.example
 exhibit/video/
+submission/tools/contact.local.json
+exhibit/poster/img/

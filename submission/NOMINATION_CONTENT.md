@@ -19,7 +19,7 @@
 
 **Project / Research title:** EventFlow Twin: Agentic AI for Event-Ready Mobility in Dubai
 
-**Lead contact:** [Dr. Rachit Garg, Assistant Professor (AI & Data Science), rachit.garg@spjain.org — confirm with him] · Student lead: Krishna Mathur, +971 50 194 6921, krishna.as25dxb018@spjain.org
+**Lead contact:** [Dr. Rachit Garg, Assistant Professor (AI & Data Science), rachit.garg@spjain.org — confirm with him] · Student lead: Krishna Mathur (email and mobile are in the PDF; kept out of this public repo — `submission/tools/contact.local.json`, git-ignored)
 
 **Project team and partners:** Students (MAIB, Sep 2025 batch): Krishna Mathur (lead – data science, AI agents, build), Atharva Soundankar, Yash Petkar. Supervisor: Dr. Rachit Garg (to confirm). Data: RTA open data (official GTFS metro timetable), OpenStreetMap; station demand is synthetic and labelled until RTA ridership (Dubai Pulse) is obtained. No industry funding.
 

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EventFlow Twin – A1 poster</title>
+<!-- A1 portrait poster (594 × 841 mm). Text from exhibit/POSTER_CONTENT.md; every number from the API or eval/results/.
+     Print: python scripts/build_exhibit_print.py   (images in img/ are captured from the running app). No RTA logo. -->
+<link rel="stylesheet" href="poster.css">
+<style>
+  @page { size: 594mm 841mm; margin: 0; }
+  body { width: 594mm; height: 841mm; overflow: hidden; }
+  .page { position: relative; width: 594mm; height: 841mm; padding: 22mm 26mm 18mm; display: flex; flex-direction: column; gap: 9mm; }
+  .page::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4mm; background: var(--navy); }
+
+  header { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10mm; }
+  .kicker { font-size: 7.5mm; font-weight: 600; color: var(--navy); letter-spacing: .02em; }
+  h1 { font-size: 30mm; line-height: .95; font-weight: 700; letter-spacing: -.02em; margin-top: 3mm; }
+  .sub { font-size: 13mm; font-weight: 500; color: var(--ink-2); line-height: 1.05; margin-top: 2mm; }
+  .sub-ar { font-size: 9.5mm; color: var(--navy); margin-top: 3mm; text-align: left; }
+  .strap { font-size: 5.6mm; color: var(--ink-2); margin-top: 4mm; line-height: 1.35; }
+  .badges { display: flex; flex-direction: column; align-items: flex-end; gap: 3mm; font-size: 5.2mm; }
+  .badges .tag { padding: 1.6mm 4.5mm; }
+
+  .hero { position: relative; border-radius: 5mm; overflow: hidden; height: 262mm; background: #dfe3ea; box-shadow: 0 3mm 9mm rgba(15,25,50,.12); }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero figcaption { position: absolute; left: 6mm; bottom: 6mm; background: rgba(255,255,255,.92); border-radius: 3mm; padding: 2.5mm 4.5mm; font-size: 4.6mm; color: var(--ink-2); max-width: 70%; }
+  .hero .try { position: absolute; right: 6mm; top: 6mm; background: var(--navy); color: #fff; border-radius: 99em; padding: 3mm 7mm; font-size: 6.2mm; font-weight: 600; }
+
+  .row { display: grid; gap: 9mm; }
+  .r2 { grid-template-columns: 1fr 1.25fr; }
+  .card { background: #fff; border: .3mm solid var(--line); border-radius: 5mm; padding: 7mm 8mm; }
+  h2 { font-size: 8.4mm; font-weight: 700; color: var(--navy); margin-bottom: 3.5mm; letter-spacing: -.01em; }
+  p, li { font-size: 5.5mm; line-height: 1.42; color: var(--ink); }
+  ul { padding-left: 6mm; display: grid; gap: 2mm; }
+  .muted { color: var(--ink-3); }
+
+  .pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 2.5mm; }
+  .step { background: var(--navy-soft); color: var(--navy); border-radius: 3mm; padding: 2.6mm 3.6mm; font-size: 4.9mm; font-weight: 600; line-height: 1.2; }
+  .step.h { background: var(--navy); color: #fff; }
+  .arrow { color: var(--ink-3); font-size: 6mm; }
+  .pipe-note { margin-top: 4mm; font-size: 4.8mm; color: var(--ink-2); }
+
+  .evidence { background: #fff; border: .6mm solid var(--navy); border-radius: 5mm; padding: 7mm 8mm 6mm; }
+  .evhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4mm; }
+  .evhead h2 { margin: 0; }
+  .evhead .tag { font-size: 4.4mm; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; }
+  .tile { background: var(--bg); border-radius: 3.5mm; padding: 4mm 4.5mm; }
+  .big { font-size: 12mm; font-weight: 700; line-height: 1; color: var(--ink); letter-spacing: -.02em; }
+  .big small { font-size: 6mm; font-weight: 600; color: var(--ink-2); }
+  .tile p { font-size: 4.3mm; line-height: 1.32; margin-top: 2mm; color: var(--ink-2); }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .risk { color: var(--risk); }
+
+  .prio { display: grid; gap: 3mm; }
+  .prio div { display: grid; grid-template-columns: 9mm 1fr; gap: 3mm; align-items: start; }
+  .prio b.n { display: grid; place-items: center; width: 8.5mm; height: 8.5mm; border-radius: 50%; background: var(--navy); color: #fff; font-size: 4.8mm; }
+
+  .shots { display: grid; grid-template-columns: auto auto 1fr; gap: 7mm; height: 74mm; }
+  .shots figure { display: flex; flex-direction: column; gap: 2mm; min-width: 0; }
+  .shots img { height: 66mm; width: auto; max-width: 100%; object-fit: contain; border-radius: 3mm; background: #fff; border: .3mm solid var(--line); }
+  .shots .wide img { width: 100%; object-fit: cover; object-position: 50% 0; }
+  .shots figcaption { font-size: 3.9mm; color: var(--ink-3); }
+  footer { display: grid; grid-template-columns: 1fr 1.25fr 52mm; gap: 9mm; align-items: stretch; margin-top: auto; }
+  footer .card p { font-size: 4.6mm; }
+  .qr { width: 52mm; height: 52mm; }
+  .qr .placeholder { font-size: 3.8mm; padding: 3mm; }
+  .qrcap { font-size: 3.8mm; color: var(--ink-3); text-align: center; margin-top: 2mm; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <div class="kicker">SP Jain School of Global Management, Dubai · Master of AI in Business</div>
+      <h1>EventFlow Twin</h1>
+      <div class="sub">Predict the crowd before it arrives</div>
+      <div class="sub-ar ar">توأم رقمي بالذكاء الاصطناعي للتنقّل الذكي أثناء الفعاليات</div>
+      <div class="strap">Interactive digital twin demonstrator · agentic AI for event-ready mobility on Dubai's Sheikh Zayed Road / Trade Centre corridor · <b>try it on the touch screen</b></div>
+    </div>
+    <div class="badges">
+      <span class="tag">Research prototype</span>
+      <span class="tag syn">Synthetic demand – labelled</span>
+      <span class="tag">Runs fully offline</span>
+    </div>
+  </header>
+
+  <figure class="hero">
+    <img src="img/hero.png" alt="3D twin of the Sheikh Zayed Road corridor at golden hour">
+    <span class="try">Tap a station · ask the AI · you approve</span>
+    <figcaption>The 3D twin, built from OpenStreetMap: GITEX Global 2025 Day 1 scenario at 17:15; columns show station load (synthetic demand).</figcaption>
+  </figure>
+
+  <div class="row r2">
+    <section class="card">
+      <h2>The challenge</h2>
+      <p>GITEX Global 2025 was expected to bring <b>200,000+ visitors</b> to Dubai World Trade Centre over five days. Events like this squeeze thousands of metro trips into a few hours at a few stations. Planners need to know <b>where capacity breaks – before it happens</b> – and which response works best.</p>
+    </section>
+    <section class="card">
+      <h2>How it works</h2>
+      <div class="pipe">
+        <span class="step">RTA timetable (GTFS) + OpenStreetMap</span><span class="arrow">→</span>
+        <span class="step">Forecast: weekday profile + event surge</span><span class="arrow">→</span>
+        <span class="step">Hotspots over 85 %</span><span class="arrow">→</span>
+        <span class="step h">Planning agent proposes</span><span class="arrow">→</span>
+        <span class="step h">Simulator measures every option</span><span class="arrow">→</span>
+        <span class="step h">Human approves</span><span class="arrow">→</span>
+        <span class="step">Before / after + log</span>
+      </div>
+      <p class="pipe-note">The AI chooses and explains; it never calculates. Every number on screen comes from the simulator and is checked.</p>
+    </section>
+  </div>
+
+  <section class="evidence">
+    <div class="evhead"><h2>Evidence – measured, not claimed</h2><span class="tag syn">All demand synthetic until RTA ridership is ingested · results simulated</span></div>
+    <div class="tiles">
+      <div class="tile"><div class="big num">78<small>%</small></div><p>Peak load at World Trade Centre, GITEX 2025 Day 1, with 40,000 assumed visitors</p></div>
+      <div class="tile"><div class="big num">≈44,400</div><p>Visitors at which it tips over the 85 % line – about 14,900 if trains arrive nearly full</p></div>
+      <div class="tile"><div class="big num"><span class="risk">92</span><small>%</small> → <span class="ok">70</span><small>%</small></div><p>Hot day: top plan guides 35 % of riders to Emirates Towers on foot</p></div>
+      <div class="tile"><div class="big num">2.25 → 1.25</div><p>Over-threshold station-hours, downtown celebration night (hypothetical): shuttles + robotaxi staging</p></div>
+      <div class="tile"><div class="big num">48<small>/48</small></div><p>AI plan options whose every number traced back to the simulator</p></div>
+      <div class="tile"><div class="big num">0<small>/15</small></div><p>Prompt-injection attacks (English, Arabic, mixed) that changed a plan</p></div>
+      <div class="tile"><div class="big num">0.78 <small>vs 0.97</small></div><p>Forecast backtest error (MASE) vs seasonal baseline – on synthetic data</p></div>
+      <div class="tile"><div class="big num">60<small> fps</small></div><p>3D twin at 1920×1080, offline: 0 requests leave the laptop</p></div>
+    </div>
+  </section>
+
+  <div class="row r2">
+    <section class="card">
+      <h2>What's new</h2>
+      <ul>
+        <li><b>Event-aware what-if planning</b> for the hours around a big event, station by station</li>
+        <li><b>Multimodal responses</b> compared side by side: extra trains, wayfinding, feeder shuttles, robotaxi staging, staggered exits</li>
+        <li><b>Auditable AI</b>: numbers only from the simulator, automatic number check, nothing applied without a human</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>Built around RTA AI Strategy priorities <span class="muted" style="font-size:4.6mm;font-weight:500">(alignment, not endorsement)</span></h2>
+      <div class="prio">
+        <div><b class="n">1</b><p><b>Congestion reduction</b> – measures the over-capacity station-hours each plan removes</p></div>
+        <div><b class="n">2</b><p><b>Agentic AI</b> – a planning agent proposes and compares complete plans; the simulator produces every number</p></div>
+        <div><b class="n">3</b><p><b>Human approval</b> – nothing is applied without a planner's OK, and every decision is logged</p></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="shots">
+    <figure><img src="img/option.png" alt="An AI plan option with its simulated before and after"><figcaption>An AI option – every figure checked against the simulator</figcaption></figure>
+    <figure><img src="img/break.png" alt="Break-point card"><figcaption>Break point – the crowd size at which a station tips over</figcaption></figure>
+    <figure class="wide"><img src="img/arabic.png" alt="The twin in Arabic, right to left"><figcaption>Full Arabic interface, right to left</figcaption></figure>
+  </div>
+
+  <footer>
+    <section class="card">
+      <h2 style="font-size:6.4mm">Data &amp; limits</h2>
+      <p>RTA open data (official GTFS metro timetable) · map © OpenStreetMap contributors. Station demand is <b>synthetic and labelled</b> until RTA's metro ridership (now open on data.dubai) is ingested. Attendance, metro share and train fullness are assumptions. Research prototype – not an operational RTA system.</p>
+    </section>
+    <section class="card">
+      <h2 style="font-size:6.4mm">Team</h2>
+      <p><b>Krishna Mathur</b> (lead) · <b>Atharva Soundankar</b> · <b>Yash Petkar</b><br>Master of Artificial Intelligence in Business, September 2025 batch<br>Supervisor: <b>Dr. Rachit Garg</b><br><span class="muted">SP Jain School of Global Management, Dubai</span></p>
+    </section>
+    <div>
+      <div class="qr" id="qr"><img src="img/qr.svg" alt="QR code" onerror="this.parentNode.innerHTML='<div class=\'placeholder\'>QR code<br>added when the link is approved</div>'"></div>
+      <div class="qrcap" id="qrcap">Scan to try it</div>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

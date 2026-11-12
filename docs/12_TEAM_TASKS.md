@@ -36,6 +36,12 @@ Most of the build tasks below were done on `main` in one pass with Claude Code (
 - **K8 (part):** poster evidence box and the 90-second script filled with measured numbers (`exhibit/`); backup video
   recorded with `apps/web/tests/backup_video.mjs` → `exhibit/video/eventflow_backup_demo.mp4` (git-ignored, 59 s).
   Still to do: rehearse 3×, USB stick, second laptop.
+- **K8 (more, 12 Nov evening):** print-ready **A1 poster** and **A4 handouts (EN + AR draft)** →
+  `python scripts/build_exhibit_print.py` (PDFs in `exhibit/poster/`, git-ignored; QR added with `--qr` after K1);
+  `exhibit/JURY_QA.md` rewritten with the measured numbers (it wrongly said the ridership was real);
+  `exhibit/BOOTH_PLAN.md` + printable `exhibit/MORNING_CHECKLIST.md`; **laptop B**: `python3 scripts/setup_booth_laptop.py`
+  installs everything and ends with an offline self-check (`OK`). Krishna's mobile and student email are no longer in
+  the public repo (`submission/tools/contact.local.json`, git-ignored, feeds the PDF).
 
 **What is left, by owner**
 - **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; decide whether the public site may ever use the OpenAI key (default: no — it stays offline); K8 booth kit.

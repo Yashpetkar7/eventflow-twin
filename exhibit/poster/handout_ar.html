@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>EventFlow Twin – A4 handout (AR)</title>
+<!-- Arabic A4 one-pager. DRAFT translation: have a native speaker check it with the UI review (task C5) before printing.
+     Same numbers as handout_en.html. Print: python scripts/build_exhibit_print.py -->
+<link rel="stylesheet" href="poster.css">
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  body { width: 210mm; height: 297mm; overflow: hidden; background: #fff; }
+  .page { position: relative; height: 297mm; padding: 14mm 15mm 12mm; display: flex; flex-direction: column; gap: 5mm; }
+  .page::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2mm; background: var(--navy); }
+  .kicker { font-size: 3.4mm; font-weight: 600; color: var(--navy); }
+  h1 { font-size: 13mm; line-height: 1; letter-spacing: -.02em; margin-top: 1.5mm; direction: ltr; text-align: right; }
+  .sub { font-size: 5.6mm; color: var(--ink-2); margin-top: 1.5mm; }
+  .hero { border-radius: 2.5mm; overflow: hidden; height: 72mm; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  h2 { font-size: 4.8mm; color: var(--navy); margin-bottom: 1.6mm; }
+  p, li { font-size: 3.7mm; line-height: 1.6; }
+  ol { padding-right: 5mm; display: grid; gap: .8mm; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5mm; }
+  .tile { background: var(--bg); border-radius: 2mm; padding: 2.5mm 3mm; }
+  .big { font-size: 6.4mm; font-weight: 700; line-height: 1; direction: ltr; text-align: right; }
+  .tile p { font-size: 3mm; line-height: 1.4; margin-top: 1.2mm; color: var(--ink-2); }
+  .honest { background: #FFF6E3; border-radius: 2.5mm; padding: 3mm 4mm; }
+  .honest p { font-size: 3.4mm; }
+  footer { margin-top: auto; display: grid; grid-template-columns: 1fr 30mm; gap: 6mm; align-items: end; }
+  footer p { font-size: 3.3mm; }
+  .qr { width: 30mm; height: 30mm; }
+  .qr .placeholder { font-size: 2.8mm; padding: 2mm; }
+  .draft { position: absolute; left: 15mm; top: 6mm; font-size: 2.6mm; color: var(--ink-3); direction: ltr; }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="draft">AR draft – native-speaker check pending (C5)</span>
+  <div>
+    <div class="kicker">كلية إس بي جاين للإدارة العالمية، دبي · نموذج بحثي أولي</div>
+    <h1>EventFlow Twin</h1>
+    <div class="sub">توقّع الزحام قبل وصوله – ذكاء اصطناعي وكيلي لتنقّل جاهز للفعاليات في دبي</div>
+  </div>
+  <figure class="hero"><img src="img/hero.png" alt="توأم رقمي ثلاثي الأبعاد لممر شارع الشيخ زايد"></figure>
+  <div class="grid">
+    <section>
+      <h2>ما هو؟</h2>
+      <p>توأم رقمي تفاعلي لممر شارع الشيخ زايد / المركز التجاري. اختر فعالية كبرى مثل جيتكس، وشاهد ازدحام محطات المترو يتصاعد ساعة بساعة، واطلب من وكلاء الذكاء الاصطناعي خطة، ثم قرّر بنفسك اعتمادها أو رفضها.</p>
+    </section>
+    <section>
+      <h2>كيف يعمل؟</h2>
+      <ol>
+        <li>توقّع الدخول إلى كل محطة كل 15 دقيقة، مع موجة الفعالية</li>
+        <li>تحديد المحطات التي تتجاوز 85% من السعة المريحة</li>
+        <li>وكيل تخطيط يقترح خيارات من قائمة محددة</li>
+        <li>محاكٍ يقيس كل خيار – الذكاء الاصطناعي لا يحسب أي رقم</li>
+        <li>الإنسان يعتمد الخطة، ويعرض التوأم ما قبل وما بعد ويسجّل القرار</li>
+      </ol>
+    </section>
+  </div>
+  <section>
+    <h2>نتائج مقيسة <span class="tag syn" style="font-size:2.9mm">طلب اصطناعي · نتائج محاكاة</span></h2>
+    <div class="tiles">
+      <div class="tile"><div class="big num">≈44,400</div><p>عدد الزوار الذي تتجاوز عنده محطة المركز التجاري العالمي الحد (جيتكس 2025، اليوم الأول)</p></div>
+      <div class="tile"><div class="big num">92 → 70 %</div><p>ذروة الحمل في يوم حار مع الخطة الأولى (التوجيه إلى محطة مجاورة)</p></div>
+      <div class="tile"><div class="big num">48 / 48</div><p>خيارات خطط تطابقت كل أرقامها مع المحاكي</p></div>
+      <div class="tile"><div class="big num">0 / 15</div><p>محاولات حقن أوامر نجحت في تغيير خطة</p></div>
+    </div>
+  </section>
+  <section class="honest">
+    <h2>بشفافية عن البيانات</h2>
+    <p>تأتي ترددات القطارات من الجدول الزمني الرسمي المفتوح لهيئة الطرق والمواصلات (GTFS)، والمدينة من OpenStreetMap. أما الطلب على المحطات فهو <b>اصطناعي ومُعلَّم بوضوح</b> إلى أن تُدمج بيانات ركاب المترو – المتاحة الآن على data.dubai. الحضور ونسبة مستخدمي المترو وامتلاء القطارات افتراضات يمكن تغييرها على الشاشة. هذا نموذج بحثي طلابي صُمّم وفق أولويات الهيئة – وليس نظامًا تابعًا لها.</p>
+  </section>
+  <footer>
+    <div>
+      <p><b>كريشنا ماثور · أثارفا سوندانكار · ياش بيتكار</b> – ماجستير الذكاء الاصطناعي في الأعمال، دفعة سبتمبر 2025 · المشرف: د. راشيت غارغ<br>واجهة بالعربية والإنجليزية · يعمل دون اتصال بالإنترنت · الخريطة © مساهمو OpenStreetMap</p>
+    </div>
+    <div class="qr"><img src="img/qr.svg" alt="رمز QR" onerror="this.parentNode.innerHTML='<div class=\'placeholder\'>رمز QR<br>يُضاف بعد اعتماد الرابط</div>'"></div>
+  </footer>
+</div>
+</body>
+</html>

@@ -28,5 +28,5 @@ Could you please let us know if we may proceed, and whether you would like to be
 Kind regards,
 Krishna Mathur
 Master of Artificial Intelligence in Business (MAIB), September 2025 batch, SP Jain School of Global Management, Dubai
-+971 50 194 6921 · krishna.as25dxb018@spjain.org
+[your mobile · your SP Jain email]
 (on behalf of Krishna Mathur, Atharva Soundankar and Yash Petkar)

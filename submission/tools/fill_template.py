@@ -26,6 +26,14 @@ SCALE=1.0 if "Carlito" in FR else 0.93      # Arial runs wider than Carlito
 pdfmetrics.registerFont(TTFont("C",F+FR)); pdfmetrics.registerFont(TTFont("CB",F+FB)); pdfmetrics.registerFont(TTFont("CI",F+FI))
 from reportlab.pdfbase.pdfmetrics import registerFontFamily
 registerFontFamily("C",normal="C",bold="CB",italic="CI",boldItalic="CB")
+# Personal contact details live in a git-ignored file, not in this public script:
+#   submission/tools/contact.local.json  {"student_email": "...", "mobile": "+971&nbsp;..."}
+import json
+_c=HERE/"contact.local.json"
+if _c.exists():
+    _d=json.loads(_c.read_text(encoding="utf-8")); CONTACT=f"{_d['student_email']}, mobile:&nbsp;{_d['mobile']}"
+else:
+    CONTACT="[student email and mobile – add submission/tools/contact.local.json]"; print("warning: contact.local.json missing")
 W,H=960,540
 S=0.6593
 INK=HexColor("#1B1F2A")
@@ -63,7 +71,7 @@ pages={}
 def p3(c):
     text(c,(76,174,513,235),"<b>SP Jain School of Global Management, Dubai</b> – Master of Artificial Intelligence in Business (MAIB), September 2025 batch; supervised by Dr. Rachit Garg, AI Initiatives",10)
     text(c,(540,174,1376,235),"<b>EventFlow Twin: Agentic AI for Event-Ready Mobility in Dubai</b> – predicting and managing metro crowding around major events on the Sheikh Zayed Road / Trade Centre corridor",10.5)
-    text(c,(76,283,513,362),"<b>Faculty lead (to confirm):</b> Dr. Rachit Garg, Assistant Professor (AI &amp; Data Science), rachit.garg@spjain.org<br/><b>Student lead:</b> Krishna Mathur, krishna.as25dxb018@spjain.org, mobile:&nbsp;+971&nbsp;50&nbsp;194&nbsp;6921",9.5)
+    text(c,(76,283,513,362),"<b>Faculty lead (to confirm):</b> Dr. Rachit Garg, Assistant Professor (AI &amp; Data Science), rachit.garg@spjain.org<br/><b>Student lead:</b> Krishna Mathur, "+CONTACT,9.5)
     text(c,(540,283,1376,362),"<b>Students (MAIB, Sep 2025 batch):</b> Krishna Mathur (lead – data science, AI agents, build), Atharva Soundankar, Yash Petkar. <b>Supervisor:</b> Dr. Rachit Garg. <b>Data:</b> RTA open data (official GTFS metro timetable), OpenStreetMap; station demand is synthetic and labelled until RTA ridership (Dubai Pulse) is obtained. <b>Industry partners / funders:</b> none – independent academic prototype.",9.5)
     text(c,(76,411,513,504),"<b>Interactive digital twin demonstrator:</b> a live 3D twin of the corridor on a touch screen that visitors operate themselves (choose an event, see the crowd build, approve AI plans), plus an A1 research poster.",10)
     text(c,(540,411,939,504),"Public transport (metro), event mobility and congestion management, multimodal integration (feeder buses, robotaxis), passenger safety and accessibility.",9.5)

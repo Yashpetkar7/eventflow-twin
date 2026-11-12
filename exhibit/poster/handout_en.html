@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EventFlow Twin – A4 handout (EN)</title>
+<!-- A4 one-pager for the booth. Numbers from exhibit/POSTER_CONTENT.md §4. Print: python scripts/build_exhibit_print.py -->
+<link rel="stylesheet" href="poster.css">
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  body { width: 210mm; height: 297mm; overflow: hidden; background: #fff; }
+  .page { position: relative; height: 297mm; padding: 14mm 15mm 12mm; display: flex; flex-direction: column; gap: 5mm; }
+  .page::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2mm; background: var(--navy); }
+  .kicker { font-size: 3.2mm; font-weight: 600; color: var(--navy); }
+  h1 { font-size: 13mm; line-height: 1; letter-spacing: -.02em; margin-top: 1.5mm; }
+  .sub { font-size: 5.6mm; color: var(--ink-2); margin-top: 1mm; }
+  .hero { border-radius: 2.5mm; overflow: hidden; height: 72mm; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  h2 { font-size: 4.6mm; color: var(--navy); margin-bottom: 1.6mm; }
+  p, li { font-size: 3.5mm; line-height: 1.45; }
+  ol, ul { padding-left: 5mm; display: grid; gap: .8mm; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5mm; }
+  .tile { background: var(--bg); border-radius: 2mm; padding: 2.5mm 3mm; }
+  .big { font-size: 6.4mm; font-weight: 700; line-height: 1; }
+  .tile p { font-size: 2.8mm; line-height: 1.3; margin-top: 1.2mm; color: var(--ink-2); }
+  .honest { background: #FFF6E3; border-radius: 2.5mm; padding: 3mm 4mm; }
+  .honest p { font-size: 3.2mm; }
+  footer { margin-top: auto; display: grid; grid-template-columns: 1fr 30mm; gap: 6mm; align-items: end; }
+  footer p { font-size: 3.2mm; }
+  .qr { width: 30mm; height: 30mm; }
+  .qr .placeholder { font-size: 2.6mm; padding: 2mm; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div>
+    <div class="kicker">SP Jain School of Global Management, Dubai · research prototype</div>
+    <h1>EventFlow Twin</h1>
+    <div class="sub">Predict the crowd before it arrives – agentic AI for event-ready mobility in Dubai</div>
+  </div>
+  <figure class="hero"><img src="img/hero.png" alt="3D twin of the Sheikh Zayed Road corridor"></figure>
+  <div class="grid">
+    <section>
+      <h2>What it is</h2>
+      <p>An interactive digital twin of the Sheikh Zayed Road / Trade Centre corridor. Pick a big event such as GITEX, watch metro-station crowding build up hour by hour, ask AI agents for a plan, and decide yourself whether to approve it.</p>
+    </section>
+    <section>
+      <h2>How it works</h2>
+      <ol>
+        <li>Forecast station entries in 15-minute steps, plus the event surge</li>
+        <li>Flag stations above 85 % of comfortable capacity</li>
+        <li>A planning agent proposes options from a fixed menu</li>
+        <li>A simulator measures each option – the AI never calculates</li>
+        <li>A human approves; the twin shows before / after and logs it</li>
+      </ol>
+    </section>
+  </div>
+  <section>
+    <h2>Measured results <span class="tag syn" style="font-size:2.8mm">synthetic demand · simulated</span></h2>
+    <div class="tiles">
+      <div class="tile"><div class="big num">≈44,400</div><p>visitors at which World Trade Centre tips over (GITEX 2025 Day 1)</p></div>
+      <div class="tile"><div class="big num">92 → 70 %</div><p>peak load on a hot day with the top plan (wayfinding)</p></div>
+      <div class="tile"><div class="big num">48 / 48</div><p>AI plan options with every number traced to the simulator</p></div>
+      <div class="tile"><div class="big num">0 / 15</div><p>prompt-injection attacks that changed a plan</p></div>
+    </div>
+  </section>
+  <section class="honest">
+    <h2>Honest about the data</h2>
+    <p>Train frequencies come from RTA's official open timetable (GTFS) and the city from OpenStreetMap. Station demand is <b>synthetic and labelled</b> until RTA's metro ridership – now open on data.dubai – is ingested. Attendance, metro share and train fullness are assumptions you can change on screen. This is a student research prototype designed for RTA's priorities – not an RTA system.</p>
+  </section>
+  <footer>
+    <div>
+      <p><b>Krishna Mathur · Atharva Soundankar · Yash Petkar</b> – Master of Artificial Intelligence in Business, Sep 2025 batch · Supervisor: Dr. Rachit Garg<br>English and Arabic interface · runs fully offline · map © OpenStreetMap contributors</p>
+    </div>
+    <div class="qr"><img src="img/qr.svg" alt="QR code" onerror="this.parentNode.innerHTML='<div class=\'placeholder\'>QR code<br>added when the link is approved</div>'"></div>
+  </footer>
+</div>
+</body>
+</html>
