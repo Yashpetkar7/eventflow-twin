@@ -17,10 +17,10 @@ export default defineConfig({
     channel: "chrome",
     viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 1,
-    launchOptions: { args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] },
+    launchOptions: { args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] },
   },
   webServer: remote ? undefined : [
-    { command: "../../.venv/bin/python -m uvicorn apps.api.eventflow.main:app --port 8000", cwd: "../..", url: "http://localhost:8000/healthz", reuseExistingServer: true, timeout: 60_000 },
+    { command: `${process.platform === "win32" ? ".venv\\Scripts\\python" : ".venv/bin/python"} -m uvicorn apps.api.eventflow.main:app --port 8000`, cwd: "../..", url: "http://localhost:8000/healthz", reuseExistingServer: true, timeout: 60_000 },
     { command: `npm run dev -- -p ${port}`, url: `http://localhost:${port}`, reuseExistingServer: true, timeout: 120_000 },
   ],
 });

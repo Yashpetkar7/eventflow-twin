@@ -18,6 +18,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # Extent of the baked scene in local metres (x_min, x_max, z_min, z_max)
 EXTENT = (-3800.0, 4100.0, -2000.0, 1350.0)
+# Realism bake (docs/13, R1): a 20 km × 20 km context ring around the corridor at lower detail, baked in square
+# chunks, and a wider low-resolution ground overview so the edge of the ring is never the horizon.
+RING = (-10000.0, 10000.0, -10000.0, 10000.0)
+WIDE = (-20000.0, 20000.0, -20000.0, 20000.0)
+CHUNK = 5000.0
 
 
 def frame() -> dict:
@@ -45,10 +50,10 @@ def unproject(x: float, z: float, f: dict | None = None) -> tuple[float, float]:
     return f["lat0"] + n / f["m_lat"], f["lon0"] + e / f["m_lon"]
 
 
-def corridor_bbox() -> tuple[float, float, float, float]:
-    """(south, west, north, east) covering EXTENT."""
+def corridor_bbox(extent: tuple[float, float, float, float] = EXTENT) -> tuple[float, float, float, float]:
+    """(south, west, north, east) covering an extent in local metres (default: the corridor)."""
     f = frame()
-    x0, x1, z0, z1 = EXTENT
+    x0, x1, z0, z1 = extent
     pts = [unproject(x, z, f) for x in (x0, x1) for z in (z0, z1)]
     lats, lons = [p[0] for p in pts], [p[1] for p in pts]
     return min(lats), min(lons), max(lats), max(lons)

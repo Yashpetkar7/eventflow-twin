@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "@fontsource-variable/inter";                          // kiosk type (SIL OFL), bundled: no request leaves the booth
+import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-500.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-700.css";
+import "./kiosk.css";
 
 // Readex Pro (SIL OFL) ships inside the repo: no font request ever leaves the booth laptop.
 const readex = localFont({

@@ -17,7 +17,7 @@ const browser = await chromium.launch({ channel: "chrome", headless: !process.en
   args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const ctx = await browser.newContext({ viewport: size, deviceScaleFactor: 1, recordVideo: { dir: OUT, size } });
 const page = await ctx.newPage();
-await page.goto(`${base}/?kiosk=1&idle=600`);
+await page.goto(`${base}/?kiosk=classic&idle=600`);
 await page.waitForFunction(() => window.__twin?.getState().forecast && !window.__twin.getState().loading, null, { timeout: 60000 });
 await page.waitForTimeout(3000);                                   // let the scene settle on camera
 

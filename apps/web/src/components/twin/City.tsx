@@ -6,6 +6,8 @@ import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTwin } from "@/lib/store";
 import { buildingsGeometry, canvasTexture, flatPolygons, ribbons, sweep } from "./builders";
+import { Ring } from "./Ring";
+import type { Manifest } from "@/lib/manifest";
 import { live, mulberry, pairs, Path, type SceneJson } from "./sceneData";
 
 export const LANE = 3.65, SHOULDER = 1.5;
@@ -141,7 +143,7 @@ function highwayMaterial() {
   return m;
 }
 
-export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }) {
+export function City({ data, corridor, manifest }: { data: SceneJson; corridor: Corridor; manifest: Manifest | null }) {
   const showBuildings = useTwin((s) => s.layers.buildings);
   const groundTex = useLoader(THREE.TextureLoader, `/geo/${data.meta.ground.file}`);
   const uniforms = useMemo(() => ({ uNight: { value: 0 } }), []);
@@ -215,11 +217,12 @@ export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }
     return {
       ground, glow,
       water: flatPolygons(data.water, 0.35),
-      buildings: buildingsGeometry(data.buildings),
-      ghosts: buildingsGeometry(data.ghosts.map((b) => [b[0], b[1], ...b.slice(2)])),
+      // with the realism ring (v2) the ground, buildings and ghosted tops come from its chunks instead
+      buildings: buildingsGeometry(manifest ? [] : data.buildings),
+      ghosts: buildingsGeometry(manifest ? manifest.ghosts : data.ghosts),
       roadsByClass, szr, decks: merge(decks), rails: merge(rails), palms, lamps: new Float32Array(lamps),
     };
-  }, [data, corridor, groundTex]);
+  }, [data, corridor, groundTex, manifest]);
 
   const mats = useMemo(() => ({
     ground: groundMaterial(groundTex),
@@ -270,10 +273,14 @@ export function City({ data, corridor }: { data: SceneJson; corridor: Corridor }
 
   return (
     <group>
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.4} receiveShadow material={mats.sand}>
-        <planeGeometry args={[60000, 60000]} />
-      </mesh>
-      <mesh geometry={built.ground} material={mats.ground} receiveShadow />
+      {manifest ? <Ring manifest={manifest} facade={mats.facade} show={showBuildings} /> : (
+        <>
+          <mesh rotation-x={-Math.PI / 2} position-y={-0.4} receiveShadow material={mats.sand}>
+            <planeGeometry args={[60000, 60000]} />
+          </mesh>
+          <mesh geometry={built.ground} material={mats.ground} receiveShadow />
+        </>
+      )}
       <mesh geometry={built.water} material={mats.water} />
       {built.roadsByClass.map((g, i) => <mesh key={i} geometry={g} material={mats.road} receiveShadow />)}
       <mesh geometry={built.szr} material={mats.highway} receiveShadow />

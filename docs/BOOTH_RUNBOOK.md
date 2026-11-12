@@ -30,6 +30,19 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
 4. Ten-minute check: tap **Guided demo** and let it finish; tap a station; open **Landmarks → Burj Khalifa**; press the
    red **Recentre** button after dragging the map; switch to Arabic and back.
 
+## The visitor kiosk (`?kiosk=1`, since 12 Nov)
+- **Attract screen** (golden-hour 3D city, "Will the metro cope?", today's visitor count) until someone touches it.
+- Four big steps with a highlighted stepper: **① Event** (pick an event + weather) → **② Crowd** (guess the busiest
+  station, the twin plays the day and reveals it, with its break point) → **③ AI plan** (agents work, 3 options, every
+  number checked) → **④ Your decision** (approve → before/after, visitor number, QR slot "link coming soon").
+- **Start again** and **عربي / English** are always visible; **Aa** = larger text and stronger contrast.
+- **60 s without a touch** → "Still there?" with a 10-second countdown → back to the attract screen for the next visitor
+  (`&idle=30` for a shorter timer while rehearsing).
+- **Team only:** press and hold the **EventFlow Twin logo for 3 seconds** → the full workspace (all settings, My plan,
+  Report). The header's **Touch kiosk** button returns to the visitor kiosk.
+- The earlier kiosk (workspace with big targets + idle guided demo) is still at `?kiosk=classic` (used by the soak test
+  and the backup video).
+
 ## What visitors can do without help
 Pick an event · drag the time bar · tap a station or a landmark · **Plan with AI agents** → Approve / Reject · **My plan** ·
 language switch. After 60 s without a touch the guided demo plays by itself; any touch hands control back.

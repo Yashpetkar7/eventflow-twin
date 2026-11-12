@@ -6,9 +6,13 @@ import { I18nProvider, useLocale } from "@/lib/i18n";
 import { useTwin } from "@/lib/store";
 import { armIdle, runTour, stopTour, watchApi } from "@/lib/tour";
 import { Header } from "./Header";
+import { Kiosk } from "./kiosk/Kiosk";
 import { Panel } from "./Panel";
 import { Rail } from "./Rail";
 import { Stage } from "./Stage";
+
+/** ?kiosk=1 → the visitor kiosk; ?kiosk=classic → the earlier kiosk (workspace with big targets + idle guided demo). */
+const kioskMode = () => new URLSearchParams(window.location.search).get("kiosk");
 
 function idleMs(): number {
   const v = Number(new URLSearchParams(window.location.search).get("idle"));
@@ -31,7 +35,7 @@ function Workspace() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    useTwin.setState({ kiosk: q.get("kiosk") === "1", reducedMotion: mq.matches });
+    useTwin.setState({ kiosk: q.get("kiosk") === "1" || q.get("kiosk") === "classic", reducedMotion: mq.matches });
     const onMq = () => useTwin.setState({ reducedMotion: mq.matches });
     mq.addEventListener("change", onMq);
     void useTwin.getState().init();
@@ -46,11 +50,13 @@ function Workspace() {
     const noMenu = (e: Event) => e.preventDefault();
     document.addEventListener("contextmenu", noMenu);
     document.addEventListener("selectstart", noMenu);
-    const disarm = armIdle(idleMs(), () => localeRef.current);
+    const disarm = kioskMode() === "classic" ? armIdle(idleMs(), () => localeRef.current) : () => {};   // the visitor kiosk runs its own attract loop
     return () => { document.removeEventListener("contextmenu", noMenu); document.removeEventListener("selectstart", noMenu); disarm(); };
   }, [kiosk]);
 
   useEffect(() => { if (how) dlg.current?.showModal(); else dlg.current?.close(); }, [how]);
+
+  if (kiosk && kioskMode() !== "classic") return <Kiosk />;
 
   return (
     <div className="shell" style={{ display: "flex", flexDirection: "column", height: "100dvh", minHeight: 640 }}>

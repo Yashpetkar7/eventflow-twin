@@ -12,6 +12,7 @@ import { LabelProjector } from "./Labels";
 import { Landmarks } from "./Landmarks";
 import { Columns, Crowd, Traffic, VenueBeacon } from "./Live";
 import { Metro, placeStations, Trains } from "./Metro";
+import { loadManifest, type Manifest } from "@/lib/manifest";
 import { landmarkSpots, live, loadScene, type SceneJson } from "./sceneData";
 import { Sky } from "./Sky";
 
@@ -47,7 +48,7 @@ function Ready() {
   return null;
 }
 
-function World({ data, tier }: { data: SceneJson; tier: number }) {
+function World({ data, manifest, tier }: { data: SceneJson; manifest: Manifest | null; tier: number }) {
   const stations = useTwin((s) => s.stations);
   const corridor = useMemo(() => buildCorridor(data), [data]);
   const places = useMemo(() => placeStations(data, corridor, stations), [data, corridor, stations]);
@@ -55,7 +56,7 @@ function World({ data, tier }: { data: SceneJson; tier: number }) {
   return (
     <>
       <Sky frame={data.meta.frame} tier={tier} />
-      <City data={data} corridor={corridor} />
+      <City data={data} corridor={corridor} manifest={manifest} />
       <Landmarks data={data} />
       <Metro corridor={corridor} places={places} />
       <Trains corridor={corridor} />
@@ -77,9 +78,9 @@ function World({ data, tier }: { data: SceneJson; tier: number }) {
 }
 
 export default function TwinCanvas({ label }: { label: string }) {
-  const [data, setData] = useState<SceneJson | null>(null);
+  const [data, setData] = useState<{ scene: SceneJson; manifest: Manifest | null } | null>(null);
   const tier = useTwin((s) => s.tier);
-  useEffect(() => { loadScene().then(setData).catch(() => useTwin.setState({ glFailed: true })); }, []);
+  useEffect(() => { Promise.all([loadScene(), loadManifest()]).then(([scene, manifest]) => setData({ scene, manifest })).catch(() => useTwin.setState({ glFailed: true })); }, []);
   if (!data) return null;
   return (
     <Canvas
@@ -90,7 +91,7 @@ export default function TwinCanvas({ label }: { label: string }) {
       style={{ position: "absolute", inset: 0 }}
     >
       <Suspense fallback={null}>
-        <World data={data} tier={tier} />
+        <World data={data.scene} manifest={data.manifest} tier={tier} />
       </Suspense>
     </Canvas>
   );
