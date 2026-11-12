@@ -1,6 +1,11 @@
 import { defineConfig } from "@playwright/test";
 
-// UI tests run against the real API + web app (started here if they are not already running).
+// UI tests run against the real API + web app.
+//   local (default): starts or reuses the API on :8000 and the web app on :$EFT_WEB_PORT (default 3000)
+//   remote:          EFT_BASE_URL=https://<deployment> runs against a deployed site and starts nothing
+const remote = process.env.EFT_BASE_URL;
+const port = Number(process.env.EFT_WEB_PORT ?? 3000);
+
 export default defineConfig({
   testDir: "./tests",
   testMatch: /.*\.spec\.ts/,
@@ -8,14 +13,14 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"]],
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: remote ?? `http://localhost:${port}`,
     channel: "chrome",
     viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 1,
     launchOptions: { args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] },
   },
-  webServer: [
+  webServer: remote ? undefined : [
     { command: "../../.venv/bin/python -m uvicorn apps.api.eventflow.main:app --port 8000", cwd: "../..", url: "http://localhost:8000/healthz", reuseExistingServer: true, timeout: 60_000 },
-    { command: "npm run dev", url: "http://localhost:3000", reuseExistingServer: true, timeout: 120_000 },
+    { command: `npm run dev -- -p ${port}`, url: `http://localhost:${port}`, reuseExistingServer: true, timeout: 120_000 },
   ],
 });

@@ -199,6 +199,22 @@ test("crash recovery: API drops mid-session, saved results stay, banner clears o
   await expect(page.locator(".banner")).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
 });
 
+test("every simulate and plan request carries the forecast spec (stateless API)", async ({ page }) => {
+  const bodies: { url: string; body: { forecast?: unknown } }[] = [];
+  page.on("request", (r) => { if (r.method() === "POST" && /\/(simulate|agent\/plan)$/.test(r.url())) bodies.push({ url: r.url(), body: r.postDataJSON() }); });
+  await open(page);
+  await page.getByRole("button", { name: "Hot day" }).click();
+  // wait until the hot-day forecast has replaced the old one (a refresh clears any plan in progress)
+  await page.waitForFunction(() => (window as unknown as { __twin: { getState: () => { forecast: { weather: string } | null; loading: boolean } } }).__twin.getState().forecast?.weather === "hot"
+    && !(window as unknown as { __twin: { getState: () => { loading: boolean } } }).__twin.getState().loading);
+  await page.getByRole("tab", { name: /AI plan/ }).click();
+  await page.getByRole("button", { name: "Plan with AI agents" }).click();
+  await expect(page.locator(".opt")).toHaveCount(3, { timeout: 20_000 });
+  expect(bodies.length).toBeGreaterThan(2);
+  for (const b of bodies) expect(b.body.forecast, b.url).toBeTruthy();
+  expect(bodies.at(-1)!.body.forecast).toMatchObject({ weather: "hot" });
+});
+
 test("table view and WebGL fallback", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "Table", exact: true }).click();

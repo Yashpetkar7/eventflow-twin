@@ -29,12 +29,13 @@ export function forecastBody(s: Scenario): S["ForecastRequest"] {
   return body as S["ForecastRequest"];
 }
 
-export function simulateBody(runId: string, interventions: unknown[], threshold: number): S["SimulateRequest"] {
-  return { forecast_run_id: runId, interventions, detail: true, threshold, scope: "corridor" } as S["SimulateRequest"];
+export function simulateBody(runId: string, interventions: unknown[], threshold: number, forecast: S["ForecastRequest"]): S["SimulateRequest"] {
+  // `forecast` lets a serverless instance that never saw this run rebuild it (contract 1.6.0)
+  return { forecast_run_id: runId, forecast, interventions, detail: true, threshold, scope: "corridor" } as S["SimulateRequest"];
 }
 
-export function planBody(runId: string, applied: unknown[], threshold: number, priority: Priority, locale: "en" | "ar"): S["AgentPlanRequest"] {
-  return { forecast_run_id: runId, locale, threshold, scope: "corridor", priority, applied } as S["AgentPlanRequest"];
+export function planBody(runId: string, applied: unknown[], threshold: number, priority: Priority, locale: "en" | "ar", forecast: S["ForecastRequest"]): S["AgentPlanRequest"] {
+  return { forecast_run_id: runId, forecast, locale, threshold, scope: "corridor", priority, applied } as S["AgentPlanRequest"];
 }
 
 /** Stable request key: sorted keys, undefined dropped. Shared by the client cache and scripts/snapshot.mjs. */

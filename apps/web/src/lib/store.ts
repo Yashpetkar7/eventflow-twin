@@ -4,7 +4,7 @@
 // interpolates between 15-minute bins for animation.
 import { create } from "zustand";
 import {
-  api, ApiError, setFallbackListener, type AgentPlanResponse, type EventInfo, type ForecastResponse, type Intervention,
+  api, ApiError, setFallbackListener, type AgentPlanResponse, type EventInfo, type ForecastRequest, type ForecastResponse, type Intervention,
   type SimulateResponse, type Station,
 } from "./api";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
@@ -127,7 +127,7 @@ interface State {
   ready: boolean; loading: boolean; error: string | null; apiDown: boolean;
   stations: Station[]; events: EventInfo[];
   scenario: Scenario; threshold: number; priority: Priority;
-  forecast: ForecastResponse | null; base: SimView | null; cur: SimView | null;
+  forecast: ForecastResponse | null; forecastReq: ForecastRequest | null; base: SimView | null; cur: SimView | null;
   flows: Record<string, { out: number[]; in: number[] }>;
   applied: Applied[];
   plan: AgentPlanResponse | null; planStatus: "idle" | "running" | "ready" | "error"; planStep: number; planError: string | null;
@@ -178,11 +178,12 @@ export const useTwin = create<State>((set, get) => {
     set({ loading: true, error: null });
     try {
       const s = get();
-      const fc = opts.forecast || !s.forecast ? await api.forecast(forecastBody(s.scenario), signal) : s.forecast;
+      const spec = opts.forecast || !s.forecast || !s.forecastReq ? forecastBody(s.scenario) : s.forecastReq;
+      const fc = opts.forecast || !s.forecast ? await api.forecast(spec, signal) : s.forecast;
       const ivs = mergeInterventions(get().applied.map((a) => a.ivs));
       const [baseR, curR] = await Promise.all([
-        api.simulate(simulateBody(fc.run_id, [], get().threshold), signal),
-        ivs.length ? api.simulate(simulateBody(fc.run_id, ivs, get().threshold), signal) : null,
+        api.simulate(simulateBody(fc.run_id, [], get().threshold, spec), signal),
+        ivs.length ? api.simulate(simulateBody(fc.run_id, ivs, get().threshold, spec), signal) : null,
       ]);
       if (id !== reqId) return;
       const base = buildView(baseR), cur = curR ? buildView(curR) : base;
@@ -191,7 +192,7 @@ export const useTwin = create<State>((set, get) => {
         const f = (flows[r.station_id] ??= { out: Array(24).fill(0), in: Array(24).fill(0) });
         f.out[r.hour] = r.event_entries_p50; f.in[r.hour] = r.event_exits_p50 ?? 0;
       }
-      const patch: Partial<State> = { forecast: fc, base, cur, flows, loading: false, ready: true, plan: null, planStatus: "idle", decisions: {}, planError: null };
+      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, flows, loading: false, ready: true, plan: null, planStatus: "idle", decisions: {}, planError: null };
       if (opts.jump) {
         const pk = peakOf(base, corridorIds(get()));
         Object.assign(patch, { time: Math.min(T_MAX, pk.time), selected: pk.id, camNonce: get().camNonce + 1 });
@@ -214,11 +215,11 @@ export const useTwin = create<State>((set, get) => {
       const s = get();
       const ivs = buildInterventions(s.build, s.cur, corridorIds(s));
       previewAbort?.abort();
-      if (!ivs.length || !s.forecast) { set({ preview: null, previewError: null }); return; }
+      if (!ivs.length || !s.forecast || !s.forecastReq) { set({ preview: null, previewError: null }); return; }
       previewAbort = new AbortController();
       try {
         const all = mergeInterventions([...s.applied.map((a) => a.ivs), ivs]);
-        const r = await api.simulate(simulateBody(s.forecast.run_id, all, s.threshold), previewAbort.signal);
+        const r = await api.simulate(simulateBody(s.forecast.run_id, all, s.threshold, s.forecastReq), previewAbort.signal);
         set({ preview: buildView(r), previewError: null });
       } catch (e) {
         if ((e as Error).name !== "AbortError") set({ preview: null, previewError: e instanceof ApiError ? e.detail : (e as Error).message });
@@ -230,7 +231,7 @@ export const useTwin = create<State>((set, get) => {
     const applied = [...s.applied, { title, ivs }];
     set({ applied, plan: null, planStatus: "idle", decisions: {}, build: { ...s.build, headway: 0, wayShare: 0, buses: 0, rt: 0, stag: 0 }, preview: null });
     try {
-      const r = await api.simulate(simulateBody(s.forecast!.run_id, mergeInterventions(applied.map((a) => a.ivs)), s.threshold));
+      const r = await api.simulate(simulateBody(s.forecast!.run_id, mergeInterventions(applied.map((a) => a.ivs)), s.threshold, s.forecastReq!));
       set({ cur: buildView(r) });
     } catch (e) {
       set({ applied: s.applied, decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
@@ -242,7 +243,7 @@ export const useTwin = create<State>((set, get) => {
     stations: [], events: [],
     scenario: { eventId: "", attendance: null, exitSigma: null, weather: "normal", custom: { near: "FIC", start: "19:00", end: "22:00", weekend: false } },
     threshold: 0.85, priority: "balanced",
-    forecast: null, base: null, cur: null, flows: {},
+    forecast: null, forecastReq: null, base: null, cur: null, flows: {},
     applied: [], plan: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
     build: BUILD0, preview: null, previewError: null, log: [],
     time: 15.5, playing: false, speed: 1,
@@ -288,9 +289,9 @@ export const useTwin = create<State>((set, get) => {
 
     runAgents: async (locale) => {
       const s = get();
-      if (s.planStatus === "running" || !s.forecast) return;
+      if (s.planStatus === "running" || !s.forecast || !s.forecastReq) return;
       set({ planStatus: "running", planStep: 0, plan: null, planError: null, decisions: {} });
-      const body = planBody(s.forecast.run_id, mergeInterventions(s.applied.map((a) => a.ivs)), s.threshold, s.priority, locale);
+      const body = planBody(s.forecast.run_id, mergeInterventions(s.applied.map((a) => a.ivs)), s.threshold, s.priority, locale, s.forecastReq);
       const pending = api.agentPlan(body).then((p) => ({ p, e: null as string | null }), (e) => ({ p: null, e: e instanceof ApiError ? e.detail : String(e) }));
       const pace = get().reducedMotion ? 40 : 230;
       for (let i = 0; i < 8; i++) {                // the 8 pipeline steps; the last one waits for the API answer

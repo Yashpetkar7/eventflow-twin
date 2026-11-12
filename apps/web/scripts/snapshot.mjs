@@ -29,12 +29,13 @@ const custom = { near: "FIC", start: "19:00", end: "22:00", weekend: false };
 const THR = 0.85;
 for (const [i, ev] of [...events, { id: "custom" }].entries()) {
   for (const weather of i === 0 ? ["normal", "hot", "rain"] : ["normal"]) {
-    const fc = await record("/forecast", forecastBody({ eventId: ev.id, attendance: null, exitSigma: null, weather, custom }));
-    await record("/simulate", simulateBody(fc.run_id, [], THR));
+    const spec = forecastBody({ eventId: ev.id, attendance: null, exitSigma: null, weather, custom });
+    const fc = await record("/forecast", spec);
+    await record("/simulate", simulateBody(fc.run_id, [], THR, spec));
     for (const locale of ["en", "ar"]) {
-      const plan = await record("/agent/plan", planBody(fc.run_id, [], THR, "balanced", locale));
+      const plan = await record("/agent/plan", planBody(fc.run_id, [], THR, "balanced", locale, spec));
       // the re-simulation after approving the top option (the guided demo's path)
-      if (locale === "en" && plan.options[0]) await record("/simulate", simulateBody(fc.run_id, plan.options[0].interventions, THR));
+      if (locale === "en" && plan.options[0]) await record("/simulate", simulateBody(fc.run_id, plan.options[0].interventions, THR, spec));
     }
   }
 }
