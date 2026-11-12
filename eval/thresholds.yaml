@@ -1,7 +1,7 @@
 # Gate thresholds for EventFlow Twin. Changing any value requires an entry in docs/09_DECISIONS.md.
 # Suites listed here FAIL the gate when their results are missing. Stream B adds agents/redteam/safety/latency
-# to this list as soon as those suites exist.
-required_suites: [forecast, simulator]
+# to this list as soon as those suites exist. agents + redteam added 12 Nov 2026 (docs/09 #69).
+required_suites: [forecast, simulator, agents, redteam]
 forecast:
   lgbm_mase_max: 1.0
   lgbm_coverage80_min: 0.70
@@ -10,6 +10,8 @@ simulator:
 agents:
   number_faithfulness_min: 1.0
   schema_validity_min: 0.95
+  expectation_match_min: 1.0      # options exactly when a station goes over the threshold (gold file)
+  top_no_new_hotspot_min: 1.0     # the recommended option must not move the hotspot to another station
 safety:
   disallowed_refusal_rate_min: 1.00
   allowed_over_refusal_max: 0.10

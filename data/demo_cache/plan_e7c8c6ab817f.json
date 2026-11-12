@@ -1,0 +1,289 @@
+{
+ "plan_id": "plan_e7c8c6ab817f",
+ "forecast_run_id": "fc_b33851ab7931",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.75,
+  "excess_pax": 2634.5,
+  "peak_lf": 1.362,
+  "max_wait_min": 12.2,
+  "delay_pax_min": 82957.7,
+  "cost_proxy": 0.0,
+  "total_demand": 114946.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2518.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "Staggered exit + wayfinding",
+   "interventions": [
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "EMT",
+      "to_station": "FIC",
+      "share": 0.25,
+      "hours": [
+       18
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.75,
+    "excess_pax": 772.5,
+    "peak_lf": 1.167,
+    "max_wait_min": 2.5,
+    "delay_pax_min": 6833.1,
+    "cost_proxy": 2.5,
+    "total_demand": 114946.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2518.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": -1862.0,
+    "peak_lf": -0.195,
+    "max_wait_min": -9.7,
+    "delay_pax_min": -76124.6,
+    "cost_proxy": 2.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 1812.0,
+   "rationale": "Spread venue exits over an extra 60 minutes and guide 25% of Emirates Towers riders to Financial Centre on foot. Simulated result: station-hours over the threshold go from 0.75 to 0.75, riders above the threshold from 2,634 to 772, and the peak station load from 136% to 117%. Added cost proxy: 2.5. Risk: Needs the organiser's cooperation and clear signage.",
+   "what": "Spread venue exits over an extra 60 minutes and guide 25% of Emirates Towers riders to Financial Centre on foot.",
+   "risk": "Needs the organiser's cooperation and clear signage.",
+   "cost_added": 2.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_bf72d9f61edf"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_b33851ab7931"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Extra trains + wayfinding",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       17,
+       18,
+       19
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "EMT",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       18
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.5,
+    "excess_pax": 218.8,
+    "peak_lf": 0.926,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 51.5,
+    "total_demand": 114946.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2518.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.25,
+    "excess_pax": -2415.7,
+    "peak_lf": -0.436,
+    "max_wait_min": -12.2,
+    "delay_pax_min": -82957.7,
+    "cost_proxy": 51.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 1385.7,
+   "rationale": "3-minute headway from 17:00 to 20:00, plus guiding 20% of Emirates Towers riders to Financial Centre. Simulated result: station-hours over the threshold go from 0.75 to 0.5, riders above the threshold from 2,634 to 219, and the peak station load from 136% to 93%. Added cost proxy: 51.5. Risk: Needs operations and on-street teams to coordinate.",
+   "what": "3-minute headway from 17:00 to 20:00, plus guiding 20% of Emirates Towers riders to Financial Centre.",
+   "risk": "Needs operations and on-street teams to coordinate.",
+   "cost_added": 51.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_78d8aeab67aa"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_b33851ab7931"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "Extra trains + staggered exit",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       17,
+       18,
+       19
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.75,
+    "excess_pax": 707.5,
+    "peak_lf": 1.003,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 99.2,
+    "cost_proxy": 53.0,
+    "total_demand": 114946.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2518.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": -1927.0,
+    "peak_lf": -0.359,
+    "max_wait_min": -12.2,
+    "delay_pax_min": -82858.5,
+    "cost_proxy": 53.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 867.0,
+   "rationale": "3-minute headway from 17:00 to 20:00, plus exits spread over an extra 60 minutes. Simulated result: station-hours over the threshold go from 0.75 to 0.75, riders above the threshold from 2,634 to 708, and the peak station load from 136% to 100%. Added cost proxy: 53. Risk: The most expensive option.",
+   "what": "3-minute headway from 17:00 to 20:00, plus exits spread over an extra 60 minutes.",
+   "risk": "The most expensive option.",
+   "cost_added": 53.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_f68005e59b8a"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_b33851ab7931"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 35,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "Read the goal",
+   "detail": "Keep every station under 85% · priority: balanced",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "Forecast demand",
+   "detail": "Run fc_b33851ab7931",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "Find hotspots",
+   "detail": "Emirates Towers, 18:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "Propose plans",
+   "detail": "6 candidate plans from the fixed menu",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "Simulate each plan",
+   "detail": "7 simulator runs",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "Rank by impact and cost",
+   "detail": "Top 3 by riders relieved − λ × cost",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "Explain in plain words",
+   "detail": "Template text, numbers copied from the simulator",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "Check every number",
+   "detail": "35 figures checked, all match",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "EMT",
+  "hours": [
+   18
+  ],
+  "window": [
+   17,
+   18,
+   19
+  ],
+  "peak_lf": 1.362
+ },
+ "cached": false
+}

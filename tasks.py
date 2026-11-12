@@ -22,10 +22,14 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
     "ingest": ("Ingest real data from data/raw -> data/processed", [[PY, "scripts/ingest.py"]]),
     "baseline": ("Backtest seasonal-naive vs LightGBM, write eval/results", [[PY, "scripts/baseline.py"]]),
     "train": ("Same as baseline with the LightGBM model", [[PY, "scripts/baseline.py", "--model", "lgbm"]]),
-    "eval-fast": ("Fast backtest (2 folds) + simulator suite", [[PY, "scripts/baseline.py", "--fast"], [PY, "-m", "eval.suites.simulator"]]),
-    "eval": ("Full backtest + simulator suite + tests", [
+    "eval-fast": ("Fast backtest (2 folds) + simulator, agents and red-team suites", [
+        [PY, "scripts/baseline.py", "--fast"], [PY, "-m", "eval.suites.simulator"],
+        [PY, "-m", "eval.suites.agents"], [PY, "-m", "eval.suites.redteam"]]),
+    "eval": ("Full backtest + simulator, agents and red-team suites + tests", [
         [PY, "scripts/baseline.py"],
         [PY, "-m", "eval.suites.simulator"],
+        [PY, "-m", "eval.suites.agents"],
+        [PY, "-m", "eval.suites.redteam"],
         [PY, "-m", "pytest", "-q"],
     ]),
     "gate": ("Check latest eval results against eval/thresholds.yaml",

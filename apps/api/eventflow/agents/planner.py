@@ -26,6 +26,7 @@ CACHE = ROOT / "data/demo_cache"                    # shipped with the build (re
 # new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
 CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
+PLANNER_REV = 2            # bump when the ranking changes, so stale offline-cache entries are not replayed
 
 STEP_KEYS = ["intake", "forecast", "diagnose", "propose", "simulate", "rank", "explain", "verify"]
 STEP_LABELS = {
@@ -235,7 +236,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     locale, thr_req = req.locale, req.threshold
     applied = [i.model_dump() if hasattr(i, "model_dump") else i for i in req.applied]
     key = {"fc": run["run_id"], "applied": applied, "thr": thr_req, "scope": req.scope, "priority": req.priority,
-           "locale": locale, "config": config_hash(), "planner": PLANNER}
+           "locale": locale, "config": config_hash(), "planner": PLANNER, "rev": PLANNER_REV}
     plan_id = make_run_id("plan", key)
     name = f"{plan_id}.json"
     offline = os.environ.get("DEMO_MODE", "offline") == "offline"
@@ -277,7 +278,10 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
             scored.append({**c, "res": res, "score": round(relieved - lam * cost_added, 1), "cost_added": cost_added,
                            "new_hot": new_hot, "demote": worse})
         # Options that add over-threshold station-hours go last (docs/09 #27): a plan must not trade one hotspot for a bigger one.
-        scored.sort(key=lambda o: (o["demote"], -o["score"], o["res"]["summary"]["overcap_station_hours"]))
+        # Rank: options that add over-threshold station-hours last (docs/09 #27), then options that push another station
+        # over the threshold (moving the hotspot is not solving it — eval/suites/agents.py top_no_new_hotspot), then
+        # riders relieved − λ·cost.
+        scored.sort(key=lambda o: (o["demote"], bool(o["new_hot"]), -o["score"], o["res"]["summary"]["overcap_station_hours"]))
         for rank, o in enumerate(scored[:3], 1):
             title, what_t, risk = T[o["key"]]
             ctx = {**o["ctx"], "worst": _name(o["ctx"]["worst"], locale), "nb": _name(o["ctx"]["nb"], locale),

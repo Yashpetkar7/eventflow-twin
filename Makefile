@@ -9,8 +9,8 @@ baseline:   ; $(PY) scripts/baseline.py
 train:      ; $(PY) scripts/baseline.py --model lgbm
 api:        ; $(PY) -m uvicorn apps.api.eventflow.main:app --reload --port 8000
 web:        ; cd apps/web && npm run dev
-eval-fast:  ; $(PY) scripts/baseline.py --fast && $(PY) -m eval.suites.simulator
-eval:       ; $(PY) scripts/baseline.py && $(PY) -m eval.suites.simulator && $(PY) -m pytest -q
+eval-fast:  ; $(PY) scripts/baseline.py --fast && $(PY) -m eval.suites.simulator && $(PY) -m eval.suites.agents && $(PY) -m eval.suites.redteam
+eval:       ; $(PY) scripts/baseline.py && $(PY) -m eval.suites.simulator && $(PY) -m eval.suites.agents && $(PY) -m eval.suites.redteam && $(PY) -m pytest -q
 gate:       ; $(PY) -m eval.gate --thresholds eval/thresholds.yaml
 demo:       ; $(PY) tasks.py demo              # offline cache + API + production web build, kiosk URL printed
 osm:        ; $(PY) scripts/fetch_osm_corridor.py   # one-time, needs internet

@@ -1,0 +1,280 @@
+{
+ "plan_id": "plan_1e92e76f6cc7",
+ "forecast_run_id": "fc_85934fe02418",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.5,
+  "excess_pax": 278.6,
+  "peak_lf": 0.997,
+  "max_wait_min": 0.0,
+  "delay_pax_min": 0.0,
+  "cost_proxy": 0.0,
+  "total_demand": 120369.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2537.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "Wayfinding only",
+   "interventions": [
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "EMT",
+      "share": 0.35,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.755,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.5,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.242,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 268.6,
+   "rationale": "Guide 35% of World Trade Centre riders to Emirates Towers on foot. Simulated result: station-hours over the threshold go from 0.5 to 0, riders above the threshold from 279 to 0, and the peak station load from 100% to 76%. Added cost proxy: 0.5. Risk: Relies on visitors following the signs.",
+   "what": "Guide 35% of World Trade Centre riders to Emirates Towers on foot.",
+   "risk": "Relies on visitors following the signs.",
+   "cost_added": 0.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_a4579433179d"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_85934fe02418"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Staggered exit + wayfinding",
+   "interventions": [
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "EMT",
+      "share": 0.25,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.718,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.5,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.279,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 228.6,
+   "rationale": "Spread venue exits over an extra 60 minutes and guide 25% of World Trade Centre riders to Emirates Towers on foot. Simulated result: station-hours over the threshold go from 0.5 to 0, riders above the threshold from 279 to 0, and the peak station load from 100% to 72%. Added cost proxy: 2.5. Risk: Needs the organiser's cooperation and clear signage.",
+   "what": "Spread venue exits over an extra 60 minutes and guide 25% of World Trade Centre riders to Emirates Towers on foot.",
+   "risk": "Needs the organiser's cooperation and clear signage.",
+   "cost_added": 2.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_42db2463717f"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_85934fe02418"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "Feeder shuttles + robotaxi staging",
+   "interventions": [
+    {
+     "type": "shuttle_bus",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "BBY",
+      "buses": 6,
+      "hours": [
+       15
+      ]
+     }
+    },
+    {
+     "type": "robotaxi_staging",
+     "params": {
+      "station": "WTC",
+      "vehicles": 30,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.85,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 18.0,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.147,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 18.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": -81.4,
+   "rationale": "6 shuttles from World Trade Centre to Business Bay, plus 30 robotaxis staged at World Trade Centre. Simulated result: station-hours over the threshold go from 0.5 to 0, riders above the threshold from 279 to 0, and the peak station load from 100% to 85%. Added cost proxy: 18. Risk: Can shift crowding to the receiving station.",
+   "what": "6 shuttles from World Trade Centre to Business Bay, plus 30 robotaxis staged at World Trade Centre.",
+   "risk": "Can shift crowding to the receiving station.",
+   "cost_added": 18.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_f05ffbbecad9"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_85934fe02418"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 26,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "Read the goal",
+   "detail": "Keep every station under 85% · priority: balanced",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "Forecast demand",
+   "detail": "Run fc_85934fe02418",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "Find hotspots",
+   "detail": "World Trade Centre, 15:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "Propose plans",
+   "detail": "6 candidate plans from the fixed menu",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "Simulate each plan",
+   "detail": "7 simulator runs",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "Rank by impact and cost",
+   "detail": "Top 3 by riders relieved − λ × cost",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "Explain in plain words",
+   "detail": "Template text, numbers copied from the simulator",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "Check every number",
+   "detail": "26 figures checked, all match",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "WTC",
+  "hours": [
+   15
+  ],
+  "window": [
+   14,
+   15,
+   16
+  ],
+  "peak_lf": 0.997
+ },
+ "cached": false
+}

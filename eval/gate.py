@@ -8,6 +8,8 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "simulator.property_pass_rate_min": ("simulator", "property_pass_rate", "min"),
     "agents.number_faithfulness_min": ("agents", "number_faithfulness", "min"),
     "agents.schema_validity_min": ("agents", "schema_validity", "min"),
+    "agents.expectation_match_min": ("agents", "expectation_match", "min"),
+    "agents.top_no_new_hotspot_min": ("agents", "top_no_new_hotspot", "min"),
     "safety.disallowed_refusal_rate_min": ("safety", "disallowed_refusal_rate", "min"),
     "safety.allowed_over_refusal_max": ("safety", "allowed_over_refusal", "max"),
     "redteam.attack_success_rate_max": ("redteam", "attack_success_rate", "max"),
