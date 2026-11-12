@@ -14,7 +14,7 @@ What the data looks like (checked 12 Nov 2026, see docs/14_RIDERSHIP_DATA.md):
 
 Steps:
   1. read every data/raw/ridership/*.csv.gz in chunks, keep the date window, map station names
-     (config/corridor.yaml + config/station_aliases.yaml) → sample counts per station, date and hour:
+     (config/network.yaml + config/station_aliases.yaml) → sample counts per station, date and hour:
      entries = "Check in" at start_location, exits = "Check out" at end_location   → data/interim/ridership_counts.parquet
   2. write a check report → eval/results/ridership_check_<YYYYMMDD-HHMM>.json: coverage, unmatched names, how sparse
      the sample is, real vs synthetic station volumes and hourly shapes, and GITEX 2025 (13–17 Oct) at World Trade
@@ -49,17 +49,24 @@ TOTAL_FILES = 3141                                   # files listed on data.duba
 GITEX_DAYS = [f"2025-10-{d}" for d in range(13, 18)]  # GITEX Global 2025 ran 13–17 Oct (config/events.yaml)
 USECOLS = ["start_location", "end_location", "txn_date", "txn_time", "txn_type"]
 MIN_CELL = 20                                        # median sample taps per corridor station-hour before a panel is trusted
+UNTIMED = "00:00:00.000"                             # whole months carry this instead of a tap time (e.g. Jun 2025 – Mar 2026)
+MAX_UNTIMED = 0.05                                   # share of untimed taps in the window above which no hourly panel is built
 
 
 # ---------------------------------------------------------------- station names
 def norm(name: str) -> str:
-    s = (name or "").lower().replace("&", "and")
+    s = (name if isinstance(name, str) else "").lower().replace("&", "and")     # some older rows have no station (NaN)
     s = re.sub(r"\bmetro\s+station\b|\bstation\b|\bmetro\b", " ", s)
     return re.sub(r"[^a-z0-9]", "", s)
 
 
+def _stations() -> list[dict]:
+    """Every metro station with its id and the in_corridor flag: config/network.yaml (generated from the GTFS feed)."""
+    return yaml.safe_load((ROOT / "config/network.yaml").read_text(encoding="utf-8"))["stations"]
+
+
 def station_mapper(cfg: dict | None = None, aliases: dict | None = None):
-    cfg = cfg or yaml.safe_load((ROOT / "config/corridor.yaml").read_text(encoding="utf-8"))
+    cfg = cfg or {"stations": _stations()}
     if aliases is None:
         p = ROOT / "config/station_aliases.yaml"
         aliases = (yaml.safe_load(p.read_text(encoding="utf-8")) or {}).get("aliases", {}) if p.exists() else {}
@@ -79,7 +86,7 @@ def station_mapper(cfg: dict | None = None, aliases: dict | None = None):
 def read_counts(files: list[Path], start: str, end: str, chunksize: int = 2_000_000, to_id=None) -> tuple[pd.DataFrame, dict]:
     to_id = to_id or station_mapper()
     parts, unmatched = [], collections.Counter()
-    st = {"rows_read": 0, "rows_in_window": 0, "rows_mapped": 0, "duplicate_rows": 0, "txn_types": collections.Counter(),
+    st = {"rows_read": 0, "rows_in_window": 0, "rows_mapped": 0, "duplicate_rows": 0, "rows_untimed": 0, "txn_types": collections.Counter(),
           "date_min": None, "date_max": None, "files": [f.name for f in files]}
     for f in files:
         for ch in pd.read_csv(f, usecols=USECOLS, dtype=str, chunksize=chunksize, compression="infer"):
@@ -90,6 +97,8 @@ def read_counts(files: list[Path], start: str, end: str, chunksize: int = 2_000_
             st["date_max"] = max(filter(None, [st["date_max"], dmax]))
             ch = ch[(ch["txn_date"] >= start) & (ch["txn_date"] <= end)]
             st["rows_in_window"] += len(ch)
+            untimed = ch["txn_time"].eq(UNTIMED)
+            st["rows_untimed"] += int(untimed.sum())
             st["txn_types"].update(ch["txn_type"].value_counts().to_dict())
             typ = ch["txn_type"].str.lower().str.replace(" ", "", regex=False)
             name = np.where(typ == "checkin", ch["start_location"], ch["end_location"])
@@ -99,20 +108,20 @@ def read_counts(files: list[Path], start: str, end: str, chunksize: int = 2_000_
             ok = ~miss & typ.isin(["checkin", "checkout"])
             ch = ch[ok]
             st["rows_mapped"] += len(ch)
-            g = pd.DataFrame({"date": ch["txn_date"], "hour": ch["txn_time"].str[:2].astype(int), "station_id": sid[ok],
+            g = pd.DataFrame({"date": ch["txn_date"], "hour": np.where(untimed[ok], -1, ch["txn_time"].str[:2].astype(int)),   # −1 = no time of day: counts in daily totals only
+                              "station_id": sid[ok],
                               "entries": (typ[ok] == "checkin").astype(int), "exits": (typ[ok] == "checkout").astype(int)})
             parts.append(g.groupby(["date", "hour", "station_id"], as_index=False)[["entries", "exits"]].sum())
     counts = (pd.concat(parts).groupby(["date", "hour", "station_id"], as_index=False)[["entries", "exits"]].sum()
               if parts else pd.DataFrame(columns=["date", "hour", "station_id", "entries", "exits"]))
-    st["unmatched_top"] = unmatched.most_common(25)
+    st["unmatched_top"] = unmatched.most_common(60)
     st["txn_types"] = dict(st["txn_types"])
     return counts, st
 
 
 # ---------------------------------------------------------------- step 2: report
 def _corridor() -> list[str]:
-    cfg = yaml.safe_load((ROOT / "config/corridor.yaml").read_text(encoding="utf-8"))
-    return [s["id"] for s in cfg["stations"] if s.get("in_corridor")]
+    return [s["id"] for s in _stations() if s.get("in_corridor")]
 
 
 def _weekdays(df: pd.DataFrame) -> pd.DataFrame:
@@ -120,8 +129,25 @@ def _weekdays(df: pd.DataFrame) -> pd.DataFrame:
     return df[(d.dt.day_of_week < 5) & ~df["date"].isin(GITEX_DAYS)]       # Mon–Fri, UAE weekend is Sat–Sun
 
 
+def scaled(counts: pd.DataFrame, scale: float, factors: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Adds entries_scaled: sample entries × (official / sample check-ins of that station and month) where the DDSE
+    totals cover it, else × the files ratio."""
+    c = counts.assign(month=counts.date.str[:7])
+    if factors is not None and len(factors):
+        c = c.merge(factors, on=["station_id", "month"], how="left")
+        c["factor"] = c["factor"].fillna(scale)
+    else:
+        c["factor"] = scale
+    c["entries_scaled"] = c.entries * c.factor
+    c["exits_scaled"] = c.exits * c.factor            # same sampling fraction as the check-ins of that station and month
+    return c.drop(columns="month")
+
+
 def gitex_check(counts: pd.DataFrame, scale: float, station: str = "WTC") -> dict:
-    """Entries on GITEX days vs the same weekdays in the 4 weeks before and after (sample counts and a 95 % CI)."""
+    """Entries on GITEX days vs the same weekdays in the 4 weeks before and after: ratio of the scaled daily means,
+    with a 95 % CI from the sample counts."""
+    if "entries_scaled" not in counts:
+        counts = scaled(counts, scale)
     s = counts[counts.station_id == station]
     days = pd.to_datetime(pd.Series(GITEX_DAYS))
     comp = sorted({(d + pd.Timedelta(weeks=w)).strftime("%Y-%m-%d") for d in days for w in (-4, -3, -2, -1, 1, 2, 3, 4)})
@@ -130,19 +156,32 @@ def gitex_check(counts: pd.DataFrame, scale: float, station: str = "WTC") -> dic
     if ev.empty or base.empty:
         return {"station": station, "status": "no data for these days in the files read"}
     a, b = float(ev.mean()), float(base.mean())
-    ratio = a / b if b else math.nan
+    sa = float(s[s.date.isin(GITEX_DAYS)].entries_scaled.sum() / len(ev))
+    sb = float(s[s.date.isin(comp)].entries_scaled.sum() / len(base))
+    ratio = sa / sb if sb else math.nan
     se = math.sqrt(1 / max(ev.sum(), 1) + 1 / max(base.sum(), 1))     # Poisson, on the log scale
-    hours = (s[s.date.isin(GITEX_DAYS)].groupby("hour").entries.sum() / len(ev)
-             - s[s.date.isin(comp)].groupby("hour").entries.sum() / len(base)).reindex(range(24), fill_value=0)
+    hours = (s[s.date.isin(GITEX_DAYS)].groupby("hour").entries_scaled.sum() / len(ev)
+             - s[s.date.isin(comp)].groupby("hour").entries_scaled.sum() / len(base)).reindex(range(24), fill_value=0)
+    # arrivals: check-outs at the station (an event shows here first — visitors come by metro and may leave another way)
+    xe, xb = s[s.date.isin(GITEX_DAYS)], s[s.date.isin(comp)]
+    xr = (xe.exits_scaled.sum() / len(ev)) / (xb.exits_scaled.sum() / len(base)) if xb.exits_scaled.sum() else math.nan
+    xse = math.sqrt(1 / max(xe.exits.sum(), 1) + 1 / max(xb.exits.sum(), 1))
     return {"station": station, "event_days_found": len(ev), "comparison_days_found": len(base),
+            "sample_exits_per_event_day": round(float(xe.exits.sum() / len(ev)), 1),
+            "sample_exits_per_comparison_day": round(float(xb.exits.sum() / len(base)), 1),
+            "exits_uplift_ratio": round(xr, 3),
+            "exits_uplift_ratio_ci95": [round(xr * math.exp(-1.96 * xse), 3), round(xr * math.exp(1.96 * xse), 3)],
             "sample_entries_per_event_day": round(a, 1), "sample_entries_per_comparison_day": round(b, 1),
-            "scaled_entries_per_event_day": round(a * scale), "scaled_entries_per_comparison_day": round(b * scale),
-            "uplift_ratio": round(ratio, 3), "uplift_ratio_ci95": [round(ratio * math.exp(-1.96 * se), 3), round(ratio * math.exp(1.96 * se), 3)],
-            "extra_entries_by_hour_scaled": [round(float(v) * scale) for v in hours],
-            "note": "Sample counts × scale. A CI that includes 1.0 means no detectable GITEX effect at this sample size."}
+            "scaled_entries_per_event_day": round(sa), "scaled_entries_per_comparison_day": round(sb),
+            "uplift_ratio": round(ratio, 3), "uplift_ratio_sample_counts": round(a / b, 3) if b else None, "uplift_ratio_ci95": [round(ratio * math.exp(-1.96 * se), 3), round(ratio * math.exp(1.96 * se), 3)],
+            "extra_entries_by_hour_scaled": [round(float(v)) for v in hours],
+            "note": "Scaled daily means (untimed taps count in the day, not in the hours). A CI that includes 1.0 means "
+                    "no detectable GITEX effect at this sample size."}
 
 
-def report(counts: pd.DataFrame, st: dict, scale: float, scale_note: str, start: str, end: str) -> dict:
+def report(counts: pd.DataFrame, st: dict, scale: float, scale_note: str, start: str, end: str,
+           factors: pd.DataFrame | None = None) -> dict:
+    counts = scaled(counts, scale, factors)
     cor = _corridor()
     wk = _weekdays(counts[counts.station_id.isin(cor)])
     n_days = max(wk.date.nunique(), 1)
@@ -157,9 +196,10 @@ def report(counts: pd.DataFrame, st: dict, scale: float, scale_note: str, start:
         sw = synth[(synth.ts.dt.day_of_week < 5) & (synth.event_flag == 0)]
     for s in cor:
         r = wk[wk.station_id == s]
-        real_day = r.entries.sum() / n_days * scale
-        shape_r = r.groupby("hour").entries.sum().reindex(range(24), fill_value=0)
-        row = {"weekday_entries_per_day_scaled": round(float(real_day)), "sample_taps": int(r.entries.sum() + r.exits.sum())}
+        real_day = r.entries_scaled.sum() / n_days
+        shape_r = r.groupby("hour").entries.sum().reindex(range(24), fill_value=0)       # untimed taps (hour −1) drop out here
+        row = {"weekday_entries_per_day_scaled": round(float(real_day)), "sample_taps": int(r.entries.sum() + r.exits.sum()),
+               "sample_entries_per_weekday": round(float(r.entries.sum() / n_days), 1)}
         if synth is not None:
             ss = sw[sw.station_id == s]
             syn_day = ss.entries.sum() / max(ss.ts.dt.date.nunique(), 1)
@@ -169,6 +209,11 @@ def report(counts: pd.DataFrame, st: dict, scale: float, scale_note: str, start:
                     "hourly_shape_correlation": round(float(np.corrcoef(shape_r, shape_s)[0, 1]), 3) if shape_r.sum() and shape_s.sum() else None}
         per_station[s] = row
     by_date = counts.groupby("date").entries.sum()
+    untimed_share = st["rows_untimed"] / st["rows_in_window"] if st["rows_in_window"] else 0.0
+    median = float(day_hours.median()) if not day_hours.empty else 0.0
+    blocker = (f"{untimed_share:.0%} of the taps in the window have no time of day (txn_time {UNTIMED}): daily totals only, "
+               "an hourly panel cannot be built for these dates" if untimed_share > MAX_UNTIMED
+               else f"sample too thin: median {median} taps per corridor station-hour < {MIN_CELL}" if median < MIN_CELL else None)
     metrics = {
         "files_read": len(st["files"]), "rows_read": st["rows_read"], "rows_in_window": st["rows_in_window"],
         "mapped_share": round(st["rows_mapped"] / st["rows_in_window"], 4) if st["rows_in_window"] else 0.0,
@@ -176,8 +221,9 @@ def report(counts: pd.DataFrame, st: dict, scale: float, scale_note: str, start:
         "data_date_min": st["date_min"], "data_date_max": st["date_max"], "window": [start, end],
         "days_in_window_with_data": int(by_date.size),
         "evenness_cv_of_daily_sample": round(float(by_date.std() / by_date.mean()), 3) if by_date.size > 1 else None,
-        "median_sample_taps_per_corridor_station_hour": float(day_hours.median()) if not day_hours.empty else 0.0,
-        "panel_ready": bool(not day_hours.empty and day_hours.median() >= MIN_CELL),
+        "untimed_share_in_window": round(untimed_share, 4),
+        "median_sample_taps_per_corridor_station_hour": median,
+        "panel_ready": blocker is None, "panel_blocker": blocker,
         "scale_factor": round(scale, 3), "scale_method": scale_note,
         "corridor_stations": per_station, "gitex_2025_wtc": gitex_check(counts, scale, "WTC"),
         "gitex_2025_emt": gitex_check(counts, scale, "EMT"), "unmatched_station_names": st["unmatched_top"],
@@ -254,13 +300,14 @@ def main(argv: list[str] | None = None) -> int:
     factors = ddse_scale(counts, a.ddse) if a.ddse else None
     note = (f"official monthly check-ins per station ({a.ddse.name}); fallback ×{scale:.1f}" if factors is not None
             else f"files: {a.total_files} total / {len(files)} read (assumes a random split)")
-    rep = report(counts, st, scale, note, a.start, a.end)
+    rep = report(counts, st, scale, note, a.start, a.end, factors)
     RESULTS.mkdir(parents=True, exist_ok=True)
     out = RESULTS / f"ridership_check_{dt.datetime.now():%Y%m%d-%H%M}.json"
     out.write_text(json.dumps(rep, indent=1, default=str), encoding="utf-8")
     m = rep["metrics"]
     print(f"rows read {m['rows_read']:,}; in window {m['rows_in_window']:,}; mapped {m['mapped_share']:.1%}; "
-          f"days {m['days_in_window_with_data']}; median taps per corridor station-hour {m['median_sample_taps_per_corridor_station_hour']}")
+          f"days {m['days_in_window_with_data']}; untimed {m['untimed_share_in_window']:.1%}; "
+          f"median taps per corridor station-hour {m['median_sample_taps_per_corridor_station_hour']}; panel_ready {m['panel_ready']}")
     if m["unmatched_station_names"]:
         print("unmatched names (add to config/station_aliases.yaml):", m["unmatched_station_names"][:10])
     g = m["gitex_2025_wtc"]
@@ -268,8 +315,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"report → {_rel(out)}")
     if a.write_panel:
         if not m["panel_ready"] and not a.force:
-            print(f"Panel NOT written: median {m['median_sample_taps_per_corridor_station_hour']} sample taps per corridor "
-                  f"station-hour < {MIN_CELL}. Download more files, or pass --force (the forecast would be noisy).")
+            print(f"Panel NOT written: {m['panel_blocker']}. Pass --force only if you know why (the forecast would be wrong or noisy).")
             return 2
         panel = to_panel(counts, scale, factors, f"rta_metro_ridership_open:{len(files)}files")
         PANEL.parent.mkdir(parents=True, exist_ok=True)

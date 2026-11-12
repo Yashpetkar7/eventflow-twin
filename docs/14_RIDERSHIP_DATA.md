@@ -10,10 +10,15 @@ before the exhibit. Never commit raw data: `data/raw/` is git-ignored (on some l
 |---|---|
 | Dataset | **Dubai Metro Ridership**, RTA, tagged Open — <https://data.dubai/en/l/466403> (last updated 9 Nov 2026) |
 | Licence | Dubai Open Data Licence (PDF linked on the page) — attribute "RTA, data.dubai" |
-| Files | **3,141** files `metro_ridership_<export-time>_<NNNN>.csv.gz`, each **~155 MB** gzip (~490 GB in all); the same chunks are offered as `.json.gz` (~280 MB) — **take the CSV** |
+| Files | **3,141** files `metro_ridership_<export-time>_<NNNN>.csv.gz`. **Corrected 12 Nov after the first download:** each file is **~8 MB** to download (the portal's "147 MB" is the unpacked CSV, ~1.05 million rows), so the whole dataset is ~25 GB, not 490 GB — **take the CSV** |
 | Rows | one fare-gate tap: `end_location, end_zone, line_name, start_location, start_zone, txn_date, txn_time, txn_type ("Check in"/"Check out"), load_timestamp`; station names like `Burj Khalifa/ Dubai Mall Metro Station` |
 | Dates | 2017 → July 2026. **Every file is a mixed sample across all dates**, not a block of days: the first 2 MB of files 0001, 1487, 2987 and 3141 each spanned 2017–2026. So you cannot download "October 2025" — each file holds a slice of every day |
 | Related | DDSE statistics (official monthly/quarterly **check-ins per station**): "Number of Metro Ridership by Station – Red Line" (<https://data.dubai/en/e/statistic/35681/726542>), "… by Lines" (<https://data.dubai/en/e/statistic/35681/726514>) |
+
+**Time of day is missing for whole periods (found 12 Nov):** `txn_time` is `00:00:00.000` for every tap in Jan – Jul 2024,
+Mar 2025 and **Jun 2025 – Mar 2026**; Sep 2024 – Jan 2025 and Apr – Jul 2026 are fully timed. So GITEX 2025 (13–17 Oct 2025)
+can only be measured per day, and an hourly panel for the default window is impossible at any sample size. The ingest
+counts untimed taps in the day's total but in no hour, and reports `untimed_share_in_window` and `panel_blocker`.
 
 Consequence: a few files give the **shape** of every day (hourly profile per station) but only a fraction of its
 taps. Scale to absolute numbers with the official monthly station totals (best) or by `3141 / files read`.
@@ -52,7 +57,7 @@ It prints, and saves in `eval/results/ridership_check_<time>.json`:
   weeks either side, the uplift ratio and its 95 % range. A range that includes 1.0 = no effect detectable at this
   sample size (then download more files before claiming anything).
 
-Each file takes a minute or two to read (about 20 million rows). Post the printed summary in the team chat.
+Ten files (10.5 million rows) take about a minute to read. Post the printed summary in the team chat.
 
 ## 4. Decide (Krishna, with Atharva) — before Mon 16 noon, or after the exhibit
 | If the check shows | Then |

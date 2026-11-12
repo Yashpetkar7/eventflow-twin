@@ -98,3 +98,26 @@ def test_ddse_monthly_totals_set_the_scale(chunk, tmp_path):
     off.write_text("station,month,checkins\nWorld Trade Centre,2025-10,3000\n", encoding="utf-8")
     f = ingest.ddse_scale(counts, off)
     assert f.loc[f.station_id == "WTC", "factor"].item() == pytest.approx(3000 / 30)   # 20 GITEX + 10 comparison check-ins
+
+
+def test_real_data_surprises(tmp_path):
+    """What the first real run (12 Nov 2026) showed: every station of the network appears, some months carry no time
+    of day, some old rows have no station, and the official totals give a different scale than the file count."""
+    rows = [row("World Trade Centre Metro Station", "2025-10-06", "00:00:00.000", "Check in")] * 5      # untimed
+    rows += [row("BurJuman Metro Station", "2025-10-06", "08:10:00.000", "Check in")] * 2               # not a corridor station
+    rows += [row("Equiti Metro Station", "2025-10-06", "08:10:00.000", "Check in"),                     # renamed Umm Al Sheif
+             row("etisalat by e& Metro Station", "2025-10-06", "08:10:00.000", "Check out")]
+    rows += ['"","Zone 6","Red Metro Line","","Zone 6","2025-10-06","09:00:00.000","Check out","2025-10-30T00:00:00.000Z"']   # no station
+    f = write_chunk(tmp_path / "metro_ridership_x_0002.csv.gz", rows)
+    counts, st = ingest.read_counts([f], "2025-10-01", "2025-10-31")
+    assert st["rows_untimed"] == 5 and st["rows_in_window"] == 10 and st["rows_mapped"] == 9
+    assert set(counts.station_id) == {"WTC", "BURJUMAN", "UMM_AL_SHEIF", "ETISALAT"}
+    wtc = counts[counts.station_id == "WTC"]
+    assert wtc.hour.tolist() == [-1] and wtc.entries.sum() == 5            # in the day's total, in no hour
+    factors = pd.DataFrame({"station_id": ["WTC"], "month": ["2025-10"], "factor": [400.0]})
+    m = ingest.report(counts, st, 100.0, "test", "2025-10-01", "2025-10-31", factors)["metrics"]
+    assert m["untimed_share_in_window"] == 0.5 and m["panel_ready"] is False and "no time of day" in m["panel_blocker"]
+    assert m["corridor_stations"]["WTC"]["weekday_entries_per_day_scaled"] == 2000        # 5 × the official factor, not × 100
+    assert m["corridor_stations"]["WTC"]["hourly_shape_correlation"] is None
+    assert set(m["corridor_stations"]) == {"MAX", "WTC", "EMT", "FIC", "BKD", "BBY"}
+

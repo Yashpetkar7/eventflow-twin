@@ -18,3 +18,7 @@ aliases:
   fab: UMM_AL_SHEIF
   route2020: EXPO
   expo2020: EXPO
+  # added 12 Nov 2026 from the unmatched list of the first real run (10 files); both checked in the data itself:
+  citycentredeira: DEIRA_CITY_CENTRE   # same fare zone (5); the feed's name is "Deira City Centre"
+  equiti: UMM_AL_SHEIF                 # "Umm Al Sheif" ends 2022-04-16, "Equiti" starts 2022-04-17, same zone (2)
+  etisalatbyeand: ETISALAT             # "etisalat by e& Metro Station" (the operator's rebrand; "&" is read as "and")
