@@ -88,7 +88,7 @@ def build_run(req: ForecastRequest) -> dict:
     """One place that turns a forecast request into a run (shared by /forecast and cold-instance rebuilds)."""
     try:
         return build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time,
-                              weather=req.weather, exit_sigma_min=req.exit_sigma_min,
+                              weather=req.weather, exit_sigma_min=req.exit_sigma_min, metro_share=req.metro_share,
                               custom=req.custom_event.model_dump() if req.custom_event else None)
     except KeyError as e:
         raise HTTPException(404, f"Unknown event or station {e}")

@@ -18,7 +18,7 @@
 .kiosk-root .num { font-variant-numeric: tabular-nums; }
 
 /* every UI layer is drawn at 1920×1080 and zoomed to the window; the 3D map fills the real window */
-.ktop, .kattract, .kcard, .kchip, .kdisc, .kstill > div { zoom: var(--kz); }
+.ktop, .kattract, .kcard, .kchip, .kdisc, .kcap, .kstill > div { zoom: var(--kz); }
 
 /* ---- the map: full screen on the attract loop, the left part during the steps */
 .kmap { position: absolute; inset-block: 0; inset-inline-start: 0; inset-inline-end: calc(632px * var(--kz)); transition: inset .5s ease; }
@@ -172,3 +172,96 @@
 .kbig .kevent, .kbig .kopt, .kbig .kquiz button { border-color: rgba(20, 28, 45, .38); }
 .kbig .kdisc { color: #1B2130; }
 @media (prefers-reduced-motion: reduce) { .kat-dot, .kagent li.on span, .kspin { animation: none; } .kmap { transition: none; } }
+
+/* ---- two ways in */
+.kways { display: grid; gap: 14px; margin-top: 6px; }
+.kway { display: flex; align-items: center; gap: 20px; min-height: 150px; padding: 22px 26px; border-radius: 22px; text-align: start;
+  border: 1.5px solid rgba(20, 28, 45, .12); background: var(--bg); }
+.kway:active { border-color: var(--navy); background: var(--navy-soft); }
+.kway b { display: block; font-size: 25px; font-weight: 650; letter-spacing: -.02em; line-height: 1.2; }
+.kway small { display: block; margin-top: 6px; font-size: 16.5px; color: var(--ink-2); line-height: 1.35; }
+.kico { display: grid; place-items: center; flex: none; width: 68px; height: 68px; border-radius: 20px; background: var(--navy); color: #fff; font-size: 32px; line-height: 1; }
+[dir="rtl"] .kico { transform: scaleX(-1); }
+.kat-fact { font-size: 19px; font-weight: 550; padding: 9px 16px; border-radius: 12px; background: rgba(255, 255, 255, .13);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: kfade .8s ease both; }
+@keyframes kfade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---- small parts shared by the new screens */
+.kstack { margin-top: auto; display: grid; gap: 12px; } .kstack .kgo { margin-top: 0; }
+.kevent.kown { min-height: 70px; border-style: dashed; background: #fff; } .kevent.kown b { color: var(--navy); }
+.kevent.ksm { min-height: 62px; justify-content: center; padding-block: 8px; } .kevent.ksm b { font-size: 16.5px; }
+.ktag { font-style: normal; font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--amber-soft); color: var(--amber-ink); }
+.kfield > span b { color: var(--navy); font-weight: 650; }
+.kchips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.kchips button { min-height: 56px; padding: 6px 12px; border-radius: 14px; border: 1.5px solid rgba(20, 28, 45, .12); background: var(--bg); font-size: 15.5px; font-weight: 550; line-height: 1.2; }
+.kchips button[aria-pressed="true"] { border-color: var(--navy); background: var(--navy-soft); color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); }
+.kslider { -webkit-appearance: none; appearance: none; width: 100%; height: 56px; margin: 0; background: transparent; touch-action: pan-y; }
+.kslider::-webkit-slider-runnable-track { height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--ok), #E39A00 55%, var(--risk)); }
+.kslider::-webkit-slider-thumb { -webkit-appearance: none; width: 44px; height: 44px; margin-top: -16px; border-radius: 50%; background: #fff; border: 3px solid var(--navy); box-shadow: 0 4px 14px rgba(15, 47, 143, .3); }
+.kslider::-moz-range-track { height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--ok), #E39A00 55%, var(--risk)); }
+.kslider::-moz-range-thumb { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 3px solid var(--navy); }
+[dir="rtl"] .kslider { direction: rtl; }
+.klive { display: flex; align-items: center; gap: 16px; padding: 10px 18px; border-radius: 18px; background: var(--bg); }
+.klive b { font-size: 54px; font-weight: 650; letter-spacing: -.04em; line-height: 1; } .klive span { font-size: 17px; font-weight: 550; display: flex; align-items: center; gap: 10px; }
+.kspin.sm { width: 18px; height: 18px; border-width: 2.5px; display: inline-block; }
+
+/* ---- your idea first */
+.kideas { display: grid; gap: 10px; }
+.kideas button { min-height: 76px; padding: 10px 20px; border-radius: 18px; text-align: start; border: 1.5px solid rgba(20, 28, 45, .12); background: var(--bg); }
+.kideas button:active { border-color: var(--navy); background: var(--navy-soft); }
+.kideas b { display: block; font-size: 19px; font-weight: 600; } .kideas small { display: block; font-size: 14px; color: var(--ink-3); }
+.kyou { display: flex; align-items: center; gap: 12px; min-height: 56px; }
+.kyou > span { flex: 1; font-size: 14.5px; line-height: 1.3; color: var(--ink-2); } .kyou b { color: var(--ink); font-weight: 600; }
+.kyou .kpill { font-size: 14.5px; padding-inline: 14px; border-color: var(--navy); color: var(--navy); }
+
+/* ---- result: four measures, you vs the AI, links */
+.kba { grid-template-columns: 1fr 1fr; gap: 10px; }
+.kba > div { grid-template-columns: auto auto 1fr; grid-template-areas: "l l l" "a i b"; align-items: baseline; gap: 2px 10px; padding: 12px 16px; }
+.kba small { grid-area: l; font-size: 14.5px; } .kba span { grid-area: a; font-size: 20px; } .kba i { grid-area: i; font-size: 17px; } .kba b { grid-area: b; font-size: 32px; letter-spacing: -.03em; line-height: 1.1; }
+.kvs { margin: 0; padding: 10px 16px; border-radius: 14px; background: var(--navy-soft); color: var(--navy); font-size: 16px; font-weight: 550; line-height: 1.35; }
+.klinks { display: flex; flex-wrap: wrap; gap: 8px; }
+.klinks .kpill { font-size: 14.5px; padding-inline: 14px; }
+.kqr { padding: 8px 14px; } .kqr-box { width: 64px; height: 64px; }
+.kqr-box span { width: 18px; height: 18px; border-width: 3px; } .kqr-box span:nth-child(1) { top: 7px; left: 7px; } .kqr-box span:nth-child(2) { top: 7px; right: 7px; }
+.kqr-box span:nth-child(3) { bottom: 7px; left: 7px; } .kqr-box span:nth-child(4) { bottom: 15px; right: 15px; width: 10px; height: 10px; }
+
+/* ---- rider advice */
+.kadvice { display: grid; gap: 10px; }
+.kadvice > div { display: grid; gap: 2px; padding: 14px 18px; border-radius: 18px; background: var(--bg); border: 1.5px solid rgba(20, 28, 45, .08); }
+.kadvice .tip { background: var(--ok-soft); border-color: var(--ok); }
+.kadvice small { font-size: 13.5px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.kadvice b { font-size: 23px; font-weight: 650; letter-spacing: -.015em; line-height: 1.2; } .kadvice span { font-size: 16px; color: var(--ink-2); }
+
+/* ---- dialogs: how the AI decided, reported measures, booth statistics */
+.kmodal > div { width: 860px; max-height: 900px; overflow-y: auto; padding: 36px 40px; text-align: start; gap: 14px; }
+.kmodal > div > b { font-size: 28px; line-height: 1.2; }
+.ktrace { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ktrace li { display: flex; gap: 14px; align-items: flex-start; font-size: 16.5px; }
+.ktrace li > span { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 14px; font-weight: 600; }
+.ktrace b { display: block; font-size: 17px; font-weight: 600; } .ktrace small { display: block; font-size: 14.5px; color: var(--ink-2); line-height: 1.35; }
+.kpb { margin: 0; padding-inline-start: 22px; display: grid; gap: 6px; font-size: 18px; }
+.kcmp { width: 100%; border-collapse: collapse; font-size: 17px; }
+.kcmp th, .kcmp td { padding: 10px 12px; text-align: start; border-block-end: 1px solid rgba(20, 28, 45, .1); }
+.kcmp thead th { font-size: 14px; font-weight: 600; color: var(--ink-3); } .kcmp tbody th { font-weight: 550; color: var(--ink-2); } .kcmp td { font-weight: 650; font-size: 20px; }
+.ksrc { margin: 0; font-size: 13.5px; color: var(--ink-3); line-height: 1.4; }
+
+/* ---- caption of the 60-second show */
+.kcap { position: absolute; z-index: 20; inset-block-end: 76px; inset-inline-start: 28px; max-width: 1180px; display: grid; gap: 2px; padding: 16px 26px; border-radius: 20px;
+  background: rgba(8, 16, 38, .88); color: #fff; box-shadow: 0 14px 40px rgba(0, 0, 0, .3); animation: kfade .5s ease both; }
+.kcap b { font-size: 26px; font-weight: 600; letter-spacing: -.015em; line-height: 1.25; } .kcap small { font-size: 14.5px; opacity: .75; }
+.kiosk-root:has(.kcap) .kchip { display: none; }
+
+/* ---- high contrast (one tap on the half-moon): black on white, solid borders, no translucency */
+.khalf { display: block; width: 24px; height: 24px; border-radius: 50%; border: 2.5px solid currentColor; background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.khc .kcard, .khc .ktop, .khc .kdisc, .khc .kchip, .khc .kmodal > div { background: #fff; color: #000; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.khc[data-phase="attract"] .ktop { background: #000; color: #fff; } .khc[data-phase="attract"] .kdisc { background: #000; color: #fff; }
+.khc .kattract { background: rgba(0, 0, 0, .78); }
+.khc .ksub, .khc .knote, .khc .kopt p, .khc .kevent > span, .khc .kfield small, .khc .kdelta small, .khc .kba small, .khc .kba span, .khc .kway small, .khc .kadvice span,
+.khc .kadvice small, .khc .kyou > span, .khc .ksrc, .khc .kdisc, .khc .ktrace small, .khc .kcmp tbody th, .khc .kcmp thead th { color: #000; }
+.khc .kevent, .khc .kopt, .khc .kquiz button, .khc .kway, .khc .kideas button, .khc .kchips button, .khc .kadvice > div, .khc .kba > div, .khc .kpill, .khc .klive, .khc .kqr { border: 2px solid #000; background: #fff; }
+.khc .kevent[aria-pressed="true"], .khc .kchips button[aria-pressed="true"], .khc .kseg button[aria-pressed="true"], .khc .kpill[aria-pressed="true"] { background: #000; color: #fff; border-color: #000; }
+.khc .kseg { background: #fff; box-shadow: inset 0 0 0 2px #000; }
+.khc .risk { color: #A30029; } .khc .okc { color: #00603F; } .khc .warn { color: #7A4B00; }
+.khc .kgo { background: #000; box-shadow: none; } .khc .kgo.ghost { background: #fff; color: #000 !important; border: 2px solid #000; }
+.khc .kvs { background: #fff; color: #000; box-shadow: inset 0 0 0 2px #000; }
+@media (prefers-reduced-motion: reduce) { .kat-fact, .kcap { animation: none; } }

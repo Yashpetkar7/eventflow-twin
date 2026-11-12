@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.8.0"   # 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.9.0"   # 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -75,6 +75,7 @@ class ForecastRequest(BaseModel):
     end_time: str | None = Field(None, pattern=HHMM, description="What-if override of event end time (HH:MM)")
     weather: Weather = Field("normal", description="Weather what-if: sets the metro share of event trips (assumption)")
     exit_sigma_min: float | None = Field(None, ge=10, le=90, description="What-if venue exit window (σ, minutes)")
+    metro_share: float | None = Field(None, ge=0.2, le=0.8, description="What-if share of event trips made by metro; overrides the weather what-if's share (assumption)")
     custom_event: CustomEvent | None = Field(None, description="Build-your-own scenario; overrides event_id")
 
 

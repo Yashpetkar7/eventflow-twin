@@ -19,6 +19,15 @@ function idleMs(): number {
   return Number.isFinite(v) && v >= 5 && v <= 600 ? v * 1000 : 60_000;
 }
 
+function wantsWelcome(): boolean {
+  if (typeof window === "undefined") return false;
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("kiosk")) return false;
+  let seen = false;
+  try { seen = sessionStorage.getItem("eft_welcome") === "1"; } catch { /* private mode: show it */ }
+  return q.get("welcome") === "1" || (isPublicDemo() && !seen);
+}
+
 function Workspace() {
   const t = useTranslations();
   const { locale } = useLocale();
@@ -31,6 +40,9 @@ function Workspace() {
   const expanded = useTwin((s) => s.expanded);
   const [how, setHow] = useState(false);
   const dlg = useRef<HTMLDialogElement>(null);
+  // Public link: a first-visit sheet that says what this is and offers the visitor story (?welcome=1 shows it locally)
+  const [welcome, setWelcome] = useState(wantsWelcome);
+  const wdlg = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -55,6 +67,8 @@ function Workspace() {
   }, [kiosk]);
 
   useEffect(() => { if (how) dlg.current?.showModal(); else dlg.current?.close(); }, [how]);
+  useEffect(() => { if (welcome && !wdlg.current?.open) wdlg.current?.showModal(); else if (!welcome) wdlg.current?.close(); }, [welcome]);
+  const closeWelcome = () => { try { sessionStorage.setItem("eft_welcome", "1"); } catch { /* ignore */ } setWelcome(false); };
 
   if (kiosk && kioskMode() !== "classic") return <Kiosk />;
 
@@ -74,6 +88,17 @@ function Workspace() {
           <div><span>{t(`tourSteps.${tourStep as 0 | 1 | 2 | 3 | 4}`)}</span><button type="button" onClick={stopTour}>{t("skip")}</button></div>
         </div>
       )}
+      <dialog ref={wdlg} className="how welcome" onClose={closeWelcome} data-testid="welcome">
+        <h3>{t("welcome.title")}</h3>
+        <p className="lead">{t("welcome.lead")}</p>
+        <ol><li>{t("welcome.p1")}</li><li>{t("welcome.p2")}</li></ol>
+        <div className="wbtns">
+          {/* eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full page load: the kiosk reads its mode when the page starts */}
+          <button type="button" className="btn navy" onClick={() => { window.location.href = "/?kiosk=1"; }} data-testid="welcome-story">{t("welcome.story")}</button>
+          <button type="button" className="btn ghost" onClick={closeWelcome}>{t("welcome.work")}</button>
+        </div>
+        <p className="note">{t("welcome.note")}</p>
+      </dialog>
       <dialog ref={dlg} className="how" onClose={() => setHow(false)}>
         <h3>{t("howTitle")}</h3>
         <ol>{(["how1", "how2", "how3", "how4", "how5"] as const).map((k) => <li key={k}>{t(k)}</li>)}</ol>
