@@ -43,7 +43,7 @@ def main() -> None:
                 f"| Before (`before_fps.json`, {before['timestamp']}) | {before['avg_fps']} | {before['min_fps']} |",
                 f"| After (`after_fps.json`, {after['timestamp']}) | {after['avg_fps']} | {after['min_fps']} |", ""]
     def soak_rows(r: dict, name: str) -> list[str]:
-        state = "finished" if r.get("finished") else "STILL RUNNING — partial"
+        state = "finished" if r.get("finished") else "stopped early — partial"
         return [f"| Run | `{name}` ({r['timestamp']}, {state}), target {r['target']} |",
                 f"| Duration / guided-demo loops | {r['minutes']} min of {r['planned_minutes']} planned / {r['loops']} loops |",
                 f"| JS heap after forced GC: warm baseline → end | {r['baseline_heap_mb']} MB → {r['final_heap_mb']} MB (**{r['heap_growth_pct']} %**), maximum {r['max_heap_mb']} MB |",

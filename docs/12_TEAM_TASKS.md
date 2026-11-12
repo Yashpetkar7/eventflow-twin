@@ -7,9 +7,33 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
+## 0. Status on Thu 12 Nov, evening — read this first
+Most of the build tasks below were done on `main` in one pass with Claude Code (commits `ce466be` … on 12 Nov).
+**Do not redo them** — pull `main`, check the "Done when" line still holds on your laptop, and move to what is left.
+
+| Done on `main` | What landed |
+|---|---|
+| B1 | Stateless runs: `/simulate`, `/agent/plan`, `/breakpoint` accept the `forecast` spec and rebuild a run on a cold instance (409 if it does not match). Contract 1.6.0 |
+| C1 | The web app sends the forecast spec with every simulate, plan and break-point request |
+| B2 | `EVENTFLOW_DATA_DIR`, `/healthz` reports `storage`, plan cache read from the repo and written to the data dir |
+| B3 | Per-client rate limit on POST (`EVENTFLOW_RATE_LIMIT`), 429 when exceeded |
+| K4 | `vercel_entry.py`, `pyproject.toml`, `vercel.json` (Services: Next.js at `/`, FastAPI at `/api`), `.vercelignore`; `VERCEL=1` sets every hosted default, so **no environment variables are needed**. `vercel dev --local` checked |
+| C2 | Public-demo banner (shown automatically when not on localhost), `robots.txt` disallow, "kept for this session only" note in the Report tab |
+| K5 (code part) | `scripts/smoke_live.py` and `docs/DEPLOY.md`. Passed against `vercel dev`. **The preview deploy itself is not done** — it needs Krishna's Vercel login |
+| K6 + C3 | `POST /breakpoint` (exact, contract 1.7.0) and the break-point card in the Station tab, EN/AR, with the train-fullness grid |
+| B5 | `agents` and `redteam` suites, both in `required_suites`; gate green: number faithfulness 48/48 options, 0/15 attacks succeeded |
+| B4 (code part) | Optional Claude Proposer + Explainer behind the number check (`DEMO_MODE=live`, `LLM_MODEL=claude-opus-5-5`, `ANTHROPIC_API_KEY`). Tested with a fake model only — **never run against the real API yet** |
+| C6 | Six 1920×1080 screenshots in `submission/images/final/` (`apps/web/tests/final_shots.mjs`). Retake after C5 if the Arabic changes |
+| K2 (draft) | `submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf` (git-ignored; regenerate with `fill_template.py`): real screenshots, wording corrected. **Krishna checks and sends it to Dr. Rachit** |
+
+**What is left, by owner**
+- **Krishna:** K1 decision; check and send K2; K3 ridership request; run the first preview deploy (`docs/DEPLOY.md`) and the smoke test on its URL; K7 only after K1 = yes; create the Anthropic key with a spend cap, then one live run of B4 (below); K8 booth kit.
+- **Atharva:** review `eval/gold/` (20 agent scenarios, 15 red-team cases — you are named as reviewer in `eval/gold/README.md`); when the key exists, run `DEMO_MODE=live LLM_MODEL=claude-opus-5-5 python -m eval.suites.agents` and `… redteam` and compare with the offline numbers; write down cost and latency.
+- **Yash:** C4 touch-monitor test; C5 Arabic review; then retake C6 (`node apps/web/tests/final_shots.mjs`).
+
 ## 1. Get the new `main` running (everyone, tonight, ~15 minutes)
-`main` changed a lot on 12 Nov: the web app is now a react-three-fiber twin, the API is at contract 1.5.0, and
-`/agent/plan` works. The old `python tasks.py basemap` step is gone.
+`main` changed a lot on 12 Nov: the web app is now a react-three-fiber twin, the API is at contract 1.7.0, and
+`/agent/plan` and `/breakpoint` work. The old `python tasks.py basemap` step is gone.
 
 ```bash
 git checkout main && git pull
@@ -21,7 +45,7 @@ python tasks.py api                                         # terminal 1 → htt
 cd apps/web && npm run dev                                  # terminal 2 → http://localhost:3000
 ```
 
-Check: the twin shows Dubai in 3D, **Guided demo** runs to the end, and `python tasks.py test` prints `74 passed`.
+Check: the twin shows Dubai in 3D, **Guided demo** runs to the end, and `python tasks.py test` prints `96 passed`.
 UI tests (`make ui-test`, needs Google Chrome) have only been run on macOS so far — if they fail on Windows, post
 the error and carry on; they are not a blocker for your task.
 

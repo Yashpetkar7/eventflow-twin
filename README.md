@@ -22,7 +22,7 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/03_ARCHITECTURE.md` | System diagram, components, API contract | Build |
 | `docs/04_DATA_SOURCES.md` | Every dataset, URL, schema notes, download steps, licence notes | Day 1–2 |
 | `docs/05_MODELING_SPEC.md` | Forecasting + capacity/intervention simulator maths | Build |
-| `docs/06_AGENTS_SPEC.md` | LangGraph agents, tools, prompts, guardrails, human-in-the-loop | Build |
+| `docs/06_AGENTS_SPEC.md` | Agents, tools, prompts, guardrails, human-in-the-loop (built: deterministic planner + optional Claude proposer/explainer, `apps/api/eventflow/agents/`) | Build |
 | `docs/07_UI_SPEC.md` | Screens, design tokens, 3D, Arabic/RTL, booth mode, offline mode | Build |
 | `docs/08_EVAL_PLAN.md` | Metrics, gold sets, thresholds, CI gate | Build |
 | `docs/09_DECISIONS.md` | Decision log (ADR) | Ongoing |
@@ -31,9 +31,10 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/11_MVP_ROADMAP.md` | Roadmap from the exhibit demo to a deployed MVP (phases, research, what each phase proves) | Planning |
 | `docs/superpowers/plans/` | Task-by-task implementation plans (first: the Vercel live demo) | Build |
 | `docs/BOOTH_RUNBOOK.md`, `docs/metrics.md` | Booth start / recover / shutdown; measured fps, memory, network results | Exhibit |
+| `docs/DEPLOY.md` | Live demo on Vercel (one URL, no env vars needed), smoke test, turning on Claude | Deploy |
 | `submission/` | Email to Dr. Rachit, full nomination content, image shot-list, checklist | Day 1–3 |
-| `submission/EventFlow_Twin_RTA_Nomination_DRAFT.pdf` | **Filled RTA template** (KPI-focused summary, touch-screen demonstrator, 4 images). Private: git-ignored | Attach to the email today |
-| `submission/images/` | 4 concept images (hero UI, AI options, simulator chart, architecture) | In the PDF; replace with real screenshots later |
+| `submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf` | **Filled RTA template, v2** (wording matched to the build, real screenshots). Private: git-ignored — regenerate with `fill_template.py` | Krishna checks, then to Dr. Rachit |
+| `submission/images/final/` | Real 1920×1080 screenshots of the twin (`apps/web/tests/final_shots.mjs`); `submission/images/*.png` are the old concept images | Nomination, poster, LinkedIn |
 | `submission/IMAGE_GEN_PROMPTS.md` | ChatGPT / text-to-image prompts for poster, booth and social visuals | Poster + social |
 | `submission/tools/` | `fill_template.py` (regenerates the filled PDF) + HTML sources of the images | When you edit text/images |
 | `exhibit/` | Booth plan, 90-second demo script, A1 poster copy, jury Q&A | Day 6–7 |
