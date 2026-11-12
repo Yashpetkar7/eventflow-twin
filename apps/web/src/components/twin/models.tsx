@@ -13,7 +13,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { live } from "./sceneData";
 
 export const MODEL_NAMES = ["burj_khalifa", "emirates_office_tower", "emirates_hotel_tower", "museum_of_the_future", "trade_centre_tower",
-  "dubai_frame", "metro_station", "metro_car"] as const;          // viaduct_segment.glb is built too; the scene sweeps its viaduct along the real track
+  "dubai_frame", "metro_station", "metro_car", "palm_a", "palm_b", "palm_c", "car", "bus"] as const;          // viaduct_segment.glb is built too; the scene sweeps its viaduct along the real track
 export type ModelName = (typeof MODEL_NAMES)[number];
 export type Parts = Record<string, THREE.BufferGeometry>;
 export interface Model { full: Parts; lod: Parts }

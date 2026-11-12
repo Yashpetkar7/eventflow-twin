@@ -71,7 +71,7 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 - `?scene=v2`: 32 % of the ring's building heights are still estimated; 3D-GloBFP heights are calibrated against OSM tags (decision #79); the
   ground is 10 m satellite data, soft in close-ups. Buildings are procedural by type (R3): set-backs are the footprint scaled about its centre, not real massing.
 - Building heights are estimated where OSM has no tag; sea-side towers are cut to podium height so stations stay visible.
-- Road traffic and crowd particles are illustrative. Interchanges are flat except simple flyover ramps.
+- Road traffic and crowd particles are illustrative (in `?scene=v2` the cars, taxis and buses are models, but their number and speed are still not simulated). Interchanges are flat except simple flyover ramps.
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
 - Sun timing is stylised (golden hour 16:30–18:30) in the default scene; `?scene=v2` uses the real sun for the event date (R2).
 - `?scene=v2` shadows are one camera-following map, not cascades; water depth near the shore is approximated from the mask.

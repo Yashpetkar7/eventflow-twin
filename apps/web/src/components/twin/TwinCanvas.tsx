@@ -64,11 +64,11 @@ function World({ data, manifest, models, tier }: { data: SceneJson; manifest: Ma
   return (
     <>
       <Sky frame={data.meta.frame} tier={tier} real={!!manifest} />
-      <City data={data} corridor={corridor} manifest={manifest} />
+      <City data={data} corridor={corridor} manifest={manifest} models={models} />
       <Landmarks data={data} models={models} />
       <Metro corridor={corridor} places={places} models={models} />
       <Trains corridor={corridor} models={models} />
-      <Traffic corridor={corridor} />
+      <Traffic corridor={corridor} models={models} />
       <Columns places={places} />
       <VenueBeacon data={data} />
       <Crowd places={places} />

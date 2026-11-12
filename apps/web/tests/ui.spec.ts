@@ -308,7 +308,7 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
   expect(await page.evaluate(() => document.documentElement.dataset.sceneV2Builder)).toBe("worker");
-  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("8");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
+  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("13");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
   await expect(page.getByTestId("synthetic-badge")).toBeVisible();
   await expect(page.locator(".labels, .label").first()).toBeAttached();         // station overlays still on top
   await page.getByTestId("credits").locator("summary").click();
@@ -319,7 +319,17 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   await page.screenshot({ path: `${OUT}/realism_v2_credits.png` });
   await page.getByTestId("credits").locator("summary").click();
   // R2: the sun comes from the scenario date (GITEX day 1, 13 Oct 2025) and the clock — solar noon ≈ 12:05, sunset ≈ 17:50
-  const sunAt = async (h: number) => { await twin(page, `t.setState({ time: ${h}, playing: false })`); await page.waitForTimeout(2200); return page.evaluate(() => (window as unknown as { __eft: { sun: { elevation: number; azimuth: number } } }).__eft.sun); };
+  // __eft is published about once a second of rendered frames; under load that is slower, so wait for two fresh
+  // publishes after the clock change instead of a fixed time (a fixed 2.2 s read the default 15:30 sun in a full run)
+  type Eft = { __eft: { frames: number; sun: { elevation: number; azimuth: number } } };
+  const sunAt = async (h: number) => {
+    await twin(page, `t.setState({ time: ${h}, playing: false })`);
+    for (let i = 0; i < 2; i++) {
+      const f0 = await page.evaluate(() => (window as unknown as Eft).__eft.frames);
+      await page.waitForFunction((f) => (window as unknown as Eft).__eft.frames > f, f0, { timeout: 30_000 });
+    }
+    return page.evaluate(() => (window as unknown as Eft).__eft.sun);
+  };
   const noon = await sunAt(12.09), dusk = await sunAt(17.83), night = await sunAt(21.5);
   expect(Math.abs(noon.elevation - 57.2), JSON.stringify(noon)).toBeLessThan(1.5);
   expect(Math.abs(noon.azimuth - 180), JSON.stringify(noon)).toBeLessThan(6);

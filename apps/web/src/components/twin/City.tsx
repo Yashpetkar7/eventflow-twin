@@ -1,12 +1,14 @@
 "use client";
 // The static city: ground map, water, extruded OpenStreetMap buildings with a procedural façade (lit windows at
 // night), major roads, the lane-marked Sheikh Zayed Road carriageways, flyovers, palms and street lights.
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTwin } from "@/lib/store";
 import { buildingsGeometry, canvasTexture, flatPolygons, ribbons, sweep } from "./builders";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { facadeMaterialV2 } from "./facade";
+import type { Models } from "./models";
 import { Ring } from "./Ring";
 import type { Manifest } from "@/lib/manifest";
 import { live, mulberry, pairs, Path, type SceneJson } from "./sceneData";
@@ -144,7 +146,94 @@ function highwayMaterial() {
   return m;
 }
 
-export function City({ data, corridor, manifest }: { data: SceneJson; corridor: Corridor; manifest: Manifest | null }) {
+const PALMS = ["palm_a", "palm_b", "palm_c"] as const;
+
+/** Realism scene (docs/13 R5): Blender palms instanced along Sheikh Zayed Road and on the tree pixels of the land-cover
+ *  mask inside the corridor, with wind sway in the vertex shader; street-light poles down the median. Park palms and
+ *  poles are extras: they go first when the quality tier drops. */
+function Greenery({ models, manifest, road, lamps }: { models: Models; manifest: Manifest; road: number[]; lamps: Float32Array }) {
+  const tier = useTwin((s) => s.tier);
+  const [park, setPark] = useState<number[]>([]);
+  const time = useMemo(() => ({ value: 0 }), []);
+  useEffect(() => {
+    let dead = false;
+    const e = manifest.extent, rnd = mulberry(41), out: number[] = [];
+    (async () => {
+      for (const c of manifest.chunks) {
+        if (!(c.extent[0] < e[1] && c.extent[1] > e[0] && c.extent[2] < e[3] && c.extent[3] > e[2])) continue;
+        const img = new Image();
+        img.src = `/geo/v2/${c.mask}`;
+        await img.decode();
+        const cv = document.createElement("canvas");
+        cv.width = img.width; cv.height = img.height;
+        const g = cv.getContext("2d", { willReadFrequently: true })!;
+        g.drawImage(img, 0, 0);
+        const px = g.getImageData(0, 0, img.width, img.height).data, w = c.extent[1] - c.extent[0], d = c.extent[3] - c.extent[2];
+        for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
+          if (px[(y * img.width + x) * 4] < 200 || rnd() > 0.35) continue;                 // red = tree cover (ESA WorldCover)
+          const wx = c.extent[0] + ((x + rnd()) / img.width) * w, wz = c.extent[2] + ((y + rnd()) / img.height) * d;
+          if (wx > e[0] && wx < e[1] && wz > e[2] && wz < e[3]) out.push(wx, wz, 0.8 + rnd() * 0.45);
+        }
+      }
+      if (!dead) setPark(out.slice(0, 1500 * 3));
+    })().catch(() => { /* no park palms */ });
+    return () => { dead = true; };
+  }, [manifest]);
+  const mats = useMemo(() => {
+    const leaf = new THREE.MeshStandardMaterial({ color: 0x5c8f45, roughness: 0.8, vertexColors: true, side: THREE.DoubleSide });
+    leaf.onBeforeCompile = (sh) => {
+      sh.uniforms.uTime = time;
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uTime;").replace("#include <begin_vertex>", `#include <begin_vertex>
+        float eftH = smoothstep(5.0, 11.0, position.y);                     // only the crown moves
+        #ifdef USE_INSTANCING
+          float eftPh = instanceMatrix[3].x * 0.05 + instanceMatrix[3].z * 0.07;
+        #else
+          float eftPh = 0.0;
+        #endif
+        transformed.x += sin(uTime * 1.3 + eftPh + position.y * 0.3) * 0.22 * eftH;
+        transformed.z += cos(uTime * 1.1 + eftPh) * 0.16 * eftH;`);
+    };
+    return { leaf, trunk: new THREE.MeshStandardMaterial({ color: 0x8a6a45, roughness: 0.9, vertexColors: true }), pole: new THREE.MeshStandardMaterial({ color: 0x8c9096, roughness: 0.6, metalness: 0.4 }) };
+  }, [time]);
+  const pole = useMemo(() => mergeGeometries([new THREE.CylinderGeometry(0.11, 0.16, 11.5, 6).translate(0, 5.75, 0), new THREE.BoxGeometry(3.4, 0.14, 0.2).translate(0, 11.4, 0)])!, []);
+  useEffect(() => () => { Object.values(mats).forEach((m) => m.dispose()); pole.dispose(); }, [mats, pole]);
+  useFrame(() => { time.value = live.animT; });
+  // every third palm of each list goes to each variant; a seeded turn so the leans differ
+  const sets = useMemo(() => PALMS.map((_, v) => {
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), out: { m: THREE.Matrix4; park: boolean }[] = [];
+    const add = (list: number[], isPark: boolean) => {
+      for (let i = v * 3; i < list.length; i += 9) {
+        const s = list[i + 2];
+        out.push({ m: m.clone().compose(new THREE.Vector3(list[i], 0, list[i + 1]), q.setFromAxisAngle(up, (i * 2.399) % 6.283), new THREE.Vector3(s, s, s)), park: isPark });
+      }
+    };
+    add(road, false); add(park, true);
+    return out;
+  }), [road, park]);
+  const fill = (list: { m: THREE.Matrix4; park: boolean }[]) => (im: THREE.InstancedMesh | null) => {
+    if (!im) return;
+    const zero = new THREE.Matrix4().makeScale(0, 0, 0);
+    list.forEach((p, i) => im.setMatrixAt(i, p.park && tier > 0 ? zero : p.m));
+    im.instanceMatrix.needsUpdate = true;
+  };
+  const poles = useMemo(() => { const m = new THREE.Matrix4(), out: THREE.Matrix4[] = []; for (let i = 0; i < lamps.length; i += 3) out.push(m.clone().makeTranslation(lamps[i], 0, lamps[i + 2])); return out; }, [lamps]);
+  return (
+    <group>
+      {PALMS.map((name, v) => sets[v].length > 0 && (
+        <group key={`${name}-${sets[v].length}-${tier}`}>
+          <instancedMesh args={[models[name].full.trunk, mats.trunk, sets[v].length]} ref={fill(sets[v])} castShadow frustumCulled={false} />
+          <instancedMesh args={[models[name].full.leaf, mats.leaf, sets[v].length]} ref={fill(sets[v])} castShadow frustumCulled={false} />
+        </group>
+      ))}
+      {tier === 0 && poles.length > 0 && (
+        <instancedMesh args={[pole, mats.pole, poles.length]} frustumCulled={false}
+          ref={(im) => { if (im) { poles.forEach((mm, i) => im.setMatrixAt(i, mm)); im.instanceMatrix.needsUpdate = true; } }} />
+      )}
+    </group>
+  );
+}
+
+export function City({ data, corridor, manifest, models = null }: { data: SceneJson; corridor: Corridor; manifest: Manifest | null; models?: Models | null }) {
   const showBuildings = useTwin((s) => s.layers.buildings);
   const groundTex = useLoader(THREE.TextureLoader, `/geo/${data.meta.ground.file}`);
   const uniforms = useMemo(() => ({ uNight: { value: 0 } }), []);
@@ -291,8 +380,12 @@ export function City({ data, corridor, manifest }: { data: SceneJson; corridor: 
       <group visible={showBuildings}>
         <mesh geometry={built.buildings} material={mats.facade} castShadow receiveShadow />
         <mesh geometry={built.ghosts} material={mats.ghost} renderOrder={2} />
-        <instancedMesh args={[palmGeo.trunk, mats.trunk, palmMatrices.length]} ref={(im) => { if (im) { palmMatrices.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; } }} castShadow />
-        <instancedMesh args={[palmGeo.crown, mats.leaf, palmMatrices.length]} ref={(im) => { if (im) { palmMatrices.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; } }} castShadow />
+        {manifest && models ? <Greenery models={models} manifest={manifest} road={built.palms} lamps={built.lamps} /> : (
+          <>
+            <instancedMesh args={[palmGeo.trunk, mats.trunk, palmMatrices.length]} ref={(im) => { if (im) { palmMatrices.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; } }} castShadow />
+            <instancedMesh args={[palmGeo.crown, mats.leaf, palmMatrices.length]} ref={(im) => { if (im) { palmMatrices.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; } }} castShadow />
+          </>
+        )}
       </group>
       <points material={mats.lamp} frustumCulled={false}>
         <bufferGeometry>

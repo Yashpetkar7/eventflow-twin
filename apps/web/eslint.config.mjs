@@ -22,6 +22,8 @@ const eslintConfig = defineConfig([
     "reference/**",
     "playwright-report/**",
     "test-results/**",
+    // Vendored three.js Draco decoder (minified, Apache-2.0), served as-is for the realism models
+    "public/draco/**",
   ]),
 ]);
 

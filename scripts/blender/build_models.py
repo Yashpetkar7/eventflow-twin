@@ -35,6 +35,7 @@ COLOURS = {                         # preview colours only; the web app supplies
     "gold": (0.83, 0.68, 0.33, 0.9, 0.28), "green": (0.36, 0.56, 0.28, 0.0, 0.9), "mof": (0.88, 0.89, 0.9, 0.7, 0.3),
     "dwtc": (0.9, 0.87, 0.8, 0.0, 0.65), "shell": (0.83, 0.7, 0.42, 0.82, 0.3), "red": (0.85, 0.06, 0.06, 0.0, 0.5),
     "body": (0.95, 0.96, 0.97, 0.4, 0.3), "win": (0.1, 0.15, 0.22, 0.6, 0.2),
+    "trunk": (0.5, 0.39, 0.26, 0.0, 0.9), "leaf": (0.27, 0.46, 0.2, 0.0, 0.8), "roof": (0.9, 0.9, 0.9, 0.3, 0.4),
 }
 
 
@@ -398,10 +399,66 @@ def metro_car():
     return join(parts, "metro_car"), {"length_m": length, "cars_per_train": 5, "source": "https://en.wikipedia.org/wiki/Dubai_Metro"}
 
 
+def date_palm(name, height, fronds, lean, seed):
+    """Date palm (R5): a leaning, tapering trunk and a crown of drooping fronds. Origin at the foot of the trunk."""
+    import random
+    rnd = random.Random(seed)
+    parts, segs = [], 6
+    for i in range(segs):                                             # trunk: stacked frusta that drift sideways
+        z0, z1 = height * i / segs, height * (i + 1) / segs
+        r0, r1 = 0.42 - 0.16 * i / segs, 0.42 - 0.16 * (i + 1) / segs
+        o = cyl(r0, r1, z1 - z0, (lean * ((i + 0.5) / segs) ** 2, 0, (z0 + z1) / 2), "trunk", 7, smooth=True)
+        parts.append(o)
+    top = (lean, 0.0, height)
+    parts.append(cyl(0.5, 0.3, 0.9, (lean, 0, height + 0.1), "trunk", 7, smooth=True))       # crown boss
+    for f in range(fronds):
+        ang = 2 * math.pi * f / fronds + rnd.uniform(-0.2, 0.2)
+        length, rise, droop = rnd.uniform(3.6, 4.8), rnd.uniform(0.6, 2.0), rnd.uniform(2.4, 3.8)
+        dx, dy = math.cos(ang), math.sin(ang)
+        verts, faces, n = [], [], 6
+        for k in range(n + 1):
+            t = k / n
+            cx, cy, cz = top[0] + dx * length * t, top[1] + dy * length * t, top[2] + rise * t - droop * t * t
+            w = 0.55 * (1 - t) ** 0.7 + 0.04
+            verts += [(cx - dy * w, cy + dx * w, cz - 0.25 * w), (cx, cy, cz + 0.1), (cx + dy * w, cy - dx * w, cz - 0.25 * w)]
+        for k in range(n):
+            a = k * 3
+            faces += [(a, a + 3, a + 4, a + 1), (a + 1, a + 4, a + 5, a + 2)]
+        parts.append(from_faces(verts, faces, "leaf", smooth=True))
+    return join(parts, name), {"height_m": height, "source": "https://en.wikipedia.org/wiki/Date_palm"}
+
+
+def car():
+    """A generic saloon, 4.5 m, no badge or logo: body (the web app colours it per car), cabin glass, roof panel
+    (cream cars get a coloured roof = Dubai taxi livery), wheels. Origin on the road under the centre; length along X."""
+    lower = box((4.5, 1.8, 0.62), (0, 0, 0.62), "body")
+    bpy.context.view_layer.objects.active = lower
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    mod = lower.modifiers.new("bevel", "BEVEL")
+    mod.width, mod.segments = 0.12, 1
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    parts = [lower, box((2.5, 1.62, 0.5), (-0.15, 0, 1.17), "win"), box((2.3, 1.52, 0.07), (-0.15, 0, 1.45), "roof")]
+    for x in (-1.45, 1.45):
+        for y in (-0.9, 0.9):
+            parts.append(cyl(0.33, 0.33, 0.24, (x, y, 0.33), "win", 8, rot=(math.radians(90), 0, 0)))
+    return join(parts, "car"), {"length_m": 4.5, "source": "generic vehicle, no real model"}
+
+
+def bus():
+    """A generic 12 m city bus, no livery or logo: body, window band, roof unit, wheels."""
+    parts = [box((12.0, 2.55, 2.75), (0, 0, 1.75), "body"), box((11.4, 2.59, 1.0), (0, 0, 2.15), "win"), box((4.0, 1.8, 0.3), (-1.5, 0, 3.27), "body")]
+    for x in (-3.9, 3.6):
+        for y in (-1.28, 1.28):
+            parts.append(cyl(0.5, 0.5, 0.3, (x, y, 0.5), "win", 8, rot=(math.radians(90), 0, 0)))
+    return join(parts, "bus"), {"length_m": 12.0, "source": "generic vehicle, no real model"}
+
+
 MODELS = [
     (burj_khalifa, (), 60000), (lambda: emirates_tower("emirates_office_tower", 355.0, 54.0), (), 25000),
     (lambda: emirates_tower("emirates_hotel_tower", 309.0, 48.0), (), 25000), (museum_of_the_future, (), 25000),
     (trade_centre_tower, (), 25000), (dubai_frame, (), 25000), (metro_station, (), 15000), (viaduct_segment, (), 15000), (metro_car, (), 8000),
+    (lambda: date_palm("palm_a", 9.0, 15, 0.6, 1), (), 1500), (lambda: date_palm("palm_b", 11.0, 17, -0.9, 2), (), 1500),
+    (lambda: date_palm("palm_c", 7.2, 13, 0.3, 3), (), 1500), (car, (), 1500), (bus, (), 1500),
 ]
 
 
