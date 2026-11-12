@@ -10,6 +10,7 @@ import glob
 import json
 import os
 import threading
+import time
 import uuid
 from collections import OrderedDict
 from pathlib import Path
@@ -22,6 +23,7 @@ from fastapi.responses import JSONResponse
 from .config import ROOT, corridor, events
 from .forecast import NoDataError, build_forecast, config_hash, load_panel, make_run_id
 from .interventions import InterventionError, validate_interventions
+from .ratelimit import RateLimit
 from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
@@ -30,6 +32,18 @@ app = FastAPI(title="EventFlow Twin API", version=CONTRACT_VERSION)
 # The web app runs on the same machine (any local port: dev 3000, booth build, test builds). Nothing remote is allowed.
 app.add_middleware(CORSMiddleware, allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
                    allow_methods=["GET", "POST"], allow_headers=["*"])
+
+# Public demo only: EVENTFLOW_RATE_LIMIT = POST requests per minute per client (unset on the laptop: no limit).
+_LIMIT = RateLimit(int(os.environ["EVENTFLOW_RATE_LIMIT"])) if os.environ.get("EVENTFLOW_RATE_LIMIT") else None
+
+
+@app.middleware("http")
+async def _rate_limit(request: Request, call_next):
+    if _LIMIT is not None and request.method == "POST":
+        fwd = request.headers.get("x-forwarded-for") or (request.client.host if request.client else "unknown")
+        if not _LIMIT.allow(fwd.split(",")[0].strip(), time.monotonic()):
+            return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again in a minute."})
+    return await call_next(request)
 
 # Writable state. Laptop / booth: <repo>/data (kept between runs). Serverless: a temp directory per instance —
 # set EVENTFLOW_DATA_DIR=/tmp/eventflow and EVENTFLOW_STORAGE=ephemeral so the UI can say decisions are not kept.

@@ -57,3 +57,20 @@ def test_plan_cache_reads_shipped_and_writes_to_data_dir(client, tmp_path, monke
     assert not first["cached"] and list(writable.glob("plan_*.json")) and not shipped.exists()
     again = client.post("/agent/plan", json={"forecast_run_id": fc["run_id"], "scope": "corridor"}).json()
     assert again["cached"] and again["options"] == first["options"]
+
+
+def test_rate_limit_sliding_window():
+    from apps.api.eventflow.ratelimit import RateLimit
+    rl = RateLimit(per_minute=3)
+    assert [rl.allow("a", t) for t in (0, 1, 2, 3)] == [True, True, True, False]
+    assert rl.allow("b", 3)                    # another client is not affected
+    assert rl.allow("a", 61.5)                 # the first hits have left the window
+
+
+def test_rate_limit_middleware_returns_429(monkeypatch):
+    from apps.api.eventflow.ratelimit import RateLimit
+    monkeypatch.setattr(main, "_LIMIT", RateLimit(per_minute=2))
+    c = TestClient(main.app)
+    codes = [c.post("/forecast", json=SPEC).status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+    assert c.get("/healthz").status_code == 200              # reads are never limited
