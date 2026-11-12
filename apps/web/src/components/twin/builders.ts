@@ -6,7 +6,8 @@ const TOWER_TINTS = [0x9fb9d2, 0x7499bd, 0xd9c49e, 0x8eabc6, 0xc3ccd6, 0x5f86ad,
 const LOW_TINTS = [0xe3d9c6, 0xd8c9ae, 0xece5d8, 0xcdbd9f, 0xe0d5c0, 0xd4c7b0, 0xe8dcc6];
 
 /** Extrude every footprint: walls carry (perimeter, height) in metres for the procedural façade, roofs are flat. */
-export function buildingsGeometry(list: number[][], opts: { roof?: boolean } = {}): THREE.BufferGeometry {
+/** `roofs`: one sRGB colour per building (sampled from the satellite image by the v2 bake) instead of the neutral roof. */
+export function buildingsGeometry(list: number[][], opts: { roof?: boolean; roofs?: number[] } = {}): THREE.BufferGeometry {
   const rnd = mulberry(11);
   let nv = 0, ni = 0;
   for (const b of list) { const n = (b.length - 2) / 2; nv += n * 4 + n; ni += n * 6 + (n - 2) * 3; }
@@ -14,8 +15,9 @@ export function buildingsGeometry(list: number[][], opts: { roof?: boolean } = {
   const col = new Float32Array(nv * 3), seed = new Float32Array(nv), win = new Float32Array(nv);
   const idx = new Uint32Array(ni);
   const c = new THREE.Color(), roof = new THREE.Color();
-  let v = 0, k = 0;
+  let v = 0, k = 0, bi = -1;
   for (const b of list) {
+    bi++;
     const h = b[0], y0 = b[1], n = (b.length - 2) / 2;
     const tall = h > 30;
     c.setHex(tall ? TOWER_TINTS[Math.floor(rnd() * TOWER_TINTS.length)] : LOW_TINTS[Math.floor(rnd() * LOW_TINTS.length)]);
@@ -38,7 +40,8 @@ export function buildingsGeometry(list: number[][], opts: { roof?: boolean } = {
       per += len;
     }
     if (opts.roof !== false) {
-      roof.setHex(0xb9ad98).lerp(c, 0.3).offsetHSL(0, 0, (sd - 0.5) * 0.08);      // roofs: neutral concrete, a hint of the façade
+      if (opts.roofs) roof.setHex(opts.roofs[bi]);
+      else roof.setHex(0xb9ad98).lerp(c, 0.3).offsetHSL(0, 0, (sd - 0.5) * 0.08);      // roofs: neutral concrete, a hint of the façade
       const contour: THREE.Vector2[] = [];
       for (let i = 0; i < n; i++) contour.push(new THREE.Vector2(b[2 + i * 2], b[3 + i * 2]));
       const tris = THREE.ShapeUtils.triangulateShape(contour, []);

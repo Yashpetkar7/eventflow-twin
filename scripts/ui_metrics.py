@@ -15,6 +15,46 @@ def load(p: Path) -> dict | None:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
+def realism_rows() -> list[str]:
+    """Realism ring (docs/13, R1): provenance and counts straight from the bake's manifest."""
+    geo = ROOT / "apps/web/public/geo"
+    v2 = load(geo / "v2/manifest.json")
+    if not v2:
+        return []
+    c, cal = v2["counts"], v2["counts"]["globfp_calibration"]
+    files = [f for f in geo.rglob("*") if f.is_file()]
+    biggest = max(files, key=lambda f: f.stat().st_size)
+    out = [f"## Realism ring, `?scene=v2` (docs/13 R1 — apps/web/public/geo/v2, generated {v2['generated']})",
+           "Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/`, git-ignored) and",
+           "`python scripts/build_scene.py --only v2`: a 20 km × 20 km ring in 16 chunks of 5 km over a 40 km overview.", "",
+           "| Dataset | Source | Licence | Date | Count |", "|---|---|---|---|---|"]
+    out += [f"| {p['dataset']} | {p['source']} | {p['licence']} | {p['date']} | {p['count']} |" for p in v2["provenance"]]
+    out += ["", "| Height source, in priority order | Buildings |", "|---|---|"]
+    out += [f"| {'**estimated**' if k == 'estimated' else k} | {n} |" for k, n in c["by_height_source"].items()]
+    out += [f"| Total | {c['buildings']} (+ {c['ghosted_tops']} sea-side towers ghosted above {v2['camera_side_cut_m']:.0f} m) |", "",
+            "| Type class | " + " | ".join(c["by_class"]) + " |", "|---|" + "---|" * len(c["by_class"]),
+            "| Buildings | " + " | ".join(str(n) for n in c["by_class"].values()) + " |", "",
+            f"3D-GloBFP calibration: raw 3D-GloBFP heights were compared with the OpenStreetMap-tagged height of the same {cal['pairs']} buildings",
+            "and mapped onto them (median tagged height per quantile bin, monotone). Raw 3D-GloBFP m → used m: "
+            + ", ".join(f"{g} → {t}" for g, t in cal["table"]) + ".", "",
+            f"Size: `apps/web/public/geo` {sum(f.stat().st_size for f in files) / 1e6:.1f} MB (limit 60), largest file "
+            f"`{biggest.name}` {biggest.stat().st_size / 1e6:.2f} MB (limit 15).", ""]
+    before, after = load(UI / "realism/before_fps.json"), load(UI / "realism/after_fps.json")
+    if before and after:
+        out += ["15 before/after pairs (5 camera presets × 10:00, 17:30, 21:30) in `eval/results/ui/realism/` "
+                "(`node tests/polish.mjs before realism`, `node tests/polish.mjs after realism \"?scene=v2\"`), 1920×1080, dev mode, clock paused.", "",
+                "| | Average fps | Minimum |", "|---|---|---|",
+                f"| Before, corridor scene (`before_fps.json`, {before['timestamp']}) | {before['avg_fps']} | {before['min_fps']} |",
+                f"| After, `?scene=v2` (`after_fps.json`, {after['timestamp']}) | {after['avg_fps']} | {after['min_fps']} |", ""]
+    v2fps = load(UI / "fps_v2.json")
+    if v2fps:
+        out += [f"`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, {v2fps['timestamp']}, test \"realism ring…\"): "
+                f"average **{v2fps['avg_fps']}** fps, minimum 1-second sample {v2fps['min_fps']}.", ""]
+    else:
+        out += ["`?scene=v2` with the clock playing: **not yet measured on mains power** (the UI test \"realism ring…\" writes `fps_v2.json`).", ""]
+    return out
+
+
 def main() -> None:
     fps, net = load(UI / "fps.json"), load(UI / "network.json")
     sc = json.loads((ROOT / "apps/web/public/geo/corridor_scene.json").read_text(encoding="utf-8"))
@@ -78,6 +118,7 @@ def main() -> None:
             f"| Sea-side towers drawn solid to {sc['meta']['camera_side_cut_m']:.0f} m, ghosted above | {len(sc['ghosts'])} |",
             f"| Major road ribbons / flyover chains / water bodies | {len(sc['roads'])} / {len(sc['flyovers'])} / {len(sc['water'])} |",
             f"| Red Line centreline | {sc['meta']['metro_source']} |", "",
+            *realism_rows(),
             "## UI tests",
             f"`apps/web/tests/ui.spec.ts` — {n_tests} Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,",
             "My plan, recentre, landmarks, overlay overlap, quality tier, crash recovery, table + WebGL fallback, offline, API down,",

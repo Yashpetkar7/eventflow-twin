@@ -299,6 +299,37 @@ test("API down: saved results keep the twin alive", async ({ page }) => {
   await expect(page.locator(".kpi").first()).toContainText("%");
 });
 
+test("realism ring (?scene=v2): every chunk streams in offline and the credits list each dataset", async ({ page }) => {
+  const external: string[] = [], failed: string[] = [];
+  page.on("request", (r) => { const h = new URL(r.url()).hostname; if (!["localhost", "127.0.0.1"].includes(h) && !/^(data|blob):/.test(r.url())) external.push(r.url()); });
+  page.on("response", (r) => { if (r.url().includes("/geo/v2/") && !r.ok()) failed.push(r.url()); });
+  await open(page, "/?scene=v2");
+  await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
+  await expect(page.getByTestId("synthetic-badge")).toBeVisible();
+  await expect(page.locator(".labels, .label").first()).toBeAttached();         // station overlays still on top
+  await page.getByTestId("credits").locator("summary").click();
+  const rows = page.getByTestId("credits").locator("tbody tr");
+  expect(await rows.count()).toBeGreaterThanOrEqual(8);
+  for (const name of ["Overture Maps", "Sentinel-2", "ESA WorldCover", "Copernicus DEM", "3D-GloBFP", "ESTIMATED"]) await expect(page.getByTestId("credits")).toContainText(name);
+  await settle(page, 2500);
+  await page.screenshot({ path: `${OUT}/realism_v2_credits.png` });
+  await page.getByTestId("credits").locator("summary").click();
+  expect(failed).toEqual([]);
+  expect(external).toEqual([]);
+  await twin(page, "t.setState({ playing: true, speed: 1 })");
+  const fps: Record<string, number[]> = {};                                    // same protocol as the performance test below
+  for (const cam of ["overview", "close", "top", "fly", "orbit"]) {
+    await twin(page, `t.getState().setCam('${cam}')`);
+    await page.waitForTimeout(3000);
+    fps[cam] = [];
+    for (let i = 0; i < 5; i++) { await page.waitForTimeout(1000); fps[cam].push(+(await page.evaluate(() => (window as unknown as TwinWindow).__eft?.fps ?? 0)).toFixed(1)); }
+  }
+  const all = Object.values(fps).flat();
+  fs.writeFileSync(`${OUT}/fps_v2.json`, JSON.stringify({ suite: "ui_fps_v2", timestamp: new Date().toISOString(), viewport: "1920x1080", layers: "all on, clock playing, ?scene=v2", mode: process.env.EFT_MODE ?? "next dev",
+    avg_fps: +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1), min_fps: Math.min(...all), tier_at_end: await page.evaluate(() => (window as unknown as { __eft?: { tier: number } }).__eft?.tier ?? -1), samples: fps }, null, 2));
+  expect(Math.min(...all), JSON.stringify(fps)).toBeGreaterThanOrEqual(50);    // the floor of the common rules
+});
+
 test("performance: fps with every layer on (1920×1080)", async ({ page }) => {
   await open(page);
   await twin(page, "t.setState({ playing: true, speed: 1 })");
