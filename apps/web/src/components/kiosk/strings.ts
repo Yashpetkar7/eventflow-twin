@@ -61,6 +61,7 @@ export const K = {
     disclaimer: "Research prototype by SP Jain MAIB students. Demand is synthetic; results are simulated. Designed for RTA's priorities — not an RTA system.",
     credits: "Map © OpenStreetMap contributors · Timetable: RTA open data (GTFS)",
     // ---- two ways in, jury mode
+    loadingCity: "Loading the 3D city…",
     cTitle: "What brings you here?",
     cPlanner: "I'm planning the event", cPlannerSub: "See the crowd, ask the AI, approve a plan",
     cRider: "I'm travelling to the event", cRiderSub: "Find the best time and station to leave from",
@@ -185,6 +186,7 @@ export const K = {
     stillBtn: "ما زلت هنا",
     disclaimer: "نموذج بحثي من طلاب ماجستير الذكاء الاصطناعي في الأعمال، إس بي جاين. الطلب اصطناعي والنتائج محاكاة. صُمّم وفق أولويات الهيئة — وليس نظامًا تابعًا لها.",
     credits: "الخريطة © مساهمو OpenStreetMap · الجدول الزمني: بيانات الهيئة المفتوحة (GTFS)",
+    loadingCity: "جارٍ تحميل المدينة ثلاثية الأبعاد…",
     cTitle: "ما الذي أتى بك؟",
     cPlanner: "أخطّط للفعالية", cPlannerSub: "شاهد الحشد، اسأل الذكاء الاصطناعي، واعتمد خطة",
     cRider: "أنا ذاهب إلى الفعالية", cRiderSub: "اعرف أفضل وقت ومحطة للمغادرة",

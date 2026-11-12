@@ -15,7 +15,7 @@ Date: ______  Names on the stand: ______________________
 - [ ] Kiosk shows the attract screen with the realistic city; touch → **I'm planning the event** → ① Event → ② guess a station → ③ your idea, then the AI's plans → ④ approve → **Start again**
 - [ ] Touch → **I'm travelling to the event** → a tip appears (station, time, how full) → **Finish**
 - [ ] Touch → **Show me in 60 seconds** → it plays to "Before and after" and returns to the attract screen by itself
-- [ ] If the city stutters: open `http://localhost:3000/?kiosk=1&scene=v1` instead (older, lighter city)
+- [ ] If the city stutters: open `http://localhost:3000/?kiosk=1&quality=light`; if it still does, `http://localhost:3000/?kiosk=1&scene=v1` (older, lighter city)
 - [ ] Hold the logo 3 s → full workspace opens; **Touch kiosk** brings the visitor kiosk back
 - [ ] In the full workspace, tap **Guided demo** and let it finish
 - [ ] Tap **World Trade Centre** → Station tab shows the **Break point** card

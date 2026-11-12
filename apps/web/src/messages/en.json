@@ -265,5 +265,6 @@
   },
   "railTabs": "Scenario and settings",
   "railScenario": "Scenario",
-  "railSettings": "Settings"
+  "railSettings": "Settings",
+  "loadingCity": "Loading the 3D city…"
 }

@@ -318,3 +318,11 @@ dialog.welcome .note { font-size: 12px; }
 }
 @media (max-width: 640px) { .railtabs { display: none; } }
 body.kiosk .railtabs { display: none; }
+
+/* ---- "Loading the 3D city… 6/16" while the realism scene streams in */
+.sceneprog { position: absolute; z-index: 7; inset-block-start: 50%; inset-inline-start: 50%; transform: translate(-50%, -50%); min-width: 250px; padding: 12px 18px 16px;
+  border-radius: 14px; background: rgba(8, 16, 38, .82); color: #fff; font-size: 14px; font-weight: 550; box-shadow: 0 10px 30px rgba(0, 0, 0, .28); overflow: hidden; pointer-events: none; }
+[dir="rtl"] .sceneprog { transform: translate(50%, -50%); }
+.sceneprog span { display: block; white-space: nowrap; } .sceneprog b { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 500; }
+.sceneprog i { position: absolute; inset-block-end: 0; inset-inline-start: 0; height: 4px; background: #5CC8FF; transition: width .4s ease; }
+.kiosk-root .sceneprog { font-size: calc(18px * var(--kz, 1)); inset-block-start: 34%; }

@@ -8,6 +8,7 @@ import { LANDMARK_KEYS, LANDMARK_STATION, type LandmarkKey } from "@/lib/landmar
 import { loadManifest, type Manifest } from "@/lib/manifest";
 import { HOURS, hourOf, lfAt, T_MAX, T_MIN, useTwin } from "@/lib/store";
 import { LabelLayer } from "./LabelLayer";
+import { SceneProgress } from "./SceneProgress";
 
 // The canvas (three.js and the scene code) is a separate chunk, loaded after the page shell and the poster.
 const TwinCanvas = dynamic(() => import("./twin/TwinCanvas"), { ssr: false });
@@ -246,6 +247,7 @@ export function Stage() {
         {show3d && <TwinCanvas label={t("canvasAria")} />}
         {show3d && <div className={`poster${ready ? " hide" : ""}`} style={{ backgroundImage: "url(/poster.jpg)" }} aria-hidden="true" />}
         {show3d && <LabelLayer />}
+        {show3d && <SceneProgress text={t("loadingCity")} />}
         <div className="viewtop">
           <div className="hudcol"><Hud />{show3d && <FocusChip />}</div>
           <Kpis />
