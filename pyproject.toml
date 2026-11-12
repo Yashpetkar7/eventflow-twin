@@ -1,0 +1,28 @@
+# Runtime dependencies of the hosted API (Vercel). The laptop / booth / CI setup still uses requirements.txt,
+# which adds LightGBM, scikit-learn, pytest and uvicorn for training, evaluation and local serving.
+[project]
+name = "eventflow-twin-api"
+version = "1.6.0"
+description = "EventFlow Twin API — research prototype (synthetic baseline; not an RTA system)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.162.4",
+    "pydantic==2.14.3",
+    "numpy==2.4.6",
+    "pandas==3.1.1",
+    "pyarrow==26.0.1",
+    "PyYAML==6.0.3",
+    "tzdata==2025.3",
+]
+
+# Dependency-only package: Vercel installs this project with `uv pip install .`; the API code itself is served
+# from the repository files, so nothing is packaged (without this, setuptools refuses the multi-folder layout).
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = []
+
+[tool.vercel]
+entrypoint = "apps.api.eventflow.vercel_entry:app"

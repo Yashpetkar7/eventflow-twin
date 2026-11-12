@@ -1,0 +1,23 @@
+# Not needed by the hosted demo (keeps the API bundle small; the web service only needs apps/web).
+.venv
+**/__pycache__
+**/.pytest_cache
+data/raw
+data/processed
+data/interim
+submission
+exhibit
+tests
+eval/results/ui
+eval/proofs
+eval/gold
+apps/web/node_modules
+apps/web/.next
+apps/web/tests
+apps/web/test-results
+apps/web/reference
+contract/fixtures
+docs
+*.zip
+*.pdf
+.DS_Store

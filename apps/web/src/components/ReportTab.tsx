@@ -24,6 +24,8 @@ export function ReportTab() {
   const applied = useTwin((s) => s.applied);
   const [ev, setEv] = useState<Evidence | null>(null);
   const [saved, setSaved] = useState(false);
+  const [storage, setStorage] = useState<string | undefined>();
+  useEffect(() => { api.health().then((h) => setStorage(h.storage)).catch(() => {}); }, []);
   useEffect(() => { api.evidence().then(setEv).catch(() => setEv(null)); }, [log.length]);
   if (!base || !cur || !fc) return <div className="empty">…</div>;
   const b = base.resp.summary, c = cur.resp.summary;
@@ -77,6 +79,7 @@ export function ReportTab() {
       <div className="card">
         <h2>{t("decisions")}</h2>
         {log.length ? <ol className="log">{log.map((l, i) => <li key={i}><bdi>{line(l)}</bdi></li>)}</ol> : <div className="empty">{t("noDecisions")}</div>}
+        {storage === "ephemeral" && <div className="note" style={{ marginTop: 6 }}>{t("report.ephemeral")}</div>}
       </div>
       <div className="card">
         <h2>{t("report.evidence")}</h2>

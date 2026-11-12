@@ -179,6 +179,7 @@ table.data th { color: var(--ink-3); font-weight: 500; }
 .ctl .head { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: 500; }
 .ctl .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .ftr { padding: 6px 18px; font-size: 11px; color: var(--ink-3); border-block-start: 1px solid var(--line); background: var(--surface); }
+.banner.demo { background: var(--navy-soft); color: var(--navy); }
 .banner { background: var(--amber-soft); color: var(--amber-ink); font-size: 12.5px; padding: 6px 18px; border-block-end: 1px solid var(--line); }
 dialog.how { border: 0; border-radius: 18px; max-width: 720px; width: calc(100% - 32px); padding: 24px; background: var(--surface); color: var(--ink); }
 dialog.how::backdrop { background: rgba(10, 14, 22, 0.5); }

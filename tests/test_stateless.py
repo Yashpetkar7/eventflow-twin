@@ -74,3 +74,24 @@ def test_rate_limit_middleware_returns_429(monkeypatch):
     codes = [c.post("/forecast", json=SPEC).status_code for _ in range(3)]
     assert codes == [200, 200, 429]
     assert c.get("/healthz").status_code == 200              # reads are never limited
+
+
+def test_vercel_entry_serves_the_api_with_and_without_the_prefix():
+    from apps.api.eventflow.vercel_entry import app
+    c = TestClient(app)
+    assert c.get("/api/healthz").json()["ok"] and c.get("/healthz").json()["ok"]
+    assert len(c.get("/api/stations").json()) == len(c.get("/stations").json()) > 6
+
+
+def test_vercel_entry_defaults_on_vercel(tmp_path):
+    """On Vercel (VERCEL=1) the entrypoint picks a temp data folder, ephemeral storage and a rate limit by itself."""
+    import os
+    import subprocess
+    import sys
+    code = ("from fastapi.testclient import TestClient; from apps.api.eventflow.vercel_entry import app; "
+            "from apps.api.eventflow import main; import os; c = TestClient(app); "
+            "print(c.get('/api/healthz').json()['storage'], main.DECISIONS_LOG.parent.parent, main._LIMIT.per_minute)")
+    env = {k: v for k, v in os.environ.items() if not k.startswith("EVENTFLOW_")}
+    out = subprocess.run([sys.executable, "-c", code], env={**env, "VERCEL": "1"}, capture_output=True, text=True,
+                         cwd=str(main.ROOT), check=True).stdout.split()
+    assert out == ["ephemeral", "/tmp/eventflow", "60"]

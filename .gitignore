@@ -32,3 +32,8 @@ apps/web/public/map/maplibre-gl-worker.mjs
 # sync-conflict copies (the project folder sits in a synced Desktop)
 * 2.*
 * 3.*
+
+# Python packaging leftovers (pyproject.toml is dependency-only, for Vercel)
+/build/
+*.egg-info/
+.vercel

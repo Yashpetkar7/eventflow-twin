@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { isPublicDemo } from "@/lib/api";
 import { I18nProvider, useLocale } from "@/lib/i18n";
 import { useTwin } from "@/lib/store";
 import { armIdle, runTour, stopTour, watchApi } from "@/lib/tour";
@@ -54,6 +55,7 @@ function Workspace() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", minHeight: 640 }}>
       <Header onHow={() => setHow(true)} onTour={() => void runTour(locale)} />
+      {isPublicDemo() && <div className="banner demo" role="note">{t("publicDemo")}</div>}
       {(apiDown || error) && <div className="banner" role="status">{apiDown ? t("apiDown") : t("apiError", { msg: error ?? "" })}</div>}
       <main className={`app${expanded ? " expanded" : ""}`}>
         <Rail />

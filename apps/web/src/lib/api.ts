@@ -23,7 +23,14 @@ export type DecisionRequest = S["DecisionRequest"];
 export type DecisionResponse = S["DecisionResponse"];
 export type Intervention = NonNullable<S["SimulateRequest"]["interventions"]>[number];
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/** True when the page is served from this machine (laptop, booth). */
+export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+
+/** API address: NEXT_PUBLIC_API_URL if set; on this machine the local API on :8000; anywhere else (a hosted
+ *  deployment) the same origin under /api, where vercel.json routes the Python service. */
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? (isLocalHost() ? "http://localhost:8000" : "/api");
+/** Hosted public demo (any non-local host, or forced with NEXT_PUBLIC_PUBLIC_DEMO=1): shows the research banner. */
+export const isPublicDemo = () => process.env.NEXT_PUBLIC_PUBLIC_DEMO === "1" || !isLocalHost();
 
 export class ApiError extends Error {
   constructor(public status: number, public detail: string) {
@@ -103,7 +110,7 @@ export interface Evidence {
 }
 
 export const api = {
-  health: () => call<{ ok: boolean; contract: string }>("/healthz", undefined, { cache: false }),
+  health: () => call<{ ok: boolean; contract: string; storage?: "persistent" | "ephemeral" }>("/healthz", undefined, { cache: false }),
   stations: () => call<Station[]>("/stations"),
   events: () => call<EventInfo[]>("/events"),
   forecast: (req: ForecastRequest, signal?: AbortSignal) => call<ForecastResponse>("/forecast", req, { signal }),

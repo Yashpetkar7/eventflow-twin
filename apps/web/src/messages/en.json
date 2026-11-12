@@ -188,7 +188,8 @@
     "coverage": "80% interval coverage",
     "simulator": "Simulator property checks",
     "passed": "{a} of {b} checks passed",
-    "logged": "Decisions in the audit log"
+    "logged": "Decisions in the audit log",
+    "ephemeral": "Public demo: decisions are kept for this session only, not stored."
   },
   "tableH": {
     "station": "Station",
@@ -215,6 +216,7 @@
   "canvasAria": "3D digital twin of the Sheikh Zayed Road corridor. Drag to rotate, scroll or pinch to zoom, tap a station to select it. The table view shows the same data.",
   "apiDown": "The planning service is not reachable. Showing the last saved results; reconnecting automatically.",
   "apiError": "Could not load data: {msg}",
+  "publicDemo": "Public research demo by SP Jain students. Baseline demand is synthetic and scenario values are assumptions. Not an RTA system and not endorsed by RTA.",
   "lm": {
     "venue": "Event: {name}"
   },
