@@ -156,7 +156,7 @@ test("landmarks: tap one and the camera frames it with its area", async ({ page 
 });
 
 test("overlays never overlap each other or the labels (wide and narrow)", async ({ page }) => {
-  for (const [w, h] of [[1920, 1080], [1280, 800], [860, 1000], [560, 1100]]) {
+  for (const [w, h] of [[1920, 1080], [1280, 800], [860, 1000], [545, 1100], [420, 900]]) {
     await page.setViewportSize({ width: w, height: h });
     await open(page);
     await settle(page, 2500);

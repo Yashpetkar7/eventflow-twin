@@ -215,8 +215,9 @@ body.kiosk .tag { padding: 9px 12px; font-size: 14px; }
   .panel { border-inline-start: 0; border-block-start: 1px solid var(--line); flex: none; }
   .tabpanel { overflow: visible; }
   .view { min-height: 560px; flex: none; }
-  .viewtop { flex-direction: column; }
-  .kpis { justify-content: flex-start; gap: 6px; }
+  .viewtop { flex-direction: column; padding-inline-end: 52px; }       /* room for the map controls */
+  .kpis { justify-content: flex-start; gap: 6px; max-width: 100%; }
+  .mapctl { top: 12px; transform: none; }
   .kpi { min-width: 0; padding: 4px 9px; }
   .kpi b { font-size: 15px; }
   .clock { font-size: 30px; }
