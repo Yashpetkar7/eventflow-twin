@@ -75,12 +75,64 @@ def realism_rows() -> list[str]:
                 out += [f"| `{k['url']}` | {len(runs)} | {min(r['avg_fps'] for r in runs)} – {max(r['avg_fps'] for r in runs)} | {min(r['min_fps'] for r in runs)} | "
                         f"{', '.join(sorted({str(r['tier_at_end']) for r in runs}))} | {k['target']} |"]
         out += [""]
+    out += r7_rows()
     v2fps = load(UI / "fps_v2.json")
     if v2fps:
         out += [f"`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, {v2fps['timestamp']}, test \"realism ring…\"): "
                 f"average **{v2fps['avg_fps']}** fps, minimum 1-second sample {v2fps['min_fps']}.", ""]
     else:
         out += ["`?scene=v2` with the clock playing: **not yet measured on mains power** (the UI test \"realism ring…\" writes `fps_v2.json`).", ""]
+    return out
+
+
+def r7_rows() -> list[str]:
+    """Realism R7 (decision #103): frame rate with the display cap removed, before and after, from eval/results/ui/realism_r7/."""
+    r7 = UI / "realism_r7"
+    before, after = load(r7 / "before_fps.json"), load(r7 / "after_fps.json")
+    if not (before and after):
+        return []
+    out = [f"R7 (frame rate at full quality, decision #103), measured on `{after['gpu']}`, power source: {after['power_source']}. "
+           "Production build, 1920×1080, Chrome without the display cap (`node tests/r7_fps.mjs`): median of 8 one-second samples per "
+           "camera preset (10 for the kiosk), draw calls and triangles of one whole frame. "
+           f"Before = {before.get('build') or before['git_sha']}; after = {after.get('build') or after['git_sha']}.", "",
+           "| View | Median fps before → after | Lowest sample before → after | Draw calls | Triangles (million) | Tier |", "|---|---|---|---|---|---|"]
+    for k, b in before["cases"].items():
+        a = after["cases"].get(k)
+        if a:
+            out += [f"| {k} | {b['median_fps']} → **{a['median_fps']}** | {b['min_fps']} → {a['min_fps']} | {b['calls']} → {a['calls']} | "
+                    f"{b['triangles'] / 1e6:.2f} → {a['triangles'] / 1e6:.2f} | {b['tier']} → {a['tier']} |"]
+    out += [""]
+    switches = sorted(r7.glob("switch_*_fps.json"))
+    if switches:
+        keys = [k for k in after["cases"] if not k.startswith("kiosk")]
+        out += ["Each change on its own (same build, one switch flipped with `?r7off=` / `?r7on=`, see `apps/web/src/components/twin/perf.ts`); "
+                "median fps, workspace views only. Repeats of the same run differ by a few per cent.", "",
+                "| Run | " + " | ".join(keys) + " |", "|---|" + "---|" * len(keys)]
+        for f in switches:
+            j = load(f)
+            out += [f"| {j['url'].split('&', 1)[-1] if '&' in j['url'] else 'all defaults'} | " + " | ".join(str(j["cases"][k]["median_fps"]) for k in keys) + " |"]
+        out += [""]
+    kb, ka = load(r7 / "kiosk_fps_tier0_before.json"), load(r7 / "kiosk_fps_tier0_after.json")
+    if kb and ka:
+        out += ["Visitor kiosk at tier 0 with the display cap on (`node tests/kiosk_fps.mjs … v2`, `MIN_TIER` temporarily 0), every run. "
+                "On this laptop the kiosk was already at the cap before R7, so these runs cannot show the gain; the booth laptop must be measured (decision #103).", "",
+                "| | Runs | Average fps, lowest – highest run | Lowest 1-second sample | Quality tier |", "|---|---|---|---|---|"]
+        for name, k in (("Before", kb), ("After", ka)):
+            runs = k["runs"]
+            out += [f"| {name} | {len(runs)} | {min(r['avg_fps'] for r in runs)} – {max(r['avg_fps'] for r in runs)} | {min(r['min_fps'] for r in runs)} | "
+                    f"{', '.join(sorted({str(r['tier_at_end']) for r in runs}))} |"]
+        out += [""]
+    rb, ra = load(r7 / "ring_fps_before.json"), load(r7 / "ring_fps_after.json")
+    if rb and ra:
+        out += [f"UI test \"realism ring…\" on the production build, lowest 1-second sample per camera preset — before: "
+                + ", ".join(f"{k} {min(v)}" for k, v in rb["samples"].items()) + f" (tier {rb['tier_at_end']}); after: "
+                + ", ".join(f"{k} {min(v)}" for k, v in ra["samples"].items()) + f" (tier {ra['tier_at_end']}).", ""]
+    soak = load(r7 / "soak_v2_10min.json")
+    if soak:
+        out += [f"10-minute soak on `?scene=v2` after R7 (`realism_r7/soak_v2_10min.json`): {soak['minutes']} min, {soak['loops']} loops, heap "
+                f"{soak['baseline_heap_mb']} → {soak['final_heap_mb']} MB ({soak['heap_growth_pct']} %, budget 10 %), lowest fps sample {soak['min_fps']}, "
+                f"tier at the end {soak['tier_final']}, requests outside localhost {soak['external_requests']}, page errors {len(soak['page_errors'])}.", ""]
+    out += ["15 before/after screenshot pairs: `eval/results/ui/realism_r7/index.html`.", ""]
     return out
 
 

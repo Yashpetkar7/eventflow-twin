@@ -56,9 +56,12 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 | `…/twin/buildingsV2.ts`, `buildings.worker.ts`, `facade.ts` | Realism scene only: per-type building geometry built in a web worker, and the seven-type façade shader |
 | `…/twin/atmosphere.ts`, `src/lib/sun.ts` | Realism scene only: haze for every material, ground + water shader on the R1 bake, real sun position |
 | `…/twin/Sky.tsx`, `CameraRig.tsx`, `Labels.tsx` | Time of day (sun path, golden hour, night), camera presets + touch controls, HTML labels |
+| `…/twin/perf.ts` | Realism scene only: switches for the R7 frame-rate work (decision #103) — `?r7off=shadow,palms,cars,order` turns a change off, `?r7on=tiles` turns the optional building tiles on, so each can be measured on any laptop from one build |
 | `tests/ui.spec.ts` | Playwright: screenshots → `eval/results/ui/`, fps → `eval/results/ui/fps.json` (`make ui-test`) |
 | `tests/soak.mjs` | Booth soak: guided demo in a loop for N minutes, heap / GPU-object / fps / network log → `eval/results/ui/soak.json` |
 | `tests/polish.mjs` | Before/after captures for a visual pass: `node tests/polish.mjs before|after` → `eval/results/ui/polish/` |
+| `tests/r7_fps.mjs` | Frame rate of `?scene=v2` with the display cap removed, per camera preset, with draw calls and triangles: `node tests/r7_fps.mjs <label> http://localhost:3100 ["r7off=shadow"]` → `eval/results/ui/realism_r7/<label>_fps.json` |
+| `tests/kiosk_fps.mjs` | Frame rate of the kiosk's attract screen: `node tests/kiosk_fps.mjs http://localhost:3100 v2 [out file]` |
 
 ## Rules
 - Offline: no remote tiles, fonts or scripts. Map © OpenStreetMap contributors (shown on the canvas and in the footer).
@@ -75,5 +78,8 @@ Stations are placed from `GET /stations` lat/lon, snapped onto the OSM Red Line 
 - Dark theme of the mockup is not implemented. Not yet tested on the real touch monitor; no 2-hour soak test.
 - Sun timing is stylised (golden hour 16:30–18:30) in the default scene; `?scene=v2` uses the real sun for the event date (R2).
 - `?scene=v2` shadows are one camera-following map, not cascades; water depth near the shore is approximated from the mask.
+- `?scene=v2` (R7): in views where a car is under about 1.5 px wide (camera further than ~2.3 km on a 1080-px-high view) cars and trains cast no shadow and the shadow map
+  is redrawn only when the sun, the view or a caster changes; palms further than 3.2 km from the camera are a 20-triangle stand-in.
+  The kiosk stays at quality tier 1 (`MIN_TIER`) until tier 0 has been measured on the booth laptop (decision #103).
 - Landmarks are stylised low-poly models, not surveyed geometry; in `?scene=v2` they are built in Blender (R4), still approximations from public dimensions. Hand-modelled glTF assets (e.g. via Blender) could replace
   two or three of them later without touching the rest of the scene.

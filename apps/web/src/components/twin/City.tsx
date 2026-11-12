@@ -1,7 +1,7 @@
 "use client";
 // The static city: ground map, water, extruded OpenStreetMap buildings with a procedural façade (lit windows at
 // night), major roads, the lane-marked Sheikh Zayed Road carriageways, flyovers, palms and street lights.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTwin } from "@/lib/store";
@@ -9,6 +9,7 @@ import { buildingsGeometry, canvasTexture, flatPolygons, ribbons, sweep } from "
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { facadeMaterialV2 } from "./facade";
 import type { Models } from "./models";
+import { R7 } from "./perf";
 import { Ring } from "./Ring";
 import type { Manifest } from "@/lib/manifest";
 import { live, mulberry, pairs, Path, type SceneJson } from "./sceneData";
@@ -147,6 +148,7 @@ function highwayMaterial() {
 }
 
 const PALMS = ["palm_a", "palm_b", "palm_c"] as const;
+const PALM_LOD = 900, PALM_FAR = 3200;              // metres from the camera: a palm is about 17 px tall at the first, 5 px at the second
 
 /** Realism scene (docs/13 R5): Blender palms instanced along Sheikh Zayed Road and on the tree pixels of the land-cover
  *  mask inside the corridor, with wind sway in the vertex shader; street-light poles down the median. Park palms and
@@ -197,34 +199,81 @@ function Greenery({ models, manifest, road, lamps }: { models: Models; manifest:
   }, [time]);
   const pole = useMemo(() => mergeGeometries([new THREE.CylinderGeometry(0.11, 0.16, 11.5, 6).translate(0, 5.75, 0), new THREE.BoxGeometry(3.4, 0.14, 0.2).translate(0, 11.4, 0)])!, []);
   useEffect(() => () => { Object.values(mats).forEach((m) => m.dispose()); pole.dispose(); }, [mats, pole]);
-  useFrame(() => { time.value = live.animT; });
   // every third palm of each list goes to each variant; a seeded turn so the leans differ
   const sets = useMemo(() => PALMS.map((_, v) => {
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), out: { m: THREE.Matrix4; park: boolean }[] = [];
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), out: { m: THREE.Matrix4; park: boolean; x: number; z: number }[] = [];
     const add = (list: number[], isPark: boolean) => {
       for (let i = v * 3; i < list.length; i += 9) {
         const s = list[i + 2];
-        out.push({ m: m.clone().compose(new THREE.Vector3(list[i], 0, list[i + 1]), q.setFromAxisAngle(up, (i * 2.399) % 6.283), new THREE.Vector3(s, s, s)), park: isPark });
+        out.push({ m: m.clone().compose(new THREE.Vector3(list[i], 0, list[i + 1]), q.setFromAxisAngle(up, (i * 2.399) % 6.283), new THREE.Vector3(s, s, s)), park: isPark, x: list[i], z: list[i + 1] });
       }
     };
     add(road, false); add(park, true);
     return out;
   }), [road, park]);
-  const fill = (list: { m: THREE.Matrix4; park: boolean }[]) => (im: THREE.InstancedMesh | null) => {
-    if (!im) return;
-    const zero = new THREE.Matrix4().makeScale(0, 0, 0);
-    list.forEach((p, i) => im.setMatrixAt(i, p.park && tier > 0 ? zero : p.m));
-    im.instanceMatrix.needsUpdate = true;
-  };
+  const total = sets.reduce((n, l) => n + l.length, 0);
+  // Three levels by distance from the camera (R7): the Blender palm up close, its 25 % version in the middle distance,
+  // and beyond PALM_FAR — where a palm is under 6 px tall — one 20-triangle stand-in for all three variants: a thin
+  // trunk and a crown the size and mean colour of the model's. Every palm is always drawn; only its detail changes.
+  const far = useMemo(() => {
+    const mean = (g: THREE.BufferGeometry, hex: number) => {
+      const c = g.attributes.color, out = new THREE.Color(hex), k = new THREE.Vector3(1, 1, 1);
+      if (c) { k.set(0, 0, 0); for (let i = 0; i < c.count; i++) { k.x += c.getX(i); k.y += c.getY(i); k.z += c.getZ(i); } k.divideScalar(Math.max(1, c.count)); }
+      return out.setRGB(out.r * k.x, out.g * k.y, out.b * k.z);
+    };
+    const paint = (g: THREE.BufferGeometry, c: THREE.Color) => {
+      const n = g.attributes.position.count, col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+      g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      return g;
+    };
+    const leaf = models.palm_a.lod.leaf, trunk = models.palm_a.lod.trunk;
+    leaf.computeBoundingBox(); trunk.computeBoundingBox();
+    const lb = leaf.boundingBox!, top = trunk.boundingBox!.max.y, r = Math.max(lb.max.x, -lb.min.x, lb.max.z, -lb.min.z) * 0.7, mid = (lb.min.y + lb.max.y) / 2 + 0.6;
+    const stem = paint(new THREE.CylinderGeometry(0.2, 0.3, top, 4, 1, true).translate(0, top / 2, 0), mean(trunk, 0x8a6a45));
+    const crown = paint(new THREE.SphereGeometry(1, 6, 2).scale(r, (lb.max.y - lb.min.y) * 0.34, r).translate(0, mid, 0), mean(leaf, 0x5c8f45).multiplyScalar(0.7));
+    const geo = mergeGeometries([stem, crown])!;
+    stem.dispose(); crown.dispose();
+    return { geo, mat: new THREE.MeshStandardMaterial({ roughness: 0.85, vertexColors: true }) };
+  }, [models]);
+  useEffect(() => () => { far.geo.dispose(); far.mat.dispose(); }, [far]);
+  const im = useRef<{ trunk: (THREE.InstancedMesh | null)[]; leaf: (THREE.InstancedMesh | null)[]; trunkLod: (THREE.InstancedMesh | null)[]; leafLod: (THREE.InstancedMesh | null)[]; far: THREE.InstancedMesh | null }>({ trunk: [], leaf: [], trunkLod: [], leafLod: [], far: null });
+  const sorted = useRef({ x: 1e9, y: 0, z: 1e9, sets: null as unknown, tier: -1 });
+  useFrame(({ camera }) => {
+    time.value = live.animT;
+    const p = camera.position, k = sorted.current, r = im.current;
+    const fresh = k.sets !== sets || k.tier !== tier;
+    if (!r.far || (!fresh && Math.hypot(p.x - k.x, p.y - k.y, p.z - k.z) < 60)) return;      // re-sort after every 60 m of camera travel
+    k.x = p.x; k.y = p.y; k.z = p.z; k.sets = sets; k.tier = tier;
+    if (fresh) live.shadowDirty = 2;
+    let nFar = 0;
+    sets.forEach((list, v) => {
+      const full = [r.trunk[v], r.leaf[v]], lod = [r.trunkLod[v], r.leafLod[v]];
+      let a = 0, b = 0;
+      for (const q of list) {
+        if (q.park && tier > 0) continue;                                                       // park palms are an extra: off from tier 1
+        const d = R7.palms ? Math.hypot(q.x - p.x, p.y, q.z - p.z) : 0;
+        if (d < PALM_LOD) { full[0]?.setMatrixAt(a, q.m); full[1]?.setMatrixAt(a++, q.m); }
+        else if (d < PALM_FAR) { lod[0]?.setMatrixAt(b, q.m); lod[1]?.setMatrixAt(b++, q.m); }
+        else r.far!.setMatrixAt(nFar++, q.m);
+      }
+      for (const x of full) if (x) { x.count = a; x.instanceMatrix.needsUpdate = true; }
+      for (const x of lod) if (x) { x.count = b; x.instanceMatrix.needsUpdate = true; }
+    });
+    r.far.count = nFar; r.far.instanceMatrix.needsUpdate = true;
+  });
   const poles = useMemo(() => { const m = new THREE.Matrix4(), out: THREE.Matrix4[] = []; for (let i = 0; i < lamps.length; i += 3) out.push(m.clone().makeTranslation(lamps[i], 0, lamps[i + 2])); return out; }, [lamps]);
   return (
     <group>
       {PALMS.map((name, v) => sets[v].length > 0 && (
-        <group key={`${name}-${sets[v].length}-${tier}`}>
-          <instancedMesh args={[models[name].full.trunk, mats.trunk, sets[v].length]} ref={fill(sets[v])} castShadow frustumCulled={false} />
-          <instancedMesh args={[models[name].full.leaf, mats.leaf, sets[v].length]} ref={fill(sets[v])} castShadow frustumCulled={false} />
+        <group key={`${name}-${sets[v].length}`}>
+          <instancedMesh args={[models[name].full.trunk, mats.trunk, sets[v].length]} ref={(x) => { im.current.trunk[v] = x; if (x) { x.count = 0; sorted.current.sets = null; } }} castShadow frustumCulled={false} />
+          <instancedMesh args={[models[name].full.leaf, mats.leaf, sets[v].length]} ref={(x) => { im.current.leaf[v] = x; if (x) { x.count = 0; sorted.current.sets = null; } }} castShadow frustumCulled={false} />
+          <instancedMesh args={[models[name].lod.trunk, mats.trunk, sets[v].length]} ref={(x) => { im.current.trunkLod[v] = x; if (x) { x.count = 0; sorted.current.sets = null; } }} castShadow frustumCulled={false} />
+          <instancedMesh args={[models[name].lod.leaf, mats.leaf, sets[v].length]} ref={(x) => { im.current.leafLod[v] = x; if (x) { x.count = 0; sorted.current.sets = null; } }} castShadow frustumCulled={false} />
         </group>
       ))}
+      {total > 0 && <instancedMesh key={total} args={[far.geo, far.mat, total]} ref={(x) => { im.current.far = x; if (x) { x.count = 0; sorted.current.sets = null; } }} castShadow frustumCulled={false} />}
       {tier === 0 && poles.length > 0 && (
         <instancedMesh args={[pole, mats.pole, poles.length]} frustumCulled={false}
           ref={(im) => { if (im) { poles.forEach((mm, i) => im.setMatrixAt(i, mm)); im.instanceMatrix.needsUpdate = true; } }} />

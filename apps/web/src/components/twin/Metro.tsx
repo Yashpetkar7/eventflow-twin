@@ -191,6 +191,7 @@ export function Trains({ corridor, models = null }: { corridor: Corridor; models
     st.current.spacing += (target - st.current.spacing) * Math.min(1, dt * 2);
     st.current.phase = (st.current.phase + dt * TRAIN_SPEED) % 1e7;
     mats.win.emissiveIntensity = live.night * 3.2;               // glowing carriage windows after dark
+    body.castShadow = live.movingShadows;
     const { m, q, sc, p, up, tmp, zero } = tmpv;
     let k = 0;
     for (const dir of [1, -1]) {

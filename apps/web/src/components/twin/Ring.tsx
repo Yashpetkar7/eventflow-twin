@@ -8,9 +8,13 @@ import * as THREE from "three";
 import { groundMaterial, solidTexture } from "./atmosphere";
 import { buildBuildings, toGeometry, type BuildingArrays, type BuildingInput } from "./buildingsV2";
 import type { ChunkJson, Manifest } from "@/lib/manifest";
+import { R7, TILE_FAR, TILE_NEAR } from "./perf";
 import { live } from "./sceneData";
 
 const DIR = "/geo/v2/";
+// The ground is drawn after everything else that is opaque, top layer first (chunks, then the overview under them, then
+// the far desert and sea), so its shader — the most expensive per pixel — runs only where the ground is actually seen.
+const GROUND = R7.order ? [1, 2, 3] : [0, 0, 0];
 type Box = [number, number, number, number];
 
 function plane([x0, x1, z0, z1]: Box, y: number): THREE.BufferGeometry {
@@ -48,7 +52,7 @@ function builder() {
 }
 const EMPTY = buildBuildings({ buildings: [], roof: [], cls: [], detail: false });
 
-interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; mask: THREE.Texture; far: THREE.BufferGeometry | null; near: THREE.BufferGeometry | null }
+interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; mask: THREE.Texture; far: THREE.BufferGeometry[]; near: THREE.BufferGeometry[] }
 
 export function Ring({ manifest, facade, facadeFar, show }: { manifest: Manifest; facade: THREE.Material; facadeFar: THREE.Material; show: boolean }) {
   const [overview, setOverview] = useState<THREE.MeshStandardMaterial | null>(null);
@@ -83,17 +87,24 @@ export function Ring({ manifest, facade, facadeFar, show }: { manifest: Manifest
         const [json, map, ao, mask] = await Promise.all([
           fetch(DIR + c.buildings).then((r) => r.json() as Promise<ChunkJson>), texture(c.ground, true), texture(c.ao, false), texture(c.mask, false)]);
         if (dead) return;
-        // only buildings by the corridor cast shadows (the shadow box follows the corridor camera): one mesh each
-        // (near buildings also get the rooftop kit; the far ones stay plain)
-        const part = async (near: boolean) => {
-          const input: BuildingInput = { buildings: [], roof: [], cls: [], detail: near };
-          json.buildings.forEach((b, i) => { if ((b[2] > e[0] - M && b[2] < e[1] + M && b[3] > e[2] - M && b[3] < e[3] + M) === near) { input.buildings.push(b); input.roof.push(json.roof[i]); input.cls.push(json.cls[i]); } });
-          if (!input.buildings.length) return null;
+        // only buildings by the corridor cast shadows (the shadow box follows the corridor camera); they also get the
+        // rooftop kit, the far ones stay plain: one mesh for each group — or, with ?r7on=tiles, one per tile, so the
+        // renderer can leave out more of what is outside the view or the shadow box (see perf.ts).
+        const tiles = new Map<string, BuildingInput>();
+        const seen = [0, 0];                                    // a building's number within the chunk's near / far group
+        json.buildings.forEach((b, i) => {
+          const near = b[2] > e[0] - M && b[2] < e[1] + M && b[3] > e[2] - M && b[3] < e[3] + M;
+          const key = `${near ? "n" : "f"}${R7.tiles ? `${Math.floor(b[2] / (near ? TILE_NEAR : TILE_FAR))}_${Math.floor(b[3] / (near ? TILE_NEAR : TILE_FAR))}` : ""}`;
+          let t = tiles.get(key);
+          if (!t) tiles.set(key, t = { buildings: [], roof: [], cls: [], detail: near, ids: [] });
+          t.buildings.push(b); t.roof.push(json.roof[i]); t.cls.push(json.cls[i]); t.ids!.push(seen[near ? 0 : 1]++);
+        });
+        const far: THREE.BufferGeometry[] = [], near: THREE.BufferGeometry[] = [];
+        await Promise.all([...tiles.values()].map(async (input) => {
           const arrays = await work.build(input);
-          return arrays.index.length ? toGeometry(arrays) : null;
-        };
-        const [far, near] = await Promise.all([part(false), part(true)]);
-        if (dead) { far?.dispose(); near?.dispose(); return; }
+          if (arrays.index.length) (input.detail ? near : far).push(toGeometry(arrays));
+        }));
+        if (dead) { for (const g of [...far, ...near]) g.dispose(); return; }
         made.push({ id: c.id, plane: plane(c.extent, 0), mat: groundMaterial({ map, ao, mask, aoFine }, time), ao, mask, far, near });
         setChunks([...made]);
         document.documentElement.dataset.sceneV2 = `${made.length}/${manifest.chunks.length}`;     // read by the UI tests
@@ -104,25 +115,26 @@ export function Ring({ manifest, facade, facadeFar, show }: { manifest: Manifest
       dead = true;
       work.close(); fine?.dispose();
       ov?.map?.dispose(); ov?.dispose(); ovMaskTex?.dispose();
-      for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.mask.dispose(); c.far?.dispose(); c.near?.dispose(); }
+      for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.mask.dispose(); for (const g of [...c.far, ...c.near]) g.dispose(); }
     };
   }, [manifest, time]);
+  useEffect(() => { live.shadowDirty = 2; }, [chunks, show]);            // new or hidden casters: redraw the shadow map
   useEffect(() => () => { base.wide.dispose(); base.far.dispose(); base.sea.dispose(); base.seaTex.dispose(); }, [base]);
 
   return (
     <group>
-      <mesh rotation-x={-Math.PI / 2} position-y={-4} material={base.far}>
+      <mesh rotation-x={-Math.PI / 2} position-y={-4} material={base.far} renderOrder={GROUND[2]}>
         <planeGeometry args={[120000, 120000]} />
       </mesh>
-      <mesh rotation-x={-Math.PI / 2} position={[0, -3.8, 34500]} material={base.sea}>
+      <mesh rotation-x={-Math.PI / 2} position={[0, -3.8, 34500]} material={base.sea} renderOrder={GROUND[2]}>
         <planeGeometry args={[120000, 60000]} />
       </mesh>
-      {overview && <mesh geometry={base.wide} material={overview} />}
+      {overview && <mesh geometry={base.wide} material={overview} renderOrder={GROUND[1]} />}
       {chunks.map((c) => (
         <group key={c.id}>
-          <mesh geometry={c.plane} material={c.mat} receiveShadow />
-          {c.far && <mesh geometry={c.far} material={facadeFar} visible={show} receiveShadow />}
-          {c.near && <mesh geometry={c.near} material={facade} visible={show} castShadow receiveShadow />}
+          <mesh geometry={c.plane} material={c.mat} receiveShadow renderOrder={GROUND[0]} />
+          {c.far.map((g, i) => <mesh key={`f${i}`} geometry={g} material={facadeFar} visible={show} receiveShadow />)}
+          {c.near.map((g, i) => <mesh key={`n${i}`} geometry={g} material={facade} visible={show} castShadow receiveShadow />)}
         </group>
       ))}
     </group>

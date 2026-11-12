@@ -5,7 +5,7 @@ reference <https://mumbai-3d.easemyhood.workers.dev> — while staying offline, 
 
 **Owner:** Atharva, running **Claude Code with Fable 5.2** (`claude --model claude-fable-5-2`, or `/model` inside
 Claude Code) for R1–R5. R6 is checking work; Opus 5.5 is enough there.
-**Order:** R1 → R2 → R3 → R4 → R5 → R6, one Claude Code session each, one branch and one PR each (`b/realism-r1` …).
+**Order:** R1 → R2 → R3 → R4 → R5 → R6 (→ R7, added 13 Nov), one Claude Code session each, one branch and one PR each (`b/realism-r1` …).
 **Deadline:** everything merged by **Mon 16 Nov evening**; freeze is Tue 17 at 12:00. If it runs late, stop after the
 last merged prompt — each one is useful on its own, and the new scene stays behind `?scene=v2` until R6 says it is safe.
 
@@ -158,6 +158,37 @@ Task: prove the realism pass is booth-ready and decide whether ?scene=v2 becomes
 - Make v2 the default only if every check passes; otherwise keep v1 as default and list exactly what blocks v2.
 Report what changed, the numbers, and anything not verified.
 ```
+
+### R7 — Frame rate at full quality (Fable 5.2) — done 13 Nov, decision #103
+After R6 the kiosk had to be held at quality tier 1 (#102). R7 makes the scene cheaper to draw without changing what is
+drawn: the shadow map is redrawn only when the sun, the view or a caster changes; palms and cars have levels of detail;
+the ground is drawn last. Numbers: `docs/metrics.md` (R7) and `eval/results/ui/realism_r7/`. Each change has a switch
+(`apps/web/src/components/twin/perf.ts`): `?scene=v2&r7off=shadow,palms,cars,order`, and `&r7on=tiles` for the optional
+building tiles.
+
+**R7 was measured on a MacBook, whose GPU is much faster than the booth laptop's, so the kiosk is still held at tier 1.**
+
+#### To switch the kiosk to tier 0 (Atharva, on the Windows booth laptop)
+Mains power, OneDrive paused, every other browser window and 3D page closed.
+```text
+git checkout main && git pull
+# 1. apps/web/src/lib/manifest.ts — one line, temporarily:
+#      export const MIN_TIER: 0 | 1 = SCENE_V2 && VISITOR_KIOSK ? 1 : 0;      becomes      export const MIN_TIER: 0 | 1 = 0;
+python tasks.py api                                   # terminal 1, leave it running
+cd apps/web && npm run build && npm run start -- -p 3100        # terminal 2, leave it running
+# terminal 3, in apps/web — run the first line FIVE times:
+node tests/kiosk_fps.mjs http://localhost:3100 v2 realism_r7/kiosk_fps_tier0_windows.json
+node tests/r7_fps.mjs windows_after http://localhost:3100
+set EFT_WEB_PORT=3100&& npx playwright test tests/ui.spec.ts -g "realism"      # cmd; in PowerShell: $env:EFT_WEB_PORT=3100; npx playwright test …
+```
+- **Pass** = all five kiosk lines print `tier 0` and `min` ≥ 55, and both "realism" tests pass (50 fps floor on every preset).
+  Then keep the `MIN_TIER` line at 0, update its comment and the test "kiosk: the realism scene is its default, held at
+  quality tier 1 …" in `apps/web/tests/kiosk.spec.ts` (it expects tier 1), add one decision entry with the five numbers, and
+  open a PR with the two new files from `eval/results/ui/realism_r7/`. The automatic step-down under 40 fps stays.
+- **Not passed** = `git checkout apps/web/src/lib/manifest.ts`, the kiosk stays at tier 1, and send Krishna the two result
+  files. To see which change matters on that laptop, run for example
+  `node tests/r7_fps.mjs windows_no_shadow_cache http://localhost:3100 "r7off=shadow"` (also `r7off=palms`, `r7off=cars`,
+  `r7off=order`, and `r7on=tiles`, which was neutral on the MacBook but may help an Intel GPU).
 
 ## 6. Hand-offs
 - **Yash:** after R6, retake C6 (`node apps/web/tests/final_shots.mjs`) — and C4 (touch monitor) must be re-checked on the

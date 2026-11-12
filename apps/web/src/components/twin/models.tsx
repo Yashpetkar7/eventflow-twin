@@ -62,6 +62,7 @@ export function ModelMesh({ model, mats, castShadow = true }: { model: Model; ma
   const full = useRef<THREE.Group>(null), lod = useRef<THREE.Group>(null);
   useFrame(() => {
     const far = live.camDist > LOD_AT;
+    if (full.current && full.current.visible === far) live.shadowDirty = 2;      // the other version casts from now on
     if (full.current) full.current.visible = !far;
     if (lod.current) lod.current.visible = far;
   });

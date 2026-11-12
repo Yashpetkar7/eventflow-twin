@@ -1,0 +1,47 @@
+{
+  "suite": "ui_fps_v2",
+  "timestamp": "2026-11-12T20:35:19.799Z",
+  "viewport": "1920x1080",
+  "layers": "all on, clock playing, ?scene=v2",
+  "mode": "next start (production build)",
+  "avg_fps": 60,
+  "min_fps": 59.9,
+  "tier_at_end": 0,
+  "samples": {
+    "overview": [
+      60,
+      60,
+      60,
+      60,
+      60
+    ],
+    "close": [
+      60,
+      60,
+      60,
+      60,
+      60
+    ],
+    "top": [
+      60,
+      60,
+      60,
+      60,
+      60
+    ],
+    "fly": [
+      60,
+      60,
+      60,
+      60,
+      60
+    ],
+    "orbit": [
+      60.1,
+      59.9,
+      60,
+      60,
+      60
+    ]
+  }
+}
