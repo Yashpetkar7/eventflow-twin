@@ -44,6 +44,8 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
                 [[PY, "scripts/build_network.py"], [PY, "scripts/build_geo.py"]]),
     "osm": ("Fetch OpenStreetMap data for the corridor (one-time, needs internet) → data/raw/osm",
             [[PY, "scripts/fetch_osm_corridor.py"]]),
+    "realism-data": ("Download the open data for the realism ring (one-time, needs internet, ~1 GB) → data/raw/realism",
+                     [[PY, "scripts/fetch_realism_data.py"]]),
     "scene": ("Bake the offline 3D scene (buildings, roads, water, ground map) → apps/web/public/geo",
               [[PY, "scripts/build_scene.py"]]),
     "cache": ("Pre-build the offline agent cache for the demo scenarios → data/demo_cache",

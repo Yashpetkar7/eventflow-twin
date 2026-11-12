@@ -1,0 +1,7 @@
+# Only for the 3D realism bake (scripts/fetch_realism_data.py, scripts/build_scene.py --only v2). Not needed by the
+# API, the evals, CI or the booth laptop: the baked files in apps/web/public/geo/ are committed.
+duckdb>=1.1
+rasterio>=1.4
+numpy
+Pillow
+PyYAML

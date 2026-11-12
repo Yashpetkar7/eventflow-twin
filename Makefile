@@ -14,7 +14,8 @@ eval:       ; $(PY) scripts/baseline.py && $(PY) -m eval.suites.simulator && $(P
 gate:       ; $(PY) -m eval.gate --thresholds eval/thresholds.yaml
 demo:       ; $(PY) tasks.py demo              # offline cache + API + production web build, kiosk URL printed
 osm:        ; $(PY) scripts/fetch_osm_corridor.py   # one-time, needs internet
-scene:      ; $(PY) scripts/build_scene.py          # bake the offline 3D scene
+realism-data: ; $(PY) scripts/fetch_realism_data.py   # one-time, needs internet (pip install -r requirements-realism.txt)
+scene:      ; $(PY) scripts/build_scene.py          # bake the offline 3D scene (v1, and v2 if data/raw/realism exists)
 cache:      ; $(PY) scripts/build_demo_cache.py
 ui-test:    ; cd apps/web && npx playwright test    # screenshots → eval/results/ui, fps → eval/results/ui/fps.json
 test:       ; $(PY) -m pytest -q

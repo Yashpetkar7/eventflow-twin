@@ -1,0 +1,93 @@
+# Named towers with a published height, used by the realism bake (scripts/realism_bake.py) only where neither
+# OpenStreetMap / Overture nor 3D-GloBFP gives a height. Matched to the Overture building name (case-insensitive;
+# add `aliases: [...]` where the map spells a name differently).
+# Heights copied on 2026-11-12 from the table "Tallest buildings" of the source below (architectural height, metres).
+towers:
+  - {name: "Burj Khalifa", height_m: 828.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Marina 101", height_m: 425.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Princess Tower", height_m: 414.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "23 Marina", height_m: 392.8, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Elite Residence", height_m: 381.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Ciel Vignette Collection", height_m: 377.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Kempinski The Boulevard", height_m: 370.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "City Tower One", height_m: 362.8, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Almas Tower", height_m: 360.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Gevora Hotel", height_m: 356.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Il Primo", height_m: 356.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "JW Marriott Marquis Dubai Tower 1", height_m: 355.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "JW Marriott Marquis Dubai Tower 2", height_m: 355.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Emirates Office Tower", height_m: 355.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Torch", height_m: 352.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "SLS Dubai Hotel & Residences", height_m: 336.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "DAMAC Residenze", height_m: 335.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Uptown Tower", height_m: 333.4, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Rose Rayhaan by Rotana", height_m: 333.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "AMA Tower", height_m: 333.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Address Residence - Fountain View III", height_m: 331.8, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Regalia", height_m: 331.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Yaqoub Tower", height_m: 328.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Index", height_m: 326.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Grande", height_m: 325.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Mr. C Residences Downtown", height_m: 323.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Burj Al Arab", height_m: 321.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "HHHR Tower", height_m: 318.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Ocean Heights", height_m: 310.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Jumeirah Emirates Towers Hotel", height_m: 309.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Amna Tower", height_m: 307.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Noora Tower", height_m: 307.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Cayan Tower", height_m: 306.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "One Za'abeel Tower 1", height_m: 305.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Address Beach Resort", height_m: 303.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Wasl Tower Dubai", height_m: 303.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Address Downtown Dubai", height_m: 302.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Emirates Crown", height_m: 296.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Forte Towers 1", height_m: 295.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Khalid Al Attar Tower 2", height_m: 294.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Sulafa Tower", height_m: 288.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Opera Grand", height_m: 288.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Millennium Tower", height_m: 285.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Address Harbour Point Tower 1", height_m: 284.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Address Residence - Fountain Views I", height_m: 283.2, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Address Residence - Fountain Views II", height_m: 282.7, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "ICD Brookfield Place", height_m: 282.3, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Hekma Tower", height_m: 282.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Marina Pinnacle", height_m: 280.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Five Jumeirah Village Dubai", height_m: 280.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Boulevard Point", height_m: 279.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "D1", height_m: 277.5, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Burj Vista Tower 1", height_m: 272.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Islamic Bank Office Towers", height_m: 270.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Radisson Royal Hotel Dubai", height_m: 269.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "21st Century Tower", height_m: 269.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "DAMAC Paramount Hotel & Residences", height_m: 268.1, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "DAMAC Maison-Paramount Tower 1", height_m: 268.1, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "DAMAC Maison-Paramount Tower 2", height_m: 268.1, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "DAMAC Maison-Paramount Tower 3", height_m: 268.1, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Kazim Tower 1", height_m: 265.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Kazim Tower 2", height_m: 265.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Address Sky View Tower 1", height_m: 264.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Ubora Tower 1", height_m: 263.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Marina Gate II", height_m: 262.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Islamic Bank Residential Tower", height_m: 261.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Address Residences Dubai Opera Tower 1", height_m: 260.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Vision Tower", height_m: 260.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Downtown Views II Tower 1", height_m: 259.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Paramount Tower Hotel & Residences", height_m: 258.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "FIVE LUXE JBR Dubai Marina (FIVE Luxe)", height_m: 257.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Grand at Dubai Creek Harbour", height_m: 256.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Conrad Dubai", height_m: 255.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Dubai Marriott Harbour Hotel & Suites", height_m: 254.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Chelsea Tower", height_m: 250.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Ahmed Khoory Tower", height_m: 250.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Tayer Tower", height_m: 249.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Rolex Tower", height_m: 247.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Downtown Views II Tower 2", height_m: 246.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Al Fattan Tower", height_m: 245.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Oasis Beach Tower", height_m: 245.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "AAM Tower", height_m: 244.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Sama Tower", height_m: 240.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Address Harbour Point Tower 2", height_m: 239.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Vida Residences Downtown Dubai", height_m: 238.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Churchill Residence", height_m: 235.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "The Buildings by Daman", height_m: 235.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "One Za'abeel Tower 2", height_m: 235.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}

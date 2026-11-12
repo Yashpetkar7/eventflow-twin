@@ -12,7 +12,8 @@ What is real and what is estimated (also written into the JSON `meta`, shown in 
     and district (deterministic, seeded by the OSM id)
   * Red Line: official RTA GTFS shape (apps/web/public/geo/metro.geojson)
 
-    python scripts/build_scene.py
+    python scripts/build_scene.py              # v1 (this file) and, if data/raw/realism exists, v2
+    python scripts/build_scene.py --only v2    # the realism ring: scripts/realism_bake.py → apps/web/public/geo/v2/
 """
 from __future__ import annotations
 
@@ -23,8 +24,6 @@ import math
 import random
 import sys
 from pathlib import Path
-
-from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -425,7 +424,8 @@ def metro_line_gtfs() -> list[tuple[float, float]]:
 
 
 # ---------------------------------------------------------------- ground map
-def ground_map(buildings, minor, major, water, parks, pitches, szr, px_per_m: float = 0.5) -> Image.Image:
+def ground_map(buildings, minor, major, water, parks, pitches, szr, px_per_m: float = 0.5):
+    from PIL import Image, ImageDraw, ImageFilter
     pad = 300
     gx0, gx1, gz0, gz1 = X0 - pad, X1 + pad, Z0 - pad, Z1 + pad
     w, h = int((gx1 - gx0) * px_per_m), int((gz1 - gz0) * px_per_m)
@@ -513,4 +513,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    ap = argparse.ArgumentParser(description="Bake the offline 3D scene: v1 = OpenStreetMap corridor, v2 = realism ring (docs/13).")
+    ap.add_argument("--only", choices=["v1", "v2"], help="default: every bake whose raw data is present")
+    only = ap.parse_args().only
+    if only == "v1" or (not only and RAW.exists()):
+        main()
+    if only == "v2" or (not only and (ROOT / "data/raw/realism/overture").exists()):
+        import realism_bake
+        realism_bake.main()

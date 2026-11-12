@@ -30,3 +30,16 @@ Next once downloaded: `python tasks.py ingest` → calibrate the event model on 
 
 **Structure (checked 12 Nov 2026):** 3,141 files × ~155 MB `.csv.gz`; every file is a mixed sample of 2017–2026 (not a
 block of days). Download plan and ingest: `docs/14_RIDERSHIP_DATA.md`. Files downloaded so far: none.
+
+## Realism ring for the 3D twin (added 12 Nov 2026, docs/13 R1)
+`data/raw/realism/` (git-ignored, ~710 MB), fetched by `python scripts/fetch_realism_data.py` (needs `pip install -r requirements-realism.txt`, no account):
+
+| Folder | Source | Licence | Fetched |
+|---|---|---|---|
+| `overture/` | Overture Maps release 2026-10-21.0, `s3://overturemaps-us-west-2` — buildings, building parts (ring bbox), water (40 km bbox) | ODbL 1.0 | 2026-11-12 |
+| `s2/ring`, `s2/wide` | Sentinel-2 L2A B04/B03/B02 crops, 8 clearest dates 13 Oct – 30 Nov 2025 (`s2/ITEMS.json`), Microsoft Planetary Computer STAC | Copernicus Sentinel data (free and open) | 2026-11-12 |
+| `worldcover/` | ESA WorldCover 10 m 2021 v200, tile N24E054 (crop) | CC BY 4.0 | 2026-11-12 |
+| `dem/` | Copernicus DEM GLO-30, tiles N24/N25 E055 (crop) | Copernicus DEM free licence | 2026-11-12 |
+| `globfp/` | 3D-GloBFP grid cell 1638 (Zenodo 15487006 → figshare), 67 MB zipped | CC BY 4.0 | 2026-11-12 |
+
+Baked by `python scripts/build_scene.py --only v2` into `apps/web/public/geo/v2/` (committed, 10.5 MB).
