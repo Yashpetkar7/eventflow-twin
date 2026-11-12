@@ -43,8 +43,12 @@ async function sceneCredits(): Promise<string[]> {
   try {
     const r = await fetch("/geo/v2/manifest.json");
     if (!r.ok) return [];
-    const m = (await r.json()) as { provenance?: { dataset?: string }[] };
-    return [...new Set((m.provenance ?? []).map((p) => p.dataset).filter((d): d is string => !!d))];
+    const m = (await r.json()) as { provenance?: { source?: string; licence?: string }[] };
+    // Short attribution: the source's name up to the first comma or bracket; skip derived / internal rows.
+    const names = (m.provenance ?? [])
+      .filter((p) => p.source && !/^(n\/a|derived)/i.test(p.licence ?? "") && !/^(config\/|seeded|baked)/i.test(p.source))
+      .map((p) => p.source!.split(/[,(]/)[0].replace(/\s+\d+\s*m\b.*$/, "").trim());
+    return [...new Set(names)];
   } catch {
     return [];
   }

@@ -81,7 +81,8 @@ KIOSK RULES (docs/13 §4b):
   (.labels, .tag, .tag.lm, .tag.venue, [data-pct]) — the kiosk styles and hides them.
 - Camera presets must frame the corridor at ANY canvas aspect: in the kiosk the 3D view is the left ~67 % of a 1920×1080
   screen (about 1288×1080) during the steps and the full screen on the attract loop (slow "orbit" at 17:30).
-- Credits: keep public/geo/v2/manifest.json → provenance[].dataset filled; the kiosk footer reads it directly.
+- Credits: keep public/geo/v2/manifest.json → provenance[].source (name first, then details after a comma) and .licence
+  filled; the kiosk footer shows the short source names directly (derived / internal rows are skipped).
 - Before every PR, run BOTH:
     cd apps/web && npx playwright test                                   # workspace + kiosk (v1)
     cd apps/web && EFT_SCENE=v2 npx playwright test tests/kiosk.spec.ts  # kiosk on your scene
