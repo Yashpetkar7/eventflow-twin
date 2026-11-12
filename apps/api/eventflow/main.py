@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse
 from .config import ROOT, corridor, events
 from .forecast import NoDataError, build_forecast, config_hash, load_panel, make_run_id
 from .interventions import InterventionError
-from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -90,7 +90,7 @@ def forecast(req: ForecastRequest):
             "source": {"tool": "forecast", "run_id": run["run_id"]}}
 
 
-def run_simulation(forecast_run_id: str, interventions: list) -> dict:
+def run_simulation(forecast_run_id: str, interventions: list, detail: bool = False) -> dict:
     """Shared by /simulate, the agent tools and the eval suites."""
     run = get_run(forecast_run_id)
     ivs = [i.model_dump() if hasattr(i, "model_dump") else i for i in interventions]
@@ -100,13 +100,13 @@ def run_simulation(forecast_run_id: str, interventions: list) -> dict:
     delta = {k: round(res.summary[k] - base.summary[k], 3) for k in res.summary if k != "bins_per_hour"}
     return {"run_id": run_id, "source_forecast": forecast_run_id, "is_synthetic": run["is_synthetic"],
             "summary": res.summary, "baseline_summary": base.summary, "delta": delta, "effects": res.effects,
-            "diverted_off_metro": res.diverted_off_metro, "rows": res.rows, "hourly": res.hourly,
+            "diverted_off_metro": res.diverted_off_metro, "rows": res.rows if detail else [], "hourly": res.hourly,
             "source": {"tool": "simulate", "run_id": run_id}}
 
 
 @app.post("/simulate", response_model=SimulateResponse)
 def simulate_ep(req: SimulateRequest):
-    return run_simulation(req.forecast_run_id, req.interventions)
+    return run_simulation(req.forecast_run_id, req.interventions, req.detail)
 
 
 @app.post("/agent/plan", response_model=AgentPlanResponse)
@@ -128,6 +128,21 @@ def decisions(req: DecisionRequest):
     with _LOCK, DECISIONS_LOG.open("a", encoding="utf-8") as f:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     return {"logged": True, "decision_id": rec["decision_id"], "timestamp": ts, "plan_known": rec["plan_known"]}
+
+
+@app.get("/decisions", response_model=DecisionList)
+def list_decisions(limit: int = 100):
+    """Audit trail of human decisions, newest first."""
+    records = []
+    if DECISIONS_LOG.exists():
+        for line in DECISIONS_LOG.read_text(encoding="utf-8").splitlines():
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue                       # a torn line must not hide the rest of the log
+    limit = max(1, min(limit, 500))
+    return {"total": len(records), "approved": sum(r.get("decision") == "approve" for r in records),
+            "rejected": sum(r.get("decision") == "reject" for r in records), "items": records[::-1][:limit]}
 
 
 @app.get("/evidence")

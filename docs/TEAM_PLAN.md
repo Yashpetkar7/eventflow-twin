@@ -15,7 +15,7 @@ so we publish *when* it breaks instead of tuning (`python scripts/sensitivity.py
 | first over-capacity at … visitors | free space on arriving trains 15% | 20% | 25% | 30% | 35% (default) |
 |---|---|---|---|---|---|
 | GITEX 2025 (metro share 45%) | 15,000 | 22,500 | 30,000 | 37,500 | 45,000 |
-| DFW 2026 (metro share 45%) | 7,500 | 12,500 | 15,000 | 20,000 | 25,000 |
+| DFW 2026 (metro share 45%) | 7,500 | 10,000 | 15,000 | 20,000 | 22,500 |
 
 Story for the booth: *"With the sourced 40,000 GITEX visitors a day, World Trade Centre crosses the comfort line if
 trains arrive with less than ~30% free space — exactly the number ridership data will pin down."*

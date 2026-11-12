@@ -110,7 +110,7 @@ def validate_interventions(raw: list) -> list[Intervention]:
         if isinstance(iv, ExtraTrains):
             if p.headway_min < cap["min_headway_min"]:
                 raise InterventionError(f"{where}: headway_min {p.headway_min} < minimum {cap['min_headway_min']}")
-            lines = {s["line"] for s in cfg["stations"]}
+            lines = set(cfg.get("lines") or {s["line"] for s in cfg["stations"]})
             if p.line not in lines:
                 raise InterventionError(f"{where}: unknown line '{p.line}'")
         elif isinstance(iv, ShuttleBus):

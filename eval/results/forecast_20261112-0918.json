@@ -1,0 +1,74 @@
+{
+  "suite": "forecast",
+  "git_sha": "7001d30",
+  "timestamp": "2026-11-12T09:18:54",
+  "models": {
+    "forecast": "lgbm",
+    "baseline": "seasonal_naive_168h"
+  },
+  "dataset_version": "synthetic:2026-08-03..2026-09-27",
+  "is_synthetic": true,
+  "horizon": "7-day-ahead hourly; features use only lags >= 168h (no within-horizon leakage)",
+  "features": [
+    "hour",
+    "dow",
+    "weekend",
+    "lag168",
+    "lag336",
+    "mean_samehour_4w",
+    "station_code",
+    "event_flag"
+  ],
+  "metrics": {
+    "naive_mase": 0.9707583955016034,
+    "naive_smape": 0.08867938631213816,
+    "lgbm_mase": 0.7790055106784367,
+    "lgbm_smape": 0.07101860990639121,
+    "lgbm_coverage80": 0.7926774483378257
+  },
+  "n": 8904,
+  "split": "test",
+  "folds": [
+    {
+      "fold_start": "2026-08-31",
+      "split": "val",
+      "naive_mase": 1.0223300450545405,
+      "naive_smape": 0.09159901560227202,
+      "lgbm_mase": 0.8113093591151204,
+      "lgbm_smape": 0.07199144365217927,
+      "lgbm_coverage80": 0.7786388140161725,
+      "lgbm_mase_event_days": 0.7662492782665513,
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-07",
+      "split": "val",
+      "naive_mase": 1.0271581105253544,
+      "naive_smape": 0.09145262467766024,
+      "lgbm_mase": 0.7993006542995444,
+      "lgbm_smape": 0.07185513475355808,
+      "lgbm_coverage80": 0.7841419586702606,
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-14",
+      "split": "val",
+      "naive_mase": 0.9925983491348845,
+      "naive_smape": 0.08905803996794526,
+      "lgbm_mase": 0.7800723167400143,
+      "lgbm_smape": 0.07090332283854495,
+      "lgbm_coverage80": 0.793351302785265,
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-21",
+      "split": "test",
+      "naive_mase": 0.9707583955016034,
+      "naive_smape": 0.08867938631213816,
+      "lgbm_mase": 0.7790055106784367,
+      "lgbm_smape": 0.07101860990639121,
+      "lgbm_coverage80": 0.7926774483378257,
+      "n": 8904
+    }
+  ]
+}

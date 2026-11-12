@@ -1,18 +1,18 @@
 {
-  "plan_id": "plan_0affda8e0971",
-  "forecast_run_id": "fc_b00cb68f6b48",
+  "plan_id": "plan_d272838195b2",
+  "forecast_run_id": "fc_27abd48e2dde",
   "mode": "offline",
   "is_synthetic": true,
   "baseline_summary": {
     "overcap_station_hours": 0.75,
-    "excess_pax": 2351.7,
-    "peak_lf": 1.314,
-    "max_wait_min": 10.2,
-    "delay_pax_min": 63463.3,
+    "excess_pax": 2634.5,
+    "peak_lf": 1.362,
+    "max_wait_min": 12.2,
+    "delay_pax_min": 82957.7,
     "cost_proxy": 0.0,
-    "total_demand": 114068.0,
+    "total_demand": 625590.5,
     "end_of_day_queue": 0.0,
-    "no_service_pax": 2555.0,
+    "no_service_pax": 15607.0,
     "bins_per_hour": 4
   },
   "options": [
@@ -36,37 +36,37 @@
       ],
       "summary": {
         "overcap_station_hours": 0.75,
-        "excess_pax": 159.2,
-        "peak_lf": 0.92,
+        "excess_pax": 343.0,
+        "peak_lf": 0.953,
         "max_wait_min": 0.0,
         "delay_pax_min": 0.0,
         "cost_proxy": 1.5,
-        "total_demand": 114068.0,
+        "total_demand": 625590.5,
         "end_of_day_queue": 0.0,
-        "no_service_pax": 2555.0,
+        "no_service_pax": 15607.0,
         "bins_per_hour": 4
       },
       "delta": {
         "overcap_station_hours": 0.0,
-        "excess_pax": -2192.5,
-        "peak_lf": -0.394,
-        "max_wait_min": -10.2,
-        "delay_pax_min": -63463.3,
+        "excess_pax": -2291.5,
+        "peak_lf": -0.409,
+        "max_wait_min": -12.2,
+        "delay_pax_min": -82957.7,
         "cost_proxy": 1.5,
         "total_demand": 0.0,
         "end_of_day_queue": 0.0,
         "no_service_pax": 0.0
       },
-      "score": 2162.5,
-      "rationale": "Guide visitors to Financial Centre on foot. Simulated over-capacity station-hours go from 0.75 to 0.75, passengers above the comfort level from 2351.7 to 159.2, and peak load factor from 1.314 to 0.92. Cost proxy 1.5. [FIXTURE: deterministic template, not agent output]",
+      "score": 2261.5,
+      "rationale": "Guide visitors to Financial Centre on foot. Simulated over-capacity station-hours go from 0.75 to 0.75, passengers above the comfort level from 2634.5 to 343.0, and peak load factor from 1.362 to 0.953. Cost proxy 1.5. [FIXTURE: deterministic template, not agent output]",
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_16e2041649bb"
+          "run_id": "sim_9182d266a31e"
         },
         {
           "tool": "forecast",
-          "run_id": "fc_b00cb68f6b48"
+          "run_id": "fc_27abd48e2dde"
         }
       ]
     },
@@ -95,38 +95,38 @@
         }
       ],
       "summary": {
-        "overcap_station_hours": 0.75,
-        "excess_pax": 149.4,
-        "peak_lf": 0.906,
+        "overcap_station_hours": 0.5,
+        "excess_pax": 330.2,
+        "peak_lf": 0.95,
         "max_wait_min": 0.0,
         "delay_pax_min": 0.0,
         "cost_proxy": 32.0,
-        "total_demand": 114068.0,
+        "total_demand": 625590.5,
         "end_of_day_queue": 0.0,
-        "no_service_pax": 2555.0,
+        "no_service_pax": 15607.0,
         "bins_per_hour": 4
       },
       "delta": {
-        "overcap_station_hours": 0.0,
-        "excess_pax": -2202.3,
-        "peak_lf": -0.408,
-        "max_wait_min": -10.2,
-        "delay_pax_min": -63463.3,
+        "overcap_station_hours": -0.25,
+        "excess_pax": -2304.3,
+        "peak_lf": -0.412,
+        "max_wait_min": -12.2,
+        "delay_pax_min": -82957.7,
         "cost_proxy": 32.0,
         "total_demand": 0.0,
         "end_of_day_queue": 0.0,
         "no_service_pax": 0.0
       },
-      "score": 1562.3,
-      "rationale": "Stagger the exit and run a feeder shuttle. Simulated over-capacity station-hours go from 0.75 to 0.75, passengers above the comfort level from 2351.7 to 149.4, and peak load factor from 1.314 to 0.906. Cost proxy 32.0. [FIXTURE: deterministic template, not agent output]",
+      "score": 1664.3,
+      "rationale": "Stagger the exit and run a feeder shuttle. Simulated over-capacity station-hours go from 0.75 to 0.5, passengers above the comfort level from 2634.5 to 330.2, and peak load factor from 1.362 to 0.95. Cost proxy 32.0. [FIXTURE: deterministic template, not agent output]",
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_8c3fa2d71258"
+          "run_id": "sim_c24a40e9895a"
         },
         {
           "tool": "forecast",
-          "run_id": "fc_b00cb68f6b48"
+          "run_id": "fc_27abd48e2dde"
         }
       ]
     },
@@ -148,37 +148,37 @@
       ],
       "summary": {
         "overcap_station_hours": 0.75,
-        "excess_pax": 1414.6,
-        "peak_lf": 1.117,
-        "max_wait_min": 2.4,
-        "delay_pax_min": 11940.6,
-        "cost_proxy": 30.0,
-        "total_demand": 114068.0,
+        "excess_pax": 1697.4,
+        "peak_lf": 1.158,
+        "max_wait_min": 3.6,
+        "delay_pax_min": 20517.2,
+        "cost_proxy": 51.0,
+        "total_demand": 625590.5,
         "end_of_day_queue": 0.0,
-        "no_service_pax": 2555.0,
+        "no_service_pax": 15607.0,
         "bins_per_hour": 4
       },
       "delta": {
         "overcap_station_hours": 0.0,
         "excess_pax": -937.1,
-        "peak_lf": -0.197,
-        "max_wait_min": -7.8,
-        "delay_pax_min": -51522.7,
-        "cost_proxy": 30.0,
+        "peak_lf": -0.204,
+        "max_wait_min": -8.6,
+        "delay_pax_min": -62440.5,
+        "cost_proxy": 51.0,
         "total_demand": 0.0,
         "end_of_day_queue": 0.0,
         "no_service_pax": 0.0
       },
-      "score": 337.1,
-      "rationale": "Run trains every 3 minutes during the exit peak. Simulated over-capacity station-hours go from 0.75 to 0.75, passengers above the comfort level from 2351.7 to 1414.6, and peak load factor from 1.314 to 1.117. Cost proxy 30.0. [FIXTURE: deterministic template, not agent output]",
+      "score": -82.9,
+      "rationale": "Run trains every 3 minutes during the exit peak. Simulated over-capacity station-hours go from 0.75 to 0.75, passengers above the comfort level from 2634.5 to 1697.4, and peak load factor from 1.362 to 1.158. Cost proxy 51.0. [FIXTURE: deterministic template, not agent output]",
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_bbb0fd3eb850"
+          "run_id": "sim_743f1da28c8a"
         },
         {
           "tool": "forecast",
-          "run_id": "fc_b00cb68f6b48"
+          "run_id": "fc_27abd48e2dde"
         }
       ]
     }

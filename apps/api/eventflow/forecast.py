@@ -71,22 +71,26 @@ def config_hash() -> str:
     return h.hexdigest()[:10]
 
 
-def background_quantiles(panel: Panel, weekday: int) -> dict[str, dict[str, dict[str, list[float]]]]:
-    """{station: {"entries"|"exits": {"p10"|"p50"|"p90": [24]}}} from same-weekday non-event days."""
-    df = panel.df
+@lru_cache(maxsize=32)
+def _background(path_str: str, sig: str, weekday: int) -> dict[str, dict[str, dict[str, list[float]]]]:
+    df = _load(path_str, sig).df
     sub = df[(df.ts.dt.day_of_week == weekday) & (df.event_flag == 0)]
     if sub.empty:
         sub = df[df.event_flag == 0]
-    sub = sub.assign(hour=sub.ts.dt.hour)
+    q = (sub.assign(hour=sub.ts.dt.hour).groupby(["station_id", "hour"])[["entries", "exits"]]
+         .quantile([0.1, 0.5, 0.9]).unstack())           # columns: (col, quantile)
+    hours = range(24)
     out: dict = {}
     for s in [st["id"] for st in corridor()["stations"]]:
-        g = sub[sub.station_id == s].groupby("hour")
-        out[s] = {}
-        for col in ("entries", "exits"):
-            q = g[col].quantile([0.1, 0.5, 0.9]).unstack() if len(g) else pd.DataFrame()
-            out[s][col] = {name: [float(q.loc[h, qq]) if h in q.index else 0.0 for h in range(24)]
-                           for name, qq in (("p10", 0.1), ("p50", 0.5), ("p90", 0.9))}
+        rows = q.loc[s].reindex(hours).fillna(0.0) if s in q.index.get_level_values(0) else None
+        out[s] = {col: {name: ([float(v) for v in rows[(col, qq)]] if rows is not None else [0.0] * 24)
+                        for name, qq in (("p10", 0.1), ("p50", 0.5), ("p90", 0.9))} for col in ("entries", "exits")}
     return out
+
+
+def background_quantiles(panel: Panel, weekday: int) -> dict[str, dict[str, dict[str, list[float]]]]:
+    """{station: {"entries"|"exits": {"p10"|"p50"|"p90": [24]}}} from same-weekday non-event days (cached)."""
+    return _background(str(panel.path), _file_sig(panel.path), weekday)
 
 
 def find_event(event_id: str | None) -> dict | None:

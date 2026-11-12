@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.3.0"   # 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar
+CONTRACT_VERSION = "1.4.0"   # 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 
 
@@ -24,9 +24,11 @@ class Station(BaseModel):
     id: str
     name_en: str
     name_ar: str | None = None
-    line: str
+    line: str = Field(description="Primary line")
+    lines: list[str] = Field(default_factory=list, description="All metro lines serving the station")
     lat: float
     lon: float
+    in_corridor: bool = Field(False, description="Part of the featured Sheikh Zayed Road / Trade Centre corridor")
 
 
 class Event(BaseModel):
@@ -89,6 +91,7 @@ class ForecastResponse(BaseModel):
 class SimulateRequest(BaseModel):
     forecast_run_id: str
     interventions: list[Intervention] = Field(default_factory=list)
+    detail: bool = Field(False, description="Include the 15-minute rows (large); hourly rows are always returned")
 
 
 class SimRow(BaseModel):
@@ -179,6 +182,10 @@ class DecisionRequest(BaseModel):
     option_rank: int = Field(ge=1, le=3)
     decision: Literal["approve", "reject"]
     user: str = Field("visitor", max_length=40, pattern=r"^[\w .\-]+$", description="Anonymous label only")
+    # What exactly was decided on, so the audit log stands on its own (treated as data, never executed).
+    option_title: str | None = Field(None, max_length=200)
+    forecast_run_id: str | None = Field(None, max_length=40)
+    interventions: list[Intervention] = Field(default_factory=list)
 
 
 class DecisionResponse(BaseModel):
@@ -186,3 +193,22 @@ class DecisionResponse(BaseModel):
     decision_id: str
     timestamp: str
     plan_known: bool
+
+
+class DecisionRecord(BaseModel):
+    decision_id: str
+    timestamp: str
+    plan_id: str
+    option_rank: int
+    decision: Literal["approve", "reject"]
+    user: str
+    option_title: str | None = None
+    forecast_run_id: str | None = None
+    interventions: list[Intervention] = Field(default_factory=list)
+
+
+class DecisionList(BaseModel):
+    total: int
+    approved: int
+    rejected: int
+    items: list[DecisionRecord] = Field(description="Newest first")

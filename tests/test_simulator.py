@@ -62,7 +62,8 @@ def test_queue_conserves_passengers(heavy_demand):
             served += min(offered, r["capacity"])
             q = max(0.0, offered - r["capacity"])
     s_ = res.summary
-    assert served + s_["end_of_day_queue"] + s_["no_service_pax"] == pytest.approx(s_["total_demand"], abs=2.0)
+    # rows are rounded to 0.1 pax, so recomputing from them carries a little rounding noise
+    assert served + s_["end_of_day_queue"] + s_["no_service_pax"] == pytest.approx(s_["total_demand"], rel=1e-5)
 
 
 @pytest.mark.parametrize("hw", [5, 4, 3, 2.5])
@@ -94,9 +95,13 @@ def test_stagger_keeps_mass_at_midnight():
 
 
 def test_staggered_exit_reduces_peak(heavy_demand):
+    """The network-wide peak may sit far from the event (flat test demand at a quiet station), so check the
+    station that takes the exit surge."""
+    emt = lambda res: max(r["peak_lf"] for r in res.hourly if r["station_id"] == "EMT")
     base = simulate(heavy_demand)
     res = simulate(heavy_demand, [{"type": "staggered_exit", "params": {"spread_minutes": 30}}])
-    assert res.summary["peak_lf"] < base.summary["peak_lf"]
+    assert emt(res) < emt(base)
+    assert res.summary["peak_lf"] <= base.summary["peak_lf"]
 
 
 def test_shuttle_never_creates_hotspot_at_destination(heavy_demand):

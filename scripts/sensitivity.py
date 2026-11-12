@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from apps.api.eventflow.config import corridor, events  # noqa: E402
+from apps.api.eventflow.event_model import station_weights  # noqa: E402
 from apps.api.eventflow.forecast import build_forecast  # noqa: E402
 from apps.api.eventflow.simulate import simulate  # noqa: E402
 from eval.common import write_result  # noqa: E402
@@ -25,12 +26,18 @@ ATTENDANCE = list(range(5000, 150001, 2500))
 
 
 def break_point(event_id: str) -> tuple[int | None, str | None]:
-    """Smallest attendance with any over-capacity bin, and the station/hour where it happens first."""
+    """Smallest attendance at which a station that receives the event's trips goes over the comfort threshold,
+    and the station/hour where it happens first. Stations the event does not reach are ignored: across the
+    whole network some may be over the line for unrelated reasons, which says nothing about the event."""
+    ev = next(e for e in events() if e["id"] == event_id)
+    served = {s for s, w in station_weights(ev).items() if w > 0}
+    thr = corridor()["capacity"]["overcap_threshold"]
     for att in ATTENDANCE:
         fc = build_forecast(event_id, attendance=att)
         res = simulate(fc["demand"], weekday=fc["weekday"])
-        if res.summary["overcap_station_hours"] > 0:
-            worst = max(res.hourly, key=lambda r: r["peak_lf"])
+        hot = [r for r in res.hourly if r["station_id"] in served and r["peak_lf"] > thr]
+        if hot:
+            worst = max(hot, key=lambda r: r["peak_lf"])
             return att, f"{worst['station_id']} {worst['hour']:02d}:00"
     return None, None
 
@@ -62,7 +69,7 @@ def main() -> None:
     p = write_result("sensitivity", metrics, n=len(rows), split="scenario-grid",
                      models={"simulator": "deterministic-15min-queue", "capacity": cfg["capacity"].get("source")},
                      dataset_version=fc["dataset_version"], is_synthetic=fc["is_synthetic"], grid=rows,
-                     note="break_attendance = smallest attendance (2,500 steps) with any 15-min bin over the comfort threshold")
+                     note="break_attendance = smallest attendance (2,500 steps) at which a station receiving the event's trips has a 15-min bin over the comfort threshold")
     print(f"written {p.name}")
 
 

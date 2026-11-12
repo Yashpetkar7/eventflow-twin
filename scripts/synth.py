@@ -6,6 +6,7 @@ Output: data/synthetic/station_hour_synthetic.parquet (is_synthetic = True on ev
 """
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -17,7 +18,19 @@ sys.path.insert(0, str(ROOT))
 from apps.api.eventflow.config import corridor  # noqa: E402
 from apps.api.eventflow.event_model import overlay  # noqa: E402
 
+from apps.api.eventflow.event_model import _haversine_km  # noqa: E402
+
+# SYNTHETIC station sizes (not ridership): hand-set for the featured corridor; elsewhere a smooth rule
+# (bigger near Downtown, bigger at interchanges). Replaced entirely once real ridership is ingested.
 SCALE = {"MAX": 0.7, "WTC": 0.9, "EMT": 1.0, "FIC": 1.1, "BKD": 1.6, "BBY": 1.2}
+DOWNTOWN = (25.2048, 55.2708)
+
+
+def station_scale(st: dict) -> float:
+    if st["id"] in SCALE:
+        return SCALE[st["id"]]
+    d = _haversine_km(st["lat"], st["lon"], *DOWNTOWN)
+    return round(0.45 + 0.9 * math.exp(-d / 9.0) + (0.5 if len(st.get("lines", [])) > 1 else 0.0), 3)
 
 # Synthetic events (NOT real events): venue near World Trade Centre, evening exit surges.
 SYNTH_EVENTS = {
@@ -40,7 +53,8 @@ def hourly_shape(h: int, weekend: bool) -> float:
 def main(weeks: int = 12, seed: int = 42) -> Path:
     rng = np.random.default_rng(seed)
     start = pd.Timestamp("2026-07-06")  # Monday; synthetic calendar, not real dates of record
-    stations = [st["id"] for st in corridor()["stations"]]
+    scale = {st["id"]: station_scale(st) for st in corridor()["stations"]}
+    stations = list(scale)
     rows = []
     for d in range(weeks * 7):
         day = start + pd.Timedelta(days=d)
@@ -49,7 +63,7 @@ def main(weeks: int = 12, seed: int = 42) -> Path:
         extra = overlay(ev, bins_per_hour=1) if ev else {}
         for s in stations:
             for h in range(24):
-                base = 1500 * SCALE[s] * hourly_shape(h, weekend)
+                base = 1500 * scale[s] * hourly_shape(h, weekend)
                 ent = base * rng.lognormal(0, 0.08)
                 ex = base * 0.95 * rng.lognormal(0, 0.08)
                 if ev:

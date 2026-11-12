@@ -7,9 +7,10 @@ board into the next bin, which yields the platform-wait metrics.
 
 Capacity: scheduled trains per hour per direction from the official RTA GTFS timetable
 (config/capacity_gtfs.yaml; `capacity.source: assumption` falls back to headway_min). With a share p of boarders
-heading in direction 0, the station's effective boarding capacity is set by the busier-relative direction:
-    cap_dir(s,b)  = trains_dir_in_bin × train_capacity × boardable_share
-    cap(s,b)      = min(cap_dir0 / p, cap_dir1 / (1 − p))
+heading in direction 0, a line's effective boarding capacity at a station is set by the busier-relative direction,
+and an interchange offers the sum over its lines:
+    cap_dir(s,l,b) = boardable_departures_in_bin × train_capacity × boardable_share
+    cap(s,b)       = Σ_lines min(cap_dir0 / p, cap_dir1 / (1 − p))     (one-directional service: that direction)
 Bins with no scheduled service (metro closed) put their demand in `no_service_pax`; they are never queued.
 
 Definitions (per station s, bin b; all assumptions live in config/corridor.yaml):
@@ -54,16 +55,26 @@ def gtfs_table() -> dict | None:
     return yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
-def scheduled_tph(station: str, hour: int, weekday: int) -> tuple[float, float]:
-    """Scheduled trains per hour (direction 0, direction 1) at a station."""
+def scheduled_tph(station: str, line: str, hour: int, weekday: int) -> tuple[float, float]:
+    """Scheduled boardable departures per hour (direction 0, direction 1) at a station on one line."""
     cap = corridor()["capacity"]
     table = gtfs_table() if cap.get("source", "assumption") == "gtfs" else None
     if table:
         daytype = cap["gtfs_daytype_for_weekday"][weekday]
-        dirs = table["trains_per_hour"][daytype][station]
+        dirs = table["trains_per_hour"].get(daytype, {}).get(station, {}).get(line)
+        if dirs is None:
+            return 0.0, 0.0
         return float(dirs["dir0"][hour]), float(dirs["dir1"][hour])
     t = 60.0 / headway_for_hour(hour, cap["headway_min"])
     return t, t
+
+
+def _direction_capacity(c0: float, c1: float, p: float) -> float:
+    """Boarding capacity of one line at a station. With service both ways the busier-relative direction binds;
+    where only one direction can be boarded (a terminus, or first/last trains) everyone boards that way."""
+    if c0 <= 0 or c1 <= 0:
+        return max(c0, c1)
+    return min(c0 / p, c1 / (1 - p))
 
 
 def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], float] | None = None,
@@ -73,7 +84,7 @@ def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], 
     per line and direction (trains serve every station on the line)."""
     cfg = corridor()
     cap, bph = cfg["capacity"], bph or bins_per_hour()
-    line_of = {s["id"]: s["line"] for s in cfg["stations"]}
+    lines_of = {s["id"]: s.get("lines") or [s["line"]] for s in cfg["stations"]}
     p = float(cap.get("direction_split", 0.5))
     seat = cap["train_capacity"] * cap["boardable_share"]
     override = headway_override or {}
@@ -82,15 +93,18 @@ def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], 
     for s in stations:
         row = []
         for h in range(24):
-            t0, t1 = scheduled_tph(s, h, weekday)
-            key = (line_of.get(s, "Red"), h)
-            if key in override:
-                floor = 60.0 / override[key]
-                n0, n1 = max(t0, floor), max(t1, floor)
-                added[key] = max(added.get(key, 0.0), (n0 - t0) + (n1 - t1))
-                t0, t1 = n0, n1
-            c0, c1 = t0 / bph * seat, t1 / bph * seat
-            row += [min(c0 / p, c1 / (1 - p))] * bph
+            total = 0.0
+            for line in lines_of.get(s, ["Red"]):       # an interchange offers the capacity of each of its lines
+                t0, t1 = scheduled_tph(s, line, h, weekday)
+                key = (line, h)
+                if key in override:
+                    floor = 60.0 / override[key]
+                    # extra trains run the whole line, but a direction with no boardable service here stays at 0
+                    n0, n1 = (max(t0, floor) if t0 > 0 else 0.0), (max(t1, floor) if t1 > 0 else 0.0)
+                    added[key] = max(added.get(key, 0.0), (n0 - t0) + (n1 - t1))
+                    t0, t1 = n0, n1
+                total += _direction_capacity(t0 / bph * seat, t1 / bph * seat, p)
+            row += [total] * bph
         out[s] = row
     return out, sum(added.values())
 

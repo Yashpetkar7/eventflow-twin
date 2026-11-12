@@ -25,10 +25,14 @@ def walk_minutes(lat: float, lon: float, s_lat: float, s_lon: float) -> float:
 
 def station_weights(event: dict) -> dict[str, float]:
     cfg = corridor()
-    tau = cfg["event_model"]["walk_tau_min"]
-    w = {s["id"]: math.exp(-walk_minutes(event["lat"], event["lon"], s["lat"], s["lon"]) / tau) for s in cfg["stations"]}
+    tau, cutoff = cfg["event_model"]["walk_tau_min"], cfg["event_model"].get("walk_cutoff_min", 30)
+    w = {}
+    for s in cfg["stations"]:
+        walk = walk_minutes(event["lat"], event["lon"], s["lat"], s["lon"])
+        w[s["id"]] = math.exp(-walk / tau) if walk <= cutoff else 0.0
     tot = sum(w.values())
-    return {k: v / tot for k, v in w.items()}
+    # No station within walking distance: the event generates no metro trips (all weights 0).
+    return {k: (v / tot if tot else 0.0) for k, v in w.items()}
 
 
 def gauss_bins(center_min: float, sigma_min: float, bins_per_hour: int) -> list[float]:

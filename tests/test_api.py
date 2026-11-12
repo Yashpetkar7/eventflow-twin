@@ -5,6 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.eventflow import main
+from apps.api.eventflow.config import corridor
+
+N_ST = len(corridor()["stations"])
 
 
 @pytest.fixture
@@ -31,7 +34,7 @@ def test_forecast_shape_and_band(client):
     fc = _forecast(client)
     assert fc["event_is_assumption"] and fc["is_synthetic"]
     assert fc["source"] == {"tool": "forecast", "run_id": fc["run_id"]}
-    assert len(fc["rows"]) == 6 * 24
+    assert len(fc["rows"]) == N_ST * 24
     for r in fc["rows"]:
         assert r["entries_p10"] <= r["entries_p50"] <= r["entries_p90"]
 
@@ -57,7 +60,21 @@ def test_simulate_with_baseline_and_delta(client):
     sim = r.json()
     assert sim["delta"]["excess_pax"] <= 0
     assert sim["source"]["tool"] == "simulate" and sim["is_synthetic"]
-    assert len(sim["rows"]) == 6 * 96 and len(sim["hourly"]) == 6 * 24
+    assert sim["rows"] == [] and len(sim["hourly"]) == N_ST * 24
+
+
+def test_simulate_detail_rows(client):
+    fc = _forecast(client)
+    sim = client.post("/simulate", json={"forecast_run_id": fc["run_id"], "detail": True}).json()
+    assert len(sim["rows"]) == N_ST * 96
+
+
+def test_decisions_listed_newest_first(client):
+    for rank in (1, 2):
+        client.post("/decisions", json={"plan_id": "p", "option_rank": rank, "decision": "approve",
+                                        "option_title": f"Option {rank}"})
+    d = client.get("/decisions").json()
+    assert d["total"] == 2 and d["approved"] == 2 and d["items"][0]["option_title"] == "Option 2"
 
 
 def test_simulate_rejects_bad_intervention(client):

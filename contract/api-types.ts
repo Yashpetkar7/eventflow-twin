@@ -113,7 +113,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Decisions
+         * @description Audit trail of human decisions, newest first.
+         */
+        get: operations["list_decisions_decisions_get"];
         put?: never;
         /**
          * Decisions
@@ -189,6 +193,44 @@ export interface components {
             options: components["schemas"]["PlanOption"][];
             verify: components["schemas"]["VerifyReport"];
         };
+        /** DecisionList */
+        DecisionList: {
+            /** Total */
+            total: number;
+            /** Approved */
+            approved: number;
+            /** Rejected */
+            rejected: number;
+            /**
+             * Items
+             * @description Newest first
+             */
+            items: components["schemas"]["DecisionRecord"][];
+        };
+        /** DecisionRecord */
+        DecisionRecord: {
+            /** Decision Id */
+            decision_id: string;
+            /** Timestamp */
+            timestamp: string;
+            /** Plan Id */
+            plan_id: string;
+            /** Option Rank */
+            option_rank: number;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /** User */
+            user: string;
+            /** Option Title */
+            option_title?: string | null;
+            /** Forecast Run Id */
+            forecast_run_id?: string | null;
+            /** Interventions */
+            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+        };
         /** DecisionRequest */
         DecisionRequest: {
             /** Plan Id */
@@ -206,6 +248,12 @@ export interface components {
              * @default visitor
              */
             user: string;
+            /** Option Title */
+            option_title?: string | null;
+            /** Forecast Run Id */
+            forecast_run_id?: string | null;
+            /** Interventions */
+            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
         };
         /** DecisionResponse */
         DecisionResponse: {
@@ -503,6 +551,12 @@ export interface components {
             forecast_run_id: string;
             /** Interventions */
             interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"])[];
+            /**
+             * Detail
+             * @description Include the 15-minute rows (large); hourly rows are always returned
+             * @default false
+             */
+            detail: boolean;
         };
         /** SimulateResponse */
         SimulateResponse: {
@@ -570,12 +624,26 @@ export interface components {
             name_en: string;
             /** Name Ar */
             name_ar?: string | null;
-            /** Line */
+            /**
+             * Line
+             * @description Primary line
+             */
             line: string;
+            /**
+             * Lines
+             * @description All metro lines serving the station
+             */
+            lines?: string[];
             /** Lat */
             lat: number;
             /** Lon */
             lon: number;
+            /**
+             * In Corridor
+             * @description Part of the featured Sheikh Zayed Road / Trade Centre corridor
+             * @default false
+             */
+            in_corridor: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -763,6 +831,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentPlanResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_decisions_decisions_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionList"];
                 };
             };
             /** @description Validation Error */
