@@ -11,6 +11,8 @@ type TwinState = { ready: boolean; sceneReady: boolean; glFailed: boolean; loadi
 type TwinWindow = Window & { __twin: { getState: () => TwinState; setState: (s: object) => void }; __eft?: { fps: number; frames: number } };
 
 async function open(page: Page, url = "/") {
+  // on a public link the first-visit welcome sheet covers the page: only the test that asks for it (?welcome=1) sees it
+  await page.addInitScript(() => { try { if (!window.location.search.includes("welcome=1")) sessionStorage.setItem("eft_welcome", "1"); } catch { /* ignore */ } });
   await page.goto(url);
   await page.waitForFunction(() => { const s = (window as unknown as TwinWindow).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
 }
