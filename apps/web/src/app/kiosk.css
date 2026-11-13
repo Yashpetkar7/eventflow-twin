@@ -310,3 +310,17 @@
 /* R10: the station labels (name and load) a size larger on the kiosk, so the numbers read from a step back */
 .kiosk-root .labels .tag:not(.lm):not(.venue) { font-size: max(12px, calc(16.5px * var(--kz))); }
 .kiosk-root .labels .tag:not(.lm):not(.venue) b { font-weight: 650; }
+
+/* ---- landmarks on the kiosk (decision #116): their names are on the map and can be touched; a touched landmark
+   gets a name panel while the camera turns round it */
+.kiosk-root .labels .tag.lm:not(.venue):not([hidden]) { display: block; min-height: max(34px, calc(48px * var(--kz))); padding: 0 max(10px, calc(16px * var(--kz)));
+  border-radius: 999px; font-size: max(11px, calc(14.5px * var(--kz))); font-weight: 550; background: rgba(21, 27, 40, .82); }
+.kiosk-root .labels .tag.lm.sel { background: var(--navy); box-shadow: 0 0 0 2px #fff; }
+.klm { position: absolute; z-index: 7; inset-block-start: 104px; inset-inline-start: 28px; width: 440px; zoom: var(--kz); display: grid; gap: 8px; padding: 22px 26px 22px;
+  border-radius: 24px; background: rgba(255, 255, 255, .96); box-shadow: 0 16px 44px rgba(15, 25, 50, .22); }
+.klm small { font-size: 13px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
+.klm b { font-size: 30px; font-weight: 650; letter-spacing: -.02em; line-height: 1.15; }
+.klm p { margin: 0; font-size: 16.5px; line-height: 1.4; color: var(--ink-2); }
+.klm .kpill { justify-self: start; margin-top: 6px; border-color: var(--navy); color: var(--navy); font-size: 15.5px; }
+.khc .klm { background: #fff; color: #000; border: 2px solid #000; } .khc .klm p, .khc .klm small { color: #000; }
+.kreach .klm { inset-block-start: auto; inset-block-end: 150px; }

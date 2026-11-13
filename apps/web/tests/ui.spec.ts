@@ -145,7 +145,7 @@ test("landmarks: tap one and the camera frames it with its area", async ({ page 
   await settle(page, 4500);
   await page.screenshot({ path: `${OUT}/landmark_burj_khalifa.png` });
   // a landmark label in the 3D view is tappable too
-  await page.locator(".labels .tag.lm", { hasText: "The Dubai Mall" }).click();
+  await page.locator(".labels .tag.lm", { hasText: "The Dubai Mall" }).dispatchEvent("click");   // the camera is turning round the Burj, so the label moves: no wait for it to stand still
   await expect(page.locator(".focuschip")).toContainText("The Dubai Mall");
   // full-width map and back
   await page.getByRole("button", { name: "Full-width map" }).click();

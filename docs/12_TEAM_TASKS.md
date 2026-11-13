@@ -7,6 +7,11 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
+## Status on Fri 13 Nov, late — night rendering fix and touchable landmarks (decision #116)
+- Night view: no more striped or pale towers, quieter tower crowns, a darker Burj Khalifa carried by its lights.
+- Kiosk and workspace: touch a landmark or its name → the camera turns all the way round it; the kiosk names it.
+- **Yash:** C5 Arabic review now also covers the landmark names and lines at the end of `kiosk/strings.ts`.
+
 ## Status on Fri 13 Nov, evening — realism R8–R10, shader part (decision #114, branch `k/realism-r8-r10`)
 - **On screen:** rooms behind the windows, floors and lights on the landmark towers, the Burj Khalifa's lights after
   dark, drifting cloud shadows, lamp pools on Sheikh Zayed Road, figures at the station entrances (the simulator's
