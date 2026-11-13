@@ -1,0 +1,153 @@
+{
+ "scenarios": {
+  "normal": {
+   "peak": 0.778,
+   "excess": 0.0,
+   "over_hours": 0.0,
+   "road_peak": 2449.4,
+   "road_pressure": 0.204,
+   "attendance": 40000.0,
+   "metro_share": 0.45,
+   "top": null,
+   "plan_id": "plan_4e02b1347469",
+   "run_id": "fc_e94ce070b8ca",
+   "sims": 1,
+   "checked": 0
+  },
+  "hot": {
+   "peak": 0.924,
+   "excess": 106.2,
+   "over_hours": 0.5,
+   "road_peak": 2004.0,
+   "road_pressure": 0.167,
+   "attendance": 40000.0,
+   "metro_share": 0.55,
+   "top": {
+    "title": "Wayfinding only",
+    "what": "Guide 35% of World Trade Centre riders to Emirates Towers on foot.",
+    "peak": 0.703,
+    "excess": 0.0,
+    "goal_met": true
+   },
+   "plan_id": "plan_acfd3ff2fe48",
+   "run_id": "fc_4887d109317c",
+   "sims": 7,
+   "checked": 26
+  },
+  "rain": {
+   "peak": 0.997,
+   "excess": 278.6,
+   "over_hours": 0.5,
+   "road_peak": 1781.4,
+   "road_pressure": 0.148,
+   "attendance": 40000.0,
+   "metro_share": 0.6,
+   "top": {
+    "title": "Wayfinding only",
+    "what": "Guide 35% of World Trade Centre riders to Emirates Towers on foot.",
+    "peak": 0.755,
+    "excess": 0.0,
+    "goal_met": true
+   },
+   "plan_id": "plan_4dce1e264d37",
+   "run_id": "fc_38414f2f23e3",
+   "sims": 7,
+   "checked": 26
+  }
+ },
+ "break": {
+  "attendance": 44400,
+  "station": "WTC"
+ },
+ "replan": {
+  "rounds": 2,
+  "sims": 25,
+  "base_excess": 12693.5,
+  "base_peak": 3.853,
+  "top": "Extra trains + wayfinding",
+  "top_excess": 0.0,
+  "top_peak": 0.836
+ },
+ "eval": {
+  "forecast": {
+   "file": "forecast_20261112-2226.json",
+   "n": 8904,
+   "metrics": {
+    "naive_mase": 0.9707583955016034,
+    "naive_smape": 0.08867938631213816,
+    "lgbm_mase": 0.7790885228609528,
+    "lgbm_smape": 0.07128027033578942,
+    "lgbm_coverage80": 0.8123315363881402
+   }
+  },
+  "simulator": {
+   "file": "simulator_20261113-093329.json",
+   "n": 139,
+   "metrics": {
+    "property_pass_rate": 1.0,
+    "conservation_error_max": 0.0
+   }
+  },
+  "agents": {
+   "file": "agents_20261113-095355.json",
+   "n": 60,
+   "metrics": {
+    "number_faithfulness": 1.0,
+    "schema_validity": 1.0,
+    "expectation_match": 1.0,
+    "top_relieves": 1.0,
+    "top_no_new_hotspot": 1.0,
+    "arabic_text": 1.0,
+    "critic_consistent": 1.0,
+    "trace_complete": 1.0,
+    "goal_met_rate": 1.0,
+    "replan_rate": 0.1818,
+    "hotspot_scenarios": 44,
+    "options_checked": 132,
+    "plan_latency_p50_s": 0.094,
+    "plan_latency_p95_s": 0.258
+   }
+  },
+  "redteam": {
+   "file": "redteam_20261113-095403.json",
+   "n": 53,
+   "metrics": {
+    "attack_success_rate": 0.0,
+    "cases": 53,
+    "cases_text": 45,
+    "cases_api": 8,
+    "cases_en": 29,
+    "cases_ar": 10,
+    "cases_mixed": 6,
+    "owasp_categories_covered": 10
+   }
+  },
+  "latency": {
+   "file": "latency_20261113-094309.json",
+   "n": 384,
+   "metrics": {
+    "p95_seconds": 2.168,
+    "plan_p50_seconds": 0.5613,
+    "requests": 384,
+    "errors": 0,
+    "error_rate": 0.0,
+    "requests_per_second": 25.9,
+    "clients": 8,
+    "wall_seconds": 14.8,
+    "error_statuses": []
+   }
+  }
+ },
+ "real_ratio": {
+  "MAX": 1.624,
+  "WTC": 1.254,
+  "EMT": 1.301,
+  "FIC": 0.941,
+  "BKD": 1.333,
+  "BBY": 1.921
+ },
+ "models": {
+  "burj_khalifa": 11968,
+  "emirates_office_tower": 1721
+ }
+}

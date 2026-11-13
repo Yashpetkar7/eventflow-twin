@@ -7,6 +7,13 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
+## Status on Fri 13 Nov, night — pitch materials (decision #117)
+- **Deck:** `exhibit/pitch/EventFlow_Twin_RTA_Pitch.pptx` (12 slides, speaker notes). Open it once in PowerPoint before presenting.
+- **Talk scripts:** `python exhibit/pitch/build/build_scripts.py` writes `EventFlow_Twin_Script_for_RTA.pdf` (booth) and
+  `EventFlow_Twin_Script_for_Dr_Rachit.pdf` next to the deck (PDFs are git-ignored). **Everyone: read the RTA script before the booth.**
+- **Nomination v3** and **both backup videos** are regenerated on Krishna's Mac (git-ignored). Krishna sends v3 to Dr. Rachit; nobody sends anything to RTA.
+- **Yash:** C6 is done by this: `submission/images/final/` now shows the realism city.
+
 ## Status on Fri 13 Nov, late — night rendering fix and touchable landmarks (decision #116)
 - Night view: no more striped or pale towers, quieter tower crowns, a darker Burj Khalifa carried by its lights.
 - Kiosk and workspace: touch a landmark or its name → the camera turns all the way round it; the kiosk names it.
