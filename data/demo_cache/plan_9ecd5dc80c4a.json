@@ -1,0 +1,1146 @@
+{
+ "plan_id": "plan_9ecd5dc80c4a",
+ "forecast_run_id": "fc_4b060831a136",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 3.25,
+  "excess_pax": 12693.5,
+  "peak_lf": 3.853,
+  "max_wait_min": 420.0,
+  "delay_pax_min": 1134253.7,
+  "cost_proxy": 0.0,
+  "total_demand": 88713.0,
+  "end_of_day_queue": 9983.8,
+  "no_service_pax": 2483.0,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "baseline_road": {
+  "peak_veh_per_hour": 6611.3,
+  "peak_hour": 22,
+  "pressure": 0.551,
+  "vehicles_total": 20000.0,
+  "reference_capacity": 12000.0,
+  "hourly": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.3,
+   36.6,
+   865.0,
+   4098.1,
+   4098.1,
+   900.3,
+   2504.6,
+   6611.3,
+   885.7
+  ],
+  "is_assumption": true
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "Extra trains + wayfinding",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "BBY",
+      "share": 0.35,
+      "hours": [
+       22
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.836,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 320.0,
+    "total_demand": 88713.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -3.25,
+    "excess_pax": -12693.5,
+    "peak_lf": -3.017,
+    "max_wait_min": -420.0,
+    "delay_pax_min": -1134253.7,
+    "cost_proxy": 320.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": -9983.8,
+    "no_service_pax": 0.0
+   },
+   "score": 6293.5,
+   "rationale": "Trains every 3 minutes on the Red Line from 20:00 to 24:00; guide 20% of Burj Khalifa/Dubai Mall riders to Financial Centre on foot; guide 35% of Burj Khalifa/Dubai Mall riders to Business Bay on foot. Simulated result: station-hours over the threshold go from 3.25 to 0, riders above the threshold from 12,694 to 0, and the peak station load from 385% to 84%. Added cost proxy: 320. Risk: Depends on spare trains and crew.",
+   "what": "Trains every 3 minutes on the Red Line from 20:00 to 24:00; guide 20% of Burj Khalifa/Dubai Mall riders to Financial Centre on foot; guide 35% of Burj Khalifa/Dubai Mall riders to Business Bay on foot.",
+   "risk": "Depends on spare trains and crew.",
+   "cost_added": 320.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 2,
+   "road": {
+    "peak_veh_per_hour": 6611.3,
+    "peak_hour": 22,
+    "pressure": 0.551,
+    "vehicles_total": 20000.0,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.3,
+     36.6,
+     865.0,
+     4098.1,
+     4098.1,
+     900.3,
+     2504.6,
+     6611.3,
+     885.7
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_7f41e657a96a"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_4b060831a136"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Extra trains + wayfinding + entry metering",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    },
+    {
+     "type": "station_metering",
+     "params": {
+      "station": "BKD",
+      "max_load": 0.85,
+      "hours": [
+       22
+      ],
+      "to_station": "BBY"
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.85,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 320.5,
+    "total_demand": 88713.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -3.25,
+    "excess_pax": -12693.5,
+    "peak_lf": -3.003,
+    "max_wait_min": -420.0,
+    "delay_pax_min": -1134253.7,
+    "cost_proxy": 320.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": -9983.8,
+    "no_service_pax": 0.0
+   },
+   "score": 6283.5,
+   "rationale": "Trains every 3 minutes on the Red Line from 20:00 to 24:00; guide 20% of Burj Khalifa/Dubai Mall riders to Financial Centre on foot; admit riders at Burj Khalifa/Dubai Mall only up to 85% load, the rest guided on foot to Business Bay. Simulated result: station-hours over the threshold go from 3.25 to 0, riders above the threshold from 12,694 to 0, and the peak station load from 385% to 85%. Added cost proxy: 320.5. Risk: Depends on spare trains and crew.",
+   "what": "Trains every 3 minutes on the Red Line from 20:00 to 24:00; guide 20% of Burj Khalifa/Dubai Mall riders to Financial Centre on foot; admit riders at Burj Khalifa/Dubai Mall only up to 85% load, the rest guided on foot to Business Bay.",
+   "risk": "Depends on spare trains and crew.",
+   "cost_added": 320.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 2,
+   "road": {
+    "peak_veh_per_hour": 6611.3,
+    "peak_hour": 22,
+    "pressure": 0.551,
+    "vehicles_total": 20000.0,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.3,
+     36.6,
+     865.0,
+     4098.1,
+     4098.1,
+     900.3,
+     2504.6,
+     6611.3,
+     885.7
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_2942f203e5d8"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_4b060831a136"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "Extra trains + wayfinding + staggered exit",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    },
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "BBY",
+      "share": 0.25,
+      "hours": [
+       22
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.795,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 322.0,
+    "total_demand": 88713.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -3.25,
+    "excess_pax": -12693.5,
+    "peak_lf": -3.058,
+    "max_wait_min": -420.0,
+    "delay_pax_min": -1134253.7,
+    "cost_proxy": 322.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": -9983.8,
+    "no_service_pax": 0.0
+   },
+   "score": 6253.5,
+   "rationale": "Trains every 3 minutes on the Red Line from 20:00 to 24:00; guide 20% of Burj Khalifa/Dubai Mall riders to Financial Centre on foot; venue exits spread over 60 minutes; guide 25% of Burj Khalifa/Dubai Mall riders to Business Bay on foot. Simulated result: station-hours over the threshold go from 3.25 to 0, riders above the threshold from 12,694 to 0, and the peak station load from 385% to 80%. Added cost proxy: 322. Risk: Depends on spare trains and crew.",
+   "what": "Trains every 3 minutes on the Red Line from 20:00 to 24:00; guide 20% of Burj Khalifa/Dubai Mall riders to Financial Centre on foot; venue exits spread over 60 minutes; guide 25% of Burj Khalifa/Dubai Mall riders to Business Bay on foot.",
+   "risk": "Depends on spare trains and crew.",
+   "cost_added": 322.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 2,
+   "road": {
+    "peak_veh_per_hour": 5385.4,
+    "peak_hour": 22,
+    "pressure": 0.449,
+    "vehicles_total": 20000.0,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.3,
+     36.6,
+     865.0,
+     4098.1,
+     4098.1,
+     871.7,
+     816.8,
+     5385.4,
+     3828.0
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_fce5f00bd2f1"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_4b060831a136"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 43,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "Read the goal",
+   "detail": "Keep every station under 85% · priority: balanced",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "Forecast demand",
+   "detail": "Run fc_4b060831a136",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "Find hotspots",
+   "detail": "Burj Khalifa/Dubai Mall, 21:00, 22:00, 23:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "Propose plans",
+   "detail": "24 candidate plans from the fixed menu",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "Simulate each plan",
+   "detail": "25 simulator runs",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "Rank by impact and cost",
+   "detail": "Top 3 by riders relieved − λ × cost",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "Explain in plain words",
+   "detail": "Template text, numbers copied from the simulator",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "Check every number",
+   "detail": "43 figures checked, all match",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "BKD",
+  "hours": [
+   21,
+   22,
+   23
+  ],
+  "window": [
+   20,
+   21,
+   22,
+   23
+  ],
+  "peak_lf": 3.853
+ },
+ "critic": {
+  "rounds": 2,
+  "replanned": true,
+  "simulations": 25,
+  "goal_met_ranks": [
+   1,
+   2,
+   3
+  ],
+  "top_meets_goal": true,
+  "checked_by": "code",
+  "residual": null
+ },
+ "trace": [
+  {
+   "n": 1,
+   "round": 1,
+   "role": "planner",
+   "tool": "forecast",
+   "run_id": "fc_4b060831a136",
+   "ms": 0.0,
+   "data": {
+    "event": "downtown_night"
+   }
+  },
+  {
+   "n": 2,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_44e62ccacfc7",
+   "ms": 9.5,
+   "data": {
+    "label": "baseline",
+    "over": 3.25,
+    "excess": 12693.5,
+    "peak_lf": 3.853
+   }
+  },
+  {
+   "n": 3,
+   "round": 1,
+   "role": "planner",
+   "tool": "diagnose",
+   "run_id": "sim_44e62ccacfc7",
+   "ms": 0.1,
+   "data": {
+    "station": "BKD",
+    "hours": [
+     21,
+     22,
+     23
+    ],
+    "peak_lf": 3.853
+   }
+  },
+  {
+   "n": 4,
+   "round": 1,
+   "role": "proposer",
+   "tool": "propose",
+   "run_id": null,
+   "ms": 0.1,
+   "data": {
+    "source": "menu",
+    "candidates": 8
+   }
+  },
+  {
+   "n": 5,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_4315e4f6b578",
+   "ms": 12.2,
+   "data": {
+    "label": "stagway",
+    "types": [
+     "staggered_exit",
+     "wayfinding_redirect"
+    ],
+    "over": 5.5,
+    "excess": 12057.5,
+    "peak_lf": 4.97,
+    "cost_added": 3.5,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_6a86642365cb",
+   "ms": 9.1,
+   "data": {
+    "label": "trains",
+    "types": [
+     "extra_trains"
+    ],
+    "over": 1.0,
+    "excess": 3187.4,
+    "peak_lf": 1.349,
+    "cost_added": 318.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 7,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_7dc649993b89",
+   "ms": 9.3,
+   "data": {
+    "label": "busrt",
+    "types": [
+     "shuttle_bus",
+     "robotaxi_staging"
+    ],
+    "over": 3.0,
+    "excess": 9932.6,
+    "peak_lf": 3.406,
+    "cost_added": 54.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 8,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_76ed2455cc55",
+   "ms": 8.7,
+   "data": {
+    "label": "way",
+    "types": [
+     "wayfinding_redirect"
+    ],
+    "over": 5.25,
+    "excess": 10949.9,
+    "peak_lf": 2.505,
+    "cost_added": 1.5,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_451590e33481",
+   "ms": 11.8,
+   "data": {
+    "label": "trainstag",
+    "types": [
+     "extra_trains",
+     "staggered_exit"
+    ],
+    "over": 1.0,
+    "excess": 1817.7,
+    "peak_lf": 1.152,
+    "cost_added": 320.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 10,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_16a557304a90",
+   "ms": 9.2,
+   "data": {
+    "label": "trainsway",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect"
+    ],
+    "over": 0.75,
+    "excess": 1110.0,
+    "peak_lf": 1.079,
+    "cost_added": 319.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 11,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_03f2f4a93988",
+   "ms": 8.8,
+   "data": {
+    "label": "meter",
+    "types": [
+     "station_metering"
+    ],
+    "over": 3.25,
+    "excess": 10949.9,
+    "peak_lf": 3.723,
+    "cost_added": 3.0,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_a94e960476ca",
+   "ms": 8.7,
+   "data": {
+    "label": "meterq",
+    "types": [
+     "station_metering"
+    ],
+    "over": 1.25,
+    "excess": 1484.1,
+    "peak_lf": 1.528,
+    "cost_added": 976.49,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 13,
+   "round": 1,
+   "role": "critic",
+   "tool": "check_goal",
+   "run_id": null,
+   "ms": 0.1,
+   "data": {
+    "verdict": "residual",
+    "meeting": 0,
+    "tested": 8,
+    "best": "trainsway",
+    "excess": 1110.0,
+    "over": 0.75,
+    "station": "BKD"
+   }
+  },
+  {
+   "n": 14,
+   "round": 2,
+   "role": "planner",
+   "tool": "replan",
+   "run_id": null,
+   "ms": 0.6,
+   "data": {
+    "seeds": [
+     "trainsway",
+     "meterq"
+    ],
+    "candidates": 16
+   }
+  },
+  {
+   "n": 15,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_f25f9dbc120b",
+   "ms": 9.1,
+   "data": {
+    "label": "strong",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.772,
+    "cost_added": 415.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 16,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_fce5f00bd2f1",
+   "ms": 12.3,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "staggered_exit",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.795,
+    "cost_added": 322.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 17,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_efe8b1718f0d",
+   "ms": 9.0,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "shuttle_bus",
+     "robotaxi_staging"
+    ],
+    "over": 0.25,
+    "excess": 176.9,
+    "peak_lf": 0.922,
+    "cost_added": 337.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 18,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_7f41e657a96a",
+   "ms": 9.0,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.836,
+    "cost_added": 320.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 19,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_fbf99217aa5b",
+   "ms": 12.2,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "staggered_exit"
+    ],
+    "over": 0.5,
+    "excess": 247.5,
+    "peak_lf": 0.922,
+    "cost_added": 321.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 20,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_05e6eeea06a7",
+   "ms": 9.3,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "wayfinding_redirect"
+    ],
+    "over": 0.25,
+    "excess": 32.2,
+    "peak_lf": 0.863,
+    "cost_added": 320.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 21,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_2942f203e5d8",
+   "ms": 8.8,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "station_metering"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.85,
+    "cost_added": 320.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 22,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_5b2ed21c87e6",
+   "ms": 9.1,
+   "data": {
+    "label": "combo",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect",
+     "station_metering"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.85,
+    "cost_added": 357.84,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 23,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_a7ef44c9873c",
+   "ms": 11.8,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "staggered_exit",
+     "wayfinding_redirect"
+    ],
+    "over": 1.75,
+    "excess": 1013.4,
+    "peak_lf": 1.674,
+    "cost_added": 786.77,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_fa18e57604e8",
+   "ms": 9.3,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "extra_trains"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.85,
+    "cost_added": 477.72,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 25,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_18397ce05bdf",
+   "ms": 8.9,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "shuttle_bus",
+     "robotaxi_staging"
+    ],
+    "over": 0.5,
+    "excess": 152.2,
+    "peak_lf": 1.005,
+    "cost_added": 1012.49,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 26,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_bc9b68b79cc2",
+   "ms": 8.8,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "wayfinding_redirect"
+    ],
+    "over": 0.75,
+    "excess": 171.2,
+    "peak_lf": 0.993,
+    "cost_added": 1161.78,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 27,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_eeea137ad9f0",
+   "ms": 12.1,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "extra_trains",
+     "staggered_exit"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.85,
+    "cost_added": 403.02,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 28,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_59f1fb8630bd",
+   "ms": 9.7,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "extra_trains",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.85,
+    "cost_added": 538.58,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 29,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_690066432c85",
+   "ms": 9.2,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "station_metering"
+    ],
+    "over": 1.25,
+    "excess": 1484.1,
+    "peak_lf": 1.431,
+    "cost_added": 978.49,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 30,
+   "round": 2,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_a6ff45bbe901",
+   "ms": 8.7,
+   "data": {
+    "label": "combo",
+    "types": [
+     "station_metering",
+     "station_metering"
+    ],
+    "over": 0.25,
+    "excess": 1451.3,
+    "peak_lf": 3.812,
+    "cost_added": 1036.37,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 31,
+   "round": 2,
+   "role": "critic",
+   "tool": "check_goal",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "verdict": "goal_met",
+    "meeting": 8,
+    "tested": 24
+   }
+  },
+  {
+   "n": 32,
+   "round": 2,
+   "role": "planner",
+   "tool": "rank",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "kept": 3,
+    "tested": 24,
+    "order": [
+     "combo",
+     "combo",
+     "combo"
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "round": 2,
+   "role": "explainer",
+   "tool": "explain",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "source": "template",
+    "options": 3,
+    "template_fallback": []
+   }
+  },
+  {
+   "n": 34,
+   "round": 2,
+   "role": "verifier",
+   "tool": "verify_numbers",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "checked": 43,
+    "all_matched": true
+   }
+  }
+ ],
+ "cached": false
+}

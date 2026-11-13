@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.9.0"   # 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.10.0"   # 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -76,6 +76,7 @@ class ForecastRequest(BaseModel):
     weather: Weather = Field("normal", description="Weather what-if: sets the metro share of event trips (assumption)")
     exit_sigma_min: float | None = Field(None, ge=10, le=90, description="What-if venue exit window (σ, minutes)")
     metro_share: float | None = Field(None, ge=0.2, le=0.8, description="What-if share of event trips made by metro; overrides the weather what-if's share (assumption)")
+    demand_level: Literal["synthetic", "real_totals"] = Field("synthetic", description="'real_totals' scales each corridor station's background demand to its real weekday total (config/calibration.yaml); the hourly shape stays synthetic")
     custom_event: CustomEvent | None = Field(None, description="Build-your-own scenario; overrides event_id")
 
 
@@ -104,6 +105,8 @@ class ForecastResponse(BaseModel):
     metro_share_used: float | None = None
     exit_sigma_used: float | None = None
     weather: Weather = "normal"
+    demand_level: Literal["synthetic", "real_totals"] = "synthetic"
+    calibration: dict | None = Field(None, description="Station ratios applied when demand_level = real_totals, with their source file")
     event: Event | None = Field(None, description="The event behind this run (resolved custom event included)")
     band_note: str
     rows: list[ForecastRow]
@@ -156,6 +159,17 @@ class SimSummary(BaseModel):
     threshold: float = Field(0.85, description="Comfort threshold these figures were computed against")
 
 
+class RoadPressure(BaseModel):
+    """Road-pressure proxy (config/road.yaml): extra vehicles the event puts on nearby roads. An assumption model."""
+    peak_veh_per_hour: float = Field(description="Extra vehicles in the busiest hour")
+    peak_hour: int
+    pressure: float = Field(description="Busiest hour as a share of the reference road capacity")
+    vehicles_total: float
+    reference_capacity: float = Field(description="Vehicles/hour of the yardstick: one direction of Sheikh Zayed Road")
+    hourly: list[float]
+    is_assumption: bool = True
+
+
 class SimulateResponse(BaseModel):
     run_id: str
     source_forecast: str
@@ -167,6 +181,8 @@ class SimulateResponse(BaseModel):
     diverted_off_metro: float
     rows: list[SimRow]
     hourly: list[SimHourRow]
+    road: RoadPressure | None = Field(None, description="Road-pressure proxy with these interventions (null without an event)")
+    baseline_road: RoadPressure | None = None
     source: Source
 
 
@@ -235,6 +251,9 @@ class PlanOption(BaseModel):
     cost_added: float = Field(0.0, description="Cost proxy added on top of the already-approved plans")
     new_hotspots: list[str] = Field(default_factory=list, description="Stations pushed over the threshold by this option")
     figures: int = Field(0, description="Figures on this card that were checked against the simulator output")
+    goal_met: bool = Field(False, description="Critic: no station over the threshold and none newly pushed over it")
+    round: int = Field(1, description="Planning round that produced this option (2+ = found by replanning)")
+    road: RoadPressure | None = None
 
 
 class AgentStep(BaseModel):
@@ -242,6 +261,27 @@ class AgentStep(BaseModel):
     label: str
     detail: str = ""
     tool: str | None = None
+
+
+class TraceEvent(BaseModel):
+    """One tool call of the planner, in order. Figures in `data` are the simulator's (run_id says which run)."""
+    n: int
+    round: int
+    role: Literal["planner", "proposer", "simulator", "critic", "explainer", "verifier"]
+    tool: str
+    run_id: str | None = None
+    ms: float = 0.0
+    data: dict = Field(default_factory=dict)
+
+
+class CriticReport(BaseModel):
+    rounds: int = 1
+    replanned: bool = False
+    simulations: int = 0
+    goal_met_ranks: list[int] = Field(default_factory=list)
+    top_meets_goal: bool = False
+    checked_by: str = "code"
+    residual: dict | None = Field(None, description="What the most effective offered plan still leaves, when none meets the goal")
 
 
 class VerifyReport(BaseModel):
@@ -261,6 +301,9 @@ class AgentPlanResponse(BaseModel):
     steps: list[AgentStep] = Field(default_factory=list)
     planner: str = Field("", description="Which planner produced this: 'deterministic-template' or an LLM model id")
     hotspot: dict | None = Field(None, description="Worst station and hours the plan targets (from the diagnose tool)")
+    critic: CriticReport | None = None
+    trace: list[TraceEvent] = Field(default_factory=list, description="Every tool call behind this plan, in order")
+    baseline_road: RoadPressure | None = None
     cached: bool = False
 
 

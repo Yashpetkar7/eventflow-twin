@@ -1,19 +1,19 @@
 {
   "suite": "ui_fps",
-  "timestamp": "2026-11-12T18:32:40.631Z",
+  "timestamp": "2026-11-13T06:00:42.079Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing",
-  "mode": "next start (production build)",
-  "avg_fps": 56.2,
-  "min_fps": 55.5,
+  "mode": "next dev",
+  "avg_fps": 60,
+  "min_fps": 58.9,
   "per_camera": {
-    "overview": 56.3,
-    "close": 56.3,
-    "top": 55.9,
-    "fly": 56,
-    "orbit": 56.5
+    "overview": 59.8,
+    "close": 60,
+    "top": 60,
+    "fly": 60,
+    "orbit": 60
   },
-  "renderer": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)",
   "dpr": 1,
   "canvas": [
     1230,

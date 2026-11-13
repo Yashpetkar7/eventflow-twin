@@ -8,6 +8,7 @@ from __future__ import annotations
 import datetime as dt
 import glob
 import json
+import logging
 import os
 import threading
 import time
@@ -24,6 +25,7 @@ from .config import ROOT, corridor, events
 from .forecast import NoDataError, build_forecast, config_hash, load_panel, make_run_id
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
+from .road import road_pressure
 from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
@@ -36,6 +38,11 @@ app.add_middleware(CORSMiddleware, allow_origin_regex=r"^http://(localhost|127\.
 # Public demo only: EVENTFLOW_RATE_LIMIT = POST requests per minute per client (unset on the laptop: no limit).
 _LIMIT = RateLimit(int(os.environ["EVENTFLOW_RATE_LIMIT"])) if os.environ.get("EVENTFLOW_RATE_LIMIT") else None
 
+
+_LOG = logging.getLogger("eventflow.access")      # one JSON line per request: id, path, status, milliseconds
+if (os.environ.get("VERCEL") or os.environ.get("EVENTFLOW_ACCESS_LOG")) and not _LOG.handlers:
+    _LOG.addHandler(logging.StreamHandler())        # hosted: lines reach the platform's log; on the laptop set EVENTFLOW_ACCESS_LOG=1
+    _LOG.setLevel(logging.INFO)
 
 SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin",
                     "Cache-Control": "no-store"}
@@ -51,8 +58,18 @@ async def _rate_limit(request: Request, call_next):
         if not _LIMIT.allow(fwd.split(",")[0].strip(), time.monotonic()):
             return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again in a minute."},
                                 headers={"Retry-After": "60", **SECURITY_HEADERS})
+    # One id and one timing per request, so a slow or failed call can be found in the logs (and in the browser's
+    # network panel) without any external tracing service. A caller's own id is kept if it is a plain token.
+    rid = request.headers.get("x-request-id", "")
+    rid = rid if rid and len(rid) <= 64 and rid.replace("-", "").replace("_", "").isalnum() else uuid.uuid4().hex[:16]
+    t0 = time.perf_counter()
     response = await call_next(request)
+    ms = (time.perf_counter() - t0) * 1000
     response.headers.update(SECURITY_HEADERS)
+    response.headers["X-Request-ID"] = rid
+    response.headers["Server-Timing"] = f"app;dur={ms:.1f}"
+    _LOG.info(json.dumps({"rid": rid, "method": request.method, "path": request.url.path, "status": response.status_code,
+                          "ms": round(ms, 1)}))
     return response
 
 # Writable state. Laptop / booth: <repo>/data (kept between runs). Serverless: a temp directory per instance —
@@ -89,6 +106,7 @@ def build_run(req: ForecastRequest) -> dict:
     try:
         return build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time,
                               weather=req.weather, exit_sigma_min=req.exit_sigma_min, metro_share=req.metro_share,
+                              demand_level=req.demand_level,
                               custom=req.custom_event.model_dump() if req.custom_event else None)
     except KeyError as e:
         raise HTTPException(404, f"Unknown event or station {e}")
@@ -156,6 +174,7 @@ def run_simulation(forecast_run_id: str, interventions: list, detail: bool = Fal
     return {"run_id": run_id, "source_forecast": forecast_run_id, "is_synthetic": run["is_synthetic"],
             "summary": res.summary, "baseline_summary": base.summary, "delta": delta, "effects": res.effects,
             "diverted_off_metro": res.diverted_off_metro, "rows": res.rows if detail else [], "hourly": res.hourly,
+            "road": road_pressure(run, ivs, res.effects), "baseline_road": road_pressure(run, [], []),
             "source": {"tool": "simulate", "run_id": run_id}}
 
 
