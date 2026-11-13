@@ -277,7 +277,7 @@ export const useTwin = create<State>((set, get) => {
     },
     selectEvent: (id) => {
       const s = get();
-      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null }, applied: [], plan: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
+      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null }, applied: [], plan: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
       schedule({ forecast: true, jump: true }, 0);
     },
     patchScenario: (p) => { set({ scenario: { ...get().scenario, ...p } }); schedule({ forecast: true }); },

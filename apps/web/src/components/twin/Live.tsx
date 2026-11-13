@@ -187,6 +187,64 @@ export function Crowd({ places }: { places: StationPlace[] }) {
   );
 }
 
+// R9 (decision #114): the crowd as people. Small figures stand on the plaza at each station's two entrances; their
+// number is the simulator's riders for the current hour at that station (one figure for every 40 riders an hour, that
+// is 10 riders in a quarter of an hour), so a busy station looks busy before anyone reads the gauge. Figures turn the
+// gauge's red when the station is over the comfort line. Full quality only; hidden with the crowd-flow layer.
+const FIG_MAX = 220, RIDERS_PER_FIGURE = 40;
+export function Waiting({ places }: { places: StationPlace[] }) {
+  const visible = useTwin((s) => s.layers.flows && s.tier === 0);
+  const mesh = useRef<THREE.InstancedMesh>(null);
+  const geo = useMemo(() => {
+    const body = new THREE.CylinderGeometry(0.34, 0.26, 1.25, 6).translate(0, 0.625, 0).toNonIndexed();
+    const head = new THREE.SphereGeometry(0.24, 6, 5).translate(0, 1.5, 0).toNonIndexed();
+    const pos = new Float32Array([...(body.attributes.position.array as Float32Array), ...(head.attributes.position.array as Float32Array)]);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.computeVertexNormals();
+    body.dispose(); head.dispose();
+    return g;
+  }, []);
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({ fog: false }), []);      // unlit, like the gauges: the data reads the same by day and by night
+  // where each figure of each station stands: around the entrance on either side of the viaduct, fixed for the session
+  const spots = useMemo(() => places.map((p, k) => {
+    const rnd = mulberry(101 + k * 17), out: { x: number; z: number; ph: number; shade: number }[] = [];
+    for (let i = 0; i < FIG_MAX; i++) {
+      const side = i % 2 ? p.zMax + 9 : p.zMin - 9, r = 3 + 26 * Math.sqrt(rnd()), a = rnd() * Math.PI * 2;
+      const along = Math.cos(a) * r * 1.5, across = Math.sin(a) * r * 0.55 * Math.sign(side);
+      out.push({ x: p.x + p.tx * along - p.tz * (side + across), z: p.z + p.tz * along + p.tx * (side + across), ph: rnd() * 6.28, shade: 0.55 + rnd() * 0.45 });
+    }
+    return out;
+  }), [places]);
+  useEffect(() => () => { geo.dispose(); mat.dispose(); }, [geo, mat]);
+  const m4 = useMemo(() => new THREE.Matrix4(), []), col = useMemo(() => new THREE.Color(), []);
+  useFrame(() => {
+    const im = mesh.current;
+    if (!im || !visible) return;
+    const s = useTwin.getState(), h = hourOf(s.time), thr = s.cur?.thr ?? s.threshold;
+    const k = Math.max(1, Math.min(4.2, live.camDist / 330)), t = live.animT;      // drawn larger from far away, like the gauges
+    let n = 0;
+    places.forEach((p, i) => {
+      const riders = s.cur?.by[p.id]?.demandH[h] ?? 0;
+      const count = Math.min(FIG_MAX, Math.round(riders / RIDERS_PER_FIGURE));
+      const over = lfAt(s.cur, p.id, s.time) > thr;
+      for (let j = 0; j < count; j++) {
+        const q = spots[i][j];
+        m4.makeScale(k, k, k).setPosition(q.x + Math.sin(t * 0.7 + q.ph) * 0.6, 0.4, q.z + Math.cos(t * 0.55 + q.ph) * 0.6);
+        im.setMatrixAt(n, m4);
+        im.setColorAt(n, over ? col.setRGB(0.69 * q.shade + 0.25, 0.07, 0.31 * q.shade) : col.setRGB(0.16 * q.shade + 0.06, 0.24 * q.shade + 0.08, 0.42 * q.shade + 0.12));
+        n++;
+      }
+    });
+    im.count = n;
+    im.instanceMatrix.needsUpdate = true;
+    if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    (im.userData as { figures?: number }).figures = n;
+    if (typeof document !== "undefined") document.documentElement.dataset.sceneFigures = String(n);       // read by the UI tests
+  });
+  return <instancedMesh ref={mesh} args={[geo, mat, FIG_MAX * Math.max(1, places.length)]} visible={visible} frustumCulled={false} />;
+}
+
 const CAR_LOD_AT = 1500;                             // camera working distance (m): a car is under 5 px long beyond it
 const CARS = 1500, CAR_COLORS = [0xffffff, 0xd9dde3, 0x1f2329, 0xc9c3b6, 0x8a1f1f, 0x2b4a7a, 0xe8d9a8, 0xf2f2f2, 0x9aa0a8];
 /** Road traffic on Sheikh Zayed Road. ILLUSTRATIVE ONLY: density follows a fixed daily profile plus the event

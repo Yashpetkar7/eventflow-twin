@@ -7,6 +7,45 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
+## Status on Fri 13 Nov, night — pitch materials (decision #117)
+- **Deck:** `exhibit/pitch/EventFlow_Twin_RTA_Pitch.pptx` (12 slides, speaker notes). Open it once in PowerPoint before presenting.
+- **Talk scripts:** `python exhibit/pitch/build/build_scripts.py` writes `EventFlow_Twin_Script_for_RTA.pdf` (booth) and
+  `EventFlow_Twin_Script_for_Dr_Rachit.pdf` next to the deck (PDFs are git-ignored). **Everyone: read the RTA script before the booth.**
+- **Nomination v3** and **both backup videos** are regenerated on Krishna's Mac (git-ignored). Krishna sends v3 to Dr. Rachit; nobody sends anything to RTA.
+- **Yash:** C6 is done by this: `submission/images/final/` now shows the realism city.
+
+## Status on Fri 13 Nov, late — night rendering fix and touchable landmarks (decision #116)
+- Night view: no more striped or pale towers, quieter tower crowns, a darker Burj Khalifa carried by its lights.
+- Kiosk and workspace: touch a landmark or its name → the camera turns all the way round it; the kiosk names it.
+- **Yash:** C5 Arabic review now also covers the landmark names and lines at the end of `kiosk/strings.ts`.
+
+## Status on Fri 13 Nov, evening — realism R8–R10, shader part (decision #114, branch `k/realism-r8-r10`)
+- **On screen:** rooms behind the windows, floors and lights on the landmark towers, the Burj Khalifa's lights after
+  dark, drifting cloud shadows, lamp pools on Sheikh Zayed Road, figures at the station entrances (the simulator's
+  riders), larger kiosk labels. `?clouds=0` and `?film=0` switch the sky extras off.
+- **Landmarks rebuilt in Blender (decision #115):** Burj Khalifa, both Emirates Towers, the Trade Centre tower and
+  Dubai Frame now have real detail (the Burj went from 2,332 to about 12,000 triangles).
+- **Atharva:** two prompts are waiting in `docs/13_REALISM_FABLE_TASKS.md` → "R8–R10 — status": **R8b** new landmarks
+  (Dubai Mall, fountain, DIFC Gate, tower row) and **R9b** street level. Please also repeat the kiosk run on
+  the Windows laptop on mains power with this build: the new effects run at full quality only.
+- **Yash:** no change to your four tasks (C4 touch monitor, C5 Arabic, C6 screenshots, B4 live AI test). C6 should
+  wait for this branch to be merged.
+
+## Status on Fri 13 Nov, afternoon — score-up build (decisions #109–#113, contract 1.10.0)
+- **Planner:** a code critic checks the goal after each round and the planner replans (at most twice) when no tested
+  plan meets it; every tool call is recorded and shown ("How did the AI decide?" → "Show all tool calls"; workspace AI
+  tab → "Tool calls"). The default scenarios still need one round, so their plans and numbers are unchanged.
+- **New on screen:** road-pressure figure (extra cars near the venue, an assumption model), "Real station totals"
+  switch in the stress test, "Clears every station" badge, reach mode (bottom-left round button).
+- **Evals:** 60 planner scenarios, 53 attack cases tagged to the OWASP agentic list, a latency result from
+  `python scripts/load_test.py <api url>`; the gate is green.
+- **Atharva:** nothing changes in your Windows run; please also press the reach button once and send a photo.
+  The new gold rows (en/ar 11–30, rt16–rt53) are waiting for your review (`eval/gold/README.md`).
+- **Yash:** C5 Arabic review now also covers the block at the end of `apps/web/src/components/kiosk/strings.ts`
+  (critic, tool calls, road, real totals) and the new keys at the end of `apps/web/src/messages/ar.json`.
+  B4 live run: `DEMO_MODE=live` now also exercises the replanning call (the model sees the critic's finding).
+- **Krishna:** rehearse the "show me the planner failing" walk-through in `docs/BOOTH_RUNBOOK.md`; JURY_QA has six new answers.
+
 ## Status on Fri 13 Nov, 05:00 — newest first
 - **Best 3D by default (decision #108):** the kiosk and the desktop workspace open on the realism city at full quality;
   a slow laptop steps down by itself (kiosk: under 50 fps). `?quality=light` and `?scene=v1` are the manual fallbacks.

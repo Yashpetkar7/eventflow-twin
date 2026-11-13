@@ -25,6 +25,7 @@ const TwinCanvas = dynamic(() => import("../twin/TwinCanvas"), { ssr: false });
 
 type Phase = "attract" | "choose" | "event" | "crowd" | "plan" | "decide" | "rider";
 type Summary = SimulateResponse["summary"];
+type TraceEvent = NonNullable<AgentPlanResponse["trace"]>[number];
 const STEP: Record<Phase, number> = { attract: -1, choose: -1, rider: -1, event: 0, crowd: 1, plan: 2, decide: 3 };
 const AUTOMATIC = new Set(["guided-demo", "soak", "test", "playwright", "smoke"]);
 const WEATHERS = ["normal", "hot", "rain"] as const;
@@ -75,12 +76,17 @@ async function todaysVisitors(): Promise<Visitors | null> {
 }
 
 function Modal({ title, close, closeLabel, children }: { title: string; close: () => void; closeLabel: string; children: React.ReactNode }) {
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [close]);
   return (
     <div className="kstill kmodal" role="dialog" aria-modal="true" aria-label={title} onClick={close}>
       <div onClick={(e) => e.stopPropagation()}>
         <b>{title}</b>
         {children}
-        <button type="button" className="kgo" onClick={close}>{closeLabel}</button>
+        <button type="button" className="kgo" onClick={close} autoFocus>{closeLabel}</button>
       </div>
     </div>
   );
@@ -106,6 +112,8 @@ export function Kiosk() {
   const planStep = useTwin((s) => s.planStep);
   const threshold = useTwin((s) => s.threshold);
   const time = useTwin((s) => s.time);
+  const camMode = useTwin((s) => s.cam);
+  const focus = useTwin((s) => s.focus);
 
   const [phase, setPhase] = useState<Phase>("attract");
   const [guess, setGuess] = useState<string | null>(null);
@@ -118,7 +126,7 @@ export function Kiosk() {
   const [mine, setMine] = useState<Summary | "none" | null>(null);        // the visitor's idea, simulated
   const [chosen, setChosen] = useState<number | null>(null);
   // The store clears the plan once it is applied: keep what the later screens need (all from API answers).
-  const [picked, setPicked] = useState<{ title: string; before: Summary } | null>(null);
+  const [picked, setPicked] = useState<{ title: string; before: Summary; road: number | null } | null>(null);
   const [kept, setKept] = useState<AgentPlanResponse | null>(null);
   const [modal, setModal] = useState<"how" | "pb" | "stats" | null>(null);
   const [pb, setPb] = useState<Summary | "fail" | null>(null);            // reported NYE measures, simulated
@@ -126,6 +134,8 @@ export function Kiosk() {
   const [visitors, setVisitors] = useState<Visitors | null>(null);
   const [big, setBig] = useState(false);
   const [hc, setHc] = useState(false);
+  const [reach, setReach] = useState(false);                  // every control in the lower half (seated visitors)
+  const [calls, setCalls] = useState(false);                  // the tool-call list in "How the AI decided"
   const [cap, setCap] = useState<string | null>(null);        // caption of the 60-second show
   const [still, setStill] = useState<number | null>(null);    // seconds left in the "Still there?" countdown
   const [credits, setCredits] = useState<string[]>([]);
@@ -191,15 +201,15 @@ export function Kiosk() {
 
   // ---- inactivity: "Still there?" then reset for the next visitor
   const clearRun = () => { setGuess(null); setRevealed(false); revealedRef.current = false; setLab(false); setClosed(null); setOwn(false); setIdea(undefined); setMine(null);
-    setChosen(null); setPicked(null); setKept(null); setModal(null); setPb(null); };
+    setChosen(null); setPicked(null); setKept(null); setModal(null); setPb(null); setCalls(false); };
   const reset = useCallback(() => {
     if (anim.current) cancelAnimationFrame(anim.current);
     if (show.current) show.current.cancel = true;
     const s = st.getState();
     s.clearPlans();
-    useTwin.setState({ applied: [], scenario: { ...s.scenario, weather: "normal", metroShare: null } });
+    useTwin.setState({ applied: [], scenario: { ...s.scenario, weather: "normal", metroShare: null, demandLevel: null } });
     if (s.events[0]) s.selectEvent(s.events[0].id);
-    clearRun(); setStill(null); setBig(false); setHc(false); setQuiet(false); setCap(null);
+    clearRun(); setStill(null); setBig(false); setHc(false); setReach(false); setQuiet(false); setCap(null);
     setPhase("attract");
   }, [st]);
 
@@ -313,7 +323,7 @@ export function Kiosk() {
     if (!p || !o) return;
     if (user === "visitor") bump("approve");
     setChosen(rank); setKept(p);
-    setPicked({ title: o.title, before: p.baseline_summary });
+    setPicked({ title: o.title, before: p.baseline_summary, road: p.baseline_road?.peak_veh_per_hour ?? null });
     await st.getState().decide(rank, "approve", user);
     const pk = busiest(st.getState().base, ids);
     if (pk) { st.getState().select(pk.id); st.getState().setCam("close"); }
@@ -395,9 +405,33 @@ export function Kiosk() {
   const wait = (m: number) => (m < 0.5 ? T.rNoWait : T.rWait(f.num(m, 0)));
   const day = todayStats();
   const fact = phase === "attract" && ev && peak ? T.fact(f.event(ev), name(peak.id), f.pct(peak.lf), hhmm(peak.time)) : null;
+  const road = cur?.resp.road ?? null;                         // road-pressure proxy for the situation on screen (assumption model)
+  const level = scenario.demandLevel === "real_totals" ? "real_totals" : "synthetic";
+  const critic = shown?.critic ?? null;
+  // One line per tool call, written from the call's own data (every figure in it is the simulator's).
+  const traceText = (e: TraceEvent): string => {
+    const d = e.data as Record<string, unknown>;
+    const num = (k: string) => f.int(Number(d[k] ?? 0));
+    const kinds = [...new Set(((d.types as string[] | undefined) ?? []).map((k) => kindName(k)))].join(" + ");
+    const label = d.label === "llm" ? T.tModel : d.label === "strong" ? `${kinds} (${T.tStrong})` : kinds;
+    switch (e.tool) {
+      case "forecast": return T.tForecast(e.run_id ?? "");
+      case "simulate": return d.label === "baseline" ? T.tBase(num("excess"), f.pct(Number(d.peak_lf)))
+        : T.tSim(label.charAt(0).toUpperCase() + label.slice(1), num("excess"), f.pct(Number(d.peak_lf))) + ((d.new_hotspots as string[] | undefined)?.length ? T.tMoves(name((d.new_hotspots as string[])[0])) : "");
+      case "diagnose": return d.station ? T.tHot(name(String(d.station))) : T.tNoHot;
+      case "propose": return d.source === "menu" ? T.tPropose(num("candidates")) : T.tProposeLlm(num("candidates"), String(d.source));
+      case "check_goal": return d.verdict === "goal_met" ? T.tMet(num("meeting"), num("tested")) : d.verdict === "residual" ? T.tResidual(num("excess"), name(String(d.station ?? "")))
+        : d.verdict === "no_action" ? T.tNoAction : T.tNoRelief;
+      case "replan": return T.tReplan(num("candidates"));
+      case "rank": return T.tRank(num("kept"), num("tested"));
+      case "explain": return T.tExplain(d.source === "template" ? T.tTemplate : String(d.source));
+      case "verify_numbers": return T.tVerify(num("checked"));
+      default: return e.tool;
+    }
+  };
 
   return (
-    <div ref={root} className={`kiosk-root${big ? " kbig" : ""}${hc ? " khc" : ""}`} data-testid="kiosk" data-phase={phase}>
+    <div ref={root} className={`kiosk-root${big ? " kbig" : ""}${hc ? " khc" : ""}${reach ? " kreach" : ""}`} data-testid="kiosk" data-phase={phase}>
       <div className="kmap" data-testid="view">
         <TwinCanvas label={T.attractTitle} />
         <LabelLayer />
@@ -418,7 +452,7 @@ export function Kiosk() {
             ))}
           </ol>
         )}
-        <div className="ktools">
+        <div className="ktools" role="group" aria-label={T.bigText + " · " + T.contrast}>
           <button type="button" className="kpill" aria-pressed={big} onClick={() => setBig(!big)} aria-label={T.bigText}><span className="kaa">A<small>A</small></span></button>
           <button type="button" className="kpill" aria-pressed={hc} onClick={() => setHc(!hc)} aria-label={T.contrast} data-testid="kiosk-contrast"><span className="khalf" aria-hidden /></button>
           <button type="button" className="kpill klang" onClick={() => setLocale(locale === "ar" ? "en" : "ar")} lang={locale === "ar" ? "en" : "ar"}>{locale === "ar" ? "English" : "عربي"}</button>
@@ -537,7 +571,12 @@ export function Kiosk() {
 
           {phase === "crowd" && lab && (
             <>
-              <h1>{T.labTitle}</h1>
+              <div className="khead">
+                <h1>{T.labTitle}</h1>
+                <button type="button" className="kpill" aria-pressed={level === "real_totals"} data-testid="kiosk-level" title={T.labLevelHint}
+                  onClick={() => st.getState().patchScenario({ demandLevel: level === "real_totals" ? null : "real_totals" })}>{T.labLevels.real_totals}</button>
+              </div>
+              {level === "real_totals" && <small className="kroad" data-testid="kiosk-level-hint">{T.labLevelHint}</small>}
               {peak && (
                 <div className="klive" data-testid="kiosk-live">
                   <b className={lfClass(peak.lf)}><N>{f.pct(peak.lf)}</N></b>
@@ -552,14 +591,15 @@ export function Kiosk() {
               </div>
               <div className="kfield">
                 <span>{T.labMetro}</span>
-                <div className="kseg" data-testid="kiosk-metro">
+                <div className="kseg" data-testid="kiosk-metro" role="group" aria-label={T.labMetro}>
                   {METRO_SHARES.map((v) => <button key={v} type="button" aria-pressed={shareNow !== null && Math.abs(shareNow - v) < 0.005} onClick={() => st.getState().patchScenario({ metroShare: v })}><N>{f.pct(v)}</N></button>)}
                 </div>
+                {road && <small className="kroad" data-testid="kiosk-road"><N>{T.road(f.int(road.peak_veh_per_hour), f.pct(road.pressure))}</N></small>}
                 <small>{T.labMetroHint}</small>
               </div>
               <div className="kfield">
                 <span>{T.labClose}</span>
-                <div className="kchips" data-testid="kiosk-close">
+                <div className="kchips" data-testid="kiosk-close" role="group" aria-label={T.labClose}>
                   <button type="button" aria-pressed={closed === null} onClick={() => closeStation(null)}>{T.labCloseNone}</button>
                   {ids.map((id) => <button key={id} type="button" aria-pressed={closed === id} onClick={() => closeStation(id)}>{name(id)}</button>)}
                 </div>
@@ -607,7 +647,7 @@ export function Kiosk() {
                   <div className="kopts">
                     {plan.options.map((o) => (
                       <article key={o.rank} className={`kopt${o.rank === 1 ? " top" : ""}`}>
-                        <h2>{o.title}</h2>
+                        <h2>{o.title}{o.goal_met && <em className="kbadge ok" data-testid="kiosk-goal">{T.goalMet}</em>}{(o.round ?? 1) > 1 && <em className="kbadge">{T.replanned}</em>}</h2>
                         <p>{o.what}</p>
                         <div className="kdelta">
                           <div><small>{T.peakLoad}</small><b><N>{f.pct(before.peak_lf)} → <span className={over(o.summary.peak_lf) ? "risk" : "okc"}>{f.pct(o.summary.peak_lf)}</span></N></b></div>
@@ -632,6 +672,7 @@ export function Kiosk() {
                 <div><small>{T.peakLoad}</small><span><N>{f.pct(picked.before.peak_lf)}</N></span><i>→</i><b className={over(after.peak_lf) ? "risk" : "okc"}><N>{f.pct(after.peak_lf)}</N></b></div>
                 <div><small>{T.ridersOver}</small><span><N>{f.int(picked.before.excess_pax)}</N></span><i>→</i><b className={after.excess_pax > 0 ? "risk" : "okc"}><N>{f.int(after.excess_pax)}</N></b></div>
                 {picked.before.max_wait_min >= 1 && <div><small>{T.longest}</small><span><N>{mins(picked.before.max_wait_min)}</N></span><i>→</i><b className={after.max_wait_min < picked.before.max_wait_min ? "okc" : ""}><N>{mins(after.max_wait_min)}</N></b></div>}
+                {picked.road !== null && road && Math.round(picked.road) !== Math.round(road.peak_veh_per_hour) && <div data-testid="kiosk-road-after"><small>{T.roadRow}</small><span><N>{f.int(picked.road)}</N></span><i>→</i><b className={road.peak_veh_per_hour < picked.road ? "okc" : ""}><N>{f.int(road.peak_veh_per_hour)}</N></b></div>}
                 {picked.before.delay_pax_min >= 60 && <div><small>{T.waiting}</small><span><N>{hours(picked.before.delay_pax_min)}</N></span><i>→</i><b className={after.delay_pax_min < picked.before.delay_pax_min ? "okc" : ""}><N>{hours(after.delay_pax_min)}</N></b></div>}
               </div>
               {idea && mine && best && (
@@ -694,9 +735,20 @@ export function Kiosk() {
         </aside>
       )}
 
+      {phase !== "attract" && camMode === "landmark" && focus && T.lmNames[focus] && (
+        <div className="klm" data-testid="kiosk-landmark" role="status">
+          <small>{T.lmView}</small>
+          <b>{T.lmNames[focus]}</b>
+          <p>{T.lmLines[focus]}</p>
+          <button type="button" className="kpill" onClick={() => st.getState().setCam("overview")}>{T.lmBack}</button>
+        </div>
+      )}
       {phase !== "attract" && phase !== "choose" && ev && (
         <div className="kchip"><N>{hhmm(time)}</N> · {f.event(ev)}</div>
       )}
+      <button type="button" className="kreachbtn" aria-pressed={reach} aria-label={T.reach} title={T.reach} onClick={(e) => { e.stopPropagation(); setReach(!reach); }} data-testid="kiosk-reach">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 4v13" /><path d="m6 12 6 6 6-6" /><path d="M5 21h14" /></svg>
+      </button>
       {cap && <div className="kcap" role="status" data-testid="kiosk-caption"><b>{cap}</b><small>{T.juryStop}</small></div>}
       <footer className="kdisc" onPointerDown={holdFoot} onPointerUp={holdEnd} onPointerLeave={holdEnd}>
         <span>{T.disclaimer}</span><span className="kcred">{T.credits}{credits.length ? ` · ${credits.join(" · ")}` : ""}</span>
@@ -709,7 +761,26 @@ export function Kiosk() {
           <ol className="ktrace" data-testid="kiosk-trace">
             {(shown.steps ?? []).map((s, i) => <li key={s.key}><span><N>{String(i + 1)}</N></span><div><b>{s.label}</b>{s.detail && <small><N>{s.detail}</N></small>}</div></li>)}
           </ol>
+          {critic && (
+            <p className="kcritic" data-testid="kiosk-critic">
+              <N>{shown.options.length === 0 ? T.criticNone : critic.goal_met_ranks?.length ? T.criticMet : T.criticNot(f.int(Number(critic.residual?.excess_pax ?? 0)))}</N>
+              <small><N>{(critic.rounds ?? 1) > 1 ? T.howRounds(f.int(critic.rounds ?? 1), f.int(critic.simulations ?? 0)) : T.howRound1(f.int(critic.simulations ?? 0))}</N></small>
+            </p>
+          )}
           <p className={`kline ${shown.verify.all_matched ? "okc" : "risk"}`}><N>{shown.verify.all_matched ? T.howVerify(f.int(shown.verify.numbers_checked)) : T.howVerifyBad}</N></p>
+          {(shown.trace?.length ?? 0) > 0 && (
+            <>
+              <button type="button" className="kpill" onClick={() => setCalls(!calls)} aria-expanded={calls} data-testid="kiosk-calls-btn">{calls ? T.traceClose : T.traceOpen(f.int(shown.trace!.length))}</button>
+              {calls && (
+                <ol className="kcalls" data-testid="kiosk-calls">
+                  {shown.trace!.flatMap((e, i, all) => [
+                    ...(i === 0 || all[i - 1].round !== e.round ? [<li key={`r${e.round}`} className="rd"><N>{T.traceRound(f.int(e.round))}</N></li>] : []),
+                    <li key={e.n} className={e.role}><span><N>{f.int(e.n)}</N></span><b>{T.roles[e.role] ?? e.role}</b><span><N>{traceText(e)}</N></span><small><N>{e.ms >= 1 ? `${f.num(e.ms, 0)} ms` : ""}</N></small></li>,
+                  ])}
+                </ol>
+              )}
+            </>
+          )}
         </Modal>
       )}
       {modal === "pb" && (

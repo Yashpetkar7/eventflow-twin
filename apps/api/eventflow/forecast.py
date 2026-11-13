@@ -128,6 +128,14 @@ def custom_event(spec: dict) -> dict:
             "note_ar": "سيناريو افتراضي من إعداد الزائر. ليست فعالية حقيقية أو مجدولة."}
 
 
+@lru_cache(maxsize=1)
+def calibration() -> dict | None:
+    """Real-over-synthetic demand ratios per corridor station (scripts/build_calibration.py), or None if not built."""
+    import yaml
+    p = ROOT / "config/calibration.yaml"
+    return yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
 def weather_metro_share(weather: str | None) -> float | None:
     """Metro share of event trips under a weather what-if (corridor.yaml event_model.weather_metro_share)."""
     if not weather:
@@ -141,7 +149,7 @@ def weather_metro_share(weather: str | None) -> float | None:
 def build_forecast(event_id: str | None = None, date: str | None = None, weekday: int | None = None,
                    attendance: float | None = None, end: str | None = None, *, weather: str | None = None,
                    exit_sigma_min: float | None = None, custom: dict | None = None,
-                   metro_share: float | None = None) -> dict:
+                   metro_share: float | None = None, demand_level: str | None = None) -> dict:
     """Return {run_id, demand (bins, p50), rows (hourly p10/p50/p90), meta...}. Pure for fixed data+config."""
     panel = load_panel()
     ev = custom_event(custom) if custom else find_event(event_id)
@@ -152,12 +160,17 @@ def build_forecast(event_id: str | None = None, date: str | None = None, weekday
                "dataset": panel.dataset_version, "config": config_hash()}
     # new what-ifs only enter the hash when used, so earlier run ids (fixtures, cache, evals) stay valid
     extra = {"weather": weather if weather not in (None, "normal") else None, "exit_sigma_min": exit_sigma_min,
-             "custom": custom, "metro_share": metro_share}
+             "custom": custom, "metro_share": metro_share,
+             "demand_level": demand_level if demand_level not in (None, "synthetic") else None}
     payload.update({k: v for k, v in extra.items() if v is not None})
     run_id = make_run_id("fc", payload)
 
     bph = bins_per_hour()
     bg = background_quantiles(panel, weekday)
+    cal = calibration() if demand_level == "real_totals" else None
+    if cal:                                        # real station totals, synthetic hourly shape (docs/14, config/calibration.yaml)
+        bg = {s: ({col: {q: [v * cal["stations"][s]["ratio"] for v in series] for q, series in qs.items()} for col, qs in cols.items()}
+                  if s in cal["stations"] else cols) for s, cols in bg.items()}
     lo, hi = corridor()["event_model"]["attendance_band"]
     share = metro_share if metro_share is not None else weather_metro_share(weather)   # an explicit what-if wins over the weather's share
     kw = {"attendance": attendance, "end": end, "metro_share": share, "exit_sigma_min": exit_sigma_min}
@@ -194,6 +207,9 @@ def build_forecast(event_id: str | None = None, date: str | None = None, weekday
         "metro_share_used": (share if share is not None else em["metro_share"]) if ev else None,
         "exit_sigma_used": (exit_sigma_min if exit_sigma_min is not None else em["exit_sigma_min"]) if ev else None,
         "weather": weather or "normal",
+        "demand_level": "real_totals" if cal else "synthetic",
+        "calibration": {"source": cal["source"], "window": cal["window"],
+                        "stations": {k: v["ratio"] for k, v in cal["stations"].items()}} if cal else None,
         "band_note": "p10/p90 = background weekday quantiles + event surge at attendance × "
                      f"{lo}/{hi} (assumption band, not a calibrated interval)",
         "demand": demand,

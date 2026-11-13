@@ -8,6 +8,21 @@ import * as THREE from "three";
 export function installHaze() {
   THREE.ShaderChunk.fog_fragment = /* glsl */ `
   #ifdef USE_FOG
+    #if defined( STANDARD ) && NUM_DIR_LIGHTS > 0
+      // R10 (decision #114): soft cloud shadows drifting over the city. The custom haze does not use fogNear, so the
+      // scene passes the clock in it (Sky.tsx; negative = clouds off). World position from the view-space one.
+      if (fogNear >= 0.0) {
+        vec2 eftCp = (cameraPosition + transpose(mat3(viewMatrix)) * (-vViewPosition)).xz / 2400.0 + vec2(fogNear * 0.0052, fogNear * 0.0021);
+        vec2 eftCi = floor(eftCp), eftCf = fract(eftCp); eftCf = eftCf * eftCf * (3.0 - 2.0 * eftCf);
+        #define EFT_CH(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123)
+        float eftCa = mix(mix(EFT_CH(eftCi), EFT_CH(eftCi + vec2(1.0, 0.0)), eftCf.x), mix(EFT_CH(eftCi + vec2(0.0, 1.0)), EFT_CH(eftCi + vec2(1.0, 1.0)), eftCf.x), eftCf.y);
+        vec2 eftCq = eftCp * 2.7 + 13.0; eftCi = floor(eftCq); eftCf = fract(eftCq); eftCf = eftCf * eftCf * (3.0 - 2.0 * eftCf);
+        float eftCb = mix(mix(EFT_CH(eftCi), EFT_CH(eftCi + vec2(1.0, 0.0)), eftCf.x), mix(EFT_CH(eftCi + vec2(0.0, 1.0)), EFT_CH(eftCi + vec2(1.0, 1.0)), eftCf.x), eftCf.y);
+        float eftCloud = smoothstep(0.56, 0.8, eftCa * 0.7 + eftCb * 0.3);
+        float eftSunK = clamp(dot(directionalLights[0].color, vec3(0.3333)) / 2.2, 0.0, 1.0);        // strong by day, faint under the moon
+        gl_FragColor.rgb *= 1.0 - 0.24 * eftCloud * eftSunK;
+      }
+    #endif
     float eftHaze = 1.0 - exp(-1.6 * pow(vFogDepth / fogFar, 1.5));       // ≈ 20 % at 7 km, 60 % at 20 km by day
     vec3 eftHazeCol = fogColor;
     #if defined( STANDARD ) && NUM_DIR_LIGHTS > 0

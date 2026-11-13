@@ -1,17 +1,17 @@
 {
   "suite": "ui_fps_v2",
-  "timestamp": "2026-11-12T21:41:21.756Z",
+  "timestamp": "2026-11-13T07:30:19.818Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing, ?scene=v2",
-  "mode": "next start (production build)",
+  "mode": "next dev",
   "avg_fps": 60,
-  "min_fps": 59.9,
+  "min_fps": 59.8,
   "tier_at_end": 0,
   "samples": {
     "overview": [
+      59.8,
       60,
-      60,
-      60,
+      60.3,
       60,
       60
     ],
@@ -23,11 +23,11 @@
       60
     ],
     "top": [
-      60.1,
-      59.9,
       60,
       60,
-      60
+      60,
+      60,
+      60.1
     ],
     "fly": [
       60,
@@ -37,8 +37,8 @@
       60
     ],
     "orbit": [
-      60.1,
-      59.9,
+      60,
+      60,
       60,
       60,
       60

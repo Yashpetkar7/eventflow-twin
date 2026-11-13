@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { N, useFmt, useLocale } from "@/lib/i18n";
-import type { PlanOption, SimSummary } from "@/lib/api";
+import type { AgentPlanResponse, PlanOption, SimSummary } from "@/lib/api";
 import { hotHours, overStations, useTwin } from "@/lib/store";
 
 const STEP_KEYS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
@@ -20,7 +20,7 @@ function Delta({ b, a }: { b: SimSummary; a: SimSummary }) {
   );
 }
 
-function OptionCard({ o, base, verified }: { o: PlanOption; base: SimSummary; verified: boolean }) {
+function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimSummary; verified: boolean; baseRoad: number | null }) {
   const t = useTranslations();
   const f = useFmt();
   const stations = useTwin((s) => s.stations);
@@ -31,8 +31,17 @@ function OptionCard({ o, base, verified }: { o: PlanOption; base: SimSummary; ve
     <article className={`opt${o.rank === 1 ? " top" : ""}${decision === "reject" ? " rejected" : ""}`}>
       <div className="rank">{t("rankL", { n: f.int(o.rank) })}</div>
       <h3>{o.title}</h3>
+      {(o.goal_met || (o.round ?? 1) > 1) && (
+        <div className="row" style={{ gap: 6 }}>
+          {o.goal_met && <span className="badge sm ok" data-testid="goal-met">✓ {t("goalMet")}</span>}
+          {(o.round ?? 1) > 1 && <span className="badge sm navy"><N>{t("replannedRound", { r: f.int(o.round ?? 1) })}</N></span>}
+        </div>
+      )}
       <p>{o.what}</p>
       <Delta b={base} a={o.summary} />
+      {baseRoad !== null && o.road && Math.round(o.road.peak_veh_per_hour) !== Math.round(baseRoad) && (
+        <p className="note">{t("roadPeak")}: <b><N>{f.int(baseRoad)} → {f.int(o.road.peak_veh_per_hour)}</N></b></p>
+      )}
       {o.interventions.some((iv) => iv.type === "station_metering") && (
         <p className="note">{t("longestWait")}: <b><N>{t("build.min", { n: f.num(base.max_wait_min, 1) })} → {t("build.min", { n: f.num(o.summary.max_wait_min, 1) })}</N></b></p>
       )}
@@ -47,6 +56,54 @@ function OptionCard({ o, base, verified }: { o: PlanOption; base: SimSummary; ve
         </div>
       )}
     </article>
+  );
+}
+
+/** The critic's verdict and every tool call behind the plan (contract 1.10.0). Figures are the simulator's. */
+function Trace({ plan }: { plan: AgentPlanResponse }) {
+  const t = useTranslations();
+  const f = useFmt();
+  const c = plan.critic;
+  const trace = plan.trace ?? [];
+  if (!c || !trace.length) return null;
+  const line = (e: (typeof trace)[number]): string => {
+    const d = e.data as Record<string, unknown>;
+    const n = (k: string) => f.int(Number(d[k] ?? 0));
+    switch (e.tool) {
+      case "simulate": return `${String(d.label)} · ${n("excess")} ${t("dExcess")} · ${f.pct(Number(d.peak_lf))} ${t("dPeak")}`;
+      case "diagnose": return d.station ? String(d.station) : "—";
+      case "propose": return t("traceCandidates", { n: n("candidates"), source: d.source === "menu" ? t("traceMenu") : String(d.source) });
+      case "replan": return t("traceCandidates", { n: n("candidates"), source: (d.seeds as string[] | undefined)?.join(" + ") ?? "" });
+      case "check_goal": {
+        const v = (["goal_met", "residual", "no_action", "no_relief"] as const).find((x) => x === d.verdict) ?? "no_relief";
+        return t(`traceVerdict.${v}`, { a: n("meeting"), b: n("tested"), n: n("excess") });
+      }
+      case "rank": return t("traceKept", { k: n("kept"), n: n("tested") });
+      case "explain": return t("traceExplained", { source: d.source === "template" ? t("traceTemplate") : String(d.source) });
+      case "verify_numbers": return t("traceChecked", { n: n("checked") });
+      default: return "";
+    }
+  };
+  return (
+    <div className="card" data-testid="critic">
+      {plan.options.length > 0 && (
+        <div className={c.goal_met_ranks?.length ? "verify" : "warnbox"}>
+          <N>{c.goal_met_ranks?.length ? t("criticMet") : t("criticNot", { n: f.int(Number(c.residual?.excess_pax ?? 0)) })}</N>
+        </div>
+      )}
+      <div className="note" style={{ marginTop: 6 }}><N>{t("criticRounds", { r: c.rounds ?? 1, n: f.int(c.simulations ?? 0) })}</N></div>
+      <details className="trace" data-testid="tool-calls">
+        <summary><N>{t("toolCalls", { n: f.int(trace.length) })}</N></summary>
+        <ol>
+          {trace.map((e, i) => (
+            <li key={e.n} className={i > 0 && trace[i - 1].round !== e.round ? "newround" : ""}>
+              <span className="who">{t(`roles.${e.role}`)}</span>
+              <span><code>{e.tool}</code> <bdi><N>{line(e)}</N></bdi>{e.run_id ? <small><bdi>{e.run_id}</bdi></small> : null}</span>
+            </li>
+          ))}
+        </ol>
+      </details>
+    </div>
   );
 }
 
@@ -89,7 +146,8 @@ export function AiTab() {
       {status === "error" && <div className="warnbox" role="alert">{t("planError", { msg: planError ?? "" })}</div>}
       {decisionError && <div className="warnbox" role="alert">{t("decisionError", { msg: decisionError })}</div>}
       {status === "ready" && plan && plan.options.length === 0 && <div className="card empty">{t("noHot")}</div>}
-      {status === "ready" && plan && plan.options.map((o) => <OptionCard key={o.rank} o={o} base={plan.baseline_summary} verified={plan.verify.all_matched} />)}
+      {status === "ready" && plan && <Trace plan={plan} />}
+      {status === "ready" && plan && plan.options.map((o) => <OptionCard key={o.rank} o={o} base={plan.baseline_summary} verified={plan.verify.all_matched} baseRoad={plan.baseline_road?.peak_veh_per_hour ?? null} />)}
       {status === "idle" && applied > 0 && <div className="card empty">{t("replan")}</div>}
     </>
   );

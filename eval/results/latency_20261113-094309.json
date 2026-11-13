@@ -1,0 +1,52 @@
+{
+  "suite": "latency",
+  "git_sha": "19bb596-dirty",
+  "timestamp": "2026-11-13T09:43:09",
+  "models": {
+    "planner": "as served",
+    "target": "http://localhost:8011"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "p95_seconds": 2.168,
+    "plan_p50_seconds": 0.5613,
+    "requests": 384,
+    "errors": 0,
+    "error_rate": 0.0,
+    "requests_per_second": 25.9,
+    "clients": 8,
+    "wall_seconds": 14.8,
+    "by_endpoint": {
+      "/agent/plan": {
+        "n": 96,
+        "p50_s": 0.5639,
+        "p95_s": 2.168,
+        "max_s": 2.5468
+      },
+      "/breakpoint": {
+        "n": 96,
+        "p50_s": 0.0654,
+        "p95_s": 0.1382,
+        "max_s": 0.1811
+      },
+      "/forecast": {
+        "n": 96,
+        "p50_s": 0.1156,
+        "p95_s": 0.7843,
+        "max_s": 0.807
+      },
+      "/simulate": {
+        "n": 96,
+        "p50_s": 0.0982,
+        "p95_s": 0.1577,
+        "max_s": 0.3694
+      }
+    },
+    "error_statuses": []
+  },
+  "n": 384,
+  "split": "load",
+  "contract": "1.10.0",
+  "storage": "persistent"
+}

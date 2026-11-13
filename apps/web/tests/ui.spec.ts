@@ -145,7 +145,7 @@ test("landmarks: tap one and the camera frames it with its area", async ({ page 
   await settle(page, 4500);
   await page.screenshot({ path: `${OUT}/landmark_burj_khalifa.png` });
   // a landmark label in the 3D view is tappable too
-  await page.locator(".labels .tag.lm", { hasText: "The Dubai Mall" }).click();
+  await page.locator(".labels .tag.lm", { hasText: "The Dubai Mall" }).dispatchEvent("click");   // the camera is turning round the Burj, so the label moves: no wait for it to stand still
   await expect(page.locator(".focuschip")).toContainText("The Dubai Mall");
   // full-width map and back
   await page.getByRole("button", { name: "Full-width map" }).click();
@@ -448,4 +448,46 @@ test("performance: fps with every layer on (1920×1080)", async ({ page }) => {
   fs.writeFileSync(`${OUT}/fps.json`, JSON.stringify({ suite: "ui_fps", timestamp: new Date().toISOString(), viewport: "1920x1080", layers: "all on, clock playing", mode: process.env.EFT_MODE ?? "next dev",
     avg_fps: +avg.toFixed(1), min_fps: +Math.min(...all).toFixed(1), per_camera: Object.fromEntries(Object.entries(samples).map(([k, v]) => [k, +(v.reduce((a, b) => a + b, 0) / v.length).toFixed(1)])), ...info }, null, 2));
   expect(avg).toBeGreaterThanOrEqual(50);
+});
+
+test("AI tab: the critic's verdict, the goal badge and every tool call behind the plan", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "Hot day" }).click();
+  await idle(page);
+  await expect(page.locator(".kpi").nth(1)).not.toHaveText(/^0Over/);                         // the hot-day forecast has arrived
+  await page.getByRole("tab", { name: /AI plan/ }).click();
+  await page.getByRole("button", { name: "Plan with AI agents" }).click();
+  await expect(page.locator(".opt").first()).toBeVisible({ timeout: 30_000 });
+  const critic = page.getByTestId("critic");
+  await expect(critic).toContainText(/Critic \(code\): (a plan on offer clears every station|no plan inside the allowed limits)/);
+  await expect(critic).toContainText(/planning round/);
+  const calls = page.getByTestId("tool-calls");
+  await calls.locator("summary").click();
+  const n = await page.evaluate(() => (window as unknown as { __twin: { getState: () => { plan: { trace: unknown[] } } } }).__twin.getState().plan.trace.length);
+  expect(n).toBeGreaterThanOrEqual(10);
+  await expect(calls.locator("li")).toHaveCount(n);
+  await expect(calls).toContainText("verify_numbers");
+  await expect(calls).toContainText("check_goal");
+  const met = await page.evaluate(() => (window as unknown as { __twin: { getState: () => { plan: { options: { goal_met: boolean }[] } } } }).__twin.getState().plan.options.filter((o) => o.goal_met).length);
+  await expect(page.getByTestId("goal-met")).toHaveCount(met);
+});
+
+test("realism scene: figures at the stations follow the simulator's riders, and the new shaders compile", async ({ page }) => {
+  const shaderErrors: string[] = [];
+  page.on("console", (m) => { if (/THREE\.WebGLProgram|Shader Error|shader error/i.test(m.text())) shaderErrors.push(m.text().slice(0, 200)); });
+  await open(page, "/?scene=v2");
+  await page.waitForFunction(() => document.documentElement.dataset.sceneModels !== undefined, null, { timeout: 60_000 });
+  type T = { __twin: { getState: () => { time: number; tier: number; cur: { by: Record<string, { demandH: number[] }> } | null; stations: { id: string }[]; selectEvent: (id: string) => void; setCam: (c: string) => void }; setState: (s: object) => void } };
+  await page.evaluate(() => { const t = (window as unknown as T).__twin; t.getState().selectEvent("downtown_night"); });
+  await idle(page);
+  await page.evaluate(() => { const t = (window as unknown as T).__twin; t.setState({ time: 22.25, playing: false }); t.getState().setCam("close"); });
+  await page.waitForTimeout(2500);
+  const want = await page.evaluate(() => { const s = (window as unknown as T).__twin.getState(); return s.tier === 0 ? s.stations.reduce((n, st) => n + Math.min(220, Math.round((s.cur?.by[st.id]?.demandH[22] ?? 0) / 40)), 0) : -1; });
+  if (want >= 0) {                                              // full quality: one figure for every 40 riders an hour, per station, capped
+    expect(want).toBeGreaterThan(50);
+    await expect.poll(() => page.evaluate(() => Number(document.documentElement.dataset.sceneFigures ?? -1))).toBe(want);
+  }
+  await page.evaluate(() => { (window as unknown as T).__twin.setState({ time: 10 }); });       // day: curtain wall, room interiors and cloud shadows
+  await page.waitForTimeout(2500);
+  expect(shaderErrors, shaderErrors.join(" | ")).toEqual([]);
 });

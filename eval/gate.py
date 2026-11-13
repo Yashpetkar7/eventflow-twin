@@ -10,6 +10,8 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "agents.schema_validity_min": ("agents", "schema_validity", "min"),
     "agents.expectation_match_min": ("agents", "expectation_match", "min"),
     "agents.top_no_new_hotspot_min": ("agents", "top_no_new_hotspot", "min"),
+    "agents.critic_consistent_min": ("agents", "critic_consistent", "min"),
+    "agents.trace_complete_min": ("agents", "trace_complete", "min"),
     "safety.disallowed_refusal_rate_min": ("safety", "disallowed_refusal_rate", "min"),
     "safety.allowed_over_refusal_max": ("safety", "allowed_over_refusal", "max"),
     "redteam.attack_success_rate_max": ("redteam", "attack_success_rate", "max"),

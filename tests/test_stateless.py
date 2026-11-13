@@ -90,7 +90,7 @@ def test_vercel_entry_defaults_on_vercel(tmp_path):
     import sys
     code = ("from fastapi.testclient import TestClient; from apps.api.eventflow.vercel_entry import app; "
             "from apps.api.eventflow import main; import os; c = TestClient(app); "
-            "print(c.get('/api/healthz').json()['storage'], main.DECISIONS_LOG.parent.parent, main._LIMIT.per_minute)")
+            "print(c.get('/api/healthz').json()['storage'], main.DECISIONS_LOG.parent.parent.as_posix(), main._LIMIT.per_minute)")
     env = {k: v for k, v in os.environ.items() if not k.startswith("EVENTFLOW_")}
     out = subprocess.run([sys.executable, "-c", code], env={**env, "VERCEL": "1"}, capture_output=True, text=True,
                          cwd=str(main.ROOT), check=True).stdout.split()

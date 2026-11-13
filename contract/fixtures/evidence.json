@@ -315,6 +315,6 @@
     "file": "station_hour_synthetic.parquet",
     "config_hash": "94ae032aa3"
   },
-  "decisions_logged": 0,
-  "contract": "1.9.0"
+  "decisions_logged": 10,
+  "contract": "1.10.0"
 }
