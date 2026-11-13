@@ -5,7 +5,7 @@
 //   R7_BUILD="…" adds a note on the build under test to the result file (e.g. "MIN_TIER 0").
 // Chrome runs with --disable-frame-rate-limit --disable-gpu-vsync (as in decision #96). Per camera preset and time of
 // day: 4 s to settle, then 8 one-second samples; draw calls and triangles are those of one whole frame (shadow pass,
-// scene and post-processing). Run on mains power with no other 3D page open; the power source is recorded on macOS.
+// scene and post-processing). Run on mains power with no other 3D page open; the power source is recorded (macOS, Windows).
 import { chromium } from "@playwright/test";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
@@ -15,7 +15,13 @@ const label = process.argv[2] ?? "after", base = process.argv[3] ?? "http://loca
 const OUT = path.resolve(import.meta.dirname, "../../../eval/results/ui/realism_r7");
 fs.mkdirSync(OUT, { recursive: true });
 const TIMES = [[10, "1000"], [21.5, "2130"]], CAMS = ["overview", "close", "top", "orbit"];
-const power = () => { try { return process.platform === "darwin" ? execSync("pmset -g batt").toString().match(/'(.+?)'/)?.[1] ?? "unknown" : "not recorded"; } catch { return "unknown"; } };
+const power = () => {              // "AC Power" / "Battery Power": a throttled battery run must never pass as a mains run
+  try {
+    if (process.platform === "darwin") return execSync("pmset -g batt").toString().match(/'(.+?)'/)?.[1] ?? "unknown";
+    if (process.platform === "win32") return execSync('powershell -NoProfile -Command "(Get-CimInstance Win32_Battery).BatteryStatus"').toString().trim() === "2" ? "AC Power" : "Battery Power";
+  } catch { /* fall through */ }
+  return "unknown";
+};
 const git = (cmd) => { try { return execSync(`git ${cmd}`).toString().trim(); } catch { return "unknown"; } };
 
 const browser = await chromium.launch({ channel: "chrome", headless: true, args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11",
