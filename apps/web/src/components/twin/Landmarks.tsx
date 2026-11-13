@@ -11,6 +11,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { useTwin } from "@/lib/store";
 import { canvasTexture } from "./builders";
+import { curtainWall } from "./facade";
 import { ModelMesh, withAo, type Models } from "./models";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
@@ -172,9 +173,16 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
   }), [built]);
   // the same materials for the Blender models, reading the baked ambient occlusion from the vertex colours
   // glass is less of a mirror than the procedural tower's: seen from above, a full mirror only shows the sand
-  const vmats = useMemo(() => (models ? { glass: Object.assign(withAo(mats.burj), { metalness: 0.55, roughness: 0.22, color: new THREE.Color(0xa9c0d6) }),
-    steel: withAo(mats.steel), concrete: withAo(mats.crown), gold: withAo(mats.gold),
-    green: withAo(mats.mound), mof: withAo(mats.mof), dwtc: withAo(mats.dwtc) } : null), [mats, models]);
+  const wallU = useMemo(() => ({ uNight: { value: 0 }, uTime: { value: 0 } }), []);
+  const vmats = useMemo(() => {
+    if (!models) return null;
+    const glass = () => Object.assign(withAo(mats.burj), { metalness: 0.55, roughness: 0.22, color: new THREE.Color(0xa9c0d6), flatShading: false });
+    return { glass: curtainWall(glass(), wallU, { lit: 0.26 }),                       // Emirates Towers and the other glass slots
+      burjGlass: curtainWall(glass(), wallU, { bay: 1.3, storey: 3.6, lit: 0.16, show: true }),   // the Burj Khalifa, with its light show after dark
+      steel: withAo(mats.steel), concrete: withAo(mats.crown), gold: withAo(mats.gold),
+      green: withAo(mats.mound), mof: withAo(mats.mof), dwtc: withAo(mats.dwtc) };
+  }, [mats, models, wallU]);
+  const burjMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.burjGlass } : null), [vmats]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => (v instanceof THREE.BufferGeometry || v instanceof THREE.Texture) && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
@@ -186,14 +194,16 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
     mats.mof.emissiveIntensity = n * 1.6; mats.gold.emissiveIntensity = n * 0.5; mats.dwtc.emissiveIntensity = n * 1.1;
     mats.beacon.opacity = n * (0.55 + 0.45 * Math.sin(live.animT * 2.4));                // aviation light on the spire
     beacon.current?.scale.setScalar(Math.max(2.2, Math.min(9, live.camDist / 700)));
+    wallU.uNight.value = n; wallU.uTime.value = live.animT;
     if (vmats) {
-      vmats.glass.emissiveIntensity = mats.burj.emissiveIntensity; vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
+      vmats.glass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4; vmats.burjGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
+      vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
       vmats.mof.emissiveIntensity = mats.mof.emissiveIntensity; vmats.gold.emissiveIntensity = mats.gold.emissiveIntensity; vmats.dwtc.emissiveIntensity = mats.dwtc.emissiveIntensity;
     }
   });
   const side = (a: number) => Math.sqrt((4 * a) / Math.sqrt(3));
 
-  if (models && vmats) {
+  if (models && vmats && burjMats) {
     const m = models, et = (k: "et1" | "et2", name: "emirates_office_tower" | "emirates_hotel_tower", modelSide: number, angle: number) => {
       const l = lm[k];
       if (!l) return null;
@@ -204,7 +214,7 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
       <group visible={visible}>
         {lm.burj && (
           <group position={[lm.burj.x, 0, lm.burj.z]} rotation-y={-lm.burj.angle}>
-            <ModelMesh model={m.burj_khalifa} mats={vmats} />
+            <ModelMesh model={m.burj_khalifa} mats={burjMats} />
             <mesh ref={beacon} geometry={built.beacon} material={mats.beacon} position-y={830} />
           </group>
         )}

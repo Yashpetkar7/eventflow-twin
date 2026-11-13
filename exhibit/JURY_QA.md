@@ -142,3 +142,9 @@ We checked against the open Dubai Metro ridership data. Real weekday entries are
 
 **"Can someone in a wheelchair use it?"**
 The round button at the bottom left moves every control into the lower half of the screen. Larger text and high contrast are next to it after that. Dialogs close with the Escape key.
+
+**"What are the small figures at the stations?"**
+The crowd, drawn as people. One figure stands for 40 riders an hour at that station (10 in a quarter of an hour), from the same simulator run as the gauge. They turn red when the station is over the comfort line. They are a picture of the number, not a count of real people.
+
+**"Is the city a real 3D scan?"**
+No. Footprints and heights are open data; the windows, rooms behind them, lights and cloud shadows are drawn by code. The landmark towers are approximations from public dimensions, not survey models.

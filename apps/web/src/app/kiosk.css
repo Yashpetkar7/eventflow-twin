@@ -307,3 +307,6 @@
 .khead .kpill[aria-pressed="true"] { color: #fff; }
 .kiosk-root[data-phase="crowd"] .kchips { grid-template-columns: repeat(3, 1fr); }
 .kiosk-root[data-phase="crowd"] .kchips button { font-size: 14.5px; padding-inline: 8px; }
+/* R10: the station labels (name and load) a size larger on the kiosk, so the numbers read from a step back */
+.kiosk-root .labels .tag:not(.lm):not(.venue) { font-size: max(12px, calc(16.5px * var(--kz))); }
+.kiosk-root .labels .tag:not(.lm):not(.venue) b { font-weight: 650; }

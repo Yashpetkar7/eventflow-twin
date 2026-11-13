@@ -7,6 +7,16 @@ already owns — swap tasks if you like, but keep exactly one owner per task and
 Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going and why) and
 `docs/superpowers/plans/2026-11-12-vercel-live-demo.md` (the step-by-step plan most of the tasks below point to).
 
+## Status on Fri 13 Nov, evening — realism R8–R10, shader part (decision #114, branch `k/realism-r8-r10`)
+- **On screen:** rooms behind the windows, floors and lights on the landmark towers, the Burj Khalifa's lights after
+  dark, drifting cloud shadows, lamp pools on Sheikh Zayed Road, figures at the station entrances (the simulator's
+  riders), larger kiosk labels. `?clouds=0` and `?film=0` switch the sky extras off.
+- **Atharva:** two prompts are waiting in `docs/13_REALISM_FABLE_TASKS.md` → "R8–R10 — status": **R8** landmark
+  geometry (needs Blender, which the Mac does not have) and **R9b** street level. Please also repeat the kiosk run on
+  the Windows laptop on mains power with this build: the new effects run at full quality only.
+- **Yash:** no change to your four tasks (C4 touch monitor, C5 Arabic, C6 screenshots, B4 live AI test). C6 should
+  wait for this branch to be merged.
+
 ## Status on Fri 13 Nov, afternoon — score-up build (decisions #109–#113, contract 1.10.0)
 - **Planner:** a code critic checks the goal after each round and the planner replans (at most twice) when no tested
   plan meets it; every tool call is recorded and shown ("How did the AI decide?" → "Show all tool calls"; workspace AI

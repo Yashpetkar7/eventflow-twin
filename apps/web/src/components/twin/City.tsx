@@ -142,6 +142,11 @@ function highwayMaterial() {
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86), line * vis * 0.85);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.90, 0.75, 0.25), edgeL * vis * 0.9);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86), edgeR * vis * 0.85);
+        }`)
+      .replace("#include <emissivemap_fragment>", /* glsl */ `#include <emissivemap_fragment>
+        {                                                    // R10: the night glow gathers in a pool under each median lamp (one every 34 m)
+          float along = (fract((vRd.x - 30.0) / 34.0 + 0.5) - 0.5) * 34.0;
+          totalEmissiveRadiance *= 0.4 + 1.7 * exp(-along * along / 120.0 - vRd.y * vRd.y / 300.0);
         }`);
   };
   return m;

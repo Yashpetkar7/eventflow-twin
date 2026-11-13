@@ -194,6 +194,38 @@ set EFT_WEB_PORT=3100&& npx playwright test tests/ui.spec.ts -g "realism"      #
   `node tests/r7_fps.mjs windows_no_shadow_cache http://localhost:3100 "r7off=shadow"` (also `r7off=palms`, `r7off=cars`,
   `r7off=order`, and `r7on=tiles`, which was neutral on the MacBook but may help an Intel GPU).
 
+### R8–R10 — status on 13 Nov (decision #114)
+**Done on `k/realism-r8-r10` (shaders and overlays, no Blender, no new data):** rooms behind the windows, a curtain wall
+on the landmark towers with the Burj Khalifa's lights after dark, drifting cloud shadows, a vignette, lamp pools on
+Sheikh Zayed Road, figures at the station entrances driven by the simulator, larger kiosk labels. Before and after:
+`node apps/web/tests/r10_shots.mjs <label> <base url>` → `eval/results/ui/realism_r10/`.
+
+**Still open — needs a laptop with Blender (Atharva):**
+```text
+R8 — landmark geometry. Read CLAUDE.md, sections 4 and 4b above, R4, scripts/blender/build_models.py and
+apps/web/src/components/twin/Landmarks.tsx. Branch b/realism-r8-landmarks from main.
+Rebuild in scripts/blender/build_models.py (headless Blender): Burj Khalifa (finer setbacks, vertical fins, podium),
+Emirates Towers (crown slats, facade bands, podium), Trade Centre tower (deep honeycomb, crown), Dubai Frame (lattice).
+Add: Dubai Mall block with the Burj lake and a fountain ring, DIFC Gate, 10 correct silhouettes for the tallest towers
+between Trade Centre and Business Bay (heights and a source each in config/landmark_heights.yaml).
+Up to 25k triangles each (Burj Khalifa 60k), ambient occlusion in the vertex colours as now, LOD1 at 25 %. Keep the
+material slot names: the web app's curtain wall (facade.ts, curtainWall) already draws storeys and lit floors on the
+"glass" slot, so model the shape, not the windows. No logos, signage or calligraphy. Hide the footprints replaced.
+Done when: node tests/r10_shots.mjs shows them at 10:00, 17:30 and 21:30, r7_fps.mjs loses no more than 5 %, all
+Playwright tests pass, and a decision entry says these are approximations. Pull request to main; no deploy.
+```
+**Still open — needs the raw OpenStreetMap extract (`python tasks.py osm`):**
+```text
+R9b — street level. Read sections 4 and 4b above, R5, scripts/realism_bake.py and atmosphere.ts (groundMaterial).
+Branch b/realism-r9-streets from main. Inside the corridor only (about 400 m either side of Sheikh Zayed Road and
+around the six stations): bake pavements, kerbs, medians, plots and car parks from OpenStreetMap polygons into a
+ground detail atlas at about 0.5 m per pixel and blend it in groundMaterial where the camera is close; crossings and
+bus bays; station plazas; instanced parked cars. All of it off at quality tier 1. The figures at the stations exist
+already (Live.tsx, Waiting): put the plazas under them.
+Done when: before and after pictures, r7_fps.mjs on the booth laptop at or above today's kiosk median, the offline
+check still at 0 outside requests, all Playwright tests pass. Pull request to main; no deploy.
+```
+
 ## 6. Hand-offs
 - **Yash:** after R6, retake C6 (`node apps/web/tests/final_shots.mjs`) — and C4 (touch monitor) must be re-checked on the
   new scene, because fps on the monitor is what matters at the booth.
