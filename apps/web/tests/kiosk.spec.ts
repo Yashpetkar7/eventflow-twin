@@ -426,3 +426,29 @@ test("kiosk: stress test shows the cars-versus-metro trade-off and the real stat
   await reach.click();
   expect((await page.locator(".kcard").boundingBox())!.y).toBeLessThan(vh * 0.2);
 });
+
+test("kiosk: touch a landmark's name → its name and a line about it, and the camera turns all the way round it", async ({ page }) => {
+  await openKiosk(page, "&idle=600");
+  await page.getByTestId("kiosk-start").click();
+  await page.getByTestId("kiosk-planner").click();
+  type L = Window & { __twin: { getState: () => { cam: string; focus: string | null } }; __eft?: { cam_theta: number } };
+  const tag = page.locator(".labels .tag.lm").filter({ hasText: "Burj Khalifa" });
+  await expect(tag).toBeVisible();
+  expect((await tag.boundingBox())!.height).toBeGreaterThanOrEqual(47.5);                    // a touch target, like every other control
+  await tag.dispatchEvent("click");                                                          // labels move with the camera: no wait for them to stand still
+  await page.waitForFunction(() => { const s = (window as unknown as L).__twin.getState(); return s.cam === "landmark" && s.focus === "burj"; });
+  const panel = page.getByTestId("kiosk-landmark");
+  await expect(panel.locator("b")).toHaveText("Burj Khalifa");
+  await expect(panel).toContainText("tallest building in the world");
+  const turn = () => page.evaluate(() => (window as unknown as L).__eft?.cam_theta ?? 0);
+  await page.waitForTimeout(2500);
+  const a = await turn();
+  await page.waitForTimeout(4000);
+  expect(await turn() - a).toBeGreaterThan(0.3);                                           // still turning: about a full turn in 40 s
+  await shot(page, "21_landmark_burj");
+  await page.locator(".labels .tag.lm").filter({ hasText: "Museum of the Future" }).dispatchEvent("click");   // straight on to another one
+  await expect(panel.locator("b")).toHaveText("Museum of the Future");
+  await panel.getByRole("button", { name: "Back to the corridor" }).click();
+  await expect(panel).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as L).__twin.getState().cam)).toBe("overview");
+});

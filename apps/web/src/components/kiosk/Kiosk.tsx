@@ -112,6 +112,8 @@ export function Kiosk() {
   const planStep = useTwin((s) => s.planStep);
   const threshold = useTwin((s) => s.threshold);
   const time = useTwin((s) => s.time);
+  const camMode = useTwin((s) => s.cam);
+  const focus = useTwin((s) => s.focus);
 
   const [phase, setPhase] = useState<Phase>("attract");
   const [guess, setGuess] = useState<string | null>(null);
@@ -733,6 +735,14 @@ export function Kiosk() {
         </aside>
       )}
 
+      {phase !== "attract" && camMode === "landmark" && focus && T.lmNames[focus] && (
+        <div className="klm" data-testid="kiosk-landmark" role="status">
+          <small>{T.lmView}</small>
+          <b>{T.lmNames[focus]}</b>
+          <p>{T.lmLines[focus]}</p>
+          <button type="button" className="kpill" onClick={() => st.getState().setCam("overview")}>{T.lmBack}</button>
+        </div>
+      )}
       {phase !== "attract" && phase !== "choose" && ev && (
         <div className="kchip"><N>{hhmm(time)}</N> · {f.event(ev)}</div>
       )}

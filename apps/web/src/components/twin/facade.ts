@@ -43,7 +43,9 @@ export function facadeMaterialV2(uniforms: { uNight: { value: number } }, side: 
           float present = t < 0.5 ? 1.0 : t < 1.5 ? 0.92 : t < 2.5 ? 0.5 : t < 3.5 ? 1.0 : t < 4.5 ? 0.45 : 0.4;     // share of cells that have the opening
           storey = vTall / max(1.0, floor(vTall / storey + 0.5));                    // whole storeys over the height
           vec2 g = vec2(vFac.x / bay, vFac.y / storey), id = floor(g), f = fract(g), fw = fwidth(g);
-          float cx = 1.0 - smoothstep(0.3, 0.8, fw.x), cy = 1.0 - smoothstep(0.3, 0.8, fw.y), both = cx * cy;
+          // A cell must be about 7 px before its window is drawn and is the mean tone under about 2 px. (The fade used
+          // to end at 1.25 px, under what a striped pattern can show: mid-distance towers broke into stripes and chevrons.)
+          float cx = 1.0 - smoothstep(0.14, 0.45, fw.x), cy = 1.0 - smoothstep(0.14, 0.45, fw.y), both = cx * cy;
           float h1 = eftHash(id + vSeed * 97.0), h2 = eftHash(id.xx + vSeed * 31.0);
           float px = step(box.x, f.x) * step(f.x, box.y), py = step(box.z, f.y) * step(f.y, box.w);
           float has = mix(present, step(h1, present), both);
@@ -113,10 +115,11 @@ export function facadeMaterialV2(uniforms: { uNight: { value: number } }, side: 
           float share = (t < 0.5 ? 0.2 : t < 1.5 ? 0.3 : t < 2.5 ? 0.38 : t < 3.5 ? 0.14 : 0.04) * (0.6 + 0.8 * vSeed);   // some buildings are busier than others
           float lit = mix(share, step(eftHash(id + vSeed * 53.0), share), both);
           vec3 lamp = (t > 0.5 && t < 2.5) ? mix(vec3(1.0, 0.78, 0.5), vec3(1.0, 0.9, 0.72), h1) : mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.95, 0.85), step(0.7, h1));
-          totalEmissiveRadiance += lamp * uNight * open * (t > 3.5 && t < 4.5 ? 0.0 : 1.0) * lit * (t < 0.5 ? 0.85 : 1.25) * mix(1.0, roomLight, roomK);
-          totalEmissiveRadiance += vec3(0.55, 0.7, 0.95) * uNight * crown * (0.35 + 0.35 * mix(0.5, step(0.5, f.y), cy));   // lit crown on the tallest towers
+          // Far away the lit windows blend into a dim glow, not a pale wall (the mean used to be as bright as a window).
+          totalEmissiveRadiance += lamp * uNight * open * (t > 3.5 && t < 4.5 ? 0.0 : 1.0) * lit * (t < 0.5 ? 0.85 : 1.25) * mix(1.0, roomLight, roomK) * mix(0.42, 1.0, both);
+          totalEmissiveRadiance += vec3(0.55, 0.7, 0.95) * uNight * crown * 0.13;   // a faint wash on the crowns of the tallest towers (was a bright striped band)
         }
-        diffuseColor.rgb *= 1.0 - 0.45 * uNight;`)
+        diffuseColor.rgb *= 1.0 - 0.64 * uNight;`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.12, eftGlass);`)
       .replace("#include <metalnessmap_fragment>", `#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, vType < 0.5 ? 0.8 : 0.55, eftGlass);`);
   };
@@ -145,7 +148,7 @@ export function curtainWall<T extends THREE.MeshStandardMaterial>(m: T, u: { uNi
           float wall = 1.0 - smoothstep(0.5, 0.8, abs(n.y));                       // roofs and slopes stay plain
           vec2 h = normalize(n.xz + vec2(1e-5));
           vec2 g = vec2(dot(vLw.xz, vec2(-h.y, h.x)) / ${bay}, vLw.y / ${storey}), id = floor(g), f = fract(g), fw = fwidth(g);
-          float cx = 1.0 - smoothstep(0.3, 0.8, fw.x), cy = 1.0 - smoothstep(0.3, 0.8, fw.y);
+          float cx = 1.0 - smoothstep(0.14, 0.45, fw.x), cy = 1.0 - smoothstep(0.14, 0.45, fw.y);
           float mull = mix(0.07, step(abs(f.x - 0.5), 0.035) + step(0.465, abs(f.x - 0.5)), cx);
           float span = mix(0.2, step(f.y, 0.2), cy);
           eftFrame = clamp(mull + span, 0.0, 1.0) * wall;
@@ -153,9 +156,10 @@ export function curtainWall<T extends THREE.MeshStandardMaterial>(m: T, u: { uNi
           diffuseColor.rgb *= 0.93 + 0.14 * eftLh(id * 1.3) * (1.0 - eftFrame) * cx * cy * wall;      // panes differ slightly
           float pane = (1.0 - eftFrame) * wall;
           float on = mix(${lit}, step(eftLh(id + 7.0), ${lit}), cx * cy);
-          totalEmissiveRadiance += vec3(1.0, 0.92, 0.78) * uNight * pane * on * 0.95;
+          totalEmissiveRadiance += vec3(1.0, 0.92, 0.78) * uNight * pane * on * mix(0.4, 0.95, cx * cy);
+          diffuseColor.rgb *= 1.0 - 0.58 * uNight;                                  // glass is dark at night; the lit floors carry the tower
           ${opts.show ? `float band = pow(0.5 + 0.5 * sin(vLw.y * 0.021 - uTime * 0.9), 14.0) + 0.5 * pow(0.5 + 0.5 * sin(vLw.y * 0.047 + uTime * 0.55), 22.0);
-          totalEmissiveRadiance += vec3(0.62, 0.8, 1.0) * uNight * wall * band * 0.9;` : ""}
+          totalEmissiveRadiance += vec3(0.62, 0.8, 1.0) * uNight * wall * band * 0.6;` : ""}
         }`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.5, eftFrame);")
       .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.35, eftFrame);");

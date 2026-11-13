@@ -202,27 +202,29 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
     }
   });
   const side = (a: number) => Math.sqrt((4 * a) / Math.sqrt(3));
+  // A tap on a landmark frames it and starts the slow turn round it (the same as tapping its name).
+  const tap = (key: string) => ({ onClick: (e: { stopPropagation: () => void }) => { e.stopPropagation(); useTwin.getState().focusLandmark(key); } });
 
   if (models && vmats && burjMats) {
     const m = models, et = (k: "et1" | "et2", name: "emirates_office_tower" | "emirates_hotel_tower", modelSide: number, angle: number) => {
       const l = lm[k];
       if (!l) return null;
       const s = side(l.area) / modelSide;                              // the model's footprint scaled to the real one
-      return <group position={[l.x, 0, l.z]} rotation-y={angle} scale={[s, 1, s]}><ModelMesh model={m[name]} mats={vmats} /></group>;
+      return <group position={[l.x, 0, l.z]} rotation-y={angle} scale={[s, 1, s]} {...tap("et")}><ModelMesh model={m[name]} mats={vmats} /></group>;
     };
     return (
       <group visible={visible}>
         {lm.burj && (
-          <group position={[lm.burj.x, 0, lm.burj.z]} rotation-y={-lm.burj.angle}>
+          <group position={[lm.burj.x, 0, lm.burj.z]} rotation-y={-lm.burj.angle} {...tap("burj")}>
             <ModelMesh model={m.burj_khalifa} mats={burjMats} />
             <mesh ref={beacon} geometry={built.beacon} material={mats.beacon} position-y={830} />
           </group>
         )}
         {et("et1", "emirates_office_tower", 54, built.a1)}
         {et("et2", "emirates_hotel_tower", 48, built.a2)}
-        {lm.mof && <group position={[lm.mof.x, 0, lm.mof.z]} rotation-y={-lm.mof.angle}><ModelMesh model={m.museum_of_the_future} mats={vmats} /></group>}
-        {lm.dwtc && <group position={[lm.dwtc.x, 0, lm.dwtc.z]} rotation-y={-lm.dwtc.angle}><ModelMesh model={m.trade_centre_tower} mats={vmats} /></group>}
-        {lm.frame && <group position={[lm.frame.x, 0, lm.frame.z]} rotation-y={-lm.frame.angle}><ModelMesh model={m.dubai_frame} mats={vmats} /></group>}
+        {lm.mof && <group position={[lm.mof.x, 0, lm.mof.z]} rotation-y={-lm.mof.angle} {...tap("mof")}><ModelMesh model={m.museum_of_the_future} mats={vmats} /></group>}
+        {lm.dwtc && <group position={[lm.dwtc.x, 0, lm.dwtc.z]} rotation-y={-lm.dwtc.angle} {...tap("dwtc")}><ModelMesh model={m.trade_centre_tower} mats={vmats} /></group>}
+        {lm.frame && <group position={[lm.frame.x, 0, lm.frame.z]} rotation-y={-lm.frame.angle} {...tap("frame")}><ModelMesh model={m.dubai_frame} mats={vmats} /></group>}
       </group>
     );
   }

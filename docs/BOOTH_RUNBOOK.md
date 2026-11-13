@@ -64,6 +64,7 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
 - **Stress test** now also shows the extra cars near the venue (under "How many come by metro?") and has **Everyday demand: Model / Real station totals**.
 - **"How did the AI decide?"** now ends with the critic's verdict and **Show all tool calls**. For a juror: downtown night → stress test → crowd to about 50,000 → ask the AI → the plans say "Found by replanning", and the tool calls show round 1 failing and round 2 clearing every station.
 - Plans that clear every station carry a green **Clears every station** badge.
+- **Landmarks (decision #116):** touch a landmark or its name (Burj Khalifa, Museum of the Future, Emirates Towers, …). The camera turns all the way round it and a panel names it. "Back to the corridor" returns; any drag stops the turn.
 
 ## What visitors can do without help
 Pick an event · drag the time bar · tap a station or a landmark · **Plan with AI agents** → Approve / Reject · **My plan** ·

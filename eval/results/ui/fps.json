@@ -1,11 +1,11 @@
 {
   "suite": "ui_fps",
-  "timestamp": "2026-11-13T06:58:40.438Z",
+  "timestamp": "2026-11-13T07:31:31.748Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing",
   "mode": "next dev",
   "avg_fps": 60,
-  "min_fps": 58.8,
+  "min_fps": 58.9,
   "per_camera": {
     "overview": 59.8,
     "close": 60,

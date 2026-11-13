@@ -110,13 +110,14 @@ export function CameraRig({ places, corridor, spots }: { places: StationPlace[];
       unwind();
     }
     if (s.cam === "orbit" && !s.reducedMotion) d.theta += dt * 0.08;
+    if (s.cam === "landmark" && !s.reducedMotion) d.theta += dt * 0.15;       // a full turn round the landmark in about 40 s; any drag takes over
     const f = Math.min(1, dt * 3.2);
     (Object.keys(c) as (keyof Cam)[]).forEach((k) => { c[k] += (d[k] - c[k]) * f; });
     camera.position.set(c.tx + c.r * Math.sin(c.phi) * Math.sin(c.theta), c.ty + c.r * Math.cos(c.phi), c.tz + c.r * Math.sin(c.phi) * Math.cos(c.theta));
     camera.lookAt(c.tx, c.ty, c.tz);
     const cam = camera as THREE.PerspectiveCamera, near = Math.max(4, c.r * 0.012);
     if (Math.abs(cam.near - near) > near * 0.1) { cam.near = near; cam.updateProjectionMatrix(); }
-    live.camDist = c.r; live.camTarget.set(c.tx, c.ty, c.tz);
+    live.camDist = c.r; live.camTarget.set(c.tx, c.ty, c.tz); live.camTheta = c.theta;
   });
   return null;
 }

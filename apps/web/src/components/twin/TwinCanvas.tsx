@@ -19,7 +19,7 @@ import { loadManifest, MAX_RECOVERIES, MIN_TIER, STEP_DOWN_FPS, type Manifest } 
 import { landmarkSpots, live, loadScene, type SceneJson } from "./sceneData";
 import { Sky } from "./Sky";
 
-declare global { interface Window { __eft?: { fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number; calls: number; triangles: number; shadow_redraws: number; sun: { elevation: number; azimuth: number } | null } } }
+declare global { interface Window { __eft?: { cam_theta: number; fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number; calls: number; triangles: number; shadow_redraws: number; sun: { elevation: number; azimuth: number } | null } } }
 
 const FILM = typeof window === "undefined" || new URLSearchParams(window.location.search).get("film") !== "0";
 // `?tone=agx` swaps the tone curve of the realism scene for a side-by-side with ACES (docs/13 R2).
@@ -43,7 +43,7 @@ function Stats() {
     const measured = a.n / a.t, s = useTwin.getState(), fps = s.fpsOverride ?? measured;
     live.fps = measured;
     a.t = 0; a.n = 0; a.warm++;
-    window.__eft = { fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0, calls, triangles, shadow_redraws: live.shadowDraws - a.shadows, sun: live.sun };
+    window.__eft = { cam_theta: live.camTheta, fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0, calls, triangles, shadow_redraws: live.shadowDraws - a.shadows, sun: live.sun };
     a.shadows = live.shadowDraws;
     // a hidden or throttled page reports ~1 fps: that is not a slow GPU, so it never changes the tier
     if (a.warm < 8 || (s.fpsOverride === null && measured < 5)) return;

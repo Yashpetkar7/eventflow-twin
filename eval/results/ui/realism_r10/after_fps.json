@@ -1,7 +1,7 @@
 {
  "label": "after",
  "base": "http://localhost:3210",
- "when": "2026-11-13T06:50:35.072Z",
+ "when": "2026-11-13T07:22:32.328Z",
  "viewport": "1920x1080",
  "views": {
   "street_1000": {
@@ -13,15 +13,15 @@
    "tier": 0
   },
   "burj_1730": {
-   "fps": 59.9,
-   "tier": 0
-  },
-  "burj_2130": {
    "fps": 60,
    "tier": 0
   },
-  "towers_1000": {
+  "burj_2130": {
    "fps": 60.1,
+   "tier": 0
+  },
+  "towers_1000": {
+   "fps": 60,
    "tier": 0
   },
   "overview_1500": {
