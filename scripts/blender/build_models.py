@@ -29,6 +29,7 @@ from mathutils.bvhtree import BVHTree
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "apps", "web", "public", "models")
 PREVIEW = os.path.join(ROOT, "eval", "results", "ui", "realism", "blender")
+ONLY = [a.split("=", 1)[1].split(",") for a in sys.argv if a.startswith("--only=")]      # blender … --python build_models.py -- --only=burj_khalifa,dubai_frame
 RAIL_Z = 12.2                       # top of rail above ground, as in apps/web/src/components/twin/Metro.tsx
 COLOURS = {                         # preview colours only; the web app supplies the real materials by slot name
     "glass": (0.45, 0.6, 0.72, 0.9, 0.2), "steel": (0.6, 0.65, 0.7, 0.85, 0.3), "concrete": (0.86, 0.84, 0.8, 0.0, 0.75),
@@ -224,14 +225,32 @@ def render(obj, path):
 
 
 # ---------------------------------------------------------------- models
+def beam(p0, p1, w, t, mat):
+    """A closed box from p0 to p1, `w` wide across the run and `t` thick: louvres, bands and fins at any angle."""
+    a, b = Vector(p0), Vector(p1)
+    d = (b - a).normalized()
+    side = Vector((-d.y, d.x, 0.0))
+    if side.length < 1e-6:
+        side = Vector((1.0, 0.0, 0.0))
+    side.normalize()
+    up = d.cross(side).normalized()
+    hw, ht = side * (w / 2), up * (t / 2)
+    v = [a - hw - ht, a + hw - ht, a + hw + ht, a - hw + ht, b - hw - ht, b + hw - ht, b + hw + ht, b - hw + ht]
+    return from_faces(v, [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], mat)
+
+
 def burj_khalifa():
     """828 m. Y-shaped plan: a hexagonal core and three wings that step back one after another, 27 setbacks in an
-    upward spiral to about 585 m, then the pinnacle and spire. Public dimensions: height 828 m, roof about 585 m."""
+    upward spiral to about 585 m, then a telescoping pinnacle and the spire. R8: each wing tier is tri-lobed (a nose
+    and two lower shoulders, as on the real tower), with a ledge at every setback, vertical steel fins up the glass,
+    service bands round the core and a low podium. Public dimensions: height 828 m, roof about 585 m."""
     parts, tiers, steps = [], 585.0, 27
     step_h = tiers / steps
     for i in range(9):
         z0, z1 = i * tiers / 9, (i + 1) * tiers / 9
-        parts.append(cyl(24 - i * 2.05, 24 - (i + 1) * 2.05, z1 - z0, (0, 0, (z0 + z1) / 2), "glass", verts=6))
+        r0 = 24 - i * 2.05
+        parts.append(cyl(r0, 24 - (i + 1) * 2.05, z1 - z0, (0, 0, (z0 + z1) / 2), "glass", verts=6))
+        parts.append(cyl(r0 + 0.7, r0 + 0.7, 2.6, (0, 0, z0 + 1.3), "steel", verts=6))                 # service band
     for w in range(3):
         ang, prev = w * 2 * math.pi / 3, 0.0
         for k in range(9):
@@ -239,23 +258,47 @@ def burj_khalifa():
             length, width, h = 66 * (1 - k / 9.6) ** 1.1 + 7, 31 - k * 2.5, top - prev
             if h <= 0:
                 continue
-            for o in (box((length, width, h), (length / 2 + 6, 0, prev + h / 2), "glass"),
-                      cyl(width / 2, width / 2, h, (length + 6, 0, prev + h / 2), "glass", verts=14),
-                      box((length + 4, width + 0.8, 1.2), (length / 2 + 6, 0, top - 0.6), "steel")):      # ledge at each setback
+            zc = prev + h / 2
+            objs = [box((length, width, h), (length / 2 + 6, 0, zc), "glass"),
+                    cyl(width / 2, width / 2, h, (length + 6, 0, zc), "glass", verts=18),
+                    box((length + 4, width + 0.8, 1.2), (length / 2 + 6, 0, top - 0.6), "steel"),              # ledge at each setback
+                    cyl(width / 2 + 0.6, width / 2 + 0.6, 1.2, (length + 6, 0, top - 0.6), "steel", verts=18)]
+            sh_len, sh_w, sh_h = length * 0.6, width * 0.26, h * 0.84
+            if k < 8:                                                 # shoulders either side of the nose, a little lower
+                for sy in (-1, 1):
+                    y = sy * (width / 2 + sh_w / 2 - 0.4)
+                    objs += [box((sh_len, sh_w, sh_h), (sh_len / 2 + 6, y, prev + sh_h / 2), "glass"),
+                             cyl(sh_w / 2, sh_w / 2, sh_h, (sh_len + 6, y, prev + sh_h / 2), "glass", verts=10),
+                             box((sh_len + 1.5, sh_w + 0.6, 1.0), (sh_len / 2 + 6, y, prev + sh_h - 0.5), "steel")]
+            n = max(2, int(length // 7))                              # vertical fins up the curtain wall
+            for j in range(n):
+                x = 6 + (j + 0.5) * length / n
+                on_shoulder = k < 8 and x < 6 + sh_len
+                fy, fh = (width / 2 + sh_w - 0.4 + 0.35, sh_h - 1.0) if on_shoulder else (width / 2 + 0.35, h - 1.2)
+                for sy in (-1, 1):
+                    objs.append(box((0.45, 0.7, fh), (x, sy * fy, prev + fh / 2), "steel"))
+            for o in objs:
                 rotate_about_z(o, ang)
                 parts.append(o)
             prev = top
-    parts += [cyl(8.4, 5.2, 70, (0, 0, tiers + 35), "steel", 10), cyl(5.2, 2.6, 70, (0, 0, tiers + 105), "steel", 10),
-              cyl(2.6, 0.5, 103, (0, 0, tiers + 140 + 51.5), "steel", 8)]
+    parts.append(cyl(44, 41, 9, (0, 0, 4.5), "concrete", 36))                                          # podium
+    z = tiers                                                                                          # telescoping pinnacle
+    for r0, r1, hh in ((8.4, 7.0, 30), (6.6, 5.4, 34), (5.0, 3.8, 36), (3.4, 2.2, 40)):
+        parts.append(cyl(r0, r1, hh, (0, 0, z + hh / 2), "steel", 12))
+        parts.append(cyl(r0 + 0.5, r0 + 0.5, 1.4, (0, 0, z + 0.7), "steel", 12))
+        z += hh
+    parts.append(cyl(1.8, 0.3, 828 - z, (0, 0, z + (828 - z) / 2), "steel", 8))
     return join(parts, "burj_khalifa"), {"height_m": 828, "source": "https://en.wikipedia.org/wiki/Burj_Khalifa"}
 
 
 def emirates_tower(name, h, side):
     """Jumeirah Emirates Towers: equilateral-triangle plan, a crown that slopes up to one corner, a spire from that
-    corner; cylindrical corner columns, band lines, a drum podium. 355 m (office) and 309 m (hotel)."""
+    corner. R8: every face is two aluminium wings with a recessed glass panel between them, mullion fins on the glass,
+    band lines every four storeys, louvres across the sloped crown, three legs and a canopied drum at the foot.
+    355 m (office) and 309 m (hotel)."""
     r, shaft, crown = side / math.sqrt(3), h * 0.74, h * 0.9
     corner = lambda i, k=1.0: (math.cos(i * 2 * math.pi / 3) * r * k, math.sin(i * 2 * math.pi / 3) * r * k)        # noqa: E731
-    base = [corner(i) for i in range(3)]
+    base = [corner(i, 0.955) for i in range(3)]                       # the inner shell: nothing is see-through behind the panels
     top = [corner(0, 0.5), corner(1, 0.86), corner(2, 0.86)]
     top_z = [crown, shaft + (crown - shaft) * 0.18, shaft + (crown - shaft) * 0.18]
     verts = [(x, y, 0) for x, y in base] + [(x, y, shaft) for x, y in base] + [(x, y, z) for (x, y), z in zip(top, top_z)]
@@ -265,16 +308,43 @@ def emirates_tower(name, h, side):
         faces += [(i, j, 3 + j, 3 + i), (3 + i, 3 + j, 6 + j, 6 + i)]
     faces.append((6, 7, 8))
     parts = [from_faces(verts, faces, "glass")]
-    for i in range(3):                                                # corner columns
+    z0 = 16.0
+    for i in range(3):
+        (ax, ay), (bx, by) = corner(i), corner((i + 1) % 3)
+        ex, ey = bx - ax, by - ay
+        length = math.hypot(ex, ey)
+        ux, uy = ex / length, ey / length
+        nx, ny = uy, -ux
+        if nx * (ax + bx) + ny * (ay + by) < 0:
+            nx, ny = -nx, -ny                                         # outward
+        rot = math.atan2(ey, ex)
+        at = lambda t, off: (ax + ex * t + nx * off, ay + ey * t + ny * off)      # noqa: E731
+        # The scene's own extruded footprint stands exactly on the face plane (offset 0), so everything here sits on
+        # or outside it: the glass a hand's width proud, the wings 0.6 m further out — the panel still reads as recessed.
+        for t in (0.11, 0.89):                                        # aluminium wings
+            x, y = at(t, 0.0)
+            parts.append(box((length * 0.22, 1.2, shaft - z0), (x, y, (shaft + z0) / 2), "steel", rot))
+        x, y = at(0.5, -0.45)                                         # glass panel between them
+        parts.append(box((length * 0.56, 1.0, shaft - z0), (x, y, (shaft + z0) / 2), "glass", rot))
+        for q in range(1, 6):                                         # mullion fins on the glass
+            x, y = at(0.22 + 0.56 * q / 6, 0.2)
+            parts.append(box((0.35, 0.5, shaft - z0), (x, y, (shaft + z0) / 2), "steel", rot))
+        z = z0 + 14.0
+        while z < shaft - 6:                                          # band lines every four storeys
+            parts.append(beam((*at(0.0, 0.75), z), (*at(1.0, 0.75), z), 0.7, 0.9, "steel"))
+            z += 14.0
+        j = (i + 1) % 3                                               # louvres across the sloped crown
+        for q in range(1, 8):
+            f = q / 8
+            p0 = (base[i][0] / 0.955 + (top[i][0] - base[i][0] / 0.955) * f, base[i][1] / 0.955 + (top[i][1] - base[i][1] / 0.955) * f, shaft + (top_z[i] - shaft) * f)
+            p1 = (base[j][0] / 0.955 + (top[j][0] - base[j][0] / 0.955) * f, base[j][1] / 0.955 + (top[j][1] - base[j][1] / 0.955) * f, shaft + (top_z[j] - shaft) * f)
+            parts.append(beam(p0, p1, 1.0, 0.6, "steel"))
+    for i in range(3):                                                # the three legs
         x, y = corner(i, 0.985)
-        parts.append(cyl(2.6, 2.6, shaft, (x, y, shaft / 2), "steel", 10))
-    z = 28.0
-    while z < shaft - 10:                                             # band lines every eight storeys, on the shaft's own triangle
-        ring = [corner(i, 1.012) for i in range(3)]
-        parts.append(from_faces([(x, y, z) for x, y in ring] + [(x, y, z + 1.1) for x, y in ring],
-                                [(0, 1, 4, 3), (1, 2, 5, 4), (2, 0, 3, 5), (0, 2, 1), (3, 4, 5)], "steel"))
-        z += 28.0
-    parts.append(cyl(r * 1.25, r * 1.2, 14, (0, 0, 7), "concrete", 24))
+        parts.append(cyl(3.3, 3.3, shaft, (x, y, shaft / 2), "steel", 14))
+        parts.append(cyl(3.9, 3.9, 2.0, (x, y, shaft - 1.0), "steel", 14))
+    parts.append(cyl(r * 1.25, r * 1.2, 14, (0, 0, 7), "concrete", 28))
+    parts.append(cyl(r * 1.5, r * 1.5, 1.1, (0, 0, 14.6), "steel", 28))                                 # canopy
     parts.append(cyl(1.9, 0.45, h - crown + 6, (top[0][0], top[0][1], crown - 6 + (h - crown + 6) / 2), "steel", 8))
     return join(parts, name), {"height_m": h, "footprint_side_m": side, "source": "https://en.wikipedia.org/wiki/Emirates_Towers"}
 
@@ -301,7 +371,8 @@ def museum_of_the_future():
 
 def trade_centre_tower():
     """Sheikh Rashid Tower (Dubai World Trade Centre), 149 m: a square shaft behind a deep window lattice (texture
-    drawn by the web app on these UVs), corner piers, a stepped crown and a mast."""
+    drawn by the web app on these UVs). R8: the lattice has real depth — eight piers a side standing proud of the
+    windows and a ledge every fourth floor — with corner piers, a flared cornice, a stepped crown, a mast and a podium."""
     shaft = box((40, 40, 132), (0, 0, 66), "dwtc")
     bpy.context.view_layer.objects.active = shaft
     bpy.ops.object.mode_set(mode="EDIT")
@@ -311,19 +382,44 @@ def trade_centre_tower():
     parts = [shaft]
     for sx in (-1, 1):
         for sy in (-1, 1):
-            parts.append(box((4.5, 4.5, 136), (sx * 20, sy * 20, 68), "concrete"))
-    for z in (0.6, 132.4):
-        parts.append(box((46, 46, 1.2), (0, 0, z), "concrete"))
-    parts += [box((44, 44, 5), (0, 0, 136.5), "concrete"), box((24, 24, 9), (0, 0, 143.5), "concrete"),
-              cyl(0.9, 0.5, 14, (0, 0, 155), "steel", 8)]
+            parts.append(box((4.8, 4.8, 138), (sx * 20, sy * 20, 69), "concrete"))
+    for q in range(8):                                                # piers between the window columns
+        p = -15.75 + q * 4.5
+        for s in (-1, 1):
+            parts += [box((1.0, 1.5, 124), (p, s * 20.6, 70), "concrete"), box((1.5, 1.0, 124), (s * 20.6, p, 70), "concrete")]
+    z = 20.0
+    while z < 130:                                                    # a ledge every fourth floor
+        parts.append(box((42.6, 42.6, 0.7), (0, 0, z), "concrete"))
+        z += 13.8
+    parts += [box((58, 58, 8), (0, 0, 4), "concrete"), box((62, 62, 1.0), (0, 0, 8.5), "concrete"),      # podium and its canopy
+              box((46, 46, 1.4), (0, 0, 132.7), "concrete"), box((48.5, 48.5, 2.2), (0, 0, 134.5), "concrete"),
+              box((44, 44, 3.4), (0, 0, 137.3), "concrete"), box((28, 28, 8), (0, 0, 143.0), "concrete"),
+              box((14, 14, 3), (0, 0, 148.5), "concrete"), cyl(0.9, 0.4, 12, (0, 0, 156), "steel", 8)]
     return join(parts, "trade_centre_tower"), {"height_m": 149, "source": "https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre"}
 
 
 def dubai_frame():
-    """150 m high, 93 m wide: two towers joined by a bridge at the top, on a low base."""
+    """150 m high, 93 m wide: two towers joined by a bridge at the top, on a stepped base. R8: the gold cladding is
+    panelled — raised plates in rows on every outer face, as the real ring-patterned skin reads from a distance."""
     w, h, t, d = 93.0, 150.0, 9.0, 14.0
     parts = [box((t, d, h), (-(w - t) / 2, 0, h / 2), "gold"), box((t, d, h), ((w - t) / 2, 0, h / 2), "gold"),
-             box((w, d, t), (0, 0, h - t / 2), "gold"), box((w, d + 8, 6), (0, 0, 3), "concrete")]
+             box((w, d, t), (0, 0, h - t / 2), "gold"), box((w, d + 8, 6), (0, 0, 3), "concrete"), box((w + 12, d + 18, 2.4), (0, 0, 1.2), "concrete")]
+    rows = 26
+    for sx in (-1, 1):
+        cx = sx * (w - t) / 2
+        for r_ in range(rows):
+            z = 9 + (r_ + 0.5) * (h - t - 9) / rows
+            for col in (-1, 1):                                       # front and back faces: two plates across
+                for sy in (-1, 1):
+                    parts.append(box((3.3, 0.5, 4.2), (cx + col * 2.1, sy * (d / 2 + 0.2), z), "gold"))
+            for col in (-1, 0, 1):                                    # outer side face: three plates across
+                parts.append(box((0.5, 3.4, 4.2), (cx + sx * (t / 2 + 0.2), col * 4.2, z), "gold"))
+    for q in range(20):                                               # the bridge
+        x = -w / 2 + (q + 0.5) * w / 20
+        for sy in (-1, 1):
+            parts.append(box((3.6, 0.5, 3.3), (x, sy * (d / 2 + 0.2), h - t / 2 - 1.9), "gold"))
+            parts.append(box((3.6, 0.5, 3.3), (x, sy * (d / 2 + 0.2), h - t / 2 + 1.9), "gold"))
+        parts.append(box((3.6, 3.4, 0.5), (x, 0, h + 0.2), "gold"))
     for sx in (-1, 1):                                                # glazed strip on the inner faces
         parts.append(box((0.6, d - 3, h - 2 * t), (sx * ((w - 2 * t) / 2 - 0.2), 0, h / 2), "glass"))
     parts.append(box((w - 2 * t, d - 3, 0.6), (0, 0, h - t - 0.2), "glass"))
@@ -466,9 +562,17 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(PREVIEW, exist_ok=True)
     report = {}
+    if ONLY:                                             # a partial run keeps the other models' entries
+        try:
+            with open(os.path.join(OUT, "models.json"), encoding="utf-8") as f:
+                report = json.load(f)["models"]
+        except (OSError, ValueError, KeyError):
+            report = {}
     for build, args, budget in MODELS:
         reset()
         obj, info = build(*args)
+        if ONLY and obj.name not in ONLY[0]:
+            continue
         bake_ao(obj)
         lod = make_lod(obj)
         bake_ao(lod)

@@ -110,6 +110,22 @@ function groundMaterial(map: THREE.Texture | null) {
   return m;
 }
 
+const skips = new WeakMap<SceneJson, number[]>();
+/** Where the Emirates Towers models stand (R8): the ring's own extruded building at each spot is left out, so nothing
+ *  pokes through the model. x, z and the footprint's circumradius, from the baked scene; one array per scene. */
+function landmarkSkip(data: SceneJson): number[] {
+  let out = skips.get(data);
+  if (!out) {
+    out = [];
+    for (const k of ["et1", "et2"] as const) {
+      const l = data.landmarks[k];
+      if (l) out.push(l.x, l.z, Math.sqrt((4 * l.area) / Math.sqrt(3)) / Math.sqrt(3));
+    }
+    skips.set(data, out);
+  }
+  return out;
+}
+
 /** Lane markings for the Sheikh Zayed Road carriageways (aW = width in metres, uv.y = 0 on the median side). */
 function highwayMaterial() {
   const m = new THREE.MeshStandardMaterial({ color: 0x33363c, roughness: 0.86, metalness: 0.0, emissive: 0xffb469, emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
@@ -142,6 +158,11 @@ function highwayMaterial() {
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86), line * vis * 0.85);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.90, 0.75, 0.25), edgeL * vis * 0.9);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86), edgeR * vis * 0.85);
+        }`)
+      .replace("#include <emissivemap_fragment>", /* glsl */ `#include <emissivemap_fragment>
+        {                                                    // R10: the night glow gathers in a pool under each median lamp (one every 34 m)
+          float along = (fract((vRd.x - 30.0) / 34.0 + 0.5) - 0.5) * 34.0;
+          totalEmissiveRadiance *= 0.4 + 1.7 * exp(-along * along / 120.0 - vRd.y * vRd.y / 300.0);
         }`);
   };
   return m;
@@ -413,7 +434,7 @@ export function City({ data, corridor, manifest, models = null }: { data: SceneJ
 
   return (
     <group>
-      {manifest ? <Ring manifest={manifest} facade={mats.facade} facadeFar={mats.facadeFar ?? mats.facade} show={showBuildings} /> : (
+      {manifest ? <Ring manifest={manifest} facade={mats.facade} facadeFar={mats.facadeFar ?? mats.facade} show={showBuildings} skip={models ? landmarkSkip(data) : undefined} /> : (
         <>
           <mesh rotation-x={-Math.PI / 2} position-y={-0.4} receiveShadow material={mats.sand}>
             <planeGeometry args={[60000, 60000]} />
