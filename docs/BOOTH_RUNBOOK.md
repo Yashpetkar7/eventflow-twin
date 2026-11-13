@@ -98,5 +98,32 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
 - Do not say or show that RTA uses or endorses this. It is a student research prototype on synthetic baseline demand.
 
 ## Not verified yet (do this before 18 Nov)
+- **Windows laptop, measured 13 Nov 2026 — ON BATTERY, not on mains (the charger was not available).** Lenovo 83DA,
+  Intel Core Ultra 5 125H, 16 GB, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`, built-in screen 1920×1200 at 59 Hz with
+  150 % scaling, Balanced power plan, OneDrive running. Production build of `main` at `19bb596` plus one test fix (commit `1162057`). A battery run is the
+  pessimistic case on this laptop; **repeat on mains before the exhibit** (same commands, files named `…_mains.json`).
+  Every number below is from a file in `eval/results/ui/booth_windows/` or `eval/results/ui/realism_r7/`.
+
+  | Kiosk attract screen (`node tests/kiosk_fps.mjs`, headless Chrome, 3D at 1920×1080, 20 one-second samples) | Runs | Average fps per run | Lowest second per run | Quality tier at the end | File |
+  |---|---|---|---|---|---|
+  | `?kiosk=1` (default: realism scene, full quality) | 5 | 59.3, 51.9, 59.7, 59.3, 59.4 | 50, 17.2, 55.1, 47.2, 50.2 | 0, 1, 0, 0, 0 | `kiosk_default_battery.json` |
+  | `?kiosk=1&quality=light` | 3 | 59.9, 59.9, 59.9 | 59, 59, 59.4 | 1, 1, 1 | `kiosk_light_battery.json` |
+  | `?kiosk=1&scene=v1` (corridor scene) | 3 | 59.9, 59.8, 59.7 | 59.1, 58, 54.8 | 0, 0, 0 | `kiosk_v1_battery.json` |
+
+  - **Which level it settles on:** full quality (tier 0) in 4 of 5 runs; in 1 run it stepped down to tier 1 by itself
+    after a stall (lowest second 17.2 fps). So on battery this laptop sits at the edge of full quality.
+  - **In a real Chrome window on the laptop's own screen** (`EFT_HEADED=1`, window 1280x665 at device pixel ratio 1.5, canvas 1336x998 px):
+    averages 59.6, 59.6 fps, lowest seconds 53.1, 54.2, tier 0, 0
+    (`kiosk_default_real_screen_battery.json`). Chrome did not go truly full screen under automation, so this window is
+    smaller than the booth view; the headless 1920×1080 rows above are the harder case.
+  - **With the 60 Hz cap removed** (`node tests/r7_fps.mjs windows_after_battery`, file `realism_r7/windows_after_battery_fps.json`):
+    workspace on the realism scene 99.9–134 fps median over 8 camera / time cases
+    (lowest second 93.8); kiosk attract screen 71.9 median, 58.8 lowest, tier 0.
+  - **Not measured:** mains power; the booth's touch monitor; Chrome's real `--kiosk` full screen started by hand; a soak.
+  - **These runs are on `19bb596`.** `main` has since gained the realism passes of 13 Nov (decisions #114 and #115:
+    rooms behind windows, cloud shadows, figures at stations, landmark models with 5 times the triangles). The mains
+    run must be on the current `main`; expect the kiosk to step down to tier 1 a little more often than in the table above.
+  - The two scripts now label the power source correctly on a Windows laptop that is plugged in and charging (review of
+    PR #16: a charging status used to be written down as battery).
 - The real touch monitor (touch mapping, pinch zoom) and its native resolution.
 - A full exhibition day on battery/mains with the lid angle and brightness you will use.
