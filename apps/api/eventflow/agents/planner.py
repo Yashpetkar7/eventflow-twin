@@ -500,7 +500,8 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
             "cached": False}
     try:
         CACHE_WRITE.mkdir(parents=True, exist_ok=True)
-        (CACHE_WRITE / name).write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
+        # newline="\n": LF on Windows too, so rebuilding the cache does not rewrite every file (booth laptop, 14 Nov)
+        (CACHE_WRITE / name).write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
     except OSError:
         pass                                        # read-only filesystem: the plan is still returned
     return plan

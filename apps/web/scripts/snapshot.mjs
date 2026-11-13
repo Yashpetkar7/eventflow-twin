@@ -3,10 +3,13 @@
 // says so in a banner. Request bodies come from src/lib/requests.ts — the same builders the app uses.
 //   npm run snapshot        (the API must be running: python tasks.py api)
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { breakpointBody, forecastBody, planBody, requestKey, simulateBody } from "../src/lib/requests.ts";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-const OUT = new URL("../public/cache/", import.meta.url).pathname;
+// fileURLToPath, not URL.pathname: on Windows .pathname is "/C:/…", which became "C:\C:\…" (booth laptop, 14 Nov)
+const OUT = fileURLToPath(new URL("../public/cache/", import.meta.url));
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 const index = {};
@@ -17,7 +20,7 @@ async function record(path, body) {
   if (!res.ok) throw new Error(`${path}: HTTP ${res.status} ${await res.text()}`);
   const data = await res.json();
   const file = `${String(++n).padStart(3, "0")}.json`;
-  writeFileSync(OUT + file, JSON.stringify(data));
+  writeFileSync(join(OUT, file), JSON.stringify(data));
   index[requestKey(path, body)] = file;
   return data;
 }
@@ -40,5 +43,5 @@ for (const [i, ev] of [...events, { id: "custom" }].entries()) {
     }
   }
 }
-writeFileSync(OUT + "index.json", JSON.stringify(index, null, 1));
+writeFileSync(join(OUT, "index.json"), JSON.stringify(index, null, 1));
 console.log(`snapshot: ${n} responses → public/cache/`);
