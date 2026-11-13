@@ -1,7 +1,7 @@
 {
  "label": "after",
  "base": "http://localhost:3210",
- "when": "2026-11-13T06:29:23.458Z",
+ "when": "2026-11-13T06:50:35.072Z",
  "viewport": "1920x1080",
  "views": {
   "street_1000": {
@@ -21,7 +21,7 @@
    "tier": 0
   },
   "towers_1000": {
-   "fps": 60,
+   "fps": 60.1,
    "tier": 0
   },
   "overview_1500": {

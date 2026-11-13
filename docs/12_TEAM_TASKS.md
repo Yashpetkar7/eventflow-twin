@@ -11,8 +11,10 @@ Background reading (15 minutes): `docs/11_MVP_ROADMAP.md` (where we are going an
 - **On screen:** rooms behind the windows, floors and lights on the landmark towers, the Burj Khalifa's lights after
   dark, drifting cloud shadows, lamp pools on Sheikh Zayed Road, figures at the station entrances (the simulator's
   riders), larger kiosk labels. `?clouds=0` and `?film=0` switch the sky extras off.
-- **Atharva:** two prompts are waiting in `docs/13_REALISM_FABLE_TASKS.md` → "R8–R10 — status": **R8** landmark
-  geometry (needs Blender, which the Mac does not have) and **R9b** street level. Please also repeat the kiosk run on
+- **Landmarks rebuilt in Blender (decision #115):** Burj Khalifa, both Emirates Towers, the Trade Centre tower and
+  Dubai Frame now have real detail (the Burj went from 2,332 to about 12,000 triangles).
+- **Atharva:** two prompts are waiting in `docs/13_REALISM_FABLE_TASKS.md` → "R8–R10 — status": **R8b** new landmarks
+  (Dubai Mall, fountain, DIFC Gate, tower row) and **R9b** street level. Please also repeat the kiosk run on
   the Windows laptop on mains power with this build: the new effects run at full quality only.
 - **Yash:** no change to your four tasks (C4 touch monitor, C5 Arabic, C6 screenshots, B4 live AI test). C6 should
   wait for this branch to be merged.

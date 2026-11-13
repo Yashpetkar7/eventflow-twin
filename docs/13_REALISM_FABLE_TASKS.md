@@ -200,17 +200,20 @@ on the landmark towers with the Burj Khalifa's lights after dark, drifting cloud
 Sheikh Zayed Road, figures at the station entrances driven by the simulator, larger kiosk labels. Before and after:
 `node apps/web/tests/r10_shots.mjs <label> <base url>` → `eval/results/ui/realism_r10/`.
 
-**Still open — needs a laptop with Blender (Atharva):**
+**R8, done on 13 Nov (decision #115):** the five landmark models were rebuilt in Blender 5.3 from
+`scripts/blender/build_models.py` (Burj Khalifa, both Emirates Towers, the Trade Centre tower, Dubai Frame). To rebuild
+one: `/Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/blender/build_models.py -- --only=dubai_frame`
+(Windows: the same with `blender.exe`).
+
+**Still open — new landmarks (anyone with Blender):**
 ```text
-R8 — landmark geometry. Read CLAUDE.md, sections 4 and 4b above, R4, scripts/blender/build_models.py and
-apps/web/src/components/twin/Landmarks.tsx. Branch b/realism-r8-landmarks from main.
-Rebuild in scripts/blender/build_models.py (headless Blender): Burj Khalifa (finer setbacks, vertical fins, podium),
-Emirates Towers (crown slats, facade bands, podium), Trade Centre tower (deep honeycomb, crown), Dubai Frame (lattice).
-Add: Dubai Mall block with the Burj lake and a fountain ring, DIFC Gate, 10 correct silhouettes for the tallest towers
-between Trade Centre and Business Bay (heights and a source each in config/landmark_heights.yaml).
-Up to 25k triangles each (Burj Khalifa 60k), ambient occlusion in the vertex colours as now, LOD1 at 25 %. Keep the
-material slot names: the web app's curtain wall (facade.ts, curtainWall) already draws storeys and lit floors on the
-"glass" slot, so model the shape, not the windows. No logos, signage or calligraphy. Hide the footprints replaced.
+R8b — new landmarks. Read CLAUDE.md, sections 4 and 4b above, decision #115, scripts/blender/build_models.py and
+apps/web/src/components/twin/Landmarks.tsx, models.tsx and City.tsx (landmarkSkip). Branch b/realism-r8b from main.
+Add to build_models.py and to the scene: Dubai Mall block with the Burj lake and a fountain ring, DIFC Gate, and 10
+correct silhouettes for the tallest towers between Trade Centre and Business Bay. Each needs: its position (lat/lon,
+projected with the scene frame), a height and source in config/landmark_heights.yaml, an entry in MODEL_NAMES, and its
+extruded footprint left out through landmarkSkip. Up to 25k triangles each, ambient occlusion in the vertex colours,
+LOD1 at 25 %, the existing material slot names (the curtain wall draws the windows). No logos, signage or text.
 Done when: node tests/r10_shots.mjs shows them at 10:00, 17:30 and 21:30, r7_fps.mjs loses no more than 5 %, all
 Playwright tests pass, and a decision entry says these are approximations. Pull request to main; no deploy.
 ```
