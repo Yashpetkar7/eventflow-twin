@@ -94,4 +94,6 @@ def test_vercel_entry_defaults_on_vercel(tmp_path):
     env = {k: v for k, v in os.environ.items() if not k.startswith("EVENTFLOW_")}
     out = subprocess.run([sys.executable, "-c", code], env={**env, "VERCEL": "1"}, capture_output=True, text=True,
                          cwd=str(main.ROOT), check=True).stdout.split()
-    assert out == ["ephemeral", "/tmp/eventflow", "60"]
+    from pathlib import Path
+    # compare the folder as a path: Windows prints it as \tmp\eventflow (Vercel itself runs Linux)
+    assert out[0] == "ephemeral" and Path(out[1]) == Path("/tmp/eventflow") and out[2] == "60"
