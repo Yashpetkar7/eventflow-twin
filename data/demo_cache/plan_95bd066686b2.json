@@ -1,0 +1,719 @@
+{
+ "plan_id": "plan_95bd066686b2",
+ "forecast_run_id": "fc_f10f5bba79fb",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 2.75,
+  "excess_pax": 6749.9,
+  "peak_lf": 2.662,
+  "max_wait_min": 221.8,
+  "delay_pax_min": 558389.0,
+  "cost_proxy": 0.0,
+  "total_demand": 81213.0,
+  "end_of_day_queue": 5081.5,
+  "no_service_pax": 2483.0,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "baseline_road": {
+  "peak_veh_per_hour": 2404.1,
+  "peak_hour": 22,
+  "pressure": 0.2,
+  "vehicles_total": 7272.7,
+  "reference_capacity": 12000.0,
+  "hourly": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.1,
+   13.3,
+   314.6,
+   1490.2,
+   1490.2,
+   327.4,
+   910.8,
+   2404.1,
+   322.1
+  ],
+  "is_assumption": true
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "قطارات إضافية + توجيه المشاة",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "BKD",
+      "to_station": "FIC",
+      "share": 0.2,
+      "hours": [
+       21,
+       22,
+       23
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.745,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 319.5,
+    "total_demand": 81213.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.75,
+    "excess_pax": -6749.9,
+    "peak_lf": -1.917,
+    "max_wait_min": -221.8,
+    "delay_pax_min": -558389.0,
+    "cost_proxy": 319.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": -5081.5,
+    "no_service_pax": 0.0
+   },
+   "score": 5152.4,
+   "rationale": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توجيه 20% من ركاب برج خليفة / دبي مول إلى المركز المالي. نتيجة المحاكاة: ساعات المحطات فوق الحد من 2.75 إلى 0، والركاب فوق الحد من 6,750 إلى 0، وأعلى حمولة محطة من 266% إلى 74%. مؤشر التكلفة المضافة: 319.5. المخاطر: يحتاج إلى تنسيق بين التشغيل والميدان.",
+   "what": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توجيه 20% من ركاب برج خليفة / دبي مول إلى المركز المالي.",
+   "risk": "يحتاج إلى تنسيق بين التشغيل والميدان.",
+   "cost_added": 319.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 1,
+   "road": {
+    "peak_veh_per_hour": 2404.1,
+    "peak_hour": 22,
+    "pressure": 0.2,
+    "vehicles_total": 7272.7,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     13.3,
+     314.6,
+     1490.2,
+     1490.2,
+     327.4,
+     910.8,
+     2404.1,
+     322.1
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_001a161c7d20"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_f10f5bba79fb"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "قطارات إضافية + خروج متدرج",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    },
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.801,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 320.0,
+    "total_demand": 81213.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.75,
+    "excess_pax": -6749.9,
+    "peak_lf": -1.861,
+    "max_wait_min": -221.8,
+    "delay_pax_min": -558389.0,
+    "cost_proxy": 320.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": -5081.5,
+    "no_service_pax": 0.0
+   },
+   "score": 5149.9,
+   "rationale": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توزيع الخروج على 60 دقيقة إضافية. نتيجة المحاكاة: ساعات المحطات فوق الحد من 2.75 إلى 0، والركاب فوق الحد من 6,750 إلى 0، وأعلى حمولة محطة من 266% إلى 80%. مؤشر التكلفة المضافة: 320. المخاطر: أعلى تكلفة بين الخيارات.",
+   "what": "فاصل 3 دقائق من 20:00 إلى 24:00 مع توزيع الخروج على 60 دقيقة إضافية.",
+   "risk": "أعلى تكلفة بين الخيارات.",
+   "cost_added": 320.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 1,
+   "road": {
+    "peak_veh_per_hour": 1958.3,
+    "peak_hour": 22,
+    "pressure": 0.163,
+    "vehicles_total": 7272.7,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     13.3,
+     314.6,
+     1490.2,
+     1490.2,
+     317.0,
+     297.0,
+     1958.3,
+     1392.0
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_e3cd08a4436a"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_f10f5bba79fb"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "قطارات إضافية",
+   "interventions": [
+    {
+     "type": "extra_trains",
+     "params": {
+      "headway_min": 3,
+      "hours": [
+       20,
+       21,
+       22,
+       23
+      ],
+      "line": "Red"
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.5,
+    "excess_pax": 236.1,
+    "peak_lf": 0.932,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 318.0,
+    "total_demand": 81213.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2483.0,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -2.25,
+    "excess_pax": -6513.8,
+    "peak_lf": -1.73,
+    "max_wait_min": -221.8,
+    "delay_pax_min": -558389.0,
+    "cost_proxy": 318.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": -5081.5,
+    "no_service_pax": 0.0
+   },
+   "score": 4923.8,
+   "rationale": "تقليل الفاصل الزمني للخط الأحمر إلى 3 دقائق من 20:00 إلى 24:00. نتيجة المحاكاة: ساعات المحطات فوق الحد من 2.75 إلى 0.5، والركاب فوق الحد من 6,750 إلى 236، وأعلى حمولة محطة من 266% إلى 93%. مؤشر التكلفة المضافة: 318. المخاطر: يعتمد على توفر القطارات والطواقم.",
+   "what": "تقليل الفاصل الزمني للخط الأحمر إلى 3 دقائق من 20:00 إلى 24:00.",
+   "risk": "يعتمد على توفر القطارات والطواقم.",
+   "cost_added": 318.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": false,
+   "round": 1,
+   "road": {
+    "peak_veh_per_hour": 2404.1,
+    "peak_hour": 22,
+    "pressure": 0.2,
+    "vehicles_total": 7272.7,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     13.3,
+     314.6,
+     1490.2,
+     1490.2,
+     327.4,
+     910.8,
+     2404.1,
+     322.1
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_e6144b13eee5"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_f10f5bba79fb"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 38,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "قراءة الهدف",
+   "detail": "إبقاء كل المحطات تحت 85% · الأولوية: أكبر أثر",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "التنبؤ بالطلب",
+   "detail": "التشغيل fc_f10f5bba79fb",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "تحديد نقاط الازدحام",
+   "detail": "برج خليفة / دبي مول، 21:00, 22:00, 23:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "اقتراح الخطط",
+   "detail": "8 خطط مرشحة من القائمة المحددة",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "محاكاة كل خطة",
+   "detail": "9 عمليات محاكاة",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "الترتيب حسب الأثر والتكلفة",
+   "detail": "أفضل 3 حسب الركاب المخفَّف عنهم − λ × التكلفة",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "الشرح بلغة بسيطة",
+   "detail": "نص قالب، والأرقام منسوخة من المحاكي",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "التحقق من كل رقم",
+   "detail": "تم التحقق من 38 رقمًا، جميعها مطابقة",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "BKD",
+  "hours": [
+   21,
+   22,
+   23
+  ],
+  "window": [
+   20,
+   21,
+   22,
+   23
+  ],
+  "peak_lf": 2.662
+ },
+ "critic": {
+  "rounds": 1,
+  "replanned": false,
+  "simulations": 9,
+  "goal_met_ranks": [
+   1,
+   2
+  ],
+  "top_meets_goal": true,
+  "checked_by": "code",
+  "residual": null
+ },
+ "trace": [
+  {
+   "n": 1,
+   "round": 1,
+   "role": "planner",
+   "tool": "forecast",
+   "run_id": "fc_f10f5bba79fb",
+   "ms": 0.0,
+   "data": {
+    "event": "downtown_night"
+   }
+  },
+  {
+   "n": 2,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_b6ee0acfac14",
+   "ms": 9.2,
+   "data": {
+    "label": "baseline",
+    "over": 2.75,
+    "excess": 6749.9,
+    "peak_lf": 2.662
+   }
+  },
+  {
+   "n": 3,
+   "round": 1,
+   "role": "planner",
+   "tool": "diagnose",
+   "run_id": "sim_b6ee0acfac14",
+   "ms": 0.1,
+   "data": {
+    "station": "BKD",
+    "hours": [
+     21,
+     22,
+     23
+    ],
+    "peak_lf": 2.662
+   }
+  },
+  {
+   "n": 4,
+   "round": 1,
+   "role": "proposer",
+   "tool": "propose",
+   "run_id": null,
+   "ms": 0.1,
+   "data": {
+    "source": "menu",
+    "candidates": 8
+   }
+  },
+  {
+   "n": 5,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_ac214ddd2010",
+   "ms": 11.9,
+   "data": {
+    "label": "stagway",
+    "types": [
+     "staggered_exit",
+     "wayfinding_redirect"
+    ],
+    "over": 4.75,
+    "excess": 5668.7,
+    "peak_lf": 3.413,
+    "cost_added": 3.5,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_e6144b13eee5",
+   "ms": 9.0,
+   "data": {
+    "label": "trains",
+    "types": [
+     "extra_trains"
+    ],
+    "over": 0.5,
+    "excess": 236.1,
+    "peak_lf": 0.932,
+    "cost_added": 318.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 7,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_2469e9e663cd",
+   "ms": 9.2,
+   "data": {
+    "label": "busrt",
+    "types": [
+     "shuttle_bus",
+     "robotaxi_staging"
+    ],
+    "over": 2.25,
+    "excess": 4271.7,
+    "peak_lf": 2.214,
+    "cost_added": 54.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 8,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_64f538bf0ed2",
+   "ms": 8.8,
+   "data": {
+    "label": "way",
+    "types": [
+     "wayfinding_redirect"
+    ],
+    "over": 3.75,
+    "excess": 4666.0,
+    "peak_lf": 1.73,
+    "cost_added": 1.5,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_e3cd08a4436a",
+   "ms": 11.9,
+   "data": {
+    "label": "trainstag",
+    "types": [
+     "extra_trains",
+     "staggered_exit"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.801,
+    "cost_added": 320.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 10,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_001a161c7d20",
+   "ms": 8.9,
+   "data": {
+    "label": "trainsway",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.745,
+    "cost_added": 319.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 11,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_64eff56c6145",
+   "ms": 9.0,
+   "data": {
+    "label": "meter",
+    "types": [
+     "station_metering"
+    ],
+    "over": 2.25,
+    "excess": 4666.0,
+    "peak_lf": 2.353,
+    "cost_added": 3.0,
+    "new_hotspots": [
+     "FIC"
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_3e8c4fbc230f",
+   "ms": 8.7,
+   "data": {
+    "label": "meterq",
+    "types": [
+     "station_metering"
+    ],
+    "over": 0.75,
+    "excess": 397.5,
+    "peak_lf": 1.097,
+    "cost_added": 549.68,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 13,
+   "round": 1,
+   "role": "critic",
+   "tool": "check_goal",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "verdict": "goal_met",
+    "meeting": 2,
+    "tested": 8
+   }
+  },
+  {
+   "n": 14,
+   "round": 1,
+   "role": "planner",
+   "tool": "rank",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "kept": 3,
+    "tested": 8,
+    "order": [
+     "trainsway",
+     "trainstag",
+     "trains"
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "round": 1,
+   "role": "explainer",
+   "tool": "explain",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "source": "template",
+    "options": 3,
+    "template_fallback": []
+   }
+  },
+  {
+   "n": 16,
+   "round": 1,
+   "role": "verifier",
+   "tool": "verify_numbers",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "checked": 38,
+    "all_matched": true
+   }
+  }
+ ],
+ "cached": false
+}

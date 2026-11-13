@@ -449,3 +449,25 @@ test("performance: fps with every layer on (1920×1080)", async ({ page }) => {
     avg_fps: +avg.toFixed(1), min_fps: +Math.min(...all).toFixed(1), per_camera: Object.fromEntries(Object.entries(samples).map(([k, v]) => [k, +(v.reduce((a, b) => a + b, 0) / v.length).toFixed(1)])), ...info }, null, 2));
   expect(avg).toBeGreaterThanOrEqual(50);
 });
+
+test("AI tab: the critic's verdict, the goal badge and every tool call behind the plan", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "Hot day" }).click();
+  await idle(page);
+  await expect(page.locator(".kpi").nth(1)).not.toHaveText(/^0Over/);                         // the hot-day forecast has arrived
+  await page.getByRole("tab", { name: /AI plan/ }).click();
+  await page.getByRole("button", { name: "Plan with AI agents" }).click();
+  await expect(page.locator(".opt").first()).toBeVisible({ timeout: 30_000 });
+  const critic = page.getByTestId("critic");
+  await expect(critic).toContainText(/Critic \(code\): (a plan on offer clears every station|no plan inside the allowed limits)/);
+  await expect(critic).toContainText(/planning round/);
+  const calls = page.getByTestId("tool-calls");
+  await calls.locator("summary").click();
+  const n = await page.evaluate(() => (window as unknown as { __twin: { getState: () => { plan: { trace: unknown[] } } } }).__twin.getState().plan.trace.length);
+  expect(n).toBeGreaterThanOrEqual(10);
+  await expect(calls.locator("li")).toHaveCount(n);
+  await expect(calls).toContainText("verify_numbers");
+  await expect(calls).toContainText("check_goal");
+  const met = await page.evaluate(() => (window as unknown as { __twin: { getState: () => { plan: { options: { goal_met: boolean }[] } } } }).__twin.getState().plan.options.filter((o) => o.goal_met).length);
+  await expect(page.getByTestId("goal-met")).toHaveCount(met);
+});

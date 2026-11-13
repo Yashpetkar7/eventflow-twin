@@ -122,3 +122,23 @@ lighter level and stays there, and if a laptop cannot hold a usable rate even at
 the older city. Frame-rate work (decision #103) cut the triangles per frame from 3.9 to 1.2 million. On the MacBook it
 holds 60 at full quality; the booth laptop has not been measured since that work, which is why the safety net exists
 (decision #108).
+
+## Added 13 Nov (later) — the critic, the road figure, real totals (decisions #109–#113)
+
+**"Is this really agentic, or just a ranking?"**
+The planner runs a loop. It proposes plans, simulates each one, and a critic checks the goal: no station over the comfort line, none newly pushed over it. If no tested plan meets the goal, it replans: stronger settings and combinations aimed at what is still over the line, at most two more rounds. Open "How did the AI decide?" and then "Show all tool calls" to see every step with its run id. The critic is code, on purpose: a model can be talked round, a check cannot. What we have not done is run a real language model through it at the booth; the Proposer and Explainer steps accept one and are tested with a stand-in.
+
+**"Show me the planner failing."**
+Stress test → drag the crowd to about twice the event's size on the downtown night → ask the AI. Round one: no plan meets the goal. Round two: a combined plan clears every station. If the crowd is pushed far enough, the critic says so plainly: no plan inside the allowed limits clears every station, and how many riders the strongest one leaves.
+
+**"What about the roads? You moved people off the metro."**
+The stress test shows the other side of the metro share: extra cars near the venue in the peak hour, and what share of one direction of Sheikh Zayed Road that is. More visitors by metro means fuller platforms and fewer cars. It is an assumption model (occupancy, road share and lane capacity are in `config/road.yaml`); there are no traffic counts in it, and we say so on screen.
+
+**"Your demand is synthetic. How far off is it?"**
+We checked against the open Dubai Metro ridership data. Real weekday entries are higher than our synthetic demand at five of the six corridor stations (from ×1.25 at World Trade Centre to ×1.92 at Business Bay; Financial Centre is slightly lower). The stress test has a switch, "Real station totals", that applies those ratios. On GITEX day 1 the peak load moves from 78 % to 81 %. Only the level is real: the open data has no time of day for these dates, so the hourly pattern stays modelled.
+
+**"How do you know an attacker cannot steer it?"**
+53 attack cases, tagged against the OWASP Top 10 for Agentic Applications 2026 (all ten categories): injections in English, Arabic and mixed text, and requests the service must refuse (out-of-bounds measures, a forged run id, oversized input). None succeeds. Honest limit: the text cases only become a real test once a language model writes the plan.
+
+**"Can someone in a wheelchair use it?"**
+The round button at the bottom left moves every control into the lower half of the screen. Larger text and high contrast are next to it after that. Dialogs close with the Escape key.

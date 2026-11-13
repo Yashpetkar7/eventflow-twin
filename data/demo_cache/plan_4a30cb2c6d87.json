@@ -1,0 +1,172 @@
+{
+ "plan_id": "plan_4a30cb2c6d87",
+ "forecast_run_id": "fc_e0b7d55a2d7e",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.0,
+  "excess_pax": 0.0,
+  "peak_lf": 0.733,
+  "max_wait_min": 0.0,
+  "delay_pax_min": 0.0,
+  "cost_proxy": 0.0,
+  "total_demand": 105196.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2518.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "baseline_road": {
+  "peak_veh_per_hour": 1622.1,
+  "peak_hour": 18,
+  "pressure": 0.135,
+  "vehicles_total": 4909.1,
+  "reference_capacity": 12000.0,
+  "hourly": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   1.0,
+   53.6,
+   562.7,
+   1219.9,
+   562.7,
+   53.6,
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   8.6,
+   605.6,
+   1622.1,
+   217.3,
+   0.9,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "is_assumption": true
+ },
+ "options": [],
+ "verify": {
+  "numbers_checked": 0,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "Read the goal",
+   "detail": "Keep every station under 85% · priority: lower cost",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "Forecast demand",
+   "detail": "Run fc_e0b7d55a2d7e",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "Find hotspots",
+   "detail": "No station over 85%",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "Propose plans",
+   "detail": "0 candidate plans from the fixed menu",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "Simulate each plan",
+   "detail": "1 simulator runs",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "Rank by impact and cost",
+   "detail": "Top 0 by riders relieved − λ × cost",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "Explain in plain words",
+   "detail": "Template text, numbers copied from the simulator",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "Check every number",
+   "detail": "0 figures checked, all match",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": null,
+ "critic": {
+  "rounds": 1,
+  "replanned": false,
+  "simulations": 1,
+  "goal_met_ranks": [],
+  "top_meets_goal": false,
+  "checked_by": "code",
+  "residual": null
+ },
+ "trace": [
+  {
+   "n": 1,
+   "round": 1,
+   "role": "planner",
+   "tool": "forecast",
+   "run_id": "fc_e0b7d55a2d7e",
+   "ms": 0.0,
+   "data": {
+    "event": "dfw2026_d1"
+   }
+  },
+  {
+   "n": 2,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_4564c5d38ccd",
+   "ms": 9.2,
+   "data": {
+    "label": "baseline",
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.733
+   }
+  },
+  {
+   "n": 3,
+   "round": 1,
+   "role": "planner",
+   "tool": "diagnose",
+   "run_id": "sim_4564c5d38ccd",
+   "ms": 0.0,
+   "data": {
+    "station": null,
+    "hours": [],
+    "peak_lf": null
+   }
+  },
+  {
+   "n": 4,
+   "round": 1,
+   "role": "critic",
+   "tool": "check_goal",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "verdict": "no_action"
+   }
+  }
+ ],
+ "cached": false
+}
