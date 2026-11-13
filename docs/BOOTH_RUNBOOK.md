@@ -120,5 +120,10 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
     workspace on the realism scene 99.9–134 fps median over 8 camera / time cases
     (lowest second 93.8); kiosk attract screen 71.9 median, 58.8 lowest, tier 0.
   - **Not measured:** mains power; the booth's touch monitor; Chrome's real `--kiosk` full screen started by hand; a soak.
+  - **These runs are on `19bb596`.** `main` has since gained the realism passes of 13 Nov (decisions #114 and #115:
+    rooms behind windows, cloud shadows, figures at stations, landmark models with 5 times the triangles). The mains
+    run must be on the current `main`; expect the kiosk to step down to tier 1 a little more often than in the table above.
+  - The two scripts now label the power source correctly on a Windows laptop that is plugged in and charging (review of
+    PR #16: a charging status used to be written down as battery).
 - The real touch monitor (touch mapping, pinch zoom) and its native resolution.
 - A full exhibition day on battery/mains with the lid angle and brightness you will use.

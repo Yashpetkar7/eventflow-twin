@@ -18,7 +18,12 @@ const TIMES = [[10, "1000"], [21.5, "2130"]], CAMS = ["overview", "close", "top"
 const power = () => {              // "AC Power" / "Battery Power": a throttled battery run must never pass as a mains run
   try {
     if (process.platform === "darwin") return execSync("pmset -g batt").toString().match(/'(.+?)'/)?.[1] ?? "unknown";
-    if (process.platform === "win32") return execSync('powershell -NoProfile -Command "(Get-CimInstance Win32_Battery).BatteryStatus"').toString().trim() === "2" ? "AC Power" : "Battery Power";
+    if (process.platform === "win32") {
+      // Win32_Battery.BatteryStatus: 1 discharging, 4 low, 5 critical = running on the battery; 2 and 6–9 (charging) and 11 = on mains.
+      // A status of 6–9 used to be written down as "Battery Power", so a mains run on a charging laptop would have been mislabelled.
+      const s = execSync('powershell -NoProfile -Command "(Get-CimInstance Win32_Battery).BatteryStatus"').toString().trim().split(/\s+/)[0];
+      return s === "" ? "AC Power (no battery)" : ["1", "4", "5"].includes(s) ? "Battery Power" : "AC Power";
+    }
   } catch { /* fall through */ }
   return "unknown";
 };
