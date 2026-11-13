@@ -59,6 +59,12 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
   kiosk, 60 s: `node apps/web/tests/backup_video_kiosk.mjs <url>`) and `eventflow_backup_demo.mp4` (the workspace's
   guided demo: `node apps/web/tests/backup_video.mjs <url>`).
 
+**New on 13 Nov (later build, decisions #109–#113):**
+- **Bottom-left round button = reach mode.** It moves the card and the language / text / contrast / start-again buttons into the lower half of the screen. Offer it to seated visitors. "Start again" resets it.
+- **Stress test** now also shows the extra cars near the venue (under "How many come by metro?") and has **Everyday demand: Model / Real station totals**.
+- **"How did the AI decide?"** now ends with the critic's verdict and **Show all tool calls**. For a juror: downtown night → stress test → crowd to about 50,000 → ask the AI → the plans say "Found by replanning", and the tool calls show round 1 failing and round 2 clearing every station.
+- Plans that clear every station carry a green **Clears every station** badge.
+
 ## What visitors can do without help
 Pick an event · drag the time bar · tap a station or a landmark · **Plan with AI agents** → Approve / Reject · **My plan** ·
 language switch. After 60 s without a touch the guided demo plays by itself; any touch hands control back.

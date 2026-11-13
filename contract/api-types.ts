@@ -251,6 +251,13 @@ export interface components {
             hotspot?: {
                 [key: string]: unknown;
             } | null;
+            critic?: components["schemas"]["CriticReport"] | null;
+            /**
+             * Trace
+             * @description Every tool call behind this plan, in order
+             */
+            trace?: components["schemas"]["TraceEvent"][];
+            baseline_road?: components["schemas"]["RoadPressure"] | null;
             /**
              * Cached
              * @default false
@@ -326,6 +333,43 @@ export interface components {
             /** Note */
             note: string;
             source: components["schemas"]["Source"];
+        };
+        /** CriticReport */
+        CriticReport: {
+            /**
+             * Rounds
+             * @default 1
+             */
+            rounds: number;
+            /**
+             * Replanned
+             * @default false
+             */
+            replanned: boolean;
+            /**
+             * Simulations
+             * @default 0
+             */
+            simulations: number;
+            /** Goal Met Ranks */
+            goal_met_ranks?: number[];
+            /**
+             * Top Meets Goal
+             * @default false
+             */
+            top_meets_goal: boolean;
+            /**
+             * Checked By
+             * @default code
+             */
+            checked_by: string;
+            /**
+             * Residual
+             * @description What the most effective offered plan still leaves, when none meets the goal
+             */
+            residual?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * CustomEvent
@@ -559,6 +603,13 @@ export interface components {
              * @description What-if share of event trips made by metro; overrides the weather what-if's share (assumption)
              */
             metro_share?: number | null;
+            /**
+             * Demand Level
+             * @description 'real_totals' scales each corridor station's background demand to its real weekday total (config/calibration.yaml); the hourly shape stays synthetic
+             * @default synthetic
+             * @enum {string}
+             */
+            demand_level: "synthetic" | "real_totals";
             /** @description Build-your-own scenario; overrides event_id */
             custom_event?: components["schemas"]["CustomEvent"] | null;
         };
@@ -590,6 +641,19 @@ export interface components {
              * @enum {string}
              */
             weather: "normal" | "hot" | "rain";
+            /**
+             * Demand Level
+             * @default synthetic
+             * @enum {string}
+             */
+            demand_level: "synthetic" | "real_totals";
+            /**
+             * Calibration
+             * @description Station ratios applied when demand_level = real_totals, with their source file
+             */
+            calibration?: {
+                [key: string]: unknown;
+            } | null;
             /** @description The event behind this run (resolved custom event included) */
             event?: components["schemas"]["Event"] | null;
             /** Band Note */
@@ -688,6 +752,19 @@ export interface components {
              * @default 0
              */
             figures: number;
+            /**
+             * Goal Met
+             * @description Critic: no station over the threshold and none newly pushed over it
+             * @default false
+             */
+            goal_met: boolean;
+            /**
+             * Round
+             * @description Planning round that produced this option (2+ = found by replanning)
+             * @default 1
+             */
+            round: number;
+            road?: components["schemas"]["RoadPressure"] | null;
         };
         /** RedirectParams */
         RedirectParams: {
@@ -699,6 +776,38 @@ export interface components {
             share: number;
             /** Hours */
             hours?: number[];
+        };
+        /**
+         * RoadPressure
+         * @description Road-pressure proxy (config/road.yaml): extra vehicles the event puts on nearby roads. An assumption model.
+         */
+        RoadPressure: {
+            /**
+             * Peak Veh Per Hour
+             * @description Extra vehicles in the busiest hour
+             */
+            peak_veh_per_hour: number;
+            /** Peak Hour */
+            peak_hour: number;
+            /**
+             * Pressure
+             * @description Busiest hour as a share of the reference road capacity
+             */
+            pressure: number;
+            /** Vehicles Total */
+            vehicles_total: number;
+            /**
+             * Reference Capacity
+             * @description Vehicles/hour of the yardstick: one direction of Sheikh Zayed Road
+             */
+            reference_capacity: number;
+            /** Hourly */
+            hourly: number[];
+            /**
+             * Is Assumption
+             * @default true
+             */
+            is_assumption: boolean;
         };
         /** RobotaxiParams */
         RobotaxiParams: {
@@ -864,6 +973,9 @@ export interface components {
             rows: components["schemas"]["SimRow"][];
             /** Hourly */
             hourly: components["schemas"]["SimHourRow"][];
+            /** @description Road-pressure proxy with these interventions (null without an event) */
+            road?: components["schemas"]["RoadPressure"] | null;
+            baseline_road?: components["schemas"]["RoadPressure"] | null;
             source: components["schemas"]["Source"];
         };
         /**
@@ -957,6 +1069,34 @@ export interface components {
              */
             type: "station_metering";
             params: components["schemas"]["MeteringParams"];
+        };
+        /**
+         * TraceEvent
+         * @description One tool call of the planner, in order. Figures in `data` are the simulator's (run_id says which run).
+         */
+        TraceEvent: {
+            /** N */
+            n: number;
+            /** Round */
+            round: number;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "planner" | "proposer" | "simulator" | "critic" | "explainer" | "verifier";
+            /** Tool */
+            tool: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Ms
+             * @default 0
+             */
+            ms: number;
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            };
         };
         /** ValidationError */
         ValidationError: {

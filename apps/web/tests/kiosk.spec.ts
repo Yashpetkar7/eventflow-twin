@@ -325,3 +325,104 @@ test("kiosk: your own event, high contrast, and the team's booth statistics", as
   await expect(stats).toContainText("Touched the screen");
   await expect(stats).toContainText("Built an own event");
 });
+
+// Score-up build (decisions #109–#112): the critic and its replanning loop, the tool-call trace, the road-pressure
+// proxy, real station totals, and reach mode.
+type S2 = Window & { __twin: { getState: () => { loading: boolean; forecast: { metro_share_used: number; demand_level?: string; attendance_used: number } | null;
+  cur: { resp: { summary: { peak_lf: number }; road: { peak_veh_per_hour: number } | null } } | null;
+  plan: { critic: { rounds: number; replanned: boolean; goal_met_ranks: number[]; simulations: number } | null; trace: { tool: string; role: string }[]; options: { goal_met: boolean; round: number }[] } | null } } };
+const twin2 = <T,>(page: Page, fn: (s: ReturnType<S2["__twin"]["getState"]>) => T) => page.evaluate(`(${fn.toString()})(window.__twin.getState())`) as Promise<T>;
+
+test("kiosk: the critic's verdict and every tool call; a doubled crowd makes the planner replan until a plan clears every station", async ({ page }) => {
+  await openKiosk(page, "&idle=600");
+  await page.getByTestId("kiosk-start").click();
+  await page.getByTestId("kiosk-planner").click();
+  await page.locator(".kevent:not(.kown)").last().click();                                 // Downtown celebration night
+  await page.waitForFunction(() => (window as unknown as S).__twin.getState().forecast?.event?.id === "downtown_night");
+  await settled(page);
+  await page.getByRole("button", { name: /See the crowd/ }).click();
+  await page.locator(".kquiz button").first().click();
+  await expect(page.locator(".kverdict")).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId("kiosk-lab").click();
+  await page.getByTestId("kiosk-crowd").evaluate((el: HTMLInputElement) => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!; set.call(el, "50000"); el.dispatchEvent(new Event("input", { bubbles: true })); });
+  await page.waitForFunction(() => (window as unknown as S).__twin.getState().forecast?.attendance_used === 50000);
+  await settled(page);
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: /Ask the AI for a plan/ }).click();
+  await page.getByRole("button", { name: /Not sure/ }).click();
+  await expect(page.locator(".kopt")).toHaveCount(3, { timeout: 30_000 });
+  const c = await twin2(page, (s) => s.plan!.critic!);
+  expect(c.replanned).toBe(true);                                                          // no single menu bundle clears twice the crowd
+  expect(c.rounds).toBeGreaterThanOrEqual(2);
+  expect(c.goal_met_ranks).toContain(1);
+  await expect(page.locator(".kopt").first().getByTestId("kiosk-goal")).toHaveText("Clears every station");
+  await expect(page.locator(".kopt").first()).toContainText("Found by replanning");
+  await expect(page.locator(".kopt").first().locator(".kdelta")).toContainText("→ 0");     // riders over the line after the plan
+  await shot(page, "17_replanned_options");
+
+  await page.getByTestId("kiosk-how").click();
+  const dialog = page.getByRole("dialog");
+  await expect(page.getByTestId("kiosk-critic")).toContainText("Critic: a plan on offer clears every station.");
+  await expect(page.getByTestId("kiosk-critic")).toContainText(`${c.rounds} planning rounds · ${c.simulations} simulations`);
+  await page.getByTestId("kiosk-calls-btn").click();
+  const calls = page.getByTestId("kiosk-calls");
+  const n = await twin2(page, (s) => s.plan!.trace.length);
+  await expect(calls.locator("li:not(.rd)")).toHaveCount(n);                                // every tool call of the API answer, none added
+  await expect(calls.locator("li.rd")).toHaveCount(c.rounds);
+  await expect(calls).toContainText("No plan meets the goal yet");
+  await expect(calls).toContainText("Replanning:");
+  await expect(calls).toContainText("tested plans meet the goal");
+  await expect(calls.locator("li.critic").first()).toContainText("Critic");
+  await shot(page, "18_tool_calls");
+  await page.keyboard.press("Escape");                                                     // the dialog closes from the keyboard too
+  await expect(dialog).toHaveCount(0);
+});
+
+test("kiosk: stress test shows the cars-versus-metro trade-off and the real station totals; reach mode puts every control in the lower half", async ({ page }) => {
+  await openKiosk(page, "&idle=600");
+  await toReveal(page, "Normal");
+  await page.getByTestId("kiosk-lab").click();
+  const road = page.getByTestId("kiosk-road");
+  await expect(road).toContainText("Extra cars near the venue");
+  await expect(road).toContainText("assumption");
+  await page.getByTestId("kiosk-metro").getByRole("button", { name: "35%" }).click();
+  await page.waitForFunction(() => Math.abs(((window as unknown as S).__twin.getState().forecast?.metro_share_used ?? 0) - 0.35) < 1e-6);
+  await settled(page);
+  const low = await twin2(page, (s) => ({ cars: s.cur!.resp.road!.peak_veh_per_hour, lf: s.cur!.resp.summary.peak_lf }));
+  await page.getByTestId("kiosk-metro").getByRole("button", { name: "65%" }).click();
+  await page.waitForFunction(() => Math.abs(((window as unknown as S).__twin.getState().forecast?.metro_share_used ?? 0) - 0.65) < 1e-6);
+  await settled(page);
+  const high = await twin2(page, (s) => ({ cars: s.cur!.resp.road!.peak_veh_per_hour, lf: s.cur!.resp.summary.peak_lf }));
+  expect(high.cars).toBeLessThan(low.cars);                                                // more by metro: fewer cars …
+  expect(high.lf).toBeGreaterThan(low.lf);                                                 // … and fuller platforms
+  await expect(road).toContainText(Math.round(high.cars).toLocaleString("en-US"));         // the figure on screen is the API's
+
+  // real station totals: same event, everyday demand scaled to the measured weekday entries
+  await expect(page.getByTestId("kiosk-level")).toHaveAttribute("aria-pressed", "false");
+  await page.getByTestId("kiosk-level").click();
+  await page.waitForFunction(() => (window as unknown as S2).__twin.getState().forecast?.demand_level === "real_totals");
+  await settled(page);
+  expect(await twin2(page, (s) => s.cur!.resp.summary.peak_lf)).toBeGreaterThan(high.lf);
+  await expect(page.getByTestId("kiosk-level")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("kiosk-level-hint")).toContainText("measured weekday entries");
+  await shot(page, "19_stress_road_real_totals");
+
+  // reach mode: the button itself sits low; after it, the card and the tools are in the lower half
+  const vh = 1080;
+  const reach = page.getByTestId("kiosk-reach");
+  expect((await reach.boundingBox())!.y).toBeGreaterThan(vh * 0.8);
+  await reach.click();
+  await expect(reach).toHaveAttribute("aria-pressed", "true");
+  await page.waitForTimeout(300);
+  expect((await page.locator(".kcard").boundingBox())!.y).toBeGreaterThanOrEqual(vh * 0.42);
+  for (const b of await page.locator(".ktools button:visible").all()) expect((await b.boundingBox())!.y).toBeGreaterThan(vh * 0.5);
+  for (const b of await page.locator(".kcard button:visible").all()) {
+    await b.scrollIntoViewIfNeeded();
+    const box = (await b.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(vh * 0.42);
+    expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(47.5);
+  }
+  await shot(page, "20_reach_mode");
+  await reach.click();
+  expect((await page.locator(".kcard").boundingBox())!.y).toBeLessThan(vh * 0.2);
+});

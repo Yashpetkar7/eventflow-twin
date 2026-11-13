@@ -1,6 +1,10 @@
 """Planner pipeline behind POST /agent/plan (docs/06).
 
-    intake → forecast → diagnose → propose → simulate ×N → rank → explain → verify_numbers
+    intake → forecast → diagnose → propose → simulate ×N → critic ⟲ replan (≤ 2 more rounds) → rank → explain → verify_numbers
+
+The critic is code: after each round it checks whether any tested plan meets the goal (no station over the
+threshold, none newly pushed over it). If none does, the planner replans — stronger settings and combinations
+aimed at what is still over the threshold — and tests those. Every tool call is recorded in `trace`.
 
 Every number comes from the deterministic simulator (CLAUDE.md rule 2). This module is the offline planner:
 `propose` picks bundles from the fixed intervention menu around the diagnosed hotspot and `explain` fills a
@@ -16,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Callable
 
@@ -28,7 +33,7 @@ CACHE = ROOT / "data/demo_cache"                    # shipped with the build (re
 # new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
 CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
-PLANNER_REV = 3
+PLANNER_REV = 4
 DEFAULT_GOAL = "Keep every station under 85% load during the exit surge"   # schemas.AgentPlanRequest.goal default
 LLM_FACTORY = llm_mod.get_llm                    # swapped for a fake model in tests            # bump when the ranking changes, so stale offline-cache entries are not replayed
 
@@ -344,6 +349,104 @@ def _texts_ok(texts: dict, allowed: set[str]) -> tuple[int, bool]:
     return n, ok
 
 
+# ---------- replanning (the critic's loop) ----------
+MAX_ROUNDS = 3                 # round 1 plus at most two replans
+MAX_SIMS_PER_ROUND = 16        # bounds the work of one request (public demo)
+MAX_BUNDLE = 5                 # interventions in one combined bundle
+TYPE_NAME = {
+    "en": {"extra_trains": "extra trains", "wayfinding_redirect": "wayfinding", "shuttle_bus": "feeder shuttles",
+           "robotaxi_staging": "robotaxi staging", "staggered_exit": "staggered exit", "station_metering": "entry metering",
+           "extended_hours": "extended hours", "join": " + ", "strong": "{names}, strongest setting"},
+    "ar": {"extra_trains": "قطارات إضافية", "wayfinding_redirect": "توجيه المشاة", "shuttle_bus": "حافلات مغذية",
+           "robotaxi_staging": "سيارات أجرة ذاتية القيادة", "staggered_exit": "خروج متدرج", "station_metering": "تنظيم الدخول",
+           "extended_hours": "تمديد ساعات التشغيل", "join": " + ", "strong": "{names}، بأقصى إعداد"},
+}
+
+
+def bundle_title(ivs: list[dict], locale: str, strong: bool = False) -> str:
+    """A title that names what is in a replanned bundle (no digits), e.g. "Extra trains + wayfinding"."""
+    N, names = TYPE_NAME[locale], []
+    for iv in ivs:
+        if N[iv["type"]] not in names:
+            names.append(N[iv["type"]])
+    text = N["join"].join(names)
+    text = text[0].upper() + text[1:] if locale == "en" else text
+    return N["strong"].format(names=text) if strong else text
+
+
+def _sig(ivs: list[dict]) -> str:
+    return json.dumps(sorted(json.dumps(i, sort_keys=True) for i in ivs))
+
+
+def _slot(iv: dict) -> tuple:
+    p = iv["params"]
+    return (iv["type"], p.get("from_station") or p.get("station"), p.get("to_station"), p.get("line"))
+
+
+def intensify(ivs: list[dict]) -> list[dict]:
+    """The same bundle with every setting moved to its bound in corridor.yaml: the strongest version allowed."""
+    cfg = corridor()
+    b, cap = cfg["interventions"]["bounds"], cfg["capacity"]
+    out = []
+    for iv in ivs:
+        p, t = dict(iv["params"]), iv["type"]
+        if t == "extra_trains":
+            p["headway_min"] = min(p["headway_min"], float(cap["min_headway_min"]))
+        elif t == "wayfinding_redirect":
+            p["share"] = max(p["share"], float(b["max_redirect_share"]))
+        elif t == "shuttle_bus":
+            p["buses"] = min(int(b["max_buses"]), p["buses"] * 2)
+        elif t == "robotaxi_staging":
+            p["vehicles"] = min(int(b["max_robotaxi_vehicles"]), p["vehicles"] * 2)
+        elif t == "staggered_exit":
+            p["spread_minutes"] = max(p["spread_minutes"], int(b["stagger_minutes"][1]))
+        out.append({"type": t, "params": p})
+    return out
+
+
+def combine(a: list[dict], b: list[dict]) -> list[dict]:
+    """Two bundles as one. Measures aimed at the same place are merged into the stronger one, never stacked,
+    so a combined bundle stays inside the bounds a single measure has (e.g. the maximum redirect share)."""
+    out = [{"type": i["type"], "params": dict(i["params"])} for i in a]
+    for iv in b:
+        same = next((o for o in out if _slot(o) == _slot(iv)), None)
+        if same is None:
+            out.append({"type": iv["type"], "params": dict(iv["params"])})
+            continue
+        p, q = same["params"], iv["params"]
+        if "hours" in p and "hours" in q:
+            p["hours"] = sorted(set(p["hours"]) | set(q["hours"]))
+        for k, pick in (("share", max), ("buses", max), ("vehicles", max), ("spread_minutes", max), ("headway_min", min),
+                        ("max_load", min)):
+            if k in p and k in q:
+                p[k] = pick(p[k], q[k])
+    return out
+
+
+def goal_met(o: dict) -> bool:
+    """The planner's goal: no station over the threshold, and no station newly pushed over it."""
+    return o["res"]["summary"]["overcap_station_hours"] == 0 and not o["new_hot"] and not o["demote"]
+
+
+def _llm_bundles(llm, hot: dict, scope_ids: set[str], cands: list[dict], base_summary: dict, priority: str, goal: str,
+                 notes: str | None, has_event: bool, seen: set[str], feedback: dict | None = None) -> tuple[list[dict], int]:
+    """Bundles suggested by the model that are inside the menu and its bounds, and not already tested."""
+    ans = llm.complete_json(system=llm_mod.PROPOSER_SYSTEM, schema=llm_mod.PROPOSER_SCHEMA, effort="medium", max_tokens=16000,
+                            user=llm_mod.proposer_prompt(hot, scope_ids, cands, base_summary, priority, goal, notes, has_event,
+                                                         feedback=feedback))
+    out, dropped = [], 0
+    for b in ans.get("bundles", [])[:5]:
+        try:
+            ivs = [iv.model_dump() for iv in validate_interventions([llm_mod.to_intervention(x) for x in b["interventions"][:3]])]
+        except (InterventionError, ValueError, KeyError, TypeError):
+            dropped += 1                               # outside the menu or the bounds: never simulated
+            continue
+        if ivs and _sig(ivs) not in seen:
+            seen.add(_sig(ivs))
+            out.append({"key": "llm", "ivs": ivs, "ctx": {}, "label": str(b.get("label", ""))[:80]})
+    return out, dropped
+
+
 def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     locale, thr_req = req.locale, req.threshold
     applied = [i.model_dump() if hasattr(i, "model_dump") else i for i in req.applied]
@@ -369,65 +472,167 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
     llm_note: dict[str, str] = {}
     texts_for: list[dict] = []
     template_used: list[int] = []
+
+    # Every tool call of this request, in order: what the planner did, with the run id that produced each number.
+    trace: list[dict] = []
+
+    def log(role: str, tool: str, rnd: int, t0: float, run_id: str | None = None, **data) -> None:
+        trace.append({"n": len(trace) + 1, "round": rnd, "role": role, "tool": tool, "run_id": run_id,
+                      "ms": round((time.perf_counter() - t0) * 1000, 1), "data": data})
+
     sim = lambda ivs: run_simulation(run["run_id"], ivs, False, thr_req, req.scope)               # noqa: E731
+    log("planner", "forecast", 1, time.perf_counter(), run["run_id"], event=(run.get("event") or {}).get("id"))
+    t0 = time.perf_counter()
     base = sim(applied)
+    log("simulator", "simulate", 1, t0, base["run_id"], label="baseline", over=base["summary"]["overcap_station_hours"],
+        excess=base["summary"]["excess_pax"], peak_lf=base["summary"]["peak_lf"])
     thr = base["summary"]["threshold"]
     thr_pct = f_pct(thr)
     scope_ids = {r["station_id"] for r in base["hourly"]}
+    t0 = time.perf_counter()
     hot = diagnose(base)
+    log("planner", "diagnose", 1, t0, base["run_id"], station=hot["station"] if hot else None,
+        hours=hot["hours"] if hot else [], peak_lf=hot["peak_lf"] if hot else None)
     lam = corridor()["interventions"].get("priority_lambda", {}).get(req.priority, corridor()["interventions"]["ranking_lambda"])
     details = {"intake": T["detail"]["intake"].format(thr=thr_pct, prio=T["prio"][req.priority]),
                "forecast": T["detail"]["forecast"].format(run=run["run_id"])}
 
-    options, n_cand, checked, all_ok = [], 0, 0, True
+    options, n_cand, n_sims, checked, all_ok, rounds, pool = [], 0, 1, 0, True, 1, []
     if hot is None:
         details["diagnose"] = T["detail"]["diagnose_none"].format(thr=thr_pct)
+        log("critic", "check_goal", 1, time.perf_counter(), verdict="no_action")
     else:
         details["diagnose"] = T["detail"]["diagnose"].format(worst=_name(hot["station"], locale), hours=_hours_text(hot["hours"]))
-        cands = propose(hot, bool(run.get("event")), any(i["type"] == "staggered_exit" for i in applied), scope_ids, thr)
+        has_event = bool(run.get("event"))
+        has_stag = lambda ivs: any(i["type"] == "staggered_exit" for i in ivs)                    # noqa: E731
+        t0 = time.perf_counter()
+        cands = propose(hot, has_event, has_stag(applied), scope_ids, thr)
+        seen = {_sig(c["ivs"]) for c in cands}
+        log("proposer", "propose", 1, t0, source="menu", candidates=len(cands))
+        llm_added = llm_dropped = 0
         if llm is not None:                        # the LLM may add bundles; code validates, simulates and ranks them
+            t0 = time.perf_counter()
             try:
-                ans = llm.complete_json(system=llm_mod.PROPOSER_SYSTEM, schema=llm_mod.PROPOSER_SCHEMA, effort="medium",
-                                        max_tokens=16000, user=llm_mod.proposer_prompt(
-                                            hot, scope_ids, cands, base["summary"], req.priority, goal, notes, bool(run.get("event"))))
-                seen = {json.dumps(sorted(json.dumps(i, sort_keys=True) for i in c["ivs"])) for c in cands}
-                added = dropped = 0
-                for b in ans.get("bundles", [])[:5]:
-                    try:
-                        ivs = [iv.model_dump() for iv in validate_interventions([llm_mod.to_intervention(x) for x in b["interventions"][:3]])]
-                    except (InterventionError, ValueError, KeyError, TypeError):
-                        dropped += 1               # outside the menu or the bounds: never simulated
-                        continue
-                    sig = json.dumps(sorted(json.dumps(i, sort_keys=True) for i in ivs))
-                    if ivs and sig not in seen:
-                        seen.add(sig)
-                        cands.append({"key": "llm", "ivs": ivs, "ctx": {}, "label": str(b.get("label", ""))[:80]})
-                        added += 1
+                more, llm_dropped = _llm_bundles(llm, hot, scope_ids, cands, base["summary"], req.priority, goal, notes,
+                                                 has_event, seen)
+                cands += more
+                llm_added = len(more)
                 llm_used.append("propose")
-                llm_note["propose"] = T["detail"]["llm_propose"].format(llm=llm_name, n=added, d=dropped)
+                log("proposer", "propose", 1, t0, source=llm_name, candidates=llm_added, dropped=llm_dropped)
             except llm_mod.LLMUnavailable as e:
                 llm_note["propose"] = T["detail"]["llm_off"].format(llm=llm_name, why=str(e)[:80])
-        n_cand = len(cands)
+                log("proposer", "propose", 1, t0, source=llm_name, candidates=0, error=str(e)[:80])
         base_over, b_fig = over_sets(base), summary_figures(base["summary"])
-        scored = []
-        for c in cands:
-            res = sim(merge(applied, c["ivs"]))
+
+        def score_one(c: dict, rnd: int) -> dict | None:
+            nonlocal n_sims
+            t0 = time.perf_counter()
+            try:
+                res = sim(merge(applied, c["ivs"]))
+            except InterventionError:
+                return None                        # a combination the menu does not allow: never shown
+            n_sims += 1
             relieved = base["summary"]["excess_pax"] - res["summary"]["excess_pax"]
             cost_added = round(res["summary"]["cost_proxy"] - base["summary"]["cost_proxy"], 2)
-            if relieved <= 0:
-                continue                           # an option that relieves nobody is not a recommendation
             new_hot = sorted(s for s in over_sets(res) if s not in base_over)
+            log("simulator", "simulate", rnd, t0, res["run_id"], label=c["key"], types=[i["type"] for i in c["ivs"]],
+                over=res["summary"]["overcap_station_hours"], excess=res["summary"]["excess_pax"],
+                peak_lf=res["summary"]["peak_lf"], cost_added=cost_added, new_hotspots=new_hot)
+            if relieved <= 0:
+                return None                        # an option that relieves nobody is not a recommendation
             worse = res["summary"]["overcap_station_hours"] > base["summary"]["overcap_station_hours"]
-            scored.append({**c, "res": res, "score": round(relieved - lam * cost_added, 1), "cost_added": cost_added,
-                           "new_hot": new_hot, "demote": worse})
-        # Options that add over-threshold station-hours go last (docs/09 #27): a plan must not trade one hotspot for a bigger one.
+            return {**c, "res": res, "score": round(relieved - lam * cost_added, 1), "cost_added": cost_added,
+                    "new_hot": new_hot, "demote": worse, "round": rnd}
+
+        def check(rnd: int) -> bool:
+            """The critic: does any plan tested so far meet the goal? If not, what is left, and where?"""
+            t0 = time.perf_counter()
+            meeting = [o for o in pool if goal_met(o)]
+            data: dict = {"verdict": "goal_met" if meeting else ("residual" if pool else "no_relief"),
+                          "meeting": len(meeting), "tested": len(pool)}
+            if pool and not meeting:
+                best = min(pool, key=effect)
+                left = diagnose(best["res"])
+                data.update(best=best["key"], excess=best["res"]["summary"]["excess_pax"],
+                            over=best["res"]["summary"]["overcap_station_hours"], station=left["station"] if left else None)
+            log("critic", "check_goal", rnd, t0, **data)
+            return bool(meeting)
+
+        effect = lambda o: (o["demote"], bool(o["new_hot"]), o["res"]["summary"]["excess_pax"], o["cost_added"])   # noqa: E731
+        pool = [s for s in (score_one(c, 1) for c in cands) if s]
+        n_cand = len(cands)
+        # Replan: when no tested plan meets the goal, take the most effective ones, look at what is still over the
+        # threshold, and test stronger settings and combinations against it. Bounded: MAX_ROUNDS, MAX_SIMS_PER_ROUND.
+        while not check(rounds) and pool and rounds < MAX_ROUNDS:
+            rounds += 1
+            t0 = time.perf_counter()
+            seeds = sorted(pool, key=effect)[:2]
+            variants: list[dict] = []
+            for seed in seeds:
+                strong = intensify(seed["ivs"])
+                if _sig(strong) not in seen:
+                    seen.add(_sig(strong))
+                    variants.append({"key": "strong", "ivs": strong, "ctx": {}})
+                left = diagnose(seed["res"])
+                if left is None:
+                    continue
+                for c2 in propose(left, has_event, has_stag(applied) or has_stag(seed["ivs"]), scope_ids, thr):
+                    both = combine(seed["ivs"], c2["ivs"])
+                    if len(both) <= MAX_BUNDLE and _sig(both) not in seen:
+                        seen.add(_sig(both))
+                        variants.append({"key": "combo", "ivs": both, "ctx": {}})
+            log("planner", "replan", rounds, t0, seeds=[s["key"] for s in seeds], candidates=len(variants))
+            if llm is not None and seeds:
+                t0 = time.perf_counter()
+                left = diagnose(seeds[0]["res"]) or hot
+                try:
+                    more, d2 = _llm_bundles(llm, left, scope_ids, variants, base["summary"], req.priority, goal, notes, has_event, seen,
+                                            feedback={"round": rounds, "best_bundle_so_far": seeds[0]["ivs"],
+                                                      "riders_still_over_threshold": seeds[0]["res"]["summary"]["excess_pax"],
+                                                      "station_still_over": left["station"], "hours": left["hours"]})
+                    variants += more
+                    llm_added, llm_dropped = llm_added + len(more), llm_dropped + d2
+                    if "propose" not in llm_used:
+                        llm_used.append("propose")
+                    log("proposer", "propose", rounds, t0, source=llm_name, candidates=len(more), dropped=d2)
+                except llm_mod.LLMUnavailable as e:
+                    log("proposer", "propose", rounds, t0, source=llm_name, candidates=0, error=str(e)[:80])
+            variants = variants[:MAX_SIMS_PER_ROUND]
+            if not variants:
+                break
+            n_cand += len(variants)
+            pool += [s for s in (score_one(c, rounds) for c in variants) if s]
+        if "propose" in llm_used:
+            llm_note["propose"] = T["detail"]["llm_propose"].format(llm=llm_name, n=llm_added, d=llm_dropped)
         # Rank: options that add over-threshold station-hours last (docs/09 #27), then options that push another station
-        # over the threshold (moving the hotspot is not solving it — eval/suites/agents.py top_no_new_hotspot), then
-        # riders relieved − λ·cost.
-        scored.sort(key=lambda o: (o["demote"], bool(o["new_hot"]), -o["score"], o["res"]["summary"]["overcap_station_hours"]))
-        for rank, o in enumerate(scored[:3], 1):
-            if o["key"] == "llm":
-                title = GENERIC[locale]["title"]
+        # over the threshold (moving the hotspot is not solving it — eval/suites/agents.py top_no_new_hotspot); after a
+        # replan, plans that meet the goal come before plans that do not; then riders relieved − λ·cost.
+        replanned = rounds > 1
+        t0 = time.perf_counter()
+        pool.sort(key=lambda o: (o["demote"], bool(o["new_hot"]), replanned and not goal_met(o), -o["score"],
+                                 o["res"]["summary"]["overcap_station_hours"]))
+        top = pool[:3]
+        if replanned:                              # replanning tests many near-identical bundles: offer three different kinds
+            kinds: set[tuple] = set()
+            top = []
+            for o in pool:
+                kind = tuple(sorted({i["type"] for i in o["ivs"]}))
+                if kind not in kinds:
+                    kinds.add(kind)
+                    top.append(o)
+                if len(top) == 3:
+                    break
+            top += [o for o in pool if o not in top][:3 - len(top)]
+        if top and not any(goal_met(o) for o in top):
+            # The critic found a plan that meets the goal, but its cost keeps it out of the top three: offer it third,
+            # so the planner always sees the plan that clears the goal next to the cheaper ones.
+            clears = next((o for o in pool if goal_met(o)), None)
+            if clears is not None:
+                top = [*top[:2], clears]
+        log("planner", "rank", rounds, t0, kept=len(top), tested=len(pool), order=[o["key"] for o in top])
+        for rank, o in enumerate(top, 1):
+            if o["key"] in ("llm", "combo", "strong"):
+                title = GENERIC[locale]["title"] if o["key"] == "llm" else bundle_title(o["ivs"], locale, o["key"] == "strong")
                 what, risk = describe(o["ivs"], locale)
             else:
                 title, what_t, risk = T[o["key"]]
@@ -454,7 +659,9 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
                                       for k in o["res"]["summary"] if k not in ("bins_per_hour", "threshold")},
                             "score": o["score"], "rationale": rationale, "what": what, "risk": risk,
                             "cost_added": o["cost_added"], "new_hotspots": o["new_hot"], "figures": 7,
+                            "goal_met": goal_met(o), "round": o["round"], "road": o["res"].get("road"),
                             "sources": [o["res"]["source"], {"tool": "forecast", "run_id": run["run_id"]}]})
+    t0 = time.perf_counter()
     if llm is not None and options:                # the LLM rewrites the texts; each must pass the number check
         try:
             items = [{"rank": o["rank"], "ACTIONS": o["interventions"], "FIGURES": t_["figures"],
@@ -482,14 +689,26 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
             llm_note["explain"] = T["detail"]["llm_explain"].format(llm=llm_name, n=kept, m=len(options))
         except llm_mod.LLMUnavailable as e:
             llm_note["explain"] = T["detail"]["llm_off"].format(llm=llm_name, why=str(e)[:80])
-    details.update({"propose": T["detail"]["propose"].format(n=n_cand), "simulate": T["detail"]["simulate"].format(n=n_cand + 1),
+    if options:
+        log("explainer", "explain", rounds, t0, source=llm_name if "explain" in llm_used else "template", options=len(options),
+            template_fallback=sorted(template_used))
+        log("verifier", "verify_numbers", rounds, time.perf_counter(), checked=checked, all_matched=all_ok)
+    details.update({"propose": T["detail"]["propose"].format(n=n_cand), "simulate": T["detail"]["simulate"].format(n=n_sims),
                     "rank": T["detail"]["rank"].format(n=len(options)), "explain": T["detail"]["explain"],
                     "verify": T["detail"]["verify"].format(n=checked, ok=T["ok"] if all_ok else T["bad"])})
     for k, v in llm_note.items():
         details[k] = f"{details.get(k, '')} · {v}" if details.get(k) else v
     live = bool(llm_used)
+    # The critic's verdict on what is offered. `residual` is what the most effective offered plan still leaves.
+    meets = [o["rank"] for o in options if o["goal_met"]]
+    strongest = min(options, key=lambda o: o["summary"]["excess_pax"]) if options else None
+    critic = {"rounds": rounds, "replanned": rounds > 1, "simulations": n_sims, "goal_met_ranks": meets,
+              "top_meets_goal": bool(options and options[0]["goal_met"]), "checked_by": "code",
+              "residual": None if (meets or strongest is None) else {
+                  "rank": strongest["rank"], "excess_pax": strongest["summary"]["excess_pax"],
+                  "overcap_station_hours": strongest["summary"]["overcap_station_hours"]}}
     plan = {"plan_id": plan_id, "forecast_run_id": run["run_id"], "mode": "live" if live else "offline", "is_synthetic": run["is_synthetic"],
-            "baseline_summary": base["summary"], "options": options,
+            "baseline_summary": base["summary"], "baseline_road": base.get("road"), "options": options,
             "verify": {"numbers_checked": checked, "all_matched": all_ok,
                        "fallback_used": (not live) or "explain" not in llm_used or bool(template_used)},
             "steps": [{"key": k, "label": STEP_LABELS[locale][i], "detail": details.get(k, ""), "tool": STEP_TOOLS[i]}
@@ -497,7 +716,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
             "planner": f"{getattr(llm, 'provider', 'llm')}:{llm.model}" if live else PLANNER,
             "hotspot": None if hot is None else {"station": hot["station"], "hours": hot["hours"], "window": hot["window"],
                                                  "peak_lf": hot["peak_lf"]},
-            "cached": False}
+            "critic": critic, "trace": trace, "cached": False}
     try:
         CACHE_WRITE.mkdir(parents=True, exist_ok=True)
         (CACHE_WRITE / name).write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")

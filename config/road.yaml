@@ -1,0 +1,9 @@
+# Road-pressure proxy (docs/02 PRD scope; docs/09 #110). How many extra vehicles an event puts on the roads around
+# its venue, hour by hour, and how that compares with one direction of Sheikh Zayed Road.
+# ALL VALUES ARE ASSUMPTIONS. No traffic counts are used: there is no background traffic, no routing and no
+# junction model here. It answers one question: "if fewer visitors take the metro, how many more cars is that?"
+road_share_of_non_metro: 0.80     # share of non-metro event trips made in a road vehicle (car, taxi, ride-hail); the rest walk, cycle or take a bus [ASSUMPTION]
+car_occupancy: 2.2                # people per vehicle on event trips [ASSUMPTION]
+bus_pcu: 2.5                      # one shuttle bus counts as this many cars (passenger-car units) [ASSUMPTION]
+reference_lanes: 6                # lanes in one direction of Sheikh Zayed Road used as the yardstick [ASSUMPTION]
+lane_capacity_veh_per_hour: 2000  # vehicles one lane carries per hour in free flow [ASSUMPTION – textbook order of magnitude]

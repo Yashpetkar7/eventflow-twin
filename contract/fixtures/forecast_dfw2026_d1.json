@@ -10,6 +10,8 @@
   "metro_share_used": 0.45,
   "exit_sigma_used": 30.0,
   "weather": "normal",
+  "demand_level": "synthetic",
+  "calibration": null,
   "event": {
     "id": "dfw2026_d1",
     "name": "Dubai Future Week 2026 – Day 1 (demo scenario)",

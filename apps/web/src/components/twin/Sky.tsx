@@ -26,6 +26,7 @@ const SKY_E: Stop[] = [
   [4, 0x5a7fc0, 0xf3cc9c], [10, 0x4a86cf, 0xf1dbb4], [18, 0x3f86d8, 0xbfd9ee], [90, 0x3f86d8, 0xbfd9ee],
 ];
 const DUST = new THREE.Color(0xd9c8a8);            // desert dust in the daytime haze
+const CLOUDS = typeof window === "undefined" || new URLSearchParams(window.location.search).get("clouds") !== "0";
 const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 const DOME_VERT = /* glsl */ `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
@@ -140,6 +141,7 @@ export function Sky({ frame, tier = 0, real = false }: { frame: Frame; tier?: nu
       if (real) {                                    // haze chunk (atmosphere.ts): fog.far = visibility, dusty by day, darker at night
         fog.color.lerp(DUST, 0.3 * (1 - nf)).multiplyScalar(1 - 0.35 * nf);
         fog.far = 30000 - 7000 * golden - 9000 * nf;
+        fog.near = tier === 0 && CLOUDS ? live.animT % 20000 : -1;       // cloud shadows (atmosphere.ts): full quality only; ?clouds=0 turns them off
       }
     }
 

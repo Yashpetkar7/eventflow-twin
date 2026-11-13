@@ -25,6 +25,8 @@ def allowed_numbers(base: dict, option: dict, threshold: float, interventions: l
     for summ in (base, option["summary"]):
         for k in SUMMARY_KEYS:
             allowed |= _forms(float(summ[k]))
+        # a load factor is always printed as a percentage, however far over capacity it is (5.63 → "563")
+        allowed |= {str(round(float(summ["peak_lf"]) * 100)), f"{float(summ['peak_lf']) * 100:.1f}".rstrip("0").rstrip(".")}
     allowed |= _forms(float(option.get("cost_added", 0)))
     allowed |= _forms(threshold)
     for iv in interventions:

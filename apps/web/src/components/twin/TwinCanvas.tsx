@@ -2,7 +2,7 @@
 // The WebGL canvas: loaded lazily (behind the static poster) and only when WebGL is available.
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping } from "@react-three/postprocessing";
+import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
 import { nightFactor } from "@/lib/daylight";
@@ -12,7 +12,7 @@ import { CameraRig } from "./CameraRig";
 import { buildCorridor, City } from "./City";
 import { LabelProjector } from "./Labels";
 import { Landmarks } from "./Landmarks";
-import { Columns, Crowd, Traffic, VenueBeacon } from "./Live";
+import { Columns, Crowd, Traffic, VenueBeacon, Waiting } from "./Live";
 import { Metro, placeStations, Trains } from "./Metro";
 import { loadModels, type Models } from "./models";
 import { loadManifest, MAX_RECOVERIES, MIN_TIER, STEP_DOWN_FPS, type Manifest } from "@/lib/manifest";
@@ -21,6 +21,7 @@ import { Sky } from "./Sky";
 
 declare global { interface Window { __eft?: { fps: number; frames: number; ready: boolean; tier: number; geometries: number; textures: number; programs: number; calls: number; triangles: number; shadow_redraws: number; sun: { elevation: number; azimuth: number } | null } } }
 
+const FILM = typeof window === "undefined" || new URLSearchParams(window.location.search).get("film") !== "0";
 // `?tone=agx` swaps the tone curve of the realism scene for a side-by-side with ACES (docs/13 R2).
 const AGX = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tone") === "agx";
 
@@ -67,6 +68,9 @@ function World({ data, manifest, models, tier }: { data: SceneJson; manifest: Ma
   const spots = useMemo(() => landmarkSpots(data), [data]);
   // realism scene, full quality: bloom for the night lights only (lit windows are the only thing brighter than 1)
   const glow = useTwin((s) => !!manifest && tier === 0 && nightFactor(s.time) > 0.3);
+  // R10 (decision #114), realism scene at full quality only: a soft vignette (?film=0 turns it off). A depth of field
+  // for the close-up was tried and left out: it softened the station and its gauge, and the data must stay sharp.
+  const film = !!manifest && tier === 0 && FILM;
   return (
     <>
       <Sky frame={data.meta.frame} tier={tier} real={!!manifest} />
@@ -78,12 +82,14 @@ function World({ data, manifest, models, tier }: { data: SceneJson; manifest: Ma
       <Columns places={places} />
       <VenueBeacon data={data} />
       <Crowd places={places} />
+      {manifest ? <Waiting places={places} /> : null}
       <CameraRig places={places} corridor={corridor} spots={spots} />
       <LabelProjector places={places} spots={spots} />
       <EffectComposer multisampling={0} enableNormalPass={false}>
         {/* realism scene: ground contact shadows are baked (R1) and the scene has six times the geometry, so the screen-space pass runs on its cheaper setting */}
         {tier > 0 ? <></> : <N8AO aoRadius={16} distanceFalloff={1.2} intensity={2.4} quality={manifest ? "performance" : "medium"} color="#1a2030" />}
         {glow ? <Bloom mipmapBlur intensity={0.55} luminanceThreshold={1.05} luminanceSmoothing={0.2} /> : <></>}
+        {film ? <Vignette offset={0.3} darkness={0.46} /> : <></>}
         <SMAA />
         <ToneMapping mode={manifest && AGX ? ToneMappingMode.AGX : ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>

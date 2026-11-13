@@ -266,5 +266,33 @@
   "railTabs": "Scenario and settings",
   "railScenario": "Scenario",
   "railSettings": "Settings",
-  "loadingCity": "Loading the 3D city…"
+  "loadingCity": "Loading the 3D city…",
+  "criticMet": "Critic (code): a plan on offer clears every station.",
+  "criticNot": "Critic (code): no plan inside the allowed limits clears every station. The strongest leaves {n} riders above the threshold.",
+  "criticRounds": "{r, plural, one {# planning round} other {# planning rounds}} · {n} simulations",
+  "goalMet": "Clears every station",
+  "replannedRound": "Found by replanning (round {r})",
+  "roadPeak": "Extra cars near the venue in the peak hour (assumption model, no traffic counts)",
+  "toolCalls": "Tool calls ({n})",
+  "traceRound": "Round {n}",
+  "traceCandidates": "{n} candidates ({source})",
+  "traceMenu": "fixed menu",
+  "traceKept": "kept {k} of {n}",
+  "traceChecked": "{n} figures checked",
+  "traceExplained": "explanations: {source}",
+  "traceTemplate": "template",
+  "traceVerdict": {
+    "goal_met": "goal met by {a} of {b} tested plans",
+    "residual": "goal not met: {n} riders still above the threshold",
+    "no_action": "nothing above the threshold",
+    "no_relief": "no tested plan relieves the crowd"
+  },
+  "roles": {
+    "planner": "Planner",
+    "proposer": "Proposer",
+    "simulator": "Simulator",
+    "critic": "Critic",
+    "explainer": "Explainer",
+    "verifier": "Verifier"
+  }
 }

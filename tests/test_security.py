@@ -1,4 +1,6 @@
 """Public-demo hardening: bounded work per request, security headers, rate-limit key from Vercel's client-IP header."""
+import json
+
 from fastapi.testclient import TestClient
 
 from apps.api.eventflow import main
@@ -38,3 +40,15 @@ def test_rate_limit_keys_on_vercel_client_ip(monkeypatch):
     r = hit("1.1.1.1", "9.9.9.3")                                # a new X-Forwarded-For does not reset the count
     assert r.status_code == 429 and r.headers["retry-after"] == "60"
     assert hit("2.2.2.2", "9.9.9.3").status_code == 200          # another visitor is not affected
+
+
+def test_every_response_carries_a_request_id_and_its_timing(caplog):
+    import logging
+    c = TestClient(main.app)
+    with caplog.at_level(logging.INFO, logger="eventflow.access"):
+        r = c.get("/healthz", headers={"X-Request-ID": "booth-check_01"})
+    assert r.headers["X-Request-ID"] == "booth-check_01" and r.headers["Server-Timing"].startswith("app;dur=")
+    line = json.loads(caplog.records[-1].getMessage())
+    assert line["rid"] == "booth-check_01" and line["path"] == "/healthz" and line["status"] == 200 and line["ms"] >= 0
+    bad = c.get("/healthz", headers={"X-Request-ID": "<script>alert(1)</script>"})        # never echo an unsafe id
+    assert bad.headers["X-Request-ID"] != "<script>alert(1)</script>" and len(bad.headers["X-Request-ID"]) == 16

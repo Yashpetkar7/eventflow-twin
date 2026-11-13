@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.9.0"
+    "version": "1.10.0"
   },
   "paths": {
     "/healthz": {
@@ -506,6 +506,34 @@
             "title": "Hotspot",
             "description": "Worst station and hours the plan targets (from the diagnose tool)"
           },
+          "critic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CriticReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/TraceEvent"
+            },
+            "type": "array",
+            "title": "Trace",
+            "description": "Every tool call behind this plan, in order"
+          },
+          "baseline_road": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoadPressure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "cached": {
             "type": "boolean",
             "title": "Cached",
@@ -764,6 +792,57 @@
           "source"
         ],
         "title": "BreakpointResponse"
+      },
+      "CriticReport": {
+        "properties": {
+          "rounds": {
+            "type": "integer",
+            "title": "Rounds",
+            "default": 1
+          },
+          "replanned": {
+            "type": "boolean",
+            "title": "Replanned",
+            "default": false
+          },
+          "simulations": {
+            "type": "integer",
+            "title": "Simulations",
+            "default": 0
+          },
+          "goal_met_ranks": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Goal Met Ranks"
+          },
+          "top_meets_goal": {
+            "type": "boolean",
+            "title": "Top Meets Goal",
+            "default": false
+          },
+          "checked_by": {
+            "type": "string",
+            "title": "Checked By",
+            "default": "code"
+          },
+          "residual": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Residual",
+            "description": "What the most effective offered plan still leaves, when none meets the goal"
+          }
+        },
+        "type": "object",
+        "title": "CriticReport"
       },
       "CustomEvent": {
         "properties": {
@@ -1415,6 +1494,16 @@
             "title": "Metro Share",
             "description": "What-if share of event trips made by metro; overrides the weather what-if's share (assumption)"
           },
+          "demand_level": {
+            "type": "string",
+            "enum": [
+              "synthetic",
+              "real_totals"
+            ],
+            "title": "Demand Level",
+            "description": "'real_totals' scales each corridor station's background demand to its real weekday total (config/calibration.yaml); the hourly shape stays synthetic",
+            "default": "synthetic"
+          },
           "custom_event": {
             "anyOf": [
               {
@@ -1509,6 +1598,28 @@
             ],
             "title": "Weather",
             "default": "normal"
+          },
+          "demand_level": {
+            "type": "string",
+            "enum": [
+              "synthetic",
+              "real_totals"
+            ],
+            "title": "Demand Level",
+            "default": "synthetic"
+          },
+          "calibration": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibration",
+            "description": "Station ratios applied when demand_level = real_totals, with their source file"
           },
           "event": {
             "anyOf": [
@@ -1776,6 +1887,28 @@
             "title": "Figures",
             "description": "Figures on this card that were checked against the simulator output",
             "default": 0
+          },
+          "goal_met": {
+            "type": "boolean",
+            "title": "Goal Met",
+            "description": "Critic: no station over the threshold and none newly pushed over it",
+            "default": false
+          },
+          "round": {
+            "type": "integer",
+            "title": "Round",
+            "description": "Planning round that produced this option (2+ = found by replanning)",
+            "default": 1
+          },
+          "road": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoadPressure"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1826,6 +1959,56 @@
           "share"
         ],
         "title": "RedirectParams"
+      },
+      "RoadPressure": {
+        "properties": {
+          "peak_veh_per_hour": {
+            "type": "number",
+            "title": "Peak Veh Per Hour",
+            "description": "Extra vehicles in the busiest hour"
+          },
+          "peak_hour": {
+            "type": "integer",
+            "title": "Peak Hour"
+          },
+          "pressure": {
+            "type": "number",
+            "title": "Pressure",
+            "description": "Busiest hour as a share of the reference road capacity"
+          },
+          "vehicles_total": {
+            "type": "number",
+            "title": "Vehicles Total"
+          },
+          "reference_capacity": {
+            "type": "number",
+            "title": "Reference Capacity",
+            "description": "Vehicles/hour of the yardstick: one direction of Sheikh Zayed Road"
+          },
+          "hourly": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Hourly"
+          },
+          "is_assumption": {
+            "type": "boolean",
+            "title": "Is Assumption",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "peak_veh_per_hour",
+          "peak_hour",
+          "pressure",
+          "vehicles_total",
+          "reference_capacity",
+          "hourly"
+        ],
+        "title": "RoadPressure",
+        "description": "Road-pressure proxy (config/road.yaml): extra vehicles the event puts on nearby roads. An assumption model."
       },
       "RobotaxiParams": {
         "properties": {
@@ -2242,6 +2425,27 @@
             "type": "array",
             "title": "Hourly"
           },
+          "road": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoadPressure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Road-pressure proxy with these interventions (null without an event)"
+          },
+          "baseline_road": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoadPressure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "source": {
             "$ref": "#/components/schemas/Source"
           }
@@ -2454,6 +2658,64 @@
         ],
         "title": "StationMetering",
         "description": "Entry metering at the gates (RTA's New Year's Eve practice): admit riders only up to `max_load` × boarding\ncapacity; the rest wait outside the station or, with `to_station`, are guided on foot to a neighbouring station.\n`max_load` 0 = the station is closed for those hours (then `to_station` is required)."
+      },
+      "TraceEvent": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "round": {
+            "type": "integer",
+            "title": "Round"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "planner",
+              "proposer",
+              "simulator",
+              "critic",
+              "explainer",
+              "verifier"
+            ],
+            "title": "Role"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "ms": {
+            "type": "number",
+            "title": "Ms",
+            "default": 0.0
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "round",
+          "role",
+          "tool"
+        ],
+        "title": "TraceEvent",
+        "description": "One tool call of the planner, in order. Figures in `data` are the simulator's (run_id says which run)."
       },
       "ValidationError": {
         "properties": {

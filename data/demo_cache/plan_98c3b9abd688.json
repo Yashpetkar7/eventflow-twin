@@ -1,0 +1,172 @@
+{
+ "plan_id": "plan_98c3b9abd688",
+ "forecast_run_id": "fc_e94ce070b8ca",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.0,
+  "excess_pax": 0.0,
+  "peak_lf": 0.778,
+  "max_wait_min": 0.0,
+  "delay_pax_min": 0.0,
+  "cost_proxy": 0.0,
+  "total_demand": 114369.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2537.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "baseline_road": {
+  "peak_veh_per_hour": 2449.4,
+  "peak_hour": 16,
+  "pressure": 0.204,
+  "vehicles_total": 16000.0,
+  "reference_capacity": 12000.0,
+  "hourly": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.1,
+   1.7,
+   16.4,
+   102.0,
+   412.4,
+   1083.8,
+   1853.6,
+   2065.9,
+   1529.7,
+   954.2,
+   1196.9,
+   2142.0,
+   2449.4,
+   1548.6,
+   533.1,
+   99.6,
+   10.1,
+   0.5,
+   0.0,
+   0.0
+  ],
+  "is_assumption": true
+ },
+ "options": [],
+ "verify": {
+  "numbers_checked": 0,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "قراءة الهدف",
+   "detail": "إبقاء كل المحطات تحت 85% · الأولوية: متوازن",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "التنبؤ بالطلب",
+   "detail": "التشغيل fc_e94ce070b8ca",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "تحديد نقاط الازدحام",
+   "detail": "لا توجد محطة فوق 85%",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "اقتراح الخطط",
+   "detail": "0 خطط مرشحة من القائمة المحددة",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "محاكاة كل خطة",
+   "detail": "1 عمليات محاكاة",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "الترتيب حسب الأثر والتكلفة",
+   "detail": "أفضل 0 حسب الركاب المخفَّف عنهم − λ × التكلفة",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "الشرح بلغة بسيطة",
+   "detail": "نص قالب، والأرقام منسوخة من المحاكي",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "التحقق من كل رقم",
+   "detail": "تم التحقق من 0 رقمًا، جميعها مطابقة",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": null,
+ "critic": {
+  "rounds": 1,
+  "replanned": false,
+  "simulations": 1,
+  "goal_met_ranks": [],
+  "top_meets_goal": false,
+  "checked_by": "code",
+  "residual": null
+ },
+ "trace": [
+  {
+   "n": 1,
+   "round": 1,
+   "role": "planner",
+   "tool": "forecast",
+   "run_id": "fc_e94ce070b8ca",
+   "ms": 0.0,
+   "data": {
+    "event": "gitex2025_d1"
+   }
+  },
+  {
+   "n": 2,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_582c486177d7",
+   "ms": 9.1,
+   "data": {
+    "label": "baseline",
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.778
+   }
+  },
+  {
+   "n": 3,
+   "round": 1,
+   "role": "planner",
+   "tool": "diagnose",
+   "run_id": "sim_582c486177d7",
+   "ms": 0.0,
+   "data": {
+    "station": null,
+    "hours": [],
+    "peak_lf": null
+   }
+  },
+  {
+   "n": 4,
+   "round": 1,
+   "role": "critic",
+   "tool": "check_goal",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "verdict": "no_action"
+   }
+  }
+ ],
+ "cached": false
+}

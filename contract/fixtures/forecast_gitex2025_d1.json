@@ -10,6 +10,8 @@
   "metro_share_used": 0.45,
   "exit_sigma_used": 75.0,
   "weather": "normal",
+  "demand_level": "synthetic",
+  "calibration": null,
   "event": {
     "id": "gitex2025_d1",
     "name": "GITEX Global 2025 – Day 1 (Mon 13 Oct 2025)",

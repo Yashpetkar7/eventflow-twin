@@ -1,0 +1,33 @@
+{
+ "label": "before",
+ "base": "https://eventflow-twin.vercel.app",
+ "when": "2026-11-13T06:28:07.135Z",
+ "viewport": "1920x1080",
+ "views": {
+  "street_1000": {
+   "fps": 59.9,
+   "tier": 0
+  },
+  "street_2130": {
+   "fps": 60,
+   "tier": 0
+  },
+  "burj_1730": {
+   "fps": 60,
+   "tier": 0
+  },
+  "burj_2130": {
+   "fps": 60,
+   "tier": 0
+  },
+  "towers_1000": {
+   "fps": 60,
+   "tier": 0
+  },
+  "overview_1500": {
+   "fps": 60,
+   "tier": 0
+  }
+ },
+ "errors": []
+}

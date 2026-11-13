@@ -12,6 +12,7 @@ export interface Scenario {
   exitSigma: number | null;        // null = the event profile's exit window
   weather: Weather;
   metroShare?: number | null;      // what-if share of event trips by metro (null/absent = the weather's share)
+  demandLevel?: "synthetic" | "real_totals" | null;   // real_totals = corridor stations scaled to their real weekday totals (contract 1.10.0)
   custom: { near: string; start: string; end: string; weekend: boolean };
 }
 
@@ -28,6 +29,7 @@ export function forecastBody(s: Scenario): S["ForecastRequest"] {
   }
   if (s.exitSigma !== null) body.exit_sigma_min = s.exitSigma;
   if (s.metroShare != null) body.metro_share = s.metroShare;
+  if (s.demandLevel === "real_totals") body.demand_level = "real_totals";
   return body as S["ForecastRequest"];
 }
 
