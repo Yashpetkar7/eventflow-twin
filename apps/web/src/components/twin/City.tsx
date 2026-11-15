@@ -8,7 +8,7 @@ import { useTwin } from "@/lib/store";
 import { buildingsGeometry, canvasTexture, flatPolygons, ribbons, sweep } from "./builders";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { facadeMaterialV2 } from "./facade";
-import type { Models } from "./models";
+import { siteSkip, type Models } from "./models";
 import { R7 } from "./perf";
 import { Ring } from "./Ring";
 import type { Manifest } from "@/lib/manifest";
@@ -121,6 +121,8 @@ function landmarkSkip(data: SceneJson): number[] {
       const l = data.landmarks[k];
       if (l) out.push(l.x, l.z, Math.sqrt((4 * l.area) / Math.sqrt(3)) / Math.sqrt(3));
     }
+    if (R7.r8b) out.push(...siteSkip);                                         // R8b: the towers, the mall and the DIFC Gate
+
     skips.set(data, out);
   }
   return out;

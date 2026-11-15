@@ -1,0 +1,180 @@
+{
+  "suite": "ui_fps_uncapped_r7",
+  "label": "r8b_after",
+  "git_sha": "b9bfd2d",
+  "uncommitted_changes": true,
+  "build": "b/realism-r8b (13 site models, towers merged)",
+  "timestamp": "2026-11-15T15:54:11.077Z",
+  "target": "http://localhost:3100",
+  "url": "/?scene=v2",
+  "viewport": "1920x1080 (workspace: all layers on, clock paused; kiosk: 3D full screen)",
+  "chrome_flags": "--disable-frame-rate-limit --disable-gpu-vsync",
+  "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "power_source": "AC Power",
+  "cases": {
+    "1000_overview": {
+      "median_fps": 147.7,
+      "min_fps": 146.6,
+      "max_fps": 148.8,
+      "calls": 245,
+      "triangles": 1251481,
+      "tier": 0,
+      "samples": [
+        148.6,
+        147.7,
+        148.8,
+        147.2,
+        147.3,
+        146.6,
+        148,
+        147.3
+      ]
+    },
+    "1000_close": {
+      "median_fps": 123.7,
+      "min_fps": 120.9,
+      "max_fps": 129.7,
+      "calls": 170,
+      "triangles": 1822186,
+      "tier": 0,
+      "samples": [
+        123,
+        123.7,
+        129.7,
+        122.7,
+        120.9,
+        124.9,
+        127.8,
+        123
+      ]
+    },
+    "1000_top": {
+      "median_fps": 163.8,
+      "min_fps": 159.6,
+      "max_fps": 167,
+      "calls": 240,
+      "triangles": 1016247,
+      "tier": 0,
+      "samples": [
+        163.8,
+        163.5,
+        159.6,
+        163.7,
+        160.6,
+        164.8,
+        164.8,
+        167
+      ]
+    },
+    "1000_orbit": {
+      "median_fps": 151.3,
+      "min_fps": 146.8,
+      "max_fps": 154.7,
+      "calls": 229,
+      "triangles": 1208009,
+      "tier": 0,
+      "samples": [
+        152,
+        154.7,
+        152.6,
+        148.3,
+        146.8,
+        149.1,
+        151.3,
+        147.6
+      ]
+    },
+    "2130_overview": {
+      "median_fps": 138.4,
+      "min_fps": 134.9,
+      "max_fps": 142,
+      "calls": 267,
+      "triangles": 1238717,
+      "tier": 0,
+      "samples": [
+        139.4,
+        137.9,
+        134.9,
+        138.8,
+        136.7,
+        138.4,
+        142,
+        137.4
+      ]
+    },
+    "2130_close": {
+      "median_fps": 118,
+      "min_fps": 111.9,
+      "max_fps": 122,
+      "calls": 193,
+      "triangles": 1854206,
+      "tier": 0,
+      "samples": [
+        119.2,
+        118.7,
+        113.2,
+        117.2,
+        116.1,
+        118,
+        122,
+        111.9
+      ]
+    },
+    "2130_top": {
+      "median_fps": 148.6,
+      "min_fps": 146.1,
+      "max_fps": 151.1,
+      "calls": 262,
+      "triangles": 1003483,
+      "tier": 0,
+      "samples": [
+        146.1,
+        149.8,
+        148.8,
+        148.6,
+        148.5,
+        148.6,
+        148.4,
+        151.1
+      ]
+    },
+    "2130_orbit": {
+      "median_fps": 139.7,
+      "min_fps": 136.9,
+      "max_fps": 142.5,
+      "calls": 251,
+      "triangles": 1195854,
+      "tier": 0,
+      "samples": [
+        142.5,
+        142.5,
+        138.6,
+        141.7,
+        139.7,
+        136.9,
+        139.6,
+        139.1
+      ]
+    },
+    "kiosk_attract_1730_orbit": {
+      "median_fps": 84.5,
+      "min_fps": 59.3,
+      "max_fps": 118.9,
+      "calls": 285,
+      "triangles": 1993175,
+      "tier": 0,
+      "samples": [
+        94.9,
+        90.6,
+        84.5,
+        59.3,
+        59.8,
+        118.9,
+        91.2,
+        83.4,
+        83.2,
+        82.8
+      ]
+    }
+  }
+}

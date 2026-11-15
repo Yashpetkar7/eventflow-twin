@@ -1,0 +1,45 @@
+{
+ "label": "r8b_before",
+ "base": "http://localhost:3100",
+ "when": "2026-11-15T15:39:55.611Z",
+ "viewport": "1920x1080",
+ "views": {
+  "street_1000": {
+   "fps": 55.4,
+   "tier": 0
+  },
+  "street_2130": {
+   "fps": 56.6,
+   "tier": 0
+  },
+  "burj_1730": {
+   "fps": 56.2,
+   "tier": 0
+  },
+  "burj_2130": {
+   "fps": 54.6,
+   "tier": 0
+  },
+  "towers_1000": {
+   "fps": 56.5,
+   "tier": 0
+  },
+  "overview_1500": {
+   "fps": 56.6,
+   "tier": 0
+  },
+  "r8b_1000": {
+   "fps": 56.1,
+   "tier": 0
+  },
+  "r8b_1730": {
+   "fps": 56.3,
+   "tier": 0
+  },
+  "r8b_2130": {
+   "fps": 55.9,
+   "tier": 0
+  }
+ },
+ "errors": []
+}

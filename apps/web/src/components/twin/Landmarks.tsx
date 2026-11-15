@@ -12,7 +12,8 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { useTwin } from "@/lib/store";
 import { canvasTexture } from "./builders";
 import { curtainWall } from "./facade";
-import { ModelMesh, withAo, type Models } from "./models";
+import { mergeModels, ModelMesh, SITE_MODELS, withAo, type Models } from "./models";
+import { R7 } from "./perf";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
 function burjGeometry(): THREE.BufferGeometry {
@@ -180,9 +181,15 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
     return { glass: curtainWall(glass(), wallU, { lit: 0.26 }),                       // Emirates Towers and the other glass slots
       burjGlass: curtainWall(glass(), wallU, { bay: 1.3, storey: 3.6, lit: 0.16, show: true }),   // the Burj Khalifa, with its light show after dark
       steel: withAo(mats.steel), concrete: withAo(mats.crown), gold: withAo(mats.gold),
-      green: withAo(mats.mound), mof: withAo(mats.mof), dwtc: withAo(mats.dwtc) };
+      green: withAo(mats.mound), mof: withAo(mats.mof), dwtc: withAo(mats.dwtc),
+      towerGlass: curtainWall(Object.assign(glass(), { color: new THREE.Color(0x7d96aa) }), wallU, { lit: 0.26 }),    // R8b towers, nearer the city's own tint
+      goldGlass: curtainWall(Object.assign(glass(), { color: new THREE.Color(0xc4a266) }), wallU, { lit: 0.26 }),      // Gevora Hotel's gold skin
+      jet: new THREE.MeshBasicMaterial({ color: 0xeef6ff, transparent: true, opacity: 0, depthWrite: false }) };   // the Dubai Fountain, after dark only
   }, [mats, models, wallU]);
   const burjMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.burjGlass } : null), [vmats]);
+  // the ten R8b towers share their materials, so they are drawn as one model; the mall, gate and fountain on their own
+  const towers = useMemo(() => (models ? mergeModels(SITE_MODELS.filter((k) => k.startsWith("tower_")).map((k) => models[k])) : null), [models]);
+  const towerMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.towerGlass, gold: vmats.goldGlass } : null), [vmats]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => (v instanceof THREE.BufferGeometry || v instanceof THREE.Texture) && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
@@ -196,16 +203,17 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
     beacon.current?.scale.setScalar(Math.max(2.2, Math.min(9, live.camDist / 700)));
     wallU.uNight.value = n; wallU.uTime.value = live.animT;
     if (vmats) {
-      vmats.glass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4; vmats.burjGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
+      vmats.glass.emissiveIntensity = vmats.burjGlass.emissiveIntensity = vmats.towerGlass.emissiveIntensity = vmats.goldGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
       vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
       vmats.mof.emissiveIntensity = mats.mof.emissiveIntensity; vmats.gold.emissiveIntensity = mats.gold.emissiveIntensity; vmats.dwtc.emissiveIntensity = mats.dwtc.emissiveIntensity;
+      vmats.jet.opacity = 0.85 * Math.max(0, (n - 0.5) * 2); vmats.jet.visible = vmats.jet.opacity > 0;
     }
   });
   const side = (a: number) => Math.sqrt((4 * a) / Math.sqrt(3));
   // A tap on a landmark frames it and starts the slow turn round it (the same as tapping its name).
   const tap = (key: string) => ({ onClick: (e: { stopPropagation: () => void }) => { e.stopPropagation(); useTwin.getState().focusLandmark(key); } });
 
-  if (models && vmats && burjMats) {
+  if (models && vmats && burjMats && towerMats && towers) {
     const m = models, et = (k: "et1" | "et2", name: "emirates_office_tower" | "emirates_hotel_tower", modelSide: number, angle: number) => {
       const l = lm[k];
       if (!l) return null;
@@ -225,6 +233,13 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
         {lm.mof && <group position={[lm.mof.x, 0, lm.mof.z]} rotation-y={-lm.mof.angle} {...tap("mof")}><ModelMesh model={m.museum_of_the_future} mats={vmats} /></group>}
         {lm.dwtc && <group position={[lm.dwtc.x, 0, lm.dwtc.z]} rotation-y={-lm.dwtc.angle} {...tap("dwtc")}><ModelMesh model={m.trade_centre_tower} mats={vmats} /></group>}
         {lm.frame && <group position={[lm.frame.x, 0, lm.frame.z]} rotation-y={-lm.frame.angle} {...tap("frame")}><ModelMesh model={m.dubai_frame} mats={vmats} /></group>}
+        {R7.r8b && (
+          <>
+            <ModelMesh model={towers} mats={towerMats} />
+            <ModelMesh model={m.dubai_mall} mats={vmats} /><ModelMesh model={m.difc_gate} mats={vmats} />
+            <ModelMesh model={m.dubai_fountain} mats={vmats} castShadow={false} />
+          </>
+        )}
       </group>
     );
   }

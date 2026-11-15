@@ -37,6 +37,7 @@ COLOURS = {                         # preview colours only; the web app supplies
     "dwtc": (0.9, 0.87, 0.8, 0.0, 0.65), "shell": (0.83, 0.7, 0.42, 0.82, 0.3), "red": (0.85, 0.06, 0.06, 0.0, 0.5),
     "body": (0.95, 0.96, 0.97, 0.4, 0.3), "win": (0.1, 0.15, 0.22, 0.6, 0.2),
     "trunk": (0.5, 0.39, 0.26, 0.0, 0.9), "leaf": (0.27, 0.46, 0.2, 0.0, 0.8), "roof": (0.9, 0.9, 0.9, 0.3, 0.4),
+    "jet": (0.92, 0.96, 1.0, 0.0, 0.2),
 }
 
 
@@ -549,12 +550,136 @@ def bus():
     return join(parts, "bus"), {"length_m": 12.0, "source": "generic vehicle, no real model"}
 
 
+# ---------------------------------------------------------------- R8b: sites placed where they stand (scene frame)
+# Built in the scene's own coordinates, so the web app draws them at the origin: Blender (x, y, z) = (scene x, −scene z,
+# height), which the glTF export turns into three.js (x, height, z). Data: scripts/blender/r8b_sites.json, written by
+# scripts/r8b_sites.py from the R1 Overture download (footprints, building parts, the Burj Khalifa lake).
+SITES = os.path.join(os.path.dirname(__file__), "r8b_sites.json")
+
+
+def prism(ring, z0, z1, wall, roof):
+    """A footprint extruded from z0 to z1: walls in one material slot, the flat roof in another."""
+    n = len(ring)
+    verts = [(x, -z, z0) for x, z in ring] + [(x, -z, z1) for x, z in ring]
+    walls = from_faces(verts, [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)], wall)
+    top = from_faces([(x, -z, z1) for x, z in ring], [tuple(range(n))], roof)
+    return [walls, top]
+
+
+def site_centre(ring):
+    return sum(x for x, _ in ring) / len(ring), sum(z for _, z in ring) / len(ring)
+
+
+def scaled(ring, k):
+    cx, cz = site_centre(ring)
+    return [(cx + (x - cx) * k, cz + (z - cz) * k) for x, z in ring]
+
+
+# Known from public photographs, used where they change the silhouette (everything else stays a generic crown):
+# Al Yaqoub Tower is modelled on the Elizabeth Tower in London (a pyramid roof over a clock storey); Gevora Hotel has a
+# gold glass skin. No clock face, logo or text is drawn.
+STYLE = {"Al Yaqoub Tower": "pyramid", "فندق جيفورا": "gold"}
+
+
+def r8b_tower(site):
+    """A tower from its mapped parts (or its footprint): a podium a little wider than the shaft, glass walls, a set-back
+    crown with a steel band, roof plant, and a spire for the part of the published architectural height that the map's
+    roof height leaves out. Crowns are stylised except where STYLE says otherwise."""
+    style, wall = STYLE.get(site["name"], ""), "gold" if STYLE.get(site["name"]) == "gold" else "glass"
+    parts = []
+    for q in site["prisms"]:
+        h, h0, ring = q["h"], q["min_h"], q["ring"]
+        if h0 == 0 and h > 120:                                          # podium
+            parts += prism(scaled(ring, 1.12), 0, 14, "concrete", "steel")
+        crown = h - (0.06 * h if h > 120 else 2.0)
+        parts += prism(ring, max(h0, 14 if h0 == 0 and h > 120 else h0), crown, wall, "steel")
+        if h > 120:
+            parts += prism(scaled(ring, 0.97), crown, crown + 2.0, "steel", "steel")        # band at the setback
+            parts += prism(scaled(ring, 0.88), crown + 2.0, h, wall, "steel")              # set-back crown
+            parts += prism(scaled(ring, 0.35), h, h + 4.0, "concrete", "concrete")          # roof plant
+        else:
+            parts += prism(ring, crown, h, "steel", "steel")
+    top = max(site["prisms"], key=lambda q: q["h"])
+    cx, cz = site_centre(top["ring"])
+    a = abs(sum(top["ring"][i][0] * top["ring"][(i + 1) % len(top["ring"])][1] - top["ring"][(i + 1) % len(top["ring"])][0] * top["ring"][i][1] for i in range(len(top["ring"])))) / 2
+    if style == "pyramid":                                               # clock storey + pyramid roof + finial
+        side = math.sqrt(a) * 0.7
+        parts.append(box((side, side, 14), (cx, -cz, top["h"] + 7), "concrete"))
+        parts.append(cyl(side * 0.72, 0.6, 34, (cx, -cz, top["h"] + 14 + 17), "steel", 4, rot=(0, 0, math.pi / 4)))
+    elif site.get("spire_m", 0) >= 5:
+        rb = max(1.5, math.sqrt(a) / 9)
+        parts.append(cyl(rb, 0.25, site["spire_m"], (cx, -cz, top["h"] + site["spire_m"] / 2), "steel", 8))
+    return join(parts, site["model"]), {"name": site["name"], "height_m": site["height_m"], "source": site["height_source"], "crown": style or "generic"}
+
+
+def r8b_mall(site):
+    """The Dubai Mall as one block at its mapped height, a glass skylight strip along its long axis and a roof band."""
+    q = site["prisms"][0]
+    h = q["h"] or 20.0
+    parts = prism(q["ring"], 0, h, "concrete", "concrete")
+    ring = q["ring"]
+    cx, cz = site_centre(ring)
+    sxx = sum((x - cx) ** 2 for x, _ in ring); szz = sum((z - cz) ** 2 for _, z in ring); sxz = sum((x - cx) * (z - cz) for x, z in ring)
+    ang = 0.5 * math.atan2(2 * sxz, sxx - szz)
+    length = 0.55 * max(math.hypot(x - cx, z - cz) for x, z in ring)
+    sky = box((length * 2, 14, 3.0), (cx, -cz, h + 1.4), "glass", rot_z=-ang)      # the long glazed roof over the main mall
+    parts.append(sky)
+    return join(parts, site["model"]), {"name": site["name"], "height_m": h, "source": site["height_source"]}
+
+
+def r8b_gate(site):
+    """The Gate, DIFC: its footprint at its mapped height with the arch cut through it, across Sheikh Zayed Road's axis.
+    The opening's size is an approximation (about a third of the width, from a fifth to four fifths of the height)."""
+    q = site["prisms"][0]
+    h = q["h"] or 60.0
+    parts = prism(q["ring"], 0, h, "concrete", "concrete")
+    body = join(parts, site["model"])
+    xs, zs = [x for x, _ in q["ring"]], [z for _, z in q["ring"]]
+    cx, cz = (min(xs) + max(xs)) / 2, (min(zs) + max(zs)) / 2
+    w, d = max(xs) - min(xs), max(zs) - min(zs)
+    cutter = box((0.34 * w, d * 1.4, 0.6 * h), (cx, -cz, 0.2 * h + 0.3 * h), "concrete")
+    mod = body.modifiers.new("arch", "BOOLEAN")
+    mod.operation, mod.object, mod.solver = "DIFFERENCE", cutter, "EXACT"
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    inner = box((0.34 * w - 0.6, d * 0.96, 0.6), (cx, -cz, 0.2 * h + 0.3), "glass")    # glazed floor of the opening
+    out = join([body, inner], site["model"])
+    return out, {"name": site["name"], "height_m": h, "source": site["height_source"]}
+
+
+def r8b_fountain(site):
+    """The Dubai Fountain as a still frame of jets along a gentle arc, 275 m long, in the Burj Khalifa lake. The web app
+    shows it after dark only (the shows run in the evening). Jet heights are a pattern, not a recording of a show."""
+    (cx, cz), ang, length, n = site["centre"], site["axis_rad"], site["length_m"], site["jets"]
+    ux, uz, nx, nz = math.cos(ang), math.sin(ang), -math.sin(ang), math.cos(ang)
+    parts = []
+    for i in range(n):
+        t = i / (n - 1) - 0.5
+        along, bow = t * length, 18.0 * (1 - (2 * t) ** 2)                       # a shallow bow, 18 m at the middle
+        x, z = cx + ux * along + nx * bow, cz + uz * along + nz * bow
+        h = 16 + 34 * (0.5 + 0.5 * math.cos(6 * math.pi * t)) + 10 * (1 - abs(2 * t))
+        parts.append(cyl(1.6, 0.35, h, (x, -z, h / 2), "jet", 6))
+    return join(parts, site["model"]), {"name": site["name"], "length_m": length, "source": site["height_source"]}
+
+
+def r8b_models():
+    try:
+        with open(SITES, encoding="utf-8") as f:
+            sites = json.load(f)["sites"]
+    except OSError:
+        return []
+    make = {"tower": r8b_tower, "mall": r8b_mall, "gate": r8b_gate, "fountain": r8b_fountain}
+    return [((lambda s_=s_: make[s_["role"]](s_)), (), 25000) for s_ in sites]
+
+
 MODELS = [
     (burj_khalifa, (), 60000), (lambda: emirates_tower("emirates_office_tower", 355.0, 54.0), (), 25000),
     (lambda: emirates_tower("emirates_hotel_tower", 309.0, 48.0), (), 25000), (museum_of_the_future, (), 25000),
     (trade_centre_tower, (), 25000), (dubai_frame, (), 25000), (metro_station, (), 15000), (viaduct_segment, (), 15000), (metro_car, (), 8000),
     (lambda: date_palm("palm_a", 9.0, 15, 0.6, 1), (), 1500), (lambda: date_palm("palm_b", 11.0, 17, -0.9, 2), (), 1500),
     (lambda: date_palm("palm_c", 7.2, 13, 0.3, 3), (), 1500), (car, (), 1500), (bus, (), 1500),
+    *r8b_models(),
 ]
 
 
