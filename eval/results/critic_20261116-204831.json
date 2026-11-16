@@ -1,0 +1,20 @@
+{
+  "suite": "critic",
+  "git_sha": "ff66d81-dirty",
+  "timestamp": "2026-11-16T20:48:31",
+  "models": {
+    "critic": "code (planner.goal_met, mission.failing)",
+    "oracle": "simulator hourly rows"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "critic_recall": 1.0,
+    "critic_precision": 1.0,
+    "critic_agreement": 1.0,
+    "plans_judged": 1007
+  },
+  "n": 1007,
+  "split": "hotspot scenarios of the gold set",
+  "gold_file": "eval\\gold\\agents_scenarios.jsonl"
+}

@@ -1,0 +1,747 @@
+{
+ "plan_id": "plan_a8b6d33d1dba",
+ "forecast_run_id": "fc_38414f2f23e3",
+ "mode": "offline",
+ "is_synthetic": true,
+ "baseline_summary": {
+  "overcap_station_hours": 0.5,
+  "excess_pax": 278.6,
+  "peak_lf": 0.997,
+  "max_wait_min": 0.0,
+  "delay_pax_min": 0.0,
+  "cost_proxy": 0.0,
+  "total_demand": 120369.0,
+  "end_of_day_queue": 0.0,
+  "no_service_pax": 2537.5,
+  "bins_per_hour": 4,
+  "threshold": 0.85
+ },
+ "baseline_road": {
+  "peak_veh_per_hour": 1781.4,
+  "peak_hour": 16,
+  "pressure": 0.148,
+  "vehicles_total": 11636.4,
+  "reference_capacity": 12000.0,
+  "hourly": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.1,
+   1.2,
+   11.9,
+   74.2,
+   299.9,
+   788.2,
+   1348.1,
+   1502.5,
+   1112.5,
+   693.9,
+   870.5,
+   1557.9,
+   1781.4,
+   1126.2,
+   387.7,
+   72.4,
+   7.3,
+   0.4,
+   0.0,
+   0.0
+  ],
+  "is_assumption": true
+ },
+ "options": [
+  {
+   "rank": 1,
+   "title": "توجيه المشاة فقط",
+   "interventions": [
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "EMT",
+      "share": 0.15,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.848,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.5,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.149,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 0.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 248.6,
+   "rationale": "توجيه 15% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا. نتيجة المحاكاة: ساعات المحطات فوق الحد من 0.5 إلى 0، والركاب فوق الحد من 279 إلى 0، وأعلى حمولة محطة من 100% إلى 85%. مؤشر التكلفة المضافة: 0.5. المخاطر: يعتمد على استجابة الزوار.",
+   "what": "توجيه 15% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا.",
+   "risk": "يعتمد على استجابة الزوار.",
+   "cost_added": 0.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 1,
+   "road": {
+    "peak_veh_per_hour": 1781.4,
+    "peak_hour": 16,
+    "pressure": 0.148,
+    "vehicles_total": 11636.4,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     1.2,
+     11.9,
+     74.2,
+     299.9,
+     788.2,
+     1348.1,
+     1502.5,
+     1112.5,
+     693.9,
+     870.5,
+     1557.9,
+     1781.4,
+     1126.2,
+     387.7,
+     72.4,
+     7.3,
+     0.4,
+     0.0,
+     0.0
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_e2da180ce990"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_38414f2f23e3"
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "خروج متدرج + توجيه المشاة",
+   "interventions": [
+    {
+     "type": "staggered_exit",
+     "params": {
+      "spread_minutes": 60
+     }
+    },
+    {
+     "type": "wayfinding_redirect",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "EMT",
+      "share": 0.1,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.0,
+    "excess_pax": 0.0,
+    "peak_lf": 0.747,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.5,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.5,
+    "excess_pax": -278.6,
+    "peak_lf": -0.25,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.5,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 128.6,
+   "rationale": "توزيع خروج الزوار على 60 دقيقة إضافية وتوجيه 10% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا. نتيجة المحاكاة: ساعات المحطات فوق الحد من 0.5 إلى 0، والركاب فوق الحد من 279 إلى 0، وأعلى حمولة محطة من 100% إلى 75%. مؤشر التكلفة المضافة: 2.5. المخاطر: يتطلب تعاون المنظمين ولافتات واضحة.",
+   "what": "توزيع خروج الزوار على 60 دقيقة إضافية وتوجيه 10% من ركاب المركز التجاري العالمي إلى أبراج الإمارات سيرًا.",
+   "risk": "يتطلب تعاون المنظمين ولافتات واضحة.",
+   "cost_added": 2.5,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": true,
+   "round": 1,
+   "road": {
+    "peak_veh_per_hour": 1736.0,
+    "peak_hour": 16,
+    "pressure": 0.145,
+    "vehicles_total": 11636.4,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     1.2,
+     11.9,
+     74.2,
+     299.9,
+     788.2,
+     1348.0,
+     1501.3,
+     1097.3,
+     598.2,
+     572.0,
+     1161.9,
+     1736.0,
+     1493.1,
+     723.6,
+     196.8,
+     29.9,
+     2.5,
+     0.1,
+     0.0
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_1b7dda019ffb"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_38414f2f23e3"
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "حافلات مغذية، إعداد أخف",
+   "interventions": [
+    {
+     "type": "shuttle_bus",
+     "params": {
+      "from_station": "WTC",
+      "to_station": "BBY",
+      "buses": 2,
+      "hours": [
+       15
+      ]
+     }
+    }
+   ],
+   "summary": {
+    "overcap_station_hours": 0.25,
+    "excess_pax": 60.7,
+    "peak_lf": 0.9,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.0,
+    "total_demand": 120369.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 2537.5,
+    "bins_per_hour": 4,
+    "threshold": 0.85
+   },
+   "delta": {
+    "overcap_station_hours": -0.25,
+    "excess_pax": -217.9,
+    "peak_lf": -0.097,
+    "max_wait_min": 0.0,
+    "delay_pax_min": 0.0,
+    "cost_proxy": 2.0,
+    "total_demand": 0.0,
+    "end_of_day_queue": 0.0,
+    "no_service_pax": 0.0
+   },
+   "score": 97.9,
+   "rationale": "2 حافلة من المركز التجاري العالمي إلى الخليج التجاري: نحو نصف ما يزيل الازدحام، بتكلفة أقل. نتيجة المحاكاة: ساعات المحطات فوق الحد من 0.5 إلى 0.25، والركاب فوق الحد من 279 إلى 61، وأعلى حمولة محطة من 100% إلى 90%. مؤشر التكلفة المضافة: 2. المخاطر: قد يبقى بعض الازدحام؛ وقد ينتقل إلى المحطة المستقبلة.",
+   "what": "2 حافلة من المركز التجاري العالمي إلى الخليج التجاري: نحو نصف ما يزيل الازدحام، بتكلفة أقل.",
+   "risk": "قد يبقى بعض الازدحام؛ وقد ينتقل إلى المحطة المستقبلة.",
+   "cost_added": 2.0,
+   "new_hotspots": [],
+   "figures": 7,
+   "goal_met": false,
+   "round": 1,
+   "road": {
+    "peak_veh_per_hour": 1781.4,
+    "peak_hour": 16,
+    "pressure": 0.148,
+    "vehicles_total": 11651.4,
+    "reference_capacity": 12000.0,
+    "hourly": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     1.2,
+     11.9,
+     74.2,
+     299.9,
+     788.2,
+     1348.1,
+     1502.5,
+     1112.5,
+     693.9,
+     870.5,
+     1572.9,
+     1781.4,
+     1126.2,
+     387.7,
+     72.4,
+     7.3,
+     0.4,
+     0.0,
+     0.0
+    ],
+    "is_assumption": true
+   },
+   "sources": [
+    {
+     "tool": "simulate",
+     "run_id": "sim_4342fa851c6f"
+    },
+    {
+     "tool": "forecast",
+     "run_id": "fc_38414f2f23e3"
+    }
+   ]
+  }
+ ],
+ "verify": {
+  "numbers_checked": 25,
+  "all_matched": true,
+  "fallback_used": true
+ },
+ "steps": [
+  {
+   "key": "intake",
+   "label": "قراءة الهدف",
+   "detail": "إبقاء كل المحطات تحت 85% · الأولوية: تكلفة أقل",
+   "tool": null
+  },
+  {
+   "key": "forecast",
+   "label": "التنبؤ بالطلب",
+   "detail": "التشغيل fc_38414f2f23e3",
+   "tool": "forecast"
+  },
+  {
+   "key": "diagnose",
+   "label": "تحديد نقاط الازدحام",
+   "detail": "المركز التجاري العالمي، 15:00",
+   "tool": "simulate"
+  },
+  {
+   "key": "propose",
+   "label": "اقتراح الخطط",
+   "detail": "9 خطط مرشحة، حُدِّد حجم كل إجراء من التنبؤ",
+   "tool": null
+  },
+  {
+   "key": "simulate",
+   "label": "محاكاة كل خطة",
+   "detail": "13 عمليات محاكاة",
+   "tool": "simulate"
+  },
+  {
+   "key": "rank",
+   "label": "الترتيب حسب الأثر والتكلفة",
+   "detail": "أفضل 3 حسب الركاب المخفَّف عنهم − λ × التكلفة",
+   "tool": "rank"
+  },
+  {
+   "key": "explain",
+   "label": "الشرح بلغة بسيطة",
+   "detail": "نص قالب، والأرقام منسوخة من المحاكي",
+   "tool": null
+  },
+  {
+   "key": "verify",
+   "label": "التحقق من كل رقم",
+   "detail": "تم التحقق من 25 رقمًا، جميعها مطابقة",
+   "tool": "verify_numbers"
+  }
+ ],
+ "planner": "deterministic-template",
+ "hotspot": {
+  "station": "WTC",
+  "hours": [
+   15
+  ],
+  "window": [
+   14,
+   15,
+   16
+  ],
+  "peak_lf": 0.997
+ },
+ "critic": {
+  "rounds": 1,
+  "replanned": false,
+  "simulations": 13,
+  "goal_met_ranks": [
+   1,
+   2
+  ],
+  "top_meets_goal": true,
+  "checked_by": "code",
+  "residual": null
+ },
+ "trace": [
+  {
+   "n": 1,
+   "round": 1,
+   "role": "planner",
+   "tool": "forecast",
+   "run_id": "fc_38414f2f23e3",
+   "ms": 0.0,
+   "data": {
+    "event": "gitex2025_d1"
+   }
+  },
+  {
+   "n": 2,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_b8f7f5978260",
+   "ms": 13.7,
+   "data": {
+    "label": "baseline",
+    "over": 0.5,
+    "excess": 278.6,
+    "peak_lf": 0.997
+   }
+  },
+  {
+   "n": 3,
+   "round": 1,
+   "role": "planner",
+   "tool": "diagnose",
+   "run_id": "sim_b8f7f5978260",
+   "ms": 0.1,
+   "data": {
+    "station": "WTC",
+    "hours": [
+     15
+    ],
+    "peak_lf": 0.997
+   }
+  },
+  {
+   "n": 4,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_a26c0b3b83b5",
+   "ms": 18.2,
+   "data": {
+    "label": "probe_stagger_30",
+    "spread": 30,
+    "worst_bins": 1
+   }
+  },
+  {
+   "n": 5,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_c11c5893bcea",
+   "ms": 17.1,
+   "data": {
+    "label": "probe_stagger_45",
+    "spread": 45,
+    "worst_bins": 1
+   }
+  },
+  {
+   "n": 6,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_1267df7fad9c",
+   "ms": 16.8,
+   "data": {
+    "label": "probe_stagger_60",
+    "spread": 60,
+    "worst_bins": 0
+   }
+  },
+  {
+   "n": 7,
+   "round": 1,
+   "role": "proposer",
+   "tool": "propose",
+   "run_id": null,
+   "ms": 0.1,
+   "data": {
+    "source": "menu",
+    "candidates": 9
+   }
+  },
+  {
+   "n": 8,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_1b7dda019ffb",
+   "ms": 17.3,
+   "data": {
+    "label": "stagway",
+    "types": [
+     "staggered_exit",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.747,
+    "cost_added": 2.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 9,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_46bef54bee3b",
+   "ms": 18.8,
+   "data": {
+    "label": "trains",
+    "types": [
+     "extra_trains"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.552,
+    "cost_added": 147.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 10,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_32a49d6ddb3f",
+   "ms": 15.5,
+   "data": {
+    "label": "bus",
+    "types": [
+     "shuttle_bus"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.85,
+    "cost_added": 4.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 11,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_e2da180ce990",
+   "ms": 29.2,
+   "data": {
+    "label": "way",
+    "types": [
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.848,
+    "cost_added": 0.5,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 12,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_19642ab6bf3d",
+   "ms": 19.9,
+   "data": {
+    "label": "trainstag",
+    "types": [
+     "extra_trains",
+     "staggered_exit"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.628,
+    "cost_added": 97.57,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 13,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_4496b39c4b2e",
+   "ms": 13.2,
+   "data": {
+    "label": "trainsway",
+    "types": [
+     "extra_trains",
+     "wayfinding_redirect"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.644,
+    "cost_added": 96.07,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 14,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_4fbe381f4946",
+   "ms": 14.1,
+   "data": {
+    "label": "trainslite",
+    "types": [
+     "extra_trains"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.644,
+    "cost_added": 95.57,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 15,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_4342fa851c6f",
+   "ms": 13.7,
+   "data": {
+    "label": "buslite",
+    "types": [
+     "shuttle_bus"
+    ],
+    "over": 0.25,
+    "excess": 60.7,
+    "peak_lf": 0.9,
+    "cost_added": 2.0,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 16,
+   "round": 1,
+   "role": "simulator",
+   "tool": "simulate",
+   "run_id": "sim_f6d1dae5595f",
+   "ms": 14.2,
+   "data": {
+    "label": "trainsbus",
+    "types": [
+     "extra_trains",
+     "shuttle_bus"
+    ],
+    "over": 0.0,
+    "excess": 0.0,
+    "peak_lf": 0.644,
+    "cost_added": 97.57,
+    "new_hotspots": []
+   }
+  },
+  {
+   "n": 17,
+   "round": 1,
+   "role": "critic",
+   "tool": "check_goal",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "verdict": "goal_met",
+    "meeting": 8,
+    "tested": 9
+   }
+  },
+  {
+   "n": 18,
+   "round": 1,
+   "role": "planner",
+   "tool": "rank",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "kept": 3,
+    "tested": 9,
+    "order": [
+     "way",
+     "stagway",
+     "buslite"
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "round": 1,
+   "role": "explainer",
+   "tool": "explain",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "source": "template",
+    "options": 3,
+    "template_fallback": []
+   }
+  },
+  {
+   "n": 20,
+   "round": 1,
+   "role": "verifier",
+   "tool": "verify_numbers",
+   "run_id": null,
+   "ms": 0.0,
+   "data": {
+    "checked": 25,
+    "all_matched": true
+   }
+  }
+ ],
+ "cached": false
+}

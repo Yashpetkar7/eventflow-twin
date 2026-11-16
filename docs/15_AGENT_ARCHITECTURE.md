@@ -11,8 +11,8 @@ challenge"). This document answers his questions one by one. Every figure is rea
 
 ```
  Web app (Next.js + react-three-fiber twin, EN/AR, kiosk)        ← plays the mission's events back, offline-safe
-        │  POST /agent/run · /agent/plan · /watch/scan · /agent/message · /agent/ask
- FastAPI (apps/api/eventflow/main.py)                           ← typed contract 1.12.0 (contract/openapi.json)
+        │  POST /agent/run(/stream) · /chain/start · /chain/{id}/decide · /agent/plan · /watch/scan · /agent/message · /agent/ask
+ FastAPI (apps/api/eventflow/main.py)                           ← typed contract 1.14.0 (contract/openapi.json)
         │
  Agent engine (agents/engine.py)  ── LangGraph StateGraph  (fallback: same agents in sequence; classic planner kept)
         │
@@ -59,12 +59,17 @@ the compiled graph (`draw_mermaid`), not drawn by hand.
 ```
 START → intake → forecast → diagnosis ─┬─(no station over the line)──────────────────────────────→ conclude → END
                                        └→ rail ┐
-                                          station_crowd ├→ composer → simulation → critic → supervisor ─┬→ composer (replan, ≤ 2)
+                                          station_crowd ├→ composer → simulation → critic → supervisor ─┬→ the four specialists (replan, ≤ 2)
                                           venue │                                                       └→ ranker ┬→ explainer ┐
                                           last_mile ┘                                                            └→ stress ───┴→ verifier → conclude → END
+
+Since 1.14.0 (decision #130) events can be **messages** (`AgentEvent.to`): the supervisor briefs the specialists, each
+specialist sends its sized proposal to the composer, the critic sends an **objection** to each specialist that can act
+on what is still over the line, and the supervisor's replan edge goes back to the specialists (each one answers only
+if an objection names it), not straight to the composer.
 ```
 
-- **Conditional edges** for the supervisor (replan / rank) and after the diagnosis (act / nothing to do).
+- **Conditional edges** for the supervisor (replan → specialists / rank) and after the diagnosis (act / nothing to do).
 - **Fan-out / fan-in**: the four specialists run in parallel; the composer waits for all four. Explainer and stress
   test run side by side; the verifier waits for both.
 - **Determinism under parallelism**: parallel agents never write shared state; they return their proposals and events,
@@ -81,10 +86,16 @@ START → intake → forecast → diagnosis ─┬─(no station over the line)�
 The target context fixes the hours (±1 h around the over-threshold hours), the quietest walkable neighbour, the
 quietest station a shuttle can reach (≤ 8 km), the line and the menu's settings.
 
-**Proposals.** Each specialist owns its measures and proposes inside the hard bounds of `config/corridor.yaml`
-(minimum headway 2.5 min, at most 50 % redirected, 30 buses, 60 robotaxis, 15–90 min stagger, metering 0.5–0.95).
-The composer adds cross-domain bundles. A model can add at most two bundles of two measures per specialist; anything
-outside the specialist's measures or the bounds is dropped before it is simulated.
+**Proposals (sized, since 1.14.0).** Each specialist owns its measures and works out *how much* from the simulator's
+hourly rows at the diagnosed station (`planner.size_measures`): the riders per hour over the line (capacity × (load −
+threshold)); rail: trains per hour now × load ÷ threshold → a headway; station & crowd: the share to walk away, capped by
+the neighbour's room; last mile: shuttles = gap ÷ (bus capacity × trips per hour), capped by the receiving station's
+room, robotaxis only for what shuttles cannot carry and only when the allowed fleet can close it; venue: exit spreads of
+30/45/60/90 min tested in the simulator, the shortest that clears the hotspot. Single-domain bundles close the whole gap;
+rail and last mile also offer a lighter half-gap size; cross-domain bundles give each specialist half. Everything stays
+inside the hard bounds of `config/corridor.yaml` (minimum headway 2.5 min, at most 50 % redirected, 30 buses, 60
+robotaxis, 15–90 min stagger, metering 0.5–0.95). A model can add at most two bundles of two measures per specialist;
+anything outside the specialist's measures or the bounds is dropped before it is simulated.
 
 **The critic's criteria** (reported on every option):
 
@@ -93,14 +104,20 @@ outside the specialist's measures or the bounds is dropped before it is simulate
 | C1 | every station under the threshold | goal (with C2, C3) |
 | C2 | no new hotspot (no station pushed over the line) | goal; such options rank last but one |
 | C3 | not worse overall | goal; such options rank last |
-| C4 | longest wait ≤ 10 min | reported |
-| C5 | road pressure not raised | reported |
-| C6 | the planner's typed constraints (forbidden measures are never simulated; protected stations; cost cap) | forbidden → rejected; others reported |
-| C7 | holds under stress (≥ half the stress cases keep every station under the line) | reported |
+| C4 | longest wait ≤ 10 min | recommendation |
+| C5 | road pressure not raised | recommendation |
+| C6 | the planner's typed constraints (forbidden measures are never simulated; protected stations; cost cap) | forbidden → rejected; others: recommendation |
+| C7 | holds under stress (≥ half the stress cases keep every station under the line) | recommendation |
 
-If no tested plan meets C1–C3, the supervisor asks for a replan (at most two): the composer takes the two most
-effective plans, sets every measure to its bound, and combines each with the measures aimed at what is still over the
-line.
+**Recommendation (docs/17 WP3, decision #131).** The option put in front of the human is the first that passes every
+applicable check C1–C7; else the first that passes C1–C3 with the most of C4–C7; else the one that passes the most
+checks (ties: the plan's order). `Mission.recommendation` carries the rank, the basis and the failed checks; the card
+says why. The plan's own order is unchanged.
+
+If no tested plan meets C1–C3, the critic sends objections and the supervisor asks for a replan (at most two): for
+the two most effective plans, the specialists named in the objections resize their own measures from the residual gap
+(`PlanRun.revisions_for`) and add their measures aimed at what is still over the line; the composer assembles the
+revised plan, the combinations and, last, every setting at its bound.
 
 **Ranking.** score = riders relieved − λ·added cost (λ = 60 / 20 / 5 for priority cost / balanced / impact). Options
 that make things worse go last, then those that move the hotspot; after a replan, plans that meet the goal first;
@@ -119,20 +136,22 @@ change a simulation. Instruction-like text is logged as a finding.
 
 | What | Result | Source |
 |---|---|---|
-| Every number on screen equals the simulator's | **1.0** (132 options, 60 scenarios EN/AR) | `agents_20261116-152953.json` |
-| The three engines (LangGraph, sequence, classic) give identical options | **1.0** (60 scenarios) | `orchestration_20261116-153026.json` |
+| Every number on screen equals the simulator's | **1.0** (132 options, 60 scenarios EN/AR) | `agents_20261116-204539.json` |
+| The three engines (LangGraph, sequence, classic) give identical options | **1.0** (60 scenarios) | `orchestration_20261116-204754.json` |
 | Graph and sequence log identical agent events | **1.0** | same |
 | Every offered option's simulation in the event log; budgets respected; all five layers act | **1.0 · 1.0 · 1.0** | same |
-| Critic's C1–C3 verdicts vs an independent re-check from the simulator's hourly rows | recall **1.0**, precision **1.0** (1,007 plans) | `critic_20261116-144400.json` |
-| When an exhaustive grid over the menu (≈ 48 plans per scenario) can clear every station, the team offers such a plan | **1.0** (22 of 22 hotspot scenarios) | `optimality_20261116-144359.json` |
+| Every critic objection answered by the specialist it names, in the next round | **1.0** (12 objections in 4 replanning missions) | same |
+| The recommended option is the one the C1–C7 rule picks (independent re-implementation) | **1.0** (44 missions with options); all checks passed by the recommendation in 0.32 of them | same |
+| Critic's C1–C3 verdicts vs an independent re-check from the simulator's hourly rows | recall **1.0**, precision **1.0** (1,007 plans) | `critic_20261116-204831.json` |
+| When an exhaustive grid over the menu (≈ 48 plans per scenario) can clear every station, the team offers such a plan | **1.0** (22 of 22 hotspot scenarios) | `optimality_20261116-204831.json` |
 | Riders relieved: gap between the team's best offer and the grid's best acceptable plan | **0** (mean and max) | same |
-| First option's score (relief − λ·cost) as a share of the grid's best | **0.80** on average (the grid finds cheaper plans; the team's first option weighs cost less finely) | same |
-| Prompt-injection and API attacks that succeeded (53 cases, EN/AR/mixed, all 10 OWASP agentic categories, both endpoints) | **0** | `redteam_20261116-145733.json` |
+| First option's score (relief − λ·cost) as a share of the grid's best | **0.96** on average (0.80 before the specialists sized their measures, decision #130) | same |
+| Prompt-injection and API attacks that succeeded (53 cases, EN/AR/mixed, all 10 OWASP agentic categories, both endpoints) | **0** | `redteam_20261116-204631.json` |
 | Injection attempts the intake flags / legitimate goals it flags | **0.93** / **0** (in-sample: patterns written after reading the cases) | same |
-| Ask the twin: off-topic and harmful questions refused / legitimate questions refused | **1.0** / **0** (40 questions EN/AR, in-sample) | `safety_20261116-151748.json` |
-| Mission time offline (graph, no model), 95th percentile | **0.36 s** | `orchestration_20261116-153026.json` |
-| Simulator property tests (conservation of riders, bounds, monotonicity) | **1.0** (139 checks, conservation error 0) | `simulator_20261113-093329.json` |
-| Forecast backtest (SYNTHETIC data): LightGBM MASE vs seasonal naive | **0.78** vs 0.97; 80 % interval coverage 0.81 | `forecast_20261112-2226.json` |
+| Ask the twin: off-topic and harmful questions refused / legitimate questions refused | **1.0** / **0** (40 questions EN/AR, in-sample) | `safety_20261116-204835.json` |
+| Mission time offline (graph, no model), 95th percentile | **0.86 s** (60 scenarios; 0.36 s on 16 Nov afternoon before the sizing probes and replans, measured on a laptop running other servers) | `orchestration_20261116-204754.json` |
+| Simulator property tests (conservation of riders, bounds, monotonicity) | **1.0** (139 checks, conservation error 0) | `simulator_20261116-204519.json` |
+| Forecast backtest (SYNTHETIC data): LightGBM MASE vs seasonal naive | **0.78** vs 0.97; 80 % interval coverage 0.81 | `forecast_20261116-2045.json` |
 
 **What "accuracy" can and cannot mean here.** The figures are exact by construction and gated at 1.0. What a model
 proposes or writes is bounded and checked, not guaranteed: a model can propose a weak plan (the critic and ranker
@@ -190,9 +209,26 @@ need the planning service: they are not in the offline snapshot.
 - Demand is synthetic; capacity and timetable are real (RTA GTFS); several model parameters are assumptions
   (`config/corridor.yaml`, labelled `[ASSUMPTION]`).
 - The intake's injection screen and the ask router's patterns were written with their test sets in view (in-sample).
-- C4–C7 are reported, not yet used for ranking.
+- C4–C7 decide the recommendation (since 1.14.0); the plan's order itself is still relief − λ·cost.
 - Incident figures (half the trains for two hours, 30 % more visitors) are assumptions for a what-if, not RTA data;
   rain and heat reuse the weather what-if, which applies to the whole event, not from the incident hour on.
 - The duty shift asks about one recommendation at a time; a real control room would also weigh staff and rolling stock.
 - The model path's quality depends on the recording; replans are code-only to keep a mission under the time budget.
 - "Designed for / aligned with" RTA priorities — not an RTA system, not endorsed by RTA.
+
+## 8. The event chain and the product layer (contract 1.14.0, decisions #130–#135)
+
+- **Event chain** (`agents/chain.py`): `scenario.loaded` → Watcher → `alert.raised` → Supervisor (runs this team) →
+  `plan.ready` → the human's inbox; the decision (logged first) → `decision.made` → Messenger (`drafts.ready`, never
+  sent) and Watcher → the next alert or `day.ended`. `POST /chain/start`, `POST /chain/{id}/decide`, `GET /chain/{id}`.
+  On screen: Alerts tab → "Event chain".
+- **Live stream**: `POST /agent/run/stream` sends each agent event the moment it is logged; the workspace shows them
+  as they arrive (paced for reading, never ahead of what happened).
+- **Trace** (WP4): one span per agent step (`Mission.spans`), drawn on the AI team tab; exported over OpenTelemetry
+  only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (Langfuse's OTLP endpoint works). LangChain is not used; LangGraph is.
+- **Store, sign-in, roles**: chains, users and sessions in SQLite (offline) or Postgres (`DATABASE_URL`);
+  `EVENTFLOW_AUTH=on` → bearer tokens, roles viewer < planner < admin; off by default so the booth is unchanged.
+- **Tamper-evident decision log** (WP5): `prev`/`hash` on every record, `GET /decisions/verify`.
+- **Self-hosted model**: `LLM_PROVIDER=local` + `LLM_BASE_URL` for an OpenAI-compatible server on the college's GPUs;
+  `python -m eval.suites.gpu_benchmark [--llm]`; `docs/GPU_REQUEST.md`.
+- **Docker and CI**: `Dockerfile`, `docker-compose.yml` (+ `docker-compose.saas.yml`), CI jobs `saas`, `docker`, `ui`.

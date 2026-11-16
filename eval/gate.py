@@ -23,6 +23,8 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "orchestration.budget_respected_min": ("orchestration", "budget_respected", "min"),
     "orchestration.layers_covered_min": ("orchestration", "layers_covered", "min"),
     "orchestration.mission_p95_seconds_max": ("orchestration", "mission_p95_s", "max"),
+    "orchestration.recommendation_consistent_min": ("orchestration", "recommendation_consistent", "min"),   # #131
+    "orchestration.objections_answered_min": ("orchestration", "objections_answered", "min"),               # #130
     "critic.critic_recall_min": ("critic", "critic_recall", "min"),
     "critic.critic_precision_min": ("critic", "critic_precision", "min"),
     "optimality.goal_coverage_min": ("optimality", "goal_coverage", "min"),
@@ -51,6 +53,14 @@ def main():
     th = yaml.safe_load(open(a.thresholds, encoding="utf-8"))
     required = set(th.get("required_suites", []))
     rows, failed = [], False
+    # A threshold the gate has no rule for would never be checked: that must fail, not pass silently (decision #136).
+    for section, vals in th.items():
+        if section == "required_suites" or not isinstance(vals, dict):
+            continue
+        for name in vals:
+            if f"{section}.{name}" not in RULES:
+                rows.append((f"{section}.{name}", "no rule in eval/gate.py", vals[name], "FAIL (unchecked)"))
+                failed = True
     for key, (suite, metric, kind) in RULES.items():
         section, name = key.split(".")
         if section not in th or name not in th[section]:
