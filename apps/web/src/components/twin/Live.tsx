@@ -13,83 +13,142 @@ import type { Models } from "./models";
 import { R7 } from "./perf";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
-const OK = new THREE.Color(0x0e9f6e), WARN = new THREE.Color(0xe39a00), RISK = new THREE.Color(0xc1123f);
-const COL_BASE = 31, CAP_H = 110, COL_R = 13;      // column sits on the station roof; CAP_H = 100 % load
+const OK = new THREE.Color(0x0e9f6e), WARN = new THREE.Color(0xe39a00), RISK = new THREE.Color(0xc1123f), WHITE = new THREE.Color(0xffffff);
+// The station gauge: a slim stack of discs on the station roof, one disc per 10 % of capacity (decision #126).
+const COL_BASE = 31, CAP_H = 110;                    // base on the station roof; CAP_H = 100 % load
+const SEGS = 17, SLOTS = 10;                         // discs that can light (up to 170 % load); slots drawn as the 0–100 % scale
+const PITCH = CAP_H / SLOTS, DISC_H = 5.8, DISC_R = 10.5;
 
-/** Column size grows with the camera's working distance so the data stays the most visible thing in every view.
- *  One scale for all columns: in low views the far ones shrink with perspective instead of looming on the skyline. */
+/** Gauge size grows with the camera's working distance so the data stays the most visible thing in every view.
+ *  One scale for all gauges: in low views the far ones shrink with perspective instead of looming on the skyline. */
 const columnScale = (dist: number) => Math.max(1, Math.min(6.2, dist / 950));
 
+/** A disc lit from within: brighter towards its top face (vertex colours, multiplied by the instance colour). */
+function discGeometry(r: number) {
+  const g = new THREE.CylinderGeometry(r, r, 1, 40, 1).translate(0, 0.5, 0);
+  const pos = g.attributes.position, nor = g.attributes.normal, col = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const v = nor.getY(i) > 0.5 ? 1.12 : nor.getY(i) < -0.5 ? 0.5 : 0.62 + 0.38 * pos.getY(i);
+    col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = v;
+  }
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  return g;
+}
+
+/**
+ * Station load gauges. Each station carries a stack of discs: one lights for every 10 % of boarding capacity in use,
+ * from the bottom; the top one fills partly. A white ring marks the comfort threshold; whatever is lit above it is
+ * red and pulses. Faint slots show the 0–100 % scale. The lit stack is also drawn faintly where a building stands
+ * in front of it (x-ray pass), so a gauge is never lost behind a tower. Every value is the simulator's load factor.
+ */
 export function Columns({ places }: { places: StationPlace[] }) {
+  const lit = useRef<THREE.InstancedMesh>(null), xray = useRef<THREE.InstancedMesh>(null), slots = useRef<THREE.InstancedMesh>(null);
   const groups = useRef<Record<string, THREE.Group>>({});
   const pulses = useRef<Record<string, THREE.Mesh>>({});
   const heights = useRef<Record<string, number>>({});
-  const cast = useRef<Record<string, number>>({});                   // bar height (m) the shadow map was last told about
+  const n = places.length;
   const geo = useMemo(() => ({
-    glass: new THREE.CylinderGeometry(COL_R + 3.5, COL_R + 3.5, 1, 36, 1, true).translate(0, 0.5, 0),
-    ring: new THREE.TorusGeometry(COL_R + 4.4, 1.25, 10, 56).rotateX(Math.PI / 2),
-    cap: new THREE.TorusGeometry(COL_R, 0.7, 8, 48).rotateX(Math.PI / 2),
-    foot: new THREE.CylinderGeometry(COL_R + 6, COL_R + 6, 1.2, 40).translate(0, 0.6, 0),
-    bar: new THREE.CylinderGeometry(COL_R, COL_R, 1, 36).translate(0, 0.5, 0),
-    pulse: new THREE.RingGeometry(COL_R + 9, COL_R + 14, 56).rotateX(-Math.PI / 2),
+    disc: discGeometry(DISC_R), slot: new THREE.CylinderGeometry(DISC_R * 0.94, DISC_R * 0.94, 1, 40, 1).translate(0, 0.5, 0),
+    ring: new THREE.TorusGeometry(DISC_R + 4.6, 0.55, 8, 64).rotateX(Math.PI / 2),
+    cap: new THREE.TorusGeometry(DISC_R + 0.6, 0.5, 8, 56).rotateX(Math.PI / 2),
+    mast: new THREE.CylinderGeometry(0.9, 0.9, 1, 10).translate(0, 0.5, 0),
+    foot: new THREE.CylinderGeometry(DISC_R + 5, DISC_R + 6.5, 1.4, 44).translate(0, 0.7, 0),
+    pulse: new THREE.RingGeometry(DISC_R + 9, DISC_R + 14, 56).rotateX(-Math.PI / 2),
   }), []);
-  const mats = useMemo(() => places.map(() => ({
-    glass: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, side: THREE.BackSide, depthWrite: false, fog: false }),
-    ring: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }),
-    cap: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, transparent: true, opacity: 0.9 }),
-    foot: new THREE.MeshBasicMaterial({ color: 0x151b28, fog: false, transparent: true, opacity: 0.55 }),
-    bar: new THREE.MeshStandardMaterial({ color: 0x0e9f6e, roughness: 0.45, metalness: 0.0, fog: false, envMapIntensity: 0.15 }),
-    pulse: new THREE.MeshBasicMaterial({ color: 0xb0124f, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, fog: false }),
-  })), [places]);
-  useEffect(() => () => { Object.values(geo).forEach((g) => g.dispose()); mats.forEach((m) => Object.values(m).forEach((x) => x.dispose())); }, [geo, mats]);
+  const mats = useMemo(() => ({
+    lit: new THREE.MeshBasicMaterial({ vertexColors: true, fog: false }),
+    // the same stack where something stands in front of it: drawn only behind nearer geometry, faintly
+    xray: new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, transparent: true, opacity: 0.3, depthFunc: THREE.GreaterDepth, depthWrite: false }),
+    slot: new THREE.MeshBasicMaterial({ color: 0xc9d6e6, fog: false, transparent: true, opacity: 0.2, depthWrite: false }),
+    mast: new THREE.MeshBasicMaterial({ color: 0xaab8cc, fog: false, transparent: true, opacity: 0.55 }),
+    foot: new THREE.MeshBasicMaterial({ color: 0x151b28, fog: false, transparent: true, opacity: 0.6 }),
+    per: places.map(() => ({
+      ring: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }),
+      cap: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, transparent: true, opacity: 0.95 }),
+      pulse: new THREE.MeshBasicMaterial({ color: 0xb0124f, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, fog: false }),
+    })),
+  }), [places]);
+  useEffect(() => () => {
+    Object.values(geo).forEach((g) => g.dispose());
+    [mats.lit, mats.xray, mats.slot, mats.mast, mats.foot].forEach((m) => m.dispose());
+    mats.per.forEach((m) => Object.values(m).forEach((x) => x.dispose()));
+  }, [geo, mats]);
+  // the x-ray pass draws the very same instances: share the lit stack's matrices and colours
+  useEffect(() => {
+    const a = lit.current, x = xray.current;
+    if (!a || !x) return;
+    a.setColorAt(0, OK);                                         // creates instanceColor
+    x.instanceMatrix = a.instanceMatrix; x.instanceColor = a.instanceColor;
+  }, [n]);
 
-  const col = useMemo(() => new THREE.Color(), []);
-  useFrame(({ camera }, dtRaw) => {
+  const col = useMemo(() => new THREE.Color(), []), m4 = useMemo(() => new THREE.Matrix4(), []);
+  const pos = useMemo(() => new THREE.Vector3(), []), scl = useMemo(() => new THREE.Vector3(), []), quat = useMemo(() => new THREE.Quaternion(), []);
+  useFrame((_, dtRaw) => {
     const dt = Math.min(0.05, dtRaw);
     const s = useTwin.getState();
     const thr = s.cur?.thr ?? s.threshold;
+    const a = lit.current, sl = slots.current;
+    if (!a || !sl) return;
+    const k = columnScale(live.camDist);
+    const beat = s.reducedMotion ? 1 : 0.86 + 0.32 * (0.5 + 0.5 * Math.sin(live.animT * 6));
     places.forEach((p, i) => {
       const g = groups.current[p.id], pulse = pulses.current[p.id];
       if (!g || !pulse) return;
-      const [glass, ring, bar, cap] = g.children;
       const lf = lfAt(s.cur, p.id, s.time), over = lf > thr;
-      const k = columnScale(live.camDist);
-      const target = Math.max(0.02, Math.min(1.7, lf)) * CAP_H;
-      const cur = (heights.current[p.id] ?? 0) + (target - (heights.current[p.id] ?? 0)) * Math.min(1, dt * 6);
-      heights.current[p.id] = cur;
-      const thrH = thr * CAP_H;
+      const target = Math.max(0.02, Math.min(SEGS / SLOTS, lf));
+      const level = (heights.current[p.id] ?? 0) + (target - (heights.current[p.id] ?? 0)) * Math.min(1, dt * 6);   // eased load factor
+      heights.current[p.id] = level;
+      for (let j = 0; j < SEGS; j++) {
+        const fill = Math.max(0, Math.min(1, (level - j / SLOTS) * SLOTS));       // how much of this disc is lit
+        const y = COL_BASE + j * PITCH * k;
+        pos.set(p.x, y, p.z);
+        scl.set(k, Math.max(0.0001, DISC_H * k * (fill > 0 ? Math.max(0.2, fill) : 0)), k);
+        if (fill <= 0) scl.setScalar(0);
+        a.setMatrixAt(i * SEGS + j, m4.compose(pos, quat, scl));
+        // red above the comfort threshold (a disc is red as soon as its lit part passes it), else the station's state
+        const top = Math.min((j + 1) / SLOTS, level);
+        if (top > thr + 1e-4) col.copy(RISK).multiplyScalar(1.25 * beat);
+        else col.copy(lf > thr * 0.72 ? WARN : OK).multiplyScalar(1.02 + live.night * 0.1);
+        a.setColorAt(i * SEGS + j, col);
+        if (j < SLOTS) {                                                          // the empty scale: hidden where a disc is fully lit
+          scl.set(k, fill >= 1 ? 0 : DISC_H * k, k);
+          if (fill >= 1) scl.setScalar(0);
+          sl.setMatrixAt(i * SLOTS + j, m4.compose(pos, quat, scl));
+        }
+      }
+      const top = Math.floor(Math.min(level * SLOTS, SEGS - 0.001));
+      const litH = level <= 0 ? 0 : top * PITCH + DISC_H * Math.max(0.2, Math.min(1, level * SLOTS - top));
+      const [ring, cap, mast] = g.children;
       g.scale.setScalar(k);
-      glass.scale.y = thrH; ring.position.y = thrH; bar.scale.y = cur; cap.position.y = cur;
-      col.copy(over ? RISK : lf > thr * 0.72 ? WARN : OK);
-      const m = mats[i];
-      m.bar.color.copy(col);
-      const beat = s.reducedMotion ? 0.45 : 0.35 + 0.25 * Math.sin(live.animT * 6);
-      // self-lit so the colour reads the same at noon, golden hour and night
-      m.bar.emissive.copy(col).multiplyScalar(over ? beat + 0.25 : 0.42 + live.night * 0.3 + live.golden * 0.12);
-      // the capacity glass fades out when the camera passes right beside a column (fly-through), the bar stays
-      const near = Math.max(0, Math.min(1, (camera.position.distanceTo(g.position) - 140) / 320));
-      m.glass.opacity = (0.3 - 0.14 * live.night) * near;
-      m.ring.color.setHex(over ? 0xffd9e2 : 0xffffff);
+      ring.position.y = thr * CAP_H; cap.position.y = litH + 0.4;
+      mast.scale.y = Math.max(CAP_H - PITCH + DISC_H, litH);
+      const pm = mats.per[i];
+      pm.ring.color.setHex(over ? 0xffc2cf : 0xffffff);
+      pm.cap.color.copy(over ? RISK : lf > thr * 0.72 ? WARN : OK).lerp(WHITE, 0.72);
       const ph = s.reducedMotion ? 0.35 : (live.animT * 0.8) % 1;
-      m.pulse.opacity = over ? 0.55 * (1 - ph) : 0;
+      pm.pulse.opacity = over ? 0.55 * (1 - ph) : 0;
       pulse.scale.setScalar(over ? k * (1 + ph * 1.6) : k);
-      live.columnTop[p.id] = COL_BASE + (Math.max(cur, thrH) + 16) * k;
-      if (Math.abs(cur * k - (cast.current[p.id] ?? -1)) > 0.5) { cast.current[p.id] = cur * k; live.shadowDirty = 2; }
+      live.columnTop[p.id] = COL_BASE + (Math.max(litH, thr * CAP_H) + 16) * k;
     });
+    a.instanceMatrix.needsUpdate = true; sl.instanceMatrix.needsUpdate = true;
+    if (a.instanceColor) a.instanceColor.needsUpdate = true;
+    mats.slot.opacity = 0.2 + 0.06 * live.night;
   });
 
   return (
     <group>
+      <instancedMesh ref={slots} args={[geo.slot, mats.slot, n * SLOTS]} frustumCulled={false} renderOrder={3} />
+      <instancedMesh ref={lit} args={[geo.disc, mats.lit, n * SEGS]} frustumCulled={false} />
+      <instancedMesh ref={xray} args={[geo.disc, mats.xray, n * SEGS]} frustumCulled={false} renderOrder={5} />
       {places.map((p, i) => (
         <group key={p.id}>
           <group position={[p.x, COL_BASE, p.z]} ref={(g) => { if (g) groups.current[p.id] = g; }}>
-            <mesh geometry={geo.glass} material={mats[i].glass} renderOrder={3} />
-            <mesh geometry={geo.ring} material={mats[i].ring} />
-            <mesh geometry={geo.bar} material={mats[i].bar} castShadow />
-            <mesh geometry={geo.cap} material={mats[i].cap} />
-            <mesh geometry={geo.foot} material={mats[i].foot} />
+            <mesh geometry={geo.ring} material={mats.per[i].ring} />
+            <mesh geometry={geo.cap} material={mats.per[i].cap} />
+            <mesh geometry={geo.mast} material={mats.mast} />
+            <mesh geometry={geo.foot} material={mats.foot} position-y={-1.4} />
           </group>
-          <mesh geometry={geo.pulse} material={mats[i].pulse} position={[p.x, 1.6, p.z]} renderOrder={4}
+          <mesh geometry={geo.pulse} material={mats.per[i].pulse} position={[p.x, 1.6, p.z]} renderOrder={4}
             ref={(m) => { if (m) pulses.current[p.id] = m; }} />
         </group>
       ))}

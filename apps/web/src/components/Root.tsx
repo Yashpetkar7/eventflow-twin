@@ -88,7 +88,9 @@ function Workspace() {
           <div><span>{t(`tourSteps.${tourStep as 0 | 1 | 2 | 3 | 4}`)}</span><button type="button" onClick={stopTour}>{t("skip")}</button></div>
         </div>
       )}
-      <dialog ref={wdlg} className="how welcome" onClose={closeWelcome} data-testid="welcome">
+      {/* a click on the dimmed page behind the sheet closes it too (the dialog element itself is the backdrop's target) */}
+      <dialog ref={wdlg} className="how welcome" onClose={closeWelcome} onClick={(e) => { if (e.target === e.currentTarget) closeWelcome(); }} data-testid="welcome">
+        <button type="button" className="dlg-x" onClick={closeWelcome} aria-label={t("close")} data-testid="welcome-close">×</button>
         <h3>{t("welcome.title")}</h3>
         <p className="lead">{t("welcome.lead")}</p>
         <ol><li>{t("welcome.p1")}</li><li>{t("welcome.p2")}</li></ol>

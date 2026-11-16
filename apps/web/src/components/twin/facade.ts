@@ -17,10 +17,11 @@ import * as THREE from "three";
 
 /** `side`: double for buildings by the corridor (the inside of a parapet shows in close-ups), front only for the far ring,
  *  where drawing back faces would double the rasterising of 60,000 buildings for nothing visible. */
-export function facadeMaterialV2(uniforms: { uNight: { value: number } }, side: THREE.Side = THREE.DoubleSide): THREE.MeshStandardMaterial {
+export function facadeMaterialV2(uniforms: { uNight: { value: number }; uCut?: { value: THREE.Vector4 } }, side: THREE.Side = THREE.DoubleSide): THREE.MeshStandardMaterial {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0.04, side });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uNight = uniforms.uNight;
+    sh.uniforms.uCut = uniforms.uCut ?? { value: new THREE.Vector4() };
     sh.vertexShader = sh.vertexShader
       .replace("#include <common>", `#include <common>
         attribute vec3 aInfo;
@@ -29,10 +30,21 @@ export function facadeMaterialV2(uniforms: { uNight: { value: number } }, side: 
         vFac = uv; vSeed = aInfo.x; vType = aInfo.y; vTall = aInfo.z;`);
     sh.fragmentShader = sh.fragmentShader
       .replace("#include <common>", `#include <common>
-        uniform float uNight; varying vec2 vFac; varying float vSeed; varying float vType; varying float vTall;
+        uniform float uNight; uniform vec4 uCut; varying vec2 vFac; varying float vSeed; varying float vType; varying float vTall;
         float eftHash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
         float eftGlass = 0.0;`)
       .replace("#include <color_fragment>", /* glsl */ `#include <color_fragment>
+        // Cut-away: whatever stands between the camera and the station being looked at is opened up, so a full-height
+        // tower never hides the station (uCut = the station in view space + the radius of the opening; 0 = off).
+        if (uCut.w > 0.0) {
+          vec3 cp = -vViewPosition;
+          float cl = length(uCut.xyz), ct = dot(cp, uCut.xyz) / cl;                  // metres along the line of sight
+          float cd = length(cp - uCut.xyz * (ct / cl));
+          if (ct > 0.0 && ct < cl - 26.0) {
+            if (cd < uCut.w) discard;
+            diffuseColor.rgb *= 0.45 + 0.55 * smoothstep(uCut.w, uCut.w + 3.0, cd);    // a dark rim: the opening reads as a clean cut
+          }
+        }
         if (vType > -0.5) {
           float t = vType;
           // storey height, bay width (metres) and the window's box inside a cell (x0, x1, y0, y1), per type
@@ -52,8 +64,10 @@ export function facadeMaterialV2(uniforms: { uNight: { value: number } }, side: 
           float open = mix(box.y - box.x, px, cx) * mix(box.w - box.z, py, cy) * has;
           float body = step(vFac.y, vTall - 1.3);                                    // the top band is parapet
           if (t > 3.5 && t < 4.5) open *= step(id.y, 0.5);                           // warehouses: doors on the ground floor only
-          float crown = t < 0.5 ? step(200.0, vTall) * step(vTall * 0.92, vFac.y) : 0.0;
-          open *= body * (1.0 - crown);
+          // The tallest towers (200 m and up) carry a thin line of light along the parapet after dark. Their top storeys
+          // keep their windows: left blank with a wash of light they read as pale slabs on the skyline at night.
+          float crown = t < 0.5 ? step(200.0, vTall) * step(vTall - 2.0, vFac.y) : 0.0;
+          open *= body;
 
           vec3 wallCol = diffuseColor.rgb;
           if (t > 0.5 && t < 1.5) {                                                  // balconies: slab shadow and a light parapet on some columns
@@ -116,8 +130,8 @@ export function facadeMaterialV2(uniforms: { uNight: { value: number } }, side: 
           float lit = mix(share, step(eftHash(id + vSeed * 53.0), share), both);
           vec3 lamp = (t > 0.5 && t < 2.5) ? mix(vec3(1.0, 0.78, 0.5), vec3(1.0, 0.9, 0.72), h1) : mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.95, 0.85), step(0.7, h1));
           // Far away the lit windows blend into a dim glow, not a pale wall (the mean used to be as bright as a window).
-          totalEmissiveRadiance += lamp * uNight * open * (t > 3.5 && t < 4.5 ? 0.0 : 1.0) * lit * (t < 0.5 ? 0.85 : 1.25) * mix(1.0, roomLight, roomK) * mix(0.42, 1.0, both);
-          totalEmissiveRadiance += vec3(0.55, 0.7, 0.95) * uNight * crown * 0.13;   // a faint wash on the crowns of the tallest towers (was a bright striped band)
+          totalEmissiveRadiance += lamp * uNight * open * (t > 3.5 && t < 4.5 ? 0.0 : 1.0) * lit * (t < 0.5 ? 0.85 : 1.25) * mix(1.0, roomLight, roomK) * mix(0.6, 1.0, both);
+          totalEmissiveRadiance += vec3(0.75, 0.86, 1.0) * uNight * crown * 0.6;    // the parapet light line of the tallest towers
         }
         diffuseColor.rgb *= 1.0 - 0.64 * uNight;`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.12, eftGlass);`)
@@ -141,11 +155,12 @@ export function curtainWall<T extends THREE.MeshStandardMaterial>(m: T, u: { uNi
       .replace("#include <common>", `#include <common>
         uniform float uNight; uniform float uTime; varying vec3 vLw; varying vec3 vLn;
         float eftLh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
-        float eftFrame = 0.0;`)
+        float eftFrame = 0.0; float eftWall = 1.0;`)
       .replace("#include <color_fragment>", /* glsl */ `#include <color_fragment>
         {
           vec3 n = normalize(vLn);
           float wall = 1.0 - smoothstep(0.5, 0.8, abs(n.y));                       // roofs and slopes stay plain
+          eftWall = wall;
           vec2 h = normalize(n.xz + vec2(1e-5));
           vec2 g = vec2(dot(vLw.xz, vec2(-h.y, h.x)) / ${bay}, vLw.y / ${storey}), id = floor(g), f = fract(g), fw = fwidth(g);
           float cx = 1.0 - smoothstep(0.14, 0.45, fw.x), cy = 1.0 - smoothstep(0.14, 0.45, fw.y);
@@ -157,13 +172,15 @@ export function curtainWall<T extends THREE.MeshStandardMaterial>(m: T, u: { uNi
           float pane = (1.0 - eftFrame) * wall;
           float on = mix(${lit}, step(eftLh(id + 7.0), ${lit}), cx * cy);
           totalEmissiveRadiance += vec3(1.0, 0.92, 0.78) * uNight * pane * on * mix(0.4, 0.95, cx * cy);
-          diffuseColor.rgb *= 1.0 - 0.58 * uNight;                                  // glass is dark at night; the lit floors carry the tower
+          // glass is dark at night; the lit floors carry the tower. Roofs, soffits and other flat faces in a glass slot
+          // have no lit floors, so they go nearly black (as a mirror facing the night sky they read as pale slabs)
+          diffuseColor.rgb *= 1.0 - uNight * mix(0.95, 0.58, wall);
           ${opts.show ? `float band = pow(0.5 + 0.5 * sin(vLw.y * 0.021 - uTime * 0.9), 14.0) + 0.5 * pow(0.5 + 0.5 * sin(vLw.y * 0.047 + uTime * 0.55), 22.0);
           totalEmissiveRadiance += vec3(0.62, 0.8, 1.0) * uNight * wall * band * 0.6;` : ""}
         }`)
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.5, eftFrame);")
-      .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.35, eftFrame);");
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.85, mix(roughnessFactor, 0.5, eftFrame), eftWall);")
+      .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = mix(0.05, mix(metalnessFactor, 0.35, eftFrame), eftWall);");
   };
-  m.customProgramCacheKey = () => `eft-curtain-${bay}-${storey}-${lit}-${opts.show ? 1 : 0}`;
+  m.customProgramCacheKey = () => `eft-curtain2-${bay}-${storey}-${lit}-${opts.show ? 1 : 0}`;
   return m;
 }

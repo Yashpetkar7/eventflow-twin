@@ -199,7 +199,11 @@ table.data th { color: var(--ink-3); font-weight: 500; }
 .ftr { padding: 6px 18px; font-size: 11px; color: var(--ink-3); border-block-start: 1px solid var(--line); background: var(--surface); }
 .banner.demo { background: var(--navy-soft); color: var(--navy); }
 .banner { background: var(--amber-soft); color: var(--amber-ink); font-size: 12.5px; padding: 6px 18px; border-block-end: 1px solid var(--line); }
-dialog.how { border: 0; border-radius: 18px; max-width: 720px; width: calc(100% - 32px); padding: 24px; background: var(--surface); color: var(--ink); }
+/* margin: auto centres a modal dialog; the CSS reset sets it to 0, which pinned the sheets to the top-left corner */
+dialog.how { border: 0; border-radius: 18px; max-width: 720px; width: calc(100% - 32px); padding: 24px; background: var(--surface); color: var(--ink); margin: auto; max-height: calc(100dvh - 32px); overflow: auto; position: fixed; }
+.dlg-x { position: absolute; inset-block-start: 10px; inset-inline-end: 10px; inline-size: 44px; block-size: 44px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 24px; line-height: 1; color: var(--ink-2); display: grid; place-items: center; }
+.dlg-x:hover { background: var(--navy-soft); color: var(--navy); }
+dialog.welcome h3 { padding-inline-end: 48px; }
 dialog.how::backdrop { background: rgba(10, 14, 22, 0.5); }
 dialog.how h3 { margin: 0 0 10px; font-size: 20px; font-weight: 600; }
 dialog.how li, dialog.how p { font-size: 13.5px; color: var(--ink-2); }

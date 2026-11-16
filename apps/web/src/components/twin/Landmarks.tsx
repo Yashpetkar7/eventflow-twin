@@ -16,6 +16,7 @@ import { mergeModels, ModelMesh, SITE_MODELS, withAo, type Models } from "./mode
 import { R7 } from "./perf";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
+const STEEL = new THREE.Color(0x9aa7b4);             // tower roofs and crown bands by day
 const CROWN = new THREE.Color(0xe9e2d4);             // the models' concrete slot by day; darkened after dark in useFrame
 
 function burjGeometry(): THREE.BufferGeometry {
@@ -186,12 +187,15 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
       green: withAo(mats.mound), mof: withAo(mats.mof), dwtc: withAo(mats.dwtc),
       towerGlass: curtainWall(Object.assign(glass(), { color: new THREE.Color(0x7d96aa) }), wallU, { lit: 0.26 }),    // R8b towers, nearer the city's own tint
       goldGlass: curtainWall(Object.assign(glass(), { color: new THREE.Color(0xc4a266) }), wallU, { lit: 0.26 }),      // Gevora Hotel's gold skin
+      // roofs, crown bands and roof plant of the R8b towers: plain metal that goes dark after dark (the landmark steel
+      // carries façade lighting, which on a flat roof read as pale glowing slabs at night)
+      towerSteel: Object.assign(withAo(mats.steel), { emissiveIntensity: 0 }),
       jet: new THREE.MeshBasicMaterial({ color: 0xeef6ff, transparent: true, opacity: 0, depthWrite: false }) };   // the Dubai Fountain, after dark only
   }, [mats, models, wallU]);
   const burjMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.burjGlass } : null), [vmats]);
   // the ten R8b towers share their materials, so they are drawn as one model; the mall, gate and fountain on their own
   const towers = useMemo(() => (models ? mergeModels(SITE_MODELS.filter((k) => k.startsWith("tower_")).map((k) => models[k])) : null), [models]);
-  const towerMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.towerGlass, gold: vmats.goldGlass } : null), [vmats]);
+  const towerMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.towerGlass, gold: vmats.goldGlass, steel: vmats.towerSteel } : null), [vmats]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => (v instanceof THREE.BufferGeometry || v instanceof THREE.Texture) && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
@@ -205,11 +209,17 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
     beacon.current?.scale.setScalar(Math.max(2.2, Math.min(9, live.camDist / 700)));
     wallU.uNight.value = n; wallU.uTime.value = live.animT;
     if (vmats) {
-      vmats.glass.emissiveIntensity = vmats.burjGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
+      vmats.burjGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
+      vmats.glass.emissiveIntensity = n * 0.025;                              // Emirates Towers: dark glass, lit floors (a blanket glow read as pale slabs)
       // R8b towers, the Gate and the mall: no blanket glow (it read as a uniform pale-blue slab at night); their lit
       // floors come from the curtain wall, like the city's own towers
       vmats.towerGlass.emissiveIntensity = vmats.goldGlass.emissiveIntensity = 0;
-      vmats.concrete.color.copy(CROWN).multiplyScalar(1 - 0.62 * n);        // podiums, roofs, the Gate's arch: dark at night
+      // Glass mirrors the sky map; after dark that reflection made the towers and the Gate read light grey against a
+      // black city. Reflect far less at night, so only the lit floors show (as on the city's own towers).
+      for (const g of [vmats.glass, vmats.burjGlass, vmats.towerGlass, vmats.goldGlass]) g.envMapIntensity = 1.35 * (1 - 0.82 * n);
+      // podiums, roofs, the Gate's arch: dark at night (lit by moonlight alone they stayed pale blue-grey)
+      vmats.concrete.color.copy(CROWN).multiplyScalar(1 - 0.88 * n); vmats.concrete.envMapIntensity = 1 - 0.85 * n;
+      vmats.towerSteel.color.copy(STEEL).multiplyScalar(1 - 0.88 * n); vmats.towerSteel.envMapIntensity = 1.25 * (1 - 0.85 * n);
       vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
       vmats.mof.emissiveIntensity = mats.mof.emissiveIntensity; vmats.gold.emissiveIntensity = mats.gold.emissiveIntensity; vmats.dwtc.emissiveIntensity = mats.dwtc.emissiveIntensity;
       vmats.jet.opacity = 0.85 * Math.max(0, (n - 0.5) * 2); vmats.jet.visible = vmats.jet.opacity > 0;

@@ -73,6 +73,26 @@ function ribTexture() {
   return t;
 }
 
+/** How the shell is lit after dark: floodlights along both long edges fading towards the ridge, with the ribs showing
+ *  (u runs along the shell, v across it). Used as the emissive map, so by day it does nothing. */
+function floodTexture() {
+  const W = 256, H = 64, c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const g = c.getContext("2d")!, img = g.createImageData(W, H);
+  for (let y = 0; y < H; y++) {
+    const edge = Math.pow(Math.abs((y + 0.5) / H * 2 - 1), 1.6);                  // 1 at the eaves, 0 on the ridge
+    for (let x = 0; x < W; x++) {
+      const rib = x % 8 === 7 ? 0.5 : x % 8 === 0 ? 0.8 : 1;                       // a dark seam every eighth texel
+      const v = Math.round(255 * rib * (0.3 + 0.7 * edge)), i = (y * W + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = THREE.RepeatWrapping; t.repeat.set(5, 1); t.colorSpace = THREE.NoColorSpace;
+  return t;
+}
+
 export function Metro({ corridor, places, models = null }: { corridor: Corridor; places: StationPlace[]; models?: Models | null }) {
   const select = useTwin((s) => s.select);
   const built = useMemo(() => {
@@ -95,31 +115,35 @@ export function Metro({ corridor, places, models = null }: { corridor: Corridor;
     };
   }, [corridor]);
   const ribs = useMemo(() => ribTexture(), []);
+  const flood = useMemo(() => floodTexture(), []);
   const mats = useMemo(() => ({
     conc: new THREE.MeshStandardMaterial({ color: 0xe6e2da, roughness: 0.72 }),
     red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, emissive: 0x7a0000, roughness: 0.5 }),
     // champagne-gold shell: metallic with a soft clear-coat sheen, picks up the sky of the hour
     shell: new THREE.MeshPhysicalMaterial({ color: 0xd8b56e, metalness: 0.82, roughness: 0.3, clearcoat: 0.55, clearcoatRoughness: 0.28, envMapIntensity: 1.25, bumpMap: ribs, bumpScale: 0.6, side: THREE.DoubleSide,
-      emissive: 0x9a7438, emissiveIntensity: 0 }),                                 // warm uplight after dark (useFrame)
+      emissive: 0xd9a548, emissiveMap: flood, emissiveIntensity: 0 }),            // floodlit gold after dark (useFrame)
     glass: new THREE.MeshStandardMaterial({ color: 0x9fc3d8, metalness: 0.35, roughness: 0.12, transparent: true, opacity: 0.62, emissive: 0xffe2b0, emissiveIntensity: 0 }),
+    // the footbridge across the road: softly lit from inside (at the station glass's full glow it read as a cream bar)
+    bridge: new THREE.MeshStandardMaterial({ color: 0x9fc3d8, metalness: 0.35, roughness: 0.12, transparent: true, opacity: 0.5, emissive: 0xffd9a0, emissiveIntensity: 0 }),
     hit: new THREE.MeshBasicMaterial({ visible: false }),
-  }), [ribs]);
+  }), [ribs, flood]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => v instanceof THREE.BufferGeometry && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
-    ribs.dispose();
-  }, [built, mats, ribs]);
+    ribs.dispose(); flood.dispose();
+  }, [built, mats, ribs, flood]);
   // Blender-built station (docs/13 R4): the same materials, reading the baked ambient occlusion
   const vmats = useMemo(() => (models ? { shell: withAo(mats.shell), concrete: withAo(mats.conc), glass: withAo(mats.glass), steel: withAo(mats.conc) } : null), [mats, models]);
   useEffect(() => () => { if (vmats) Object.values(vmats).forEach((m) => m.dispose()); }, [vmats]);
   useFrame(() => {
     const n = live.night;
-    mats.glass.emissiveIntensity = n * 0.9; mats.red.emissiveIntensity = 1 + n * 1.5;
+    mats.glass.emissiveIntensity = n * 0.9; mats.red.emissiveIntensity = 1 + n * 1.5; mats.bridge.emissiveIntensity = n * 0.22;
     // After dark the reflection probe is nearly black, so a metallic shell shows nothing but its clear-coat highlight
-    // (a black capsule) and plain concrete stays bright cream under the moonlight. Uplight the gold shell instead and
-    // darken the concrete like the city's walls (facade.ts).
+    // (a black capsule), and a plain glow turns it into a flat brown blob. It is floodlit instead: bright along the
+    // eaves, fading to the ridge, ribs showing (floodTexture), with some sheen kept for the moonlight. Concrete
+    // darkens like the city's walls (facade.ts).
     for (const m of vmats ? [mats.shell, vmats.shell] : [mats.shell]) {
-      m.metalness = 0.82 - 0.6 * n; m.roughness = 0.3 + 0.22 * n; m.emissiveIntensity = n * 0.42;
+      m.metalness = 0.82 - 0.34 * n; m.roughness = 0.3 + 0.12 * n; m.emissiveIntensity = n * 0.95;
     }
     for (const m of vmats ? [mats.conc, vmats.concrete, vmats.steel] : [mats.conc]) m.color.copy(CONC).multiplyScalar(1 - 0.62 * n);
     if (vmats) vmats.glass.emissiveIntensity = mats.glass.emissiveIntensity;
@@ -150,7 +174,7 @@ export function Metro({ corridor, places, models = null }: { corridor: Corridor;
               </>
             )}
             {/* glass footbridge across Sheikh Zayed Road with an entrance pod and lift tower at each end */}
-            <mesh geometry={built.box} material={mats.glass} position={[0, 7.4, mid]} scale={[5.5, 3.4, span]} />
+            <mesh geometry={built.box} material={mats.bridge} position={[0, 7.4, mid]} scale={[5.5, 3.4, span]} />
             <mesh geometry={built.box} material={mats.conc} position={[0, 5.5, mid]} scale={[6, 0.5, span]} castShadow />
             {[p.zMin, p.zMax].map((zz, k) => (
               <group key={k} position={[0, 0, zz]}>

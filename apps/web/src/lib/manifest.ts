@@ -21,7 +21,7 @@ export interface Manifest {
   version: number; generated: string; ring: Box; wide: Box; extent: Box;
   overview: { file: string; mask: string; extent: Box };
   ao_corridor: { file: string; extent: Box };
-  ghosts: number[][]; chunks: ManifestChunk[];
+  ghosts: number[][]; chunks: ManifestChunk[]; camera_side_cut_m?: number;
   counts: { buildings: number; estimated: number; by_height_source: Record<string, number>; by_class: Record<string, number> };
   provenance: { dataset: string; source: string; licence: string; date: string; count: string }[];
 }
