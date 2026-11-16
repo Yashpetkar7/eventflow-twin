@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.13.0"   # 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.14.0"   # 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -412,11 +412,12 @@ class AgentEvent(BaseModel):
     round: int
     layer: int
     agent: str
-    kind: Literal["start", "tool", "decision", "proposal", "reject", "finding", "handoff", "model", "budget"]
+    kind: Literal["start", "tool", "decision", "proposal", "reject", "finding", "handoff", "model", "budget", "message"]
     key: str
     params: dict = Field(default_factory=dict)
     run_id: str | None = None
     llm: dict | None = Field(None, description="Model, tokens, milliseconds and whether the answer was recorded")
+    to: list[str] | None = Field(None, description="A message: the agents it is addressed to, who act on it next (1.14.0)")
 
 
 class Objective(BaseModel):
@@ -495,6 +496,32 @@ class TeamCounts(BaseModel):
     code_only: int
 
 
+class AgentSpan(BaseModel):
+    """One agent step (consecutive events of one agent in one round), for the trace view and OpenTelemetry."""
+    agent: str
+    layer: int
+    round: int
+    start_ms: float
+    end_ms: float
+    kind: str
+    keys: list[str]
+    run_ids: list[str]
+    llm: bool
+    to: list[str] = Field(default_factory=list)
+    events: int
+
+
+class Recommendation(BaseModel):
+    """Which offered option the critic's checks C1–C7 recommend (docs/17 WP3). The plan's own order is unchanged."""
+    rank: int
+    basis: Literal["all_checks", "goal_and_most", "most_checks"] = Field(
+        description="all_checks: passes every applicable check · goal_and_most: passes C1–C3 and the most of C4–C7 · "
+                    "most_checks: passes the most checks (ties: the plan's order)")
+    passed: int = Field(description="Applicable checks the option passes")
+    applicable: int = Field(description="Checks that apply to this scenario (C5 and C7 do not always)")
+    failed: list[str] = Field(default_factory=list, description="Applicable checks it does not pass")
+
+
 class Mission(BaseModel):
     mission_id: str
     status: Literal["awaiting_human", "no_action"]
@@ -510,6 +537,9 @@ class Mission(BaseModel):
     recording: Recording
     is_synthetic: bool
     stop_reason: str = Field("", description="Why the supervisor stopped testing: goal_met · max_rounds · no_relief · budget · no_variants · no_action")
+    recommended_rank: int | None = Field(None, description="The option the critic's checks recommend (1.14.0)")
+    recommendation: Recommendation | None = None
+    spans: list[AgentSpan] | None = Field(None, description="One span per agent step, derived from the events (1.14.0, WP4)")
 
 
 class Roster(BaseModel):
@@ -637,3 +667,63 @@ class ShiftStep(BaseModel):
     run_id: str
     is_synthetic: bool
 
+
+
+# ---------------------------------------------------------------- event chain (1.14.0, docs/15 §8)
+class ChainStartRequest(BaseModel):
+    forecast: ForecastRequest
+    threshold: float | None = Field(None, ge=0.5, le=1.0)
+    scope: Scope = "corridor"
+    priority: Literal["cost", "balanced", "impact"] = "balanced"
+    locale: Literal["en", "ar"] = "en"
+    horizon_h: int = Field(3, ge=1, le=6)
+
+
+class ChainDecideRequest(BaseModel):
+    decision: Literal["approve", "reject"]
+    rank: int | None = Field(None, ge=1, le=3, description="The option decided on; default: the critic's recommendation")
+    user: str = Field("duty-manager", max_length=40, pattern=r"^[\w .\-]+$", description="Anonymous label only")
+
+
+class ChainEvent(BaseModel):
+    seq: int
+    topic: Literal["scenario.loaded", "alert.raised", "plan.ready", "decision.made", "drafts.ready", "day.ended"]
+    publisher: str = Field(description="The agent (or the human) that published the event")
+    subscribers: list[str] = Field(description="The agents this event triggered, in the order they acted")
+    at: str
+    payload: dict = Field(default_factory=dict)
+
+
+class ChainInbox(BaseModel):
+    mission: Mission
+    recommended_rank: int | None = None
+    alerts: list[ShiftAlert]
+    hour: int
+    residual: SimSummary
+    baseline: SimSummary
+
+
+class ChainState(BaseModel):
+    """An event chain: agents triggered by each other's events until a human decision is needed."""
+    chain_id: str
+    status: Literal["running", "awaiting_human", "ended"]
+    ended_reason: str | None = Field(None, description="clear · residual · step_limit · no_option · event_limit")
+    request: ChainStartRequest
+    forecast_run_id: str
+    applied: list[dict]
+    handled: list[str]
+    hour: int
+    events: list[ChainEvent]
+    inbox: ChainInbox | None = None
+    drafts: list[dict] = Field(default_factory=list, description="The Messenger's drafts after each approval (never sent)")
+    decisions: list[dict] = Field(default_factory=list)
+    started: str
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(min_length=3, max_length=40)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class RegisterRequest(LoginRequest):
+    role: Literal["viewer", "planner", "admin"] = "planner"

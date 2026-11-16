@@ -6,6 +6,7 @@ import { create } from "zustand";
 import {
   api, ApiError, setFallbackListener, type AgentPlanResponse, type BreakpointResponse, type Constraints, type EventInfo, type ForecastRequest, type ForecastResponse,
   type Intervention, type MessageResponse, type Mission, type ShiftStep, type SimulateResponse, type Station,
+  type AgentEvent,
 } from "./api";
 import { paceFor, STEP_OF, stationOf } from "./mission";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
@@ -150,6 +151,7 @@ interface State {
   plan: AgentPlanResponse | null; planStatus: "idle" | "running" | "ready" | "error"; planStep: number; planError: string | null;
   mission: Mission | null;            // the agent team's run behind `plan` (POST /agent/run); null when only /agent/plan answered
   missionShown: number;               // how many of its events have been played back on screen so far
+  missionLive: AgentEvent[] | null;   // agent events received so far from the live stream (before the mission is complete)
   missionSkip: boolean;               // a visitor skipped the playback: show the rest at once
   constraints: Constraints;           // the planner's typed constraints (never taken from free text)
   drafts: MessageResponse | null;     // the messenger's drafts for the last approved option (never sent)
@@ -194,6 +196,7 @@ interface State {
 }
 
 const corridorIds = (s: State) => s.stations.map((x) => x.id);
+let runSeq = 0;                                   // which runAgents call is current (a newer run or scenario stops the older loop)
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let reqId = 0, refreshTimer: ReturnType<typeof setTimeout> | null = null, previewTimer: ReturnType<typeof setTimeout> | null = null;
 let abort: AbortController | null = null, previewAbort: AbortController | null = null;
@@ -296,7 +299,7 @@ export const useTwin = create<State>((set, get) => {
     scenario: { eventId: "", attendance: null, exitSigma: null, weather: "normal", custom: { near: "FIC", start: "19:00", end: "22:00", weekend: false } },
     threshold: 0.85, priority: "balanced",
     forecast: null, forecastReq: null, base: null, cur: null, breaks: null, flows: {},
-    applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
+    applied: [], plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
     shift: SHIFT0, brief: false,
     build: BUILD0, preview: null, previewError: null, log: [],
     time: 15.5, playing: false, speed: 1,
@@ -344,10 +347,40 @@ export const useTwin = create<State>((set, get) => {
     runAgents: async (locale) => {
       const s = get();
       if (s.planStatus === "running" || !s.forecast || !s.forecastReq) return;
-      set({ planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, drafts: null, missionSkip: false, planError: null, decisions: {} });
+      set({ planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, missionSkip: false, planError: null, decisions: {} });
+      const mySeq = ++runSeq;
       const applied = mergeInterventions(s.applied.map((a) => a.ivs));
       // The agent team first (events, checks, stress tests); the single planner if the team cannot answer.
       let mission: Mission | null = null, plan: AgentPlanResponse | null = null, err: string | null = null;
+      // Workspace: the live stream. Events are shown as they arrive, never before (paced so they can be read); the
+      // kiosk keeps its recorded walk-through below.
+      if (!s.kiosk) {
+        const live: AgentEvent[] = [];
+        let done = false, failed = false, shown = 0, step = 0;
+        const p = api.agentRunStream(missionBody(s.forecast.run_id, applied, s.threshold, s.priority, locale, s.forecastReq, s.constraints),
+          (e) => { live.push(e); if (runSeq === mySeq) set({ missionLive: live.slice() }); })
+          .then((m) => { mission = m; }).catch(() => { failed = true; }).finally(() => { done = true; });
+        while (!done || shown < live.length) {
+          if (runSeq !== mySeq || get().planStatus !== "running") return;          // replaced by a new run or scenario
+          if (shown < live.length) {
+            const e = live[shown++];
+            step = Math.max(step, STEP_OF[e.agent] ?? step);
+            set({ missionShown: shown, planStep: Math.min(7, step) });
+            if (e.key === "diagnosis.hotspots") { const st = stationOf(e); if (st) set({ selected: st }); }
+            if (!get().missionSkip) await sleep(paceFor(false, get().reducedMotion));
+          } else {
+            await sleep(30);
+          }
+        }
+        await p;
+        if (runSeq !== mySeq || get().planStatus !== "running") return;
+        if (!failed && mission) {
+          const m = mission as Mission;
+          set({ mission: m, missionLive: null, missionShown: m.events.length, plan: m.plan, planStatus: "ready", planStep: 8 });
+          return;
+        }
+        set({ missionLive: null, missionShown: 0, planStep: 0 });                 // stream failed: the request/response path
+      }
       try {
         mission = await api.agentRun(missionBody(s.forecast.run_id, applied, s.threshold, s.priority, locale, s.forecastReq, s.constraints));
         plan = mission.plan;
@@ -362,7 +395,7 @@ export const useTwin = create<State>((set, get) => {
         let step = 0;
         for (let i = 0; i < mission.events.length; i++) {
           const g = get();
-          if (g.planStatus !== "running" || g.mission !== mission) return;     // a new scenario or plan replaced this one
+          if (runSeq !== mySeq || g.planStatus !== "running" || g.mission !== mission) return;     // a new scenario or plan replaced this one
           const e = mission.events[i];
           step = Math.max(step, STEP_OF[e.agent] ?? step);
           set({ missionShown: i + 1, planStep: Math.min(7, step) });

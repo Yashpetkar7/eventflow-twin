@@ -18,6 +18,7 @@ DEMO_MODE=offline, so the booth serves the exact same plan every time.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import time
@@ -33,7 +34,7 @@ CACHE = ROOT / "data/demo_cache"                    # shipped with the build (re
 # new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
 CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
-PLANNER_REV = 4
+PLANNER_REV = 5                                   # 5: specialists size measures from the diagnosis; replans resize (docs/09 #133)
 DEFAULT_GOAL = "Keep every station under 85% load during the exit surge"   # schemas.AgentPlanRequest.goal default
 LLM_FACTORY = llm_mod.get_llm                    # swapped for a fake model in tests            # bump when the ranking changes, so stale offline-cache entries are not replayed
 
@@ -70,6 +71,18 @@ TEXT = {
         "meter": ("Entry metering + guide to the next station",
                   "Admit riders at {worst} only up to {ml}% load; guide the rest on foot to {nb}.",
                   "Riders are turned away at the gates; needs staff and clear signs, and can load the next station."),
+        "bus": ("Feeder shuttles",
+                "{buses} shuttles from {worst} to {far}.",
+                "Can shift crowding to the receiving station."),
+        "trainslite": ("Extra trains, lighter setting",
+                       "Cut {line} Line headway to {hw} minutes from {h0}:00 to {h1}:00: about half of what clears the station, at lower cost.",
+                       "Depends on spare trains and crew; some crowding may remain."),
+        "buslite": ("Feeder shuttles, lighter setting",
+                    "{buses} shuttles from {worst} to {far}: about half of what clears the station, at lower cost.",
+                    "Some crowding may remain; can shift crowding to the receiving station."),
+        "trainsbus": ("Extra trains + feeder shuttles",
+                      "{hw}-minute headway from {h0}:00 to {h1}:00, plus {buses} shuttles from {worst} to {far}.",
+                      "Needs rail operations and the bus depot to coordinate."),
         "meterq": ("Entry metering at the gates",
                    "Admit riders at {worst} only up to {ml}% load; the rest wait outside the station.",
                    "Keeps the platform safe but builds a queue outside – watch the waiting time."),
@@ -78,7 +91,7 @@ TEXT = {
                       "{b_peak}% to {a_peak}%. Added cost proxy: {cost}. Risk: {risk}"),
         "detail": {"intake": "Keep every station under {thr}% · priority: {prio}", "forecast": "Run {run}",
                    "diagnose": "{worst}, {hours}", "diagnose_none": "No station over {thr}%",
-                   "propose": "{n} candidate plans from the fixed menu", "simulate": "{n} simulator runs",
+                   "propose": "{n} candidate plans, each measure sized from the forecast", "simulate": "{n} simulator runs",
                    "rank": "Top {n} by riders relieved − λ × cost", "explain": "Template text, numbers copied from the simulator",
                    "verify": "{n} figures checked, {ok}",
                    "llm_propose": "{llm} added {n} bundles ({d} outside the menu dropped)",
@@ -108,6 +121,18 @@ TEXT = {
         "meter": ("تنظيم الدخول + التوجيه إلى المحطة التالية",
                   "السماح بالدخول إلى {worst} حتى حمولة {ml}% فقط، وتوجيه البقية سيرًا إلى {nb}.",
                   "يُمنع بعض الركاب عند البوابات؛ يحتاج إلى موظفين ولافتات واضحة، وقد يزيد حمل المحطة التالية."),
+        "bus": ("حافلات مغذية",
+                "{buses} حافلة من {worst} إلى {far}.",
+                "قد ينقل الازدحام إلى المحطة المستقبلة."),
+        "trainslite": ("قطارات إضافية، إعداد أخف",
+                       "خفض الفاصل الزمني على الخط {line} إلى {hw} دقائق من {h0}:00 إلى {h1}:00: نحو نصف ما يزيل الازدحام، بتكلفة أقل.",
+                       "يعتمد على توفر القطارات والطواقم؛ قد يبقى بعض الازدحام."),
+        "buslite": ("حافلات مغذية، إعداد أخف",
+                    "{buses} حافلة من {worst} إلى {far}: نحو نصف ما يزيل الازدحام، بتكلفة أقل.",
+                    "قد يبقى بعض الازدحام؛ وقد ينتقل إلى المحطة المستقبلة."),
+        "trainsbus": ("قطارات إضافية + حافلات مغذية",
+                      "فاصل {hw} دقائق من {h0}:00 إلى {h1}:00، مع {buses} حافلة من {worst} إلى {far}.",
+                      "يتطلب تنسيقًا بين تشغيل القطارات ومستودع الحافلات."),
         "meterq": ("تنظيم الدخول عند البوابات",
                    "السماح بالدخول إلى {worst} حتى حمولة {ml}% فقط، وينتظر البقية خارج المحطة.",
                    "يحافظ على سلامة الرصيف لكنه يُكوّن طابورًا في الخارج – راقب وقت الانتظار."),
@@ -116,7 +141,7 @@ TEXT = {
                       "مؤشر التكلفة المضافة: {cost}. المخاطر: {risk}"),
         "detail": {"intake": "إبقاء كل المحطات تحت {thr}% · الأولوية: {prio}", "forecast": "التشغيل {run}",
                    "diagnose": "{worst}، {hours}", "diagnose_none": "لا توجد محطة فوق {thr}%",
-                   "propose": "{n} خطط مرشحة من القائمة المحددة", "simulate": "{n} عمليات محاكاة",
+                   "propose": "{n} خطط مرشحة، حُدِّد حجم كل إجراء من التنبؤ", "simulate": "{n} عمليات محاكاة",
                    "rank": "أفضل {n} حسب الركاب المخفَّف عنهم − λ × التكلفة", "explain": "نص قالب، والأرقام منسوخة من المحاكي",
                    "verify": "تم التحقق من {n} رقمًا، {ok}",
                    "llm_propose": "أضاف {llm} {n} حزم (واستُبعدت {d} خارج القائمة)",
@@ -206,8 +231,81 @@ def diagnose(base: dict) -> dict | None:
     d = hot[worst]
     hours = sorted(d["hours"])
     window = sorted({h for x in hours for h in (x - 1, x, x + 1) if 0 <= h <= 23})
+    rows: dict[str, dict[int, dict]] = {}
+    for r in base["hourly"]:
+        rows.setdefault(r["station_id"], {})[r["hour"]] = {"cap": float(r.get("capacity") or 0.0), "lf": float(r["peak_lf"]),
+                                                           "tph": float(r.get("trains_per_hour") or 0.0)}
     return {"station": worst, "hours": hours, "window": window, "peak_hour": d["peak_hour"], "peak_lf": d["peak"],
-            "load_at": {s: {r["hour"]: r["peak_lf"] for r in base["hourly"] if r["station_id"] == s} for s in by}}
+            "load_at": {s: {r["hour"]: r["peak_lf"] for r in base["hourly"] if r["station_id"] == s} for s in by},
+            "rows": rows}
+
+
+def _ceil_to(x: float, step: float) -> float:
+    return math.ceil(round(x / step, 6)) * step
+
+
+def _gap(hot: dict, station: str, hours: list[int], thr: float) -> tuple[float, float, float]:
+    """(riders per hour over the threshold at the peak rate, the peak rate, the worst load / threshold) at a station
+    in the given hours, all read from the simulator's hourly rows (capacity x load); nothing assumed."""
+    rows = hot.get("rows", {}).get(station, {})
+    over = [rows[h] for h in hours if h in rows and rows[h]["lf"] > thr]
+    if not over:
+        return 0.0, 0.0, 1.0
+    gap = max(r["cap"] * (r["lf"] - thr) for r in over)
+    rate = max(r["cap"] * r["lf"] for r in over)
+    return gap, rate, max(r["lf"] for r in over) / thr
+
+
+def _room(hot: dict, station: str | None, hour: int, thr: float) -> float:
+    """Riders per hour a station can still take at that hour before it reaches the threshold."""
+    r = hot.get("rows", {}).get(station or "", {}).get(hour)
+    return max(0.0, r["cap"] * (thr - r["lf"])) if r else 0.0
+
+
+def size_measures(hot: dict, worst: str, nb: str | None, far: str | None, hrs: list[int], thr: float, frac: float = 1.0) -> dict:
+    """How much of each measure closes `frac` of the gap at the worst station (frac 0.5: two specialists share it).
+
+    rail: trains per hour now x (load / threshold) gives the headway for that many trains, inside the bounds.
+    station & crowd: the share of riders to walk away so the peak falls to the threshold, no more than the
+    neighbour has room for. last mile: shuttles for the riders over the line (bus capacity x trips per hour), as many
+    as the receiving station can absorb, robotaxis for the rest. Every input is a simulator figure or a corridor.yaml
+    parameter; the simulator then tests the result. `why` keeps the figures each specialist reasons with."""
+    cfg = corridor()
+    iv, cap = cfg["interventions"], cfg["capacity"]
+    b = iv["bounds"]
+    gap, rate, ratio = _gap(hot, worst, hrs, thr)
+    gap_f = gap * frac
+    pk = hot["peak_hour"]
+    rows = hot.get("rows", {}).get(worst, {})
+    tph_now = max((rows[h]["tph"] for h in hrs if h in rows), default=0.0)
+    min_hw = float(cap["min_headway_min"])
+    if tph_now > 0:
+        need_tph = tph_now * (1 + frac * (ratio - 1))
+        hw = max(min_hw, math.floor(60.0 / need_tph * 2) / 2)
+        if hw >= 60.0 / tph_now:                         # no gain over the timetable: half a minute below it
+            hw = max(min_hw, math.floor((60.0 / tph_now - 0.5) * 2) / 2)
+    else:
+        need_tph, hw = 0.0, max(3.0, min_hw)
+    hw = int(hw) if hw == int(hw) else hw
+    need_share = frac * (1 - 1 / ratio) if ratio > 1 else 0.0
+    room_nb = _room(hot, nb, pk, thr)
+    share_room = room_nb / rate if rate else 0.0
+    want = min(need_share, share_room) if share_room > 0 else need_share
+    share = round(min(float(b["max_redirect_share"]), max(0.1, _ceil_to(want, 0.05))), 2)
+    per_bus = float(iv["bus_capacity"]) * float(iv["bus_trips_per_hour"])
+    per_veh = float(iv["robotaxi_occupancy"]) * float(iv["robotaxi_trips_per_hour"])
+    room_far = max((_room(hot, far, h, thr) for h in hrs), default=0.0) if far else 0.0
+    by_bus = min(gap_f, room_far) if far else 0.0
+    buses = int(min(int(b["max_buses"]), max(2, math.ceil(by_bus / per_bus))))
+    # robotaxis cost far more per rider than a shuttle (corridor.yaml cost_proxy): only for what shuttles cannot carry,
+    # and only when the fleet the bounds allow can actually close that rest (60 vehicles carry about 192 riders an hour)
+    rest = max(0.0, gap_f - buses * per_bus)
+    fleet = int(b["max_robotaxi_vehicles"]) * per_veh
+    veh = int(min(int(b["max_robotaxi_vehicles"]), max(10, _ceil_to(rest / per_veh, 5)))) if 0 < rest <= fleet else 0
+    return {"hw": hw, "share": share, "buses": buses, "veh": veh,
+            "why": {"gap": round(gap_f), "rate": round(rate), "tph_now": round(tph_now, 1), "need_tph": round(need_tph, 1),
+                    "room_nb": round(room_nb), "room_far": round(room_far), "per_bus": round(per_bus), "per_veh": round(per_veh, 1),
+                    "frac": frac}}
 
 
 def target_context(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set[str], thr: float | None = None) -> dict:
@@ -223,10 +321,13 @@ def target_context(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set
     # Deterministic: quietest station, then the nearest, then by id (scope_ids is a set — never rely on its order).
     far_pool = sorted(s for s in scope_ids if s not in (worst, nb) and _km(by_id[worst], by_id[s]) <= b.get("max_shuttle_km", 8))
     far = min(far_pool, key=lambda s: (load(s), round(_km(by_id[worst], by_id[s]), 3), s)) if far_pool else nb
-    hw = max(3.0, float(cap["min_headway_min"]))
-    hw = int(hw) if hw == int(hw) else hw
-    ml = round(float(thr if thr is not None else cap["overcap_threshold"]), 2)
+    thr_v = float(thr if thr is not None else cap["overcap_threshold"])
+    ml = round(thr_v, 2)
+    full = size_measures(hot, worst, nb, far, hrs, thr_v, 1.0)
+    half = size_measures(hot, worst, nb, far, hrs, thr_v, 0.5)
+    hw = full["hw"]
     return {"worst": worst, "nb": nb, "far": far, "hw": hw, "line": by_id[worst]["line"], "hrs": hrs, "win": win,
+            "size": full, "half": half,
             "spread": min(60, b["stagger_minutes"][1]), "can_stag": has_event and not has_stagger,
             "over_full": hot["peak_lf"] > 1.0, "ml": ml,
             "ctx": {"worst": worst, "nb": nb, "far": far, "hw": hw, "h0": win[0], "h1": win[-1] + 1, "line": by_id[worst]["line"],
@@ -238,8 +339,8 @@ def _stag(t: dict) -> dict:
     return {"type": "staggered_exit", "params": {"spread_minutes": t["spread"]}}
 
 
-def _trains(t: dict) -> dict:
-    return {"type": "extra_trains", "params": {"headway_min": t["hw"], "hours": t["win"], "line": t["line"]}}
+def _trains(t: dict, hw: float | None = None) -> dict:
+    return {"type": "extra_trains", "params": {"headway_min": t["hw"] if hw is None else hw, "hours": t["win"], "line": t["line"]}}
 
 
 def _way(t: dict, share: float) -> dict:
@@ -251,25 +352,44 @@ def _meter(t: dict, to: str | None) -> dict:
                                                    **({"to_station": to} if to else {})}}
 
 
+def _bus(t: dict, buses: int) -> dict:
+    return {"type": "shuttle_bus", "params": {"from_station": t["worst"], "to_station": t["far"], "buses": buses, "hours": t["hrs"]}}
+
+
 def _last_mile(t: dict) -> list[dict]:
-    return [{"type": "shuttle_bus", "params": {"from_station": t["worst"], "to_station": t["far"], "buses": 6, "hours": t["hrs"]}},
-            {"type": "robotaxi_staging", "params": {"station": t["worst"], "vehicles": 30, "hours": t["hrs"]}}]
+    z = t["size"]
+    return [_bus(t, z["buses"]), {"type": "robotaxi_staging", "params": {"station": t["worst"], "vehicles": z["veh"], "hours": t["hrs"]}}]
+
+
+def _pc(share: float) -> int:
+    return round(share * 100)
 
 
 # Every menu bundle, in the order the planner has always tested them. `agent` is the proposer that owns it: the four
 # specialists own the single-domain bundles; the composer builds the cross-domain ones from their measures.
 # (ord, key, agent, applies, build → (interventions, extra template values))
 RECIPES: list[tuple[int, str, str, Callable[[dict], bool], Callable[[dict], tuple[list[dict], dict]]]] = [
-    (1, "stagway", "composer", lambda t: t["can_stag"] and bool(t["nb"]), lambda t: ([_stag(t), _way(t, 0.25)], {"share": 25})),
+    # Single-domain bundles are sized for the whole gap; a combined bundle gives each of its two specialists half of it.
+    (1, "stagway", "composer", lambda t: t["can_stag"] and bool(t["nb"]),
+     lambda t: ([_stag(t), _way(t, t["half"]["share"])], {"share": _pc(t["half"]["share"])})),
     (2, "trains", "rail", lambda t: True, lambda t: ([_trains(t)], {})),
-    (3, "busrt", "last_mile", lambda t: bool(t["far"]), lambda t: (_last_mile(t), {"buses": 6, "veh": 30})),
-    (4, "way", "station_crowd", lambda t: bool(t["nb"]), lambda t: ([_way(t, 0.35)], {"share": 35})),
-    (5, "trainstag", "composer", lambda t: t["can_stag"], lambda t: ([_trains(t), _stag(t)], {})),
-    (6, "trainsway", "composer", lambda t: bool(t["nb"]), lambda t: ([_trains(t), _way(t, 0.2)], {"share": 20})),
+    (3, "busrt", "last_mile", lambda t: bool(t["far"]) and t["size"]["veh"] > 0,
+     lambda t: (_last_mile(t), {"buses": t["size"]["buses"], "veh": t["size"]["veh"]})),
+    (3, "bus", "last_mile", lambda t: bool(t["far"]) and t["size"]["veh"] == 0, lambda t: ([_bus(t, t["size"]["buses"])], {"buses": t["size"]["buses"]})),
+    (4, "way", "station_crowd", lambda t: bool(t["nb"]), lambda t: ([_way(t, t["size"]["share"])], {"share": _pc(t["size"]["share"])})),
+    (5, "trainstag", "composer", lambda t: t["can_stag"], lambda t: ([_trains(t, t["half"]["hw"]), _stag(t)], {"hw": t["half"]["hw"]})),
+    (6, "trainsway", "composer", lambda t: bool(t["nb"]),
+     lambda t: ([_trains(t, t["half"]["hw"]), _way(t, t["half"]["share"])], {"hw": t["half"]["hw"], "share": _pc(t["half"]["share"])})),
     # Platform over its full capacity (not just the comfort line): offer RTA's New Year's Eve measure, entry metering
-    # at the gates — with riders guided to the walkable neighbour, or kept waiting outside.
+    # at the gates, with riders guided to the walkable neighbour, or kept waiting outside.
     (7, "meter", "station_crowd", lambda t: t["over_full"] and bool(t["nb"]), lambda t: ([_meter(t, t["nb"])], {"ml": round(t["ml"] * 100)})),
     (8, "meterq", "station_crowd", lambda t: t["over_full"], lambda t: ([_meter(t, None)], {"ml": round(t["ml"] * 100)})),
+    # The rail specialist also offers the cheaper headway that closes half the gap; the ranker weighs relief against cost.
+    (9, "trainslite", "rail", lambda t: t["half"]["hw"] != t["hw"], lambda t: ([_trains(t, t["half"]["hw"])], {"hw": t["half"]["hw"]})),
+    (11, "buslite", "last_mile", lambda t: bool(t["far"]) and t["half"]["buses"] < t["size"]["buses"],
+     lambda t: ([_bus(t, t["half"]["buses"])], {"buses": t["half"]["buses"]})),
+    (10, "trainsbus", "composer", lambda t: bool(t["far"]),
+     lambda t: ([_trains(t, t["half"]["hw"]), _bus(t, t["half"]["buses"])], {"hw": t["half"]["hw"], "buses": t["half"]["buses"]})),
 ]
 
 
@@ -284,7 +404,7 @@ def recipe_bundles(t: dict, agents: set[str] | None = None) -> list[dict]:
 
 
 def propose(hot: dict, has_event: bool, has_stagger: bool, scope_ids: set[str], thr: float | None = None) -> list[dict]:
-    """Candidate bundles from the fixed menu, inside the bounds of corridor.yaml."""
+    """Candidate bundles from the menu of measures, each sized from the diagnosis, inside the bounds of corridor.yaml."""
     t = target_context(hot, has_event, has_stagger, scope_ids, thr)
     return [{"key": c["key"], "ivs": c["ivs"], "ctx": c["ctx"]} for c in recipe_bundles(t)]
 
@@ -384,6 +504,13 @@ def _texts_ok(texts: dict, allowed: set[str]) -> tuple[int, bool]:
 MAX_ROUNDS = 3                 # round 1 plus at most two replans
 MAX_SIMS_PER_ROUND = 16        # bounds the work of one request (public demo)
 MAX_BUNDLE = 5                 # interventions in one combined bundle
+# Which specialist owns which measure (docs/15; the same split as roster.SPECIALIST_TYPES, kept here so the classic
+# planner needs no import of the roster).
+SPECIALIST_OWNERS = ("rail", "station_crowd", "venue", "last_mile")
+TYPE_OWNER = {"extra_trains": "rail", "extended_hours": "rail", "wayfinding_redirect": "station_crowd",
+              "station_metering": "station_crowd", "staggered_exit": "venue", "shuttle_bus": "last_mile",
+              "robotaxi_staging": "last_mile"}
+STAGGER_PROBE = (30, 45, 60, 90)   # exit spreads the venue agent tests in the simulator (minutes, kept inside the bounds)
 TYPE_NAME = {
     "en": {"extra_trains": "extra trains", "wayfinding_redirect": "wayfinding", "shuttle_bus": "feeder shuttles",
            "robotaxi_staging": "robotaxi staging", "staggered_exit": "staggered exit", "station_metering": "entry metering",
@@ -431,6 +558,39 @@ def intensify(ivs: list[dict]) -> list[dict]:
             p["vehicles"] = min(int(b["max_robotaxi_vehicles"]), p["vehicles"] * 2)
         elif t == "staggered_exit":
             p["spread_minutes"] = max(p["spread_minutes"], int(b["stagger_minutes"][1]))
+        out.append({"type": t, "params": p})
+    return out
+
+
+def resize(ivs: list[dict], left: dict, thr: float) -> list[dict]:
+    """The critic's objection answered by the owners of the measures: every measure aimed at the station that is
+    still over the line is enlarged by what the residual gap needs (sized with the same rules as round one, from the
+    tested plan's own simulator rows), inside the bounds. Measures elsewhere are kept as they were."""
+    cfg = corridor()
+    b, cap = cfg["interventions"]["bounds"], cfg["capacity"]
+    st = left["station"]
+    line = next((x["line"] for x in cfg["stations"] if x["id"] == st), None)
+    out = []
+    for iv in ivs:
+        p, t = dict(iv["params"]), iv["type"]
+        if t == "extra_trains" and p.get("line") == line:
+            z = size_measures(left, st, None, None, left["hours"], thr, 1.0)
+            p["headway_min"] = max(float(cap["min_headway_min"]), min(p["headway_min"], z["hw"]))
+            p["hours"] = sorted(set(p["hours"]) | set(left["window"]))
+        elif t == "wayfinding_redirect" and p.get("from_station") == st:
+            z = size_measures(left, st, p["to_station"], None, left["hours"], thr, 1.0)
+            p["share"] = round(min(float(b["max_redirect_share"]), p["share"] + z["share"]), 2)
+            p["hours"] = sorted(set(p["hours"]) | set(left["hours"]))
+        elif t == "shuttle_bus" and p.get("from_station") == st:
+            z = size_measures(left, st, None, p["to_station"], left["hours"], thr, 1.0)
+            p["buses"] = min(int(b["max_buses"]), p["buses"] + z["buses"])
+            p["hours"] = sorted(set(p["hours"]) | set(left["hours"]))
+        elif t == "robotaxi_staging" and p.get("station") == st:
+            z = size_measures(left, st, None, None, left["hours"], thr, 1.0)
+            p["vehicles"] = min(int(b["max_robotaxi_vehicles"]), p["vehicles"] + z["veh"])
+            p["hours"] = sorted(set(p["hours"]) | set(left["hours"]))
+        elif t == "staggered_exit":
+            p["spread_minutes"] = int(b["stagger_minutes"][1])
         out.append({"type": t, "params": p})
     return out
 
@@ -579,6 +739,29 @@ class PlanRun:
         self.target = target_context(hot, self.has_event, _has_stag(self.applied), self.scope_ids, self.thr)
         return hot
 
+    def size_stagger(self) -> dict | None:
+        """The venue agent's own search: simulate a staggered exit at each spread in STAGGER_PROBE (inside the bounds)
+        and keep the shortest that leaves the worst station under the threshold, else the one that leaves it the
+        fewest over-threshold bins (ties: the shorter). Returns what was tried, for the venue's message."""
+        t = getattr(self, "target", None)
+        if not t or not t["can_stag"]:
+            return None
+        lo, hi = corridor()["interventions"]["bounds"]["stagger_minutes"]
+        tried, best = [], None
+        for m in [x for x in STAGGER_PROBE if lo <= x <= hi]:
+            t0 = time.perf_counter()
+            res = self.sim(merge(self.applied, [{"type": "staggered_exit", "params": {"spread_minutes": m}}]))
+            self.n_sims += 1
+            bins = sum(r["overcap_bins"] for r in res["hourly"] if r["station_id"] == t["worst"])
+            self.log("simulator", "simulate", 1, t0, res["run_id"], label=f"probe_stagger_{m}", spread=m, worst_bins=bins)
+            tried.append({"spread": m, "worst_bins": bins, "run_id": res["run_id"]})
+            if best is None or bins < best["worst_bins"]:
+                best = tried[-1]
+            if bins == 0:
+                break
+        t["spread"] = t["ctx"]["spread"] = best["spread"]
+        return {"tried": tried, "spread": best["spread"], "clears": best["worst_bins"] == 0}
+
     def set_candidates(self, cands: list[dict], t0: float) -> None:
         """The menu bundles every proposer offered, in the planner's order (the composer's hand-off to the simulator)."""
         self.cands = [{"key": c["key"], "ivs": c["ivs"], "ctx": c["ctx"]} for c in cands]
@@ -653,28 +836,77 @@ class PlanRun:
     def can_replan(self, met: bool) -> bool:
         return not met and bool(self.pool) and self.rounds < MAX_ROUNDS
 
-    def replan_variants(self) -> tuple[list[dict], list[dict]]:
-        """A replanning round: stronger settings and combinations aimed at what the best plans still leave over the
-        threshold. Returns (variants, seeds); the caller may add model bundles before `finish_variants`."""
+    # ---------- replanning as a conversation: critic objects -> specialists revise -> composer assembles
+    def prepare_replan(self) -> list[dict]:
+        """The critic's objections: the two most effective plans so far, what each still leaves over the line, and
+        which specialists can answer (their measures in the plan, or their measures that apply where it is still
+        over). Pure: calling it twice gives the same objections."""
+        seeds = sorted(self.pool, key=_effect)[:2]
+        self.seeds = []
+        for i, seed in enumerate(seeds):
+            left = diagnose(seed["res"])
+            t = None
+            if left is not None:
+                t = target_context(left, self.has_event, _has_stag(self.applied) or _has_stag(seed["ivs"]), self.scope_ids, self.thr)
+            self.seeds.append({"i": i, "seed": seed, "left": left, "t": t})
+        out = []
+        for a in SPECIALIST_OWNERS:
+            mine = self.revisions_for(a)
+            if mine:
+                sd = self.seeds[mine[0]["seed"]]
+                out.append({"to": a, "station": sd["left"]["station"], "hours": sd["left"]["hours"],
+                            "excess": round(sd["seed"]["res"]["summary"]["excess_pax"]), "plan": sd["seed"]["key"],
+                            "gap": sd["t"]["size"]["why"]["gap"],
+                            "own": sorted({iv["type"] for iv in sd["seed"]["ivs"] if TYPE_OWNER.get(iv["type"]) == a})})
+        self.objections = out
+        return out
+
+    def revisions_for(self, agent: str) -> list[dict]:
+        """One specialist's answer to the critic: its own measures in each seed plan resized from the residual gap,
+        and its own menu measures aimed at the station that is still over the line."""
+        out: list[dict] = []
+        for sd in getattr(self, "seeds", []):
+            if sd["left"] is None:
+                continue
+            for j, iv in enumerate(sd["seed"]["ivs"]):
+                if TYPE_OWNER.get(iv["type"]) == agent:
+                    new = resize([iv], sd["left"], self.thr)[0]
+                    if new != iv:
+                        out.append({"kind": "resize", "seed": sd["i"], "j": j, "iv": new, "was": iv, "agent": agent})
+            for c in recipe_bundles(sd["t"], {agent}):
+                out.append({"kind": "combo", "seed": sd["i"], "ord": c["ord"], "key": c["key"], "ivs": c["ivs"], "agent": agent})
+        return out
+
+    def compose_replan(self, parts: list[dict]) -> list[dict]:
+        """The composer: per seed plan, the revised plan (each measure as its owner resized it), the plan combined
+        with each specialist's measure for what is left (menu order), and, last, every setting at its bound."""
         self.rounds += 1
         t0 = time.perf_counter()
-        seeds = sorted(self.pool, key=_effect)[:2]
+        parts = parts + [p for a in ("composer",) for p in self.revisions_for(a)]
         variants: list[dict] = []
-        for seed in seeds:
-            strong = intensify(seed["ivs"])
-            if _sig(strong) not in self.seen:
-                self.seen.add(_sig(strong))
-                variants.append({"key": "strong", "ivs": strong, "ctx": {}})
-            left = diagnose(seed["res"])
-            if left is None:
-                continue
-            for c2 in propose(left, self.has_event, _has_stag(self.applied) or _has_stag(seed["ivs"]), self.scope_ids, self.thr):
-                both = combine(seed["ivs"], c2["ivs"])
-                if len(both) <= MAX_BUNDLE and _sig(both) not in self.seen:
-                    self.seen.add(_sig(both))
-                    variants.append({"key": "combo", "ivs": both, "ctx": {}})
-        self.log("planner", "replan", self.rounds, t0, seeds=[s["key"] for s in seeds], candidates=len(variants))
-        return variants, seeds
+
+        def add(key: str, ivs: list[dict]) -> None:
+            if len(ivs) <= MAX_BUNDLE and _sig(ivs) not in self.seen:
+                self.seen.add(_sig(ivs))
+                variants.append({"key": key, "ivs": ivs, "ctx": {}})
+        for sd in self.seeds:
+            ivs = sd["seed"]["ivs"]
+            if sd["left"] is not None:
+                resized = {p["j"]: p["iv"] for p in parts if p["kind"] == "resize" and p["seed"] == sd["i"]}
+                if resized:
+                    add("revised", [resized.get(j, iv) for j, iv in enumerate(ivs)])
+                for c in sorted((p for p in parts if p["kind"] == "combo" and p["seed"] == sd["i"]), key=lambda p: p["ord"]):
+                    add("combo", combine(ivs, c["ivs"]))
+            add("strong", intensify(ivs))
+        self.log("planner", "replan", self.rounds, t0, seeds=[sd["seed"]["key"] for sd in self.seeds], candidates=len(variants))
+        return variants
+
+    def replan_variants(self) -> tuple[list[dict], list[dict]]:
+        """A whole replanning round in one call (the classic planner): objections, every specialist's revisions in
+        roster order, the composer's assembly. The agent team runs the same three steps as separate agents."""
+        self.prepare_replan()
+        parts = [p for a in SPECIALIST_OWNERS for p in self.revisions_for(a)]
+        return self.compose_replan(parts), [sd["seed"] for sd in self.seeds]
 
     def model_replan_bundles(self, seeds: list[dict], variants: list[dict]) -> list[dict]:
         """A replanning round's model bundles, told what the critic found (CRITIC_FEEDBACK)."""
@@ -734,7 +966,7 @@ class PlanRun:
         """Template text for each kept option, with every number checked against the simulator's figures."""
         locale, T, b_fig = self.locale, self.T, self.b_fig
         for rank, o in enumerate(self.top, 1):
-            if o["key"] in ("llm", "combo", "strong"):
+            if o["key"] in ("llm", "combo", "strong", "revised"):
                 title = GENERIC[locale]["title"] if o["key"] == "llm" else bundle_title(o["ivs"], locale, o["key"] == "strong")
                 what, risk = describe(o["ivs"], locale)
             else:
@@ -855,6 +1087,7 @@ def make_plan(run: dict, req, run_simulation: Callable[..., dict]) -> dict:
         return hit
     p.start()
     if p.diagnose() is not None:
+        p.size_stagger()
         t0 = time.perf_counter()
         p.set_candidates(recipe_bundles(p.target), t0)
         p.cands += p.model_bundles()

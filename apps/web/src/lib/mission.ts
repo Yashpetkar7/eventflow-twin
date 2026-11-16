@@ -59,9 +59,33 @@ export function useEventText(stations: Station[]) {
       case "diagnosis.none": return t("ev.none", { thr: pct("threshold_pct") });
       case "diagnosis.breakpoint": return p.attendance == null ? t("ev.noBreak") : t("ev.breakpoint", { att: n("attendance"), station: name(p.station) });
       case "diagnosis.road": return t("ev.road", { veh: n("peak_veh"), hour: String(p.hour ?? "") });
-      case "rail.proposed": case "station_crowd.proposed": case "last_mile.proposed":
+      case "supervisor.brief": return t("ev.brief", { station: name(p.station), gap: n("gap") });
+      // since contract 1.14.0 each specialist says how it sized its measure; older snapshots fall back to the count
+      case "rail.proposed":
+        if (p.headway != null) return t("ev.railSized", { need: f.num(Number(p.need_tph ?? 0)), now: f.num(Number(p.tph_now ?? 0)), gap: n("gap"), hw: f.num(Number(p.headway)) });
         return t("ev.proposed", { n: n("n"), kinds: types.join(" + ") || "–", station: name(p.station) });
-      case "venue.stagger": return p.available ? t("ev.staggerYes", { m: n("spread") }) : t("ev.staggerNo");
+      case "station_crowd.proposed":
+        if (p.share_pct != null) return t("ev.crowdSized", { share: pct("share_pct"), to: name(p.toward), room: n("room") });
+        return t("ev.proposed", { n: n("n"), kinds: types.join(" + ") || "–", station: name(p.station) });
+      case "last_mile.proposed":
+        if (p.buses != null) return t("ev.mileSized", { buses: n("buses"), to: name(p.toward), per: n("per_bus"), veh: Number(p.vehicles ?? 0) });
+        return t("ev.proposed", { n: n("n"), kinds: types.join(" + ") || "–", station: name(p.station) });
+      case "venue.stagger":
+        if (!p.available) return t("ev.staggerNo");
+        if (Array.isArray(p.tried) && p.tried.length) return t("ev.staggerProbe", { tried: (p.tried as number[]).map((x) => f.int(x)).join(", "), m: n("spread"), clears: p.clears ? "yes" : "no" });
+        return t("ev.staggerYes", { m: n("spread") });
+      case "critic.recommend": return t("ev.recommend", { rank: String(p.rank ?? ""), p: n("passed"), n: n("applicable") });
+      case "critic.objection": {
+        const own = ((p.own as string[]) ?? []).map(kind).join(" + ");
+        return t("ev.objection", { station: name(p.station), excess: n("excess"), own: own || "none" });
+      }
+      case "rail.revised": case "station_crowd.revised": case "venue.revised": case "last_mile.revised": {
+        const ch = ((p.resized as { type: string; setting: string; before: number; after: number }[]) ?? []).map((c) => {
+          const v = (x: number) => (c.setting === "share" || c.setting === "max_load" ? `${f.int(x * 100)}%` : f.num(x));
+          return `${kind(c.type)} ${v(c.before)} → ${v(c.after)}`;
+        });
+        return ch.length ? t("ev.revised", { changes: ch.join(" · "), added: n("added") }) : t("ev.revisedNone", { added: n("added") });
+      }
       case "specialist.model": return t("ev.specModel", { n: n("n"), d: n("dropped") });
       case "composer.bundles": return t("ev.bundles", { total: f.int(Number(p.menu ?? 0) + Number(p.cross ?? 0) + Number(p.model ?? 0)),
         menu: n("menu"), cross: n("cross"), model: n("model") });

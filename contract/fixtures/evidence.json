@@ -1,8 +1,8 @@
 {
   "eval": {
     "agents": {
-      "file": "agents_20261116-152953.json",
-      "timestamp": "2026-11-16T15:29:53",
+      "file": "agents_20261116-174152.json",
+      "timestamp": "2026-11-16T17:41:52",
       "metrics": {
         "number_faithfulness": 1.0,
         "schema_validity": 1.0,
@@ -16,8 +16,8 @@
         "replan_rate": 0.1818,
         "hotspot_scenarios": 44,
         "options_checked": 132,
-        "plan_latency_p50_s": 0.068,
-        "plan_latency_p95_s": 0.193
+        "plan_latency_p50_s": 0.074,
+        "plan_latency_p95_s": 0.209
       },
       "n": 60,
       "split": "all (dev+test)",
@@ -191,8 +191,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "orchestration": {
-      "file": "orchestration_20261116-153026.json",
-      "timestamp": "2026-11-16T15:30:26",
+      "file": "orchestration_20261116-174226.json",
+      "timestamp": "2026-11-16T17:42:26",
       "metrics": {
         "engines_agree": 1.0,
         "events_deterministic": 1.0,
@@ -200,8 +200,8 @@
         "budget_respected": 1.0,
         "layers_covered": 1.0,
         "missions_with_options": 44,
-        "mission_p50_s": 0.195,
-        "mission_p95_s": 0.364,
+        "mission_p50_s": 0.208,
+        "mission_p95_s": 0.38,
         "engine_default": "graph"
       },
       "n": 60,
@@ -500,8 +500,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "simulator": {
-      "file": "simulator_20261113-093329.json",
-      "timestamp": "2026-11-13T09:33:29",
+      "file": "simulator_20261116-174145.json",
+      "timestamp": "2026-11-16T17:41:45",
       "metrics": {
         "property_pass_rate": 1.0,
         "conservation_error_max": 0.0
@@ -518,6 +518,6 @@
     "file": "station_hour_synthetic.parquet",
     "config_hash": "94ae032aa3"
   },
-  "decisions_logged": 41,
-  "contract": "1.13.0"
+  "decisions_logged": 12,
+  "contract": "1.14.0"
 }

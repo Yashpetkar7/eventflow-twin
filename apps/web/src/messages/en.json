@@ -218,7 +218,10 @@
     "passed": "{a} of {b} checks passed",
     "logged": "Decisions in the audit log",
     "ephemeral": "Public demo: decisions are kept for this session only, not stored.",
-    "print": "Print / save as PDF"
+    "print": "Print / save as PDF",
+    "chain": "Decision log",
+    "chainOk": "verified · {n} records",
+    "chainBad": "broken at record {line}"
   },
   "tableH": {
     "station": "Station",
@@ -252,7 +255,7 @@
   "howTitle": "How EventFlow Twin works",
   "how1": "Forecast: background demand per station and hour, plus an event surge shared across stations by walking distance.",
   "how2": "Capacity: trains per hour from the RTA timetable × train capacity × the share available at one station. Station-hours above the comfort threshold are flagged.",
-  "how3": "AI agents propose plans from a fixed menu: extra trains, wayfinding, feeder shuttles, robotaxi staging and staggered exits.",
+  "how3": "Specialist AI agents choose from a menu of measures (extra trains, wayfinding, feeder shuttles, robotaxi staging, staggered exits, entry metering) and size each one from the forecast crowd; a critic sends back what falls short.",
   "how4": "A deterministic simulator scores every plan. The agents never calculate numbers; every figure is checked.",
   "how5": "Nothing is applied until a human approves it, and every decision is logged.",
   "howAlign": "Designed around RTA AI Strategy priorities: congestion reduction, agentic AI and human approval of every decision.",
@@ -283,7 +286,7 @@
   "toolCalls": "Tool calls ({n})",
   "traceRound": "Round {n}",
   "traceCandidates": "{n} candidates ({source})",
-  "traceMenu": "fixed menu",
+  "traceMenu": "menu",
   "traceKept": "kept {k} of {n}",
   "traceChecked": "{n} figures checked",
   "traceExplained": "explanations: {source}",
@@ -476,7 +479,17 @@
       "verified": "{n} figures checked: all match the simulator{blocked, plural, =0 {} other { · # claims blocked}}",
       "mismatch": "{n} figures checked: a mismatch — template text kept",
       "human": "Your decision: {n, plural, one {# option} other {# options}} waiting",
-      "noActionDone": "No action needed"
+      "noActionDone": "No action needed",
+      "brief": "Brief to the specialists: {station} is {gap} riders an hour over the line at its peak",
+      "railSized": "Needs about {need} trains an hour (now {now}) for {gap} riders over: a train every {hw} minutes",
+      "crowdSized": "Walk {share} of riders to {to}, which has room for {room} an hour",
+      "mileSized": "{buses} shuttles to {to} at {per} riders an hour each{veh, plural, =0 {} other {, # robotaxis for the rest}}",
+      "staggerProbe": "{clears, select, yes {Tested {tried} minutes in the simulator: {m} minutes clears the hotspot} other {Tested {tried} minutes in the simulator: {m} minutes helps most, not enough alone}}",
+      "objection": "{station} still {excess} riders over{own, select, none {: add measures there} other {: resize your {own}}}",
+      "revised": "{changes}{added, plural, =0 {} one { · # more plan for what is left} other { · # more plans for what is left}}",
+      "revisedNone": "Nothing to resize{added, plural, =0 {} one { · # plan for what is left} other { · # plans for what is left}}",
+      "to": "to {who}",
+      "recommend": "Recommends option {rank}: passes {p} of {n} checks"
     },
     "watch": {
       "title": "Watcher · standing agent",
@@ -642,6 +655,46 @@
       "critic": "Critic",
       "more": "{n, plural, one {# more tested plan} other {# more tested plans}}",
       "empty": "Run the AI team to see the debate."
+    },
+    "chain": {
+      "title": "Event chain · agents trigger each other",
+      "sub": "The Watcher's alert triggers the planning team; the plan waits for you; your decision triggers the Messenger and the next scan. Each row is one event: who published it and which agents it triggered.",
+      "start": "Start the chain",
+      "restart": "Start again",
+      "inbox": "Waiting for your decision",
+      "approve": "Approve the recommendation",
+      "reject": "Reject",
+      "figures": "Over-threshold station-hours: {before} → {over}",
+      "ended": "{n, plural, =0 {Chain ended} one {Chain ended after # decision} other {Chain ended after # decisions}}",
+      "to": "to {who}",
+      "ev": {
+        "loaded": "Scenario loaded",
+        "alert": "{station} crosses the line at {at}:00{n, plural, one {} other { (# alerts)}}",
+        "alertNone": "Alert",
+        "plan": "The team tested and checked {n, plural, one {# option} other {# options}} ({events} agent events); recommends option {rank}",
+        "approved": "Approved option {rank} (logged)",
+        "rejected": "Rejected option {rank} (logged)",
+        "drafts": "Passenger notice, sign and operations briefing drafted (not sent)",
+        "end": {
+          "clear": "Day ends clear: no station over the line",
+          "residual": "Every alert handled; some crowding remains for the duty manager",
+          "step_limit": "Too many decisions asked: the rest goes to the duty manager",
+          "other": "Chain ended"
+        }
+      }
+    },
+    "live": "live",
+    "recommend": {
+      "badge": "Recommended",
+      "all_checks": "Passes all {n} checks the critic applies",
+      "goal_and_most": "Clears every station; passes {p} of {n} checks (not {failed})",
+      "most_checks": "Passes the most checks: {p} of {n} (not {failed})"
+    },
+    "trace": {
+      "title": "Trace · what each agent did, and when",
+      "sub": "{n} agent steps on the mission's own clock ({ms} ms in all). Parallel agents overlap. Hover a bar for its events.",
+      "round": "round {r}",
+      "meta": "{ms} ms · {runs, plural, =0 {no tool run} one {# tool run} other {# tool runs}}"
     }
   },
   "outsideCorridor": "Outside the modelled corridor"

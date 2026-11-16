@@ -10,6 +10,8 @@ data/raw/*
 data/interim/*
 data/processed/*.parquet
 data/processed/decisions_log.jsonl
+data/processed/*.db
+data/processed/*.db-journal
 data/processed/runs/
 *.pdf
 *.zip

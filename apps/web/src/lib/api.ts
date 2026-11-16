@@ -42,6 +42,10 @@ export type ShiftStep = S["ShiftStep"];
 export type ShiftAlert = S["ShiftAlert"];
 export type IncidentInfo = S["IncidentInfo"];
 export type RejectedPlan = S["RejectedPlan"];
+export type ChainState = S["ChainState"];
+export type ChainEvent = S["ChainEvent"];
+export type ChainStartRequest = S["ChainStartRequest"];
+export type ChainDecideRequest = S["ChainDecideRequest"];
 
 /** True when the page is served from this machine (laptop, booth). */
 export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
@@ -129,6 +133,41 @@ export interface Evidence {
   contract: string;
 }
 
+/** POST /agent/run/stream (contract 1.14.0): the mission's agent events as they are logged, then the whole mission.
+ *  Throws when the stream cannot be opened or ends without a mission; the caller then falls back to /agent/run. */
+async function runStream(req: AgentRunRequest, onEvent: (e: AgentEvent) => void, signal?: AbortSignal): Promise<Mission> {
+  const res = await fetch(`${API_BASE}/agent/run/stream`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(req), signal });
+  if (!res.ok || !res.body) throw new ApiError(res.status, res.statusText || "stream unavailable");
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", mission: Mission | null = null;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i: number;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const block = buf.slice(0, i);
+      buf = buf.slice(i + 2);
+      let kind = "message", data = "";
+      for (const line of block.split("\n")) {
+        if (line.startsWith("event: ")) kind = line.slice(7);
+        else if (line.startsWith("data: ")) data += line.slice(6);
+      }
+      if (!data) continue;
+      const d = JSON.parse(data);
+      if (kind === "agent") onEvent(d as AgentEvent);
+      else if (kind === "mission") mission = d as Mission;
+      else if (kind === "error") throw new ApiError(500, String((d as { detail?: string }).detail ?? "stream error"));
+    }
+  }
+  if (!mission) throw new ApiError(0, "the stream ended without a mission");
+  remember(requestKey("/agent/run", req), mission, true);       // the API-down fallback can replay it
+  onFallback(false);
+  return mission;
+}
+
 export const api = {
   health: () => call<{ ok: boolean; contract: string; storage?: "persistent" | "ephemeral" }>("/healthz", undefined, { cache: false }),
   stations: () => call<Station[]>("/stations"),
@@ -138,7 +177,12 @@ export const api = {
   agentPlan: (req: AgentPlanRequest) => call<AgentPlanResponse>("/agent/plan", req),
   /** The agent team (contract 1.11.0): the plan plus every agent event, checks, stress tests and budget. */
   agentRun: (req: AgentRunRequest) => call<Mission>("/agent/run", req),
+  /** The same mission, streamed live (agents' events as they happen). */
+  agentRunStream: runStream,
   agentRoster: () => call<Roster>("/agent/roster"),
+  /** The event chain (contract 1.14.0): never cached, every call moves the chain on. */
+  chainStart: (req: ChainStartRequest) => call<ChainState>("/chain/start", req, { cache: false }),
+  chainDecide: (id: string, req: ChainDecideRequest) => call<ChainState>(`/chain/${encodeURIComponent(id)}/decide`, req, { cache: false }),
   /** Standing agents (contract 1.12.0): the watcher's alerts for the day, the messenger's drafts, ask the twin. */
   watch: (req: WatchRequest) => call<WatchResponse>("/watch/scan", req),
   message: (req: MessageRequest) => call<MessageResponse>("/agent/message", req),
@@ -148,6 +192,8 @@ export const api = {
   breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),
   decide: (req: DecisionRequest) => call<DecisionResponse>("/decisions", req, { cache: false }),
   evidence: () => call<Evidence>("/evidence"),
+  /** The decision log's hash chain (WP5): ok, records, first_bad. Never cached. */
+  verifyLog: () => call<{ ok: boolean; records: number; chained: number; unchained: number; first_bad: number | null }>("/decisions/verify", undefined, { cache: false }),
   /** Anonymous audit log, newest first (kiosk "visitors today" counter). */
   decisions: (limit = 500) => call<{ total: number; approved: number; rejected: number;
     items: { timestamp: string; user: string; decision: string; interventions?: { type: string }[] }[] }>(`/decisions?limit=${limit}`, undefined, { cache: false }),

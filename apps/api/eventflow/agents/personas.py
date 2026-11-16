@@ -262,7 +262,7 @@ def explain_options(ctx, buf: list) -> float:
     llm = agent_llm("explainer")
     if llm is None or not p.options:
         return time.perf_counter()
-    p.llm, p.llm_name = llm, f"{'OpenAI' if llm.provider == 'openai' else 'Claude'} {llm.model or 'model'}"
+    p.llm, p.llm_name = llm, llm_mod.display_name(llm) if llm.model else "model"
     t0 = p.model_explain()
     if llm.missed:                                            # not recorded: keep the template, say nothing about a model
         p.llm_note.pop("explain", None)
@@ -270,7 +270,7 @@ def explain_options(ctx, buf: list) -> float:
             p.llm = None
         note(ctx, "explainer", llm, False)
         return t0
-    p.llm_name = f"{'OpenAI' if llm.provider == 'openai' else 'Claude'} {llm.model}"
+    p.llm_name = llm_mod.display_name(llm)
     if "explain" in p.llm_used:
         p.llm_note["explain"] = p.T["detail"]["llm_explain"].format(llm=p.llm_name, n=len(p.options) - len(p.template_used), m=len(p.options))
     meta = note(ctx, "explainer", llm, "explain" in p.llm_used)

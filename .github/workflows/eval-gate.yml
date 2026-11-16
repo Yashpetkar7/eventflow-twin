@@ -27,3 +27,65 @@ jobs:
         with:
           name: eval-results
           path: eval/results/
+
+  # Product mode (decision #135): the store on a real Postgres, the chain, sign-in and the OpenTelemetry export.
+  saas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env: {POSTGRES_USER: eft, POSTGRES_PASSWORD: eft-ci-only, POSTGRES_DB: eft}
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U eft" --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt -r requirements-saas.txt && python tasks.py synth
+      - name: Store on Postgres, chain, auth, tracing
+        env: {EVENTFLOW_TEST_PG: "postgresql://eft:eft-ci-only@localhost:5432/eft"}
+        run: python -m pytest -q tests/test_store_postgres.py tests/test_chain_auth_log.py tests/test_tracing.py
+
+  # The API image must build and answer with no network (decision #137).
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t eventflow-api .
+      - name: Offline smoke test inside the image (no network)
+        run: docker run --rm --network none eventflow-api python scripts/image_smoke.py
+
+  # UI tests on a production build (WP6). Frame-rate tests skip themselves on CI (no GPU on the runner).
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    continue-on-error: true      # make blocking after the first green run on GitHub (3D in software rendering is unproven there)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22", cache: npm, cache-dependency-path: apps/web/package-lock.json}
+      - run: python -m venv .venv && .venv/bin/pip install -r requirements.txt
+      - run: npm ci --no-audit --no-fund
+        working-directory: apps/web
+      - run: npx playwright install --with-deps chrome
+        working-directory: apps/web
+      - name: Start the API and the production web app
+        run: |
+          DEMO_MODE=offline nohup .venv/bin/python -m uvicorn apps.api.eventflow.main:app --port 8000 > api.log 2>&1 &
+          cd apps/web && npm run build && (nohup npm run start -- -p 3000 > ../../web.log 2>&1 &)
+          for i in $(seq 60); do curl -sf http://localhost:3000 >/dev/null && curl -sf http://localhost:8000/healthz >/dev/null && break; sleep 2; done
+      - run: npx playwright test --reporter=line
+        working-directory: apps/web
+        env: {CI: "1", EFT_MODE: "production build (CI)"}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-results
+          path: |
+            apps/web/test-results/
+            api.log
+            web.log

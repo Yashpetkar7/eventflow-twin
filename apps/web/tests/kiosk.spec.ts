@@ -258,7 +258,8 @@ test("kiosk: how the AI decided, undo an approval, and RTA's reported New Year's
   await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
   await page.locator(".kopt").nth(1).getByRole("button", { name: "Approve this plan" }).click();
   await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "decide", { timeout: 15_000 });
-  await expect(page.locator(".kba > div")).toHaveCount(4);                                  // long waits in this scenario: all four measures
+  // long waits in this scenario: all four measures (since #133 the plan may also move cars, then a road row joins them)
+  await expect(page.locator(".kba > div:not([data-testid='kiosk-road-after'])")).toHaveCount(4);
   await expect(page.locator(".kba")).toContainText("min");
   await page.getByTestId("kiosk-pb").click();
   const table = page.getByTestId("kiosk-pb-table");

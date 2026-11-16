@@ -365,6 +365,7 @@ body.kiosk .railtabs { display: none; }
 .team-feed li.L1 { border-inline-start-color: var(--ink-3); } .team-feed li.L2 { border-inline-start-color: var(--navy); }
 .team-feed li.L3 { border-inline-start-color: var(--warn); } .team-feed li.L4 { border-inline-start-color: var(--brand); } .team-feed li.L5 { border-inline-start-color: var(--ok); }
 .team-feed .who { font-weight: 600; color: var(--ink-2, var(--ink)); }
+.team-feed .who .to { display: block; font-weight: 400; font-size: 11px; color: var(--ink-3, var(--ink)); }
 .team-feed .who .ai { font-style: normal; font-size: 9.5px; margin-inline-start: 4px; color: var(--brand); border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; }
 .team-feed small { display: block; color: var(--ink-3); font-size: 10.5px; }
 .team-checks, .team-score { inline-size: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -449,3 +450,13 @@ body.kiosk .railtabs { display: none; }
   .lmmenu { inset-inline: 0; width: auto; max-height: min(60dvh, 420px); }
 }
 
+
+/* agent trace (WP4) */
+.trace { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; max-block-size: 340px; overflow-y: auto; }
+.trace li { display: grid; grid-template-columns: 128px 1fr 118px; gap: 8px; align-items: center; font-size: 12px; }
+.trace .who { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trace .lane { position: relative; block-size: 10px; background: var(--line); border-radius: 3px; }
+.trace .lane i { position: absolute; inset-block: 0; border-radius: 3px; background: var(--ink-3); }
+.trace li.L1 .lane i { background: var(--ink-3); } .trace li.L2 .lane i { background: var(--navy); } .trace li.L3 .lane i { background: var(--warn); }
+.trace li.L4 .lane i { background: var(--brand); } .trace li.L5 .lane i { background: var(--ok); }
+.trace .meta { color: var(--ink-3, var(--ink)); font-size: 11px; text-align: end; }

@@ -88,11 +88,24 @@ def test_no_hotspot_means_no_plan_and_a_short_trace(client):
 
 
 def test_goal_clearing_plan_is_always_offered(client):
-    """A plan that clears the goal may cost too much to rank in the top three; the critic still puts it on offer."""
+    """Whenever a tested plan clears the goal, one is on offer (since rev 5 the sized specialists usually put it first)."""
     spec = {"event_id": "gitex2025_d1", "attendance": 80000}
     _, p = plan(client, spec)
-    assert p["critic"]["goal_met_ranks"] == [3] and not p["critic"]["top_meets_goal"]
-    assert p["options"][2]["summary"]["overcap_station_hours"] == 0
+    assert p["critic"]["goal_met_ranks"], "a plan that clears every station was found and must be offered"
+    for r in p["critic"]["goal_met_ranks"]:
+        assert p["options"][r - 1]["summary"]["overcap_station_hours"] == 0
+
+
+def test_ranker_offers_an_expensive_goal_clearing_plan_third():
+    """The branch behind the rule above: three cheaper plans that miss the goal, one dear plan that meets it."""
+    def opt(key, score, over):
+        return {"key": key, "ivs": [{"type": key, "params": {}}], "score": score, "demote": False, "new_hot": [],
+                "res": {"summary": {"overcap_station_hours": over}}}
+    run = planner.PlanRun.__new__(planner.PlanRun)
+    run.llm_used, run.rounds, run.trace = [], 1, []
+    run.pool = [opt("a", 900, 1.0), opt("b", 800, 1.0), opt("c", 700, 0.5), opt("dear", 100, 0.0)]
+    top = run.rank()
+    assert [o["key"] for o in top] == ["a", "b", "dear"]
 
 
 def test_rounds_and_work_are_bounded(client, monkeypatch):

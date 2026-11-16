@@ -29,10 +29,19 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
   const names = (o.new_hotspots ?? []).map((id) => f.station(stations.find((s) => s.id === id))).join(", ");
   const tm = useTranslations("mission");
   const a = useTwin((s) => (s.mission?.plan.plan_id === s.plan?.plan_id ? s.mission?.assessments.find((x) => x.rank === o.rank) : undefined));
+  // the critic's recommendation (contract 1.14.0, WP3): absent in older snapshots, then no badge
+  const rec = useTwin((s) => (s.mission?.plan.plan_id === s.plan?.plan_id ? s.mission?.recommendation ?? null : null));
+  const isRec = rec?.rank === o.rank;
   return (
-    <article className={`opt${o.rank === 1 ? " top" : ""}${decision === "reject" ? " rejected" : ""}`}>
+    <article className={`opt${o.rank === 1 ? " top" : ""}${isRec ? " rec" : ""}${decision === "reject" ? " rejected" : ""}`}>
       <div className="rank">{t("rankL", { n: f.int(o.rank) })}</div>
       <h3>{o.title}</h3>
+      {isRec && rec && (
+        <div className="row" style={{ gap: 6, marginBlockEnd: 4 }} data-testid="recommended">
+          <span className="badge sm ok">★ {tm("recommend.badge")}</span>
+          <small><N>{tm(`recommend.${rec.basis}`, { n: rec.applicable, p: rec.passed, failed: (rec.failed ?? []).join(", ") })}</N></small>
+        </div>
+      )}
       {(o.goal_met || (o.round ?? 1) > 1) && (
         <div className="row" style={{ gap: 6 }}>
           {o.goal_met && <span className="badge sm ok" data-testid="goal-met">✓ {t("goalMet")}</span>}

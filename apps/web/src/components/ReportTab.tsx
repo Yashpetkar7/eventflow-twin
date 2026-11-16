@@ -27,6 +27,9 @@ export function ReportTab() {
   const [storage, setStorage] = useState<string | undefined>();
   useEffect(() => { api.health().then((h) => setStorage(h.storage)).catch(() => {}); }, []);
   useEffect(() => { api.evidence().then(setEv).catch(() => setEv(null)); }, [log.length]);
+  // the decision log's hash chain (WP5): absent on an older API, then nothing is shown
+  const [chainOk, setChainOk] = useState<{ ok: boolean; records: number; first_bad: number | null } | null>(null);
+  useEffect(() => { api.verifyLog().then(setChainOk).catch(() => setChainOk(null)); }, [log.length]);
   if (!base || !cur || !fc) return <div className="empty">…</div>;
   const b = base.resp.summary, c = cur.resp.summary;
   const cl = (x: number, y: number) => (y === x ? "" : y < x ? "good" : "bad");
@@ -102,6 +105,7 @@ export function ReportTab() {
             </>
           )}
           {ev && <><span>{t("report.logged")}</span><b><N>{f.int(ev.decisions_logged)}</N></b></>}
+          {chainOk && <><span>{t("report.chain")}</span><b data-testid="log-verified" className={chainOk.ok ? "good" : "bad"}><N>{chainOk.ok ? t("report.chainOk", { n: chainOk.records }) : t("report.chainBad", { line: chainOk.first_bad ?? 0 })}</N></b></>}
           {ev && <><span>{t("report.contract")}</span><b style={{ fontWeight: 500 }}><N>{ev.contract}</N></b></>}
         </div>
       </div>

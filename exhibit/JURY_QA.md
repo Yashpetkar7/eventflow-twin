@@ -39,9 +39,10 @@ accuracy. On screen the twin uses a simpler, transparent forecast: a weekday pro
 real accuracy test is RTA's ridership, which we will report as soon as we have it.
 
 **What do the AI agents actually do?**
-A planning agent reads the goal, finds the hotspot, proposes intervention bundles from a fixed menu (extra trains,
+A team of agents reads the goal, finds the hotspot, and four specialists size measures from a menu (extra trains,
 wayfinding to a neighbouring station, feeder shuttles, robotaxi staging, staggered exits, and — when a platform is over
-full capacity — entry metering at the gates), has the simulator measure
+full capacity — entry metering at the gates) to the forecast crowd — how many shuttles, which headway, what share to walk —
+then a critic sends back what falls short and they resize (since 16 Nov, decision #133); the simulator measures
 each one, ranks them and explains them. Offline — as at this booth — it is a deterministic plan search with template
 explanations. With a key it can also ask a language model (OpenAI GPT-5) for extra plans and wording; the same
 simulator and checks apply either way.

@@ -96,9 +96,11 @@ def shift(c, spec, approve=True, from_hour=5, limit=30):
 def test_the_shift_works_the_day_and_every_figure_is_the_simulators(c):
     ref, applied, steps = shift(c, DOWNTOWN)
     assert len(steps) >= 2 and steps[-1]["done"] and steps[-1]["reason"] == "clear"
-    first = steps[0]                                                # the shift recommends an option that clears the line when one exists
-    met = [o["rank"] for o in first["mission"]["plan"]["options"] if o["goal_met"]]
-    assert first["recommended_rank"] == (met[0] if met else first["mission"]["plan"]["options"][0]["rank"])
+    first = steps[0]                                                # the shift puts the critic's recommendation in the inbox (WP3)
+    assert first["recommended_rank"] == first["mission"]["recommended_rank"] is not None
+    rec = first["mission"]["recommendation"]
+    if rec["basis"] == "all_checks":
+        assert next(o for o in first["mission"]["plan"]["options"] if o["rank"] == rec["rank"])["goal_met"]
     assert steps[-1]["residual"]["overcap_station_hours"] == 0 and steps[-1]["baseline"]["overcap_station_hours"] > 0
     assert steps[0]["reason"] == "awaiting_human" and steps[0]["mission"]["status"] == "awaiting_human"
     assert [s["hour"] for s in steps[:-1]] == sorted(s["hour"] for s in steps[:-1])           # the clock never runs backwards

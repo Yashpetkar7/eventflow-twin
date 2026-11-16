@@ -204,7 +204,7 @@ test("crash recovery: API drops mid-session, saved results stay, banner clears o
 
 test("every simulate and plan request carries the forecast spec (stateless API)", async ({ page }) => {
   const bodies: { url: string; body: { forecast?: unknown } }[] = [];
-  page.on("request", (r) => { if (r.method() === "POST" && /\/(simulate|agent\/plan|agent\/run)$/.test(r.url())) bodies.push({ url: r.url(), body: r.postDataJSON() }); });
+  page.on("request", (r) => { if (r.method() === "POST" && /\/(simulate|agent\/plan|agent\/run|agent\/run\/stream)$/.test(r.url())) bodies.push({ url: r.url(), body: r.postDataJSON() }); });
   await open(page);
   await page.getByRole("button", { name: "Hot day" }).click();
   // wait until the hot-day forecast has replaced the old one (a refresh clears any plan in progress)
@@ -344,6 +344,7 @@ test("API down: saved results keep the twin alive", async ({ page }) => {
 });
 
 test("realism ring (?scene=v2): every chunk streams in offline and the credits list each dataset", async ({ page }) => {
+  test.skip(!!process.env.CI, "frame-rate measurement needs a GPU; GitHub runners render WebGL in software (run on a laptop)");
   const external: string[] = [], failed: string[] = [];
   page.on("request", (r) => { const h = new URL(r.url()).hostname; if (!["localhost", "127.0.0.1"].includes(h) && !/^(data|blob):/.test(r.url())) external.push(r.url()); });
   page.on("response", (r) => { if (/\/(geo\/v2|models|draco)\//.test(r.url()) && !r.ok()) failed.push(r.url()); });
@@ -398,6 +399,7 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
 });
 
 test("realism R7 (?scene=v2): the shadow map is redrawn only when the sun, the view or a caster changes", async ({ page }) => {
+  test.skip(!!process.env.CI, "frame-rate measurement needs a GPU; GitHub runners render WebGL in software (run on a laptop)");
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
   type Eft = { __eft: { frames: number; fps: number; tier: number; shadow_redraws: number; calls: number; triangles: number } };
@@ -434,6 +436,7 @@ test("realism R7 (?scene=v2): the shadow map is redrawn only when the sun, the v
 });
 
 test("performance: fps with every layer on (1920×1080)", async ({ page }) => {
+  test.skip(!!process.env.CI, "frame-rate measurement needs a GPU; GitHub runners render WebGL in software (run on a laptop)");
   await open(page);
   await twin(page, "t.setState({ playing: true, speed: 1 })");
   const samples: Record<string, number[]> = {};

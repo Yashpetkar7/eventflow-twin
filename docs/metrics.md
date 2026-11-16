@@ -4,16 +4,16 @@ Every number below is copied from a file in `eval/results/` or from the baked sc
 nothing is typed by hand. Regenerate: `make ui-test`, then `python scripts/ui_metrics.py`.
 
 ## 3D twin performance
-Source: `eval/results/ui/fps.json` (2026-11-12T18:32:40.631Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+Source: `eval/results/ui/fps.json` (2026-11-16T17:00:49.343Z), Playwright → Chrome, `ANGLE (Intel, Intel(R) Graphics (0x00007D45) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
 
 | Measure | Value |
 |---|---|
 | Viewport | 1920x1080 (3D canvas 1230×771, device pixel ratio 1) |
 | Layers | all on, clock playing |
-| Build | next start (production build) |
-| Average fps (5 camera presets × 5 s) | **56.2** |
-| Minimum 1-second sample | 55.5 |
-| Per camera | overview 56.3, close 56.3, top 55.9, fly 56, orbit 56.5 |
+| Build | production build |
+| Average fps (5 camera presets × 5 s) | **59.9** |
+| Minimum 1-second sample | 58 |
+| Per camera | overview 59.8, close 59.6, top 60, fly 60, orbit 60 |
 
 Budget ≥ 50 fps: **met** on this machine. The browser caps at the display refresh rate (60 Hz), so 60 means
 "at the cap". Not measured: the exhibit's touch monitor at its native resolution; a 2-hour soak.
@@ -66,7 +66,7 @@ Crash recovery (test "crash recovery…"): with the API blocked the banner appea
 the health check every 4 s clears the banner when the API returns.
 
 ## Offline
-Source: `eval/results/ui/network.json` (2026-11-12T18:31:02.573Z).
+Source: `eval/results/ui/network.json` (2026-11-16T16:58:37.819Z).
 Requests to any host other than localhost during load, an agent plan and a language switch: **0**.
 Fonts (Readex Pro, OFL) are files in the repo; the map is baked into `apps/web/public/geo/`.
 With the API blocked the app starts from the saved snapshot (`apps/web/public/cache/`) and says so (test "API down").
@@ -116,7 +116,7 @@ Baked by `python scripts/fetch_realism_data.py` (downloads to `data/raw/realism/
 3D-GloBFP calibration: raw 3D-GloBFP heights were compared with the OpenStreetMap-tagged height of the same 9143 buildings
 and mapped onto them (median tagged height per quantile bin, monotone). Raw 3D-GloBFP m → used m: 8.7 → 6.6, 12.4 → 6.6, 15.0 → 6.6, 17.3 → 6.6, 19.8 → 6.6, 22.5 → 6.6, 24.8 → 6.6, 27.4 → 6.6, 30.9 → 8.6, 36.0 → 25.0, 44.8 → 36.3, 64.6 → 55.0.
 
-Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 18.7 MB in 143 files.
+Size: `apps/web/public/geo` 15.0 MB (limit 60), largest file `ground.png` 3.13 MB (limit 15). All of `apps/web/public`: 21.0 MB in 191 files.
 
 15 before/after pairs (5 camera presets × 10:00, 17:30, 21:30) in `eval/results/ui/realism/` (`node tests/polish.mjs before realism`, `node tests/polish.mjs after realism "?scene=v2"`), 1920×1080, dev mode, clock paused.
 
@@ -143,12 +143,12 @@ R4 models (Blender 5.3.0, `scripts/blender/build_models.py`; approximations from
 
 | Model | Triangles | Far version | Budget | File | Public dimension source |
 |---|---|---|---|---|---|
-| burj_khalifa | 2332 | 582 | 60000 | 41.6 kB | https://en.wikipedia.org/wiki/Burj_Khalifa |
-| emirates_office_tower | 313 | 77 | 25000 | 8.4 kB | https://en.wikipedia.org/wiki/Emirates_Towers |
-| emirates_hotel_tower | 297 | 73 | 25000 | 8.3 kB | https://en.wikipedia.org/wiki/Emirates_Towers |
+| burj_khalifa | 11968 | 2992 | 60000 | 204.0 kB | https://en.wikipedia.org/wiki/Burj_Khalifa |
+| emirates_office_tower | 1721 | 429 | 25000 | 32.1 kB | https://en.wikipedia.org/wiki/Emirates_Towers |
+| emirates_hotel_tower | 1613 | 403 | 25000 | 31.0 kB | https://en.wikipedia.org/wiki/Emirates_Towers |
 | museum_of_the_future | 4192 | 1048 | 25000 | 78.5 kB | https://en.wikipedia.org/wiki/Museum_of_the_Future |
-| trade_centre_tower | 136 | 34 | 25000 | 5.9 kB | https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre |
-| dubai_frame | 84 | 20 | 25000 | 5.0 kB | https://en.wikipedia.org/wiki/Dubai_Frame |
+| trade_centre_tower | 652 | 162 | 25000 | 13.0 kB | https://en.wikipedia.org/wiki/Dubai_World_Trade_Centre |
+| dubai_frame | 5664 | 1416 | 25000 | 71.9 kB | https://en.wikipedia.org/wiki/Dubai_Frame |
 | metro_station | 1828 | 456 | 15000 | 21.0 kB | https://en.wikipedia.org/wiki/Dubai_Metro |
 | viaduct_segment | 180 | 44 | 15000 | 6.9 kB | https://en.wikipedia.org/wiki/Dubai_Metro |
 | metro_car | 216 | 54 | 8000 | 8.4 kB | https://en.wikipedia.org/wiki/Dubai_Metro |
@@ -157,6 +157,23 @@ R4 models (Blender 5.3.0, `scripts/blender/build_models.py`; approximations from
 | palm_c | 480 | 119 | 1500 | 15.8 kB | https://en.wikipedia.org/wiki/Date_palm |
 | car | 180 | 44 | 1500 | 6.7 kB | generic vehicle, no real model |
 | bus | 148 | 36 | 1500 | 5.0 kB | generic vehicle, no real model |
+| tower_01 | 50 | 12 | 25000 | 4.1 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_02 | 125 | 30 | 25000 | 5.1 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_03 | 50 | 12 | 25000 | 4.0 kB | OpenStreetMap height tag via Overture 2026-10-21.0 (e13698d0-4e13-42fb-bb16-93a7abc2975c) |
+| tower_04 | 74 | 18 | 25000 | 5.0 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_05 | 198 | 49 | 25000 | 7.5 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_06 | 125 | 31 | 25000 | 5.3 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_07 | 78 | 18 | 25000 | 5.1 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_08 | 310 | 77 | 25000 | 8.7 kB | OpenStreetMap height tag via Overture 2026-10-21.0 (3394151e-ea81-44db-83b8-041034c8ec70) |
+| tower_09 | 50 | 12 | 25000 | 4.1 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| tower_10 | 110 | 27 | 25000 | 5.0 kB | https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai |
+| dubai_mall | 7341 | 2721 | 25000 | 179.1 kB | OpenStreetMap height tag via Overture 2026-10-21.0 (6616dedf-5be8-4422-a5d7-cf0cfd28be1f) |
+| difc_gate | 53 | 18 | 25000 | 3.4 kB | OpenStreetMap height tag via Overture 2026-10-21.0 (caef1c98-3795-48fc-bb13-dd00948f8a24) |
+| one_zaabeel | 537 | 425 | 30000 | 20.1 kB | https://en.wikipedia.org/wiki/One_Za%27abeel |
+| address_sky_view | 11415 | 1391 | 30000 | 268.4 kB | https://en.wikipedia.org/wiki/Address_Sky_View |
+| address_downtown | 2127 | 1063 | 30000 | 56.4 kB | https://en.wikipedia.org/wiki/Address_Downtown |
+| coca_cola_arena | 1725 | 1493 | 30000 | 46.1 kB | https://en.wikipedia.org/wiki/Coca-Cola_Arena |
+| burj_al_arab | 1536 | 1252 | 30000 | 47.1 kB | https://en.wikipedia.org/wiki/Burj_Al_Arab |
 
 Visitor kiosk attract screen (3D full screen, `node tests/kiosk_fps.mjs`), every recorded run:
 
@@ -202,9 +219,9 @@ UI test "realism ring…" on the production build, lowest 1-second sample per ca
 
 15 before/after screenshot pairs: `eval/results/ui/realism_r7/index.html`.
 
-`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-12T21:41:21.756Z, test "realism ring…"): average **60** fps, minimum 1-second sample 59.9.
+`?scene=v2` with every layer on and the clock playing (`fps_v2.json`, 2026-11-16T16:59:36.480Z, test "realism ring…"): average **60** fps, minimum 1-second sample 59.
 
 ## UI tests
-`apps/web/tests/ui.spec.ts` — 24 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
+`apps/web/tests/ui.spec.ts` — 28 Playwright tests (EN/AR, day/night, kiosk hit targets, demo flow, guided demo,
 My plan, recentre, landmarks, overlay overlap, quality tier, crash recovery, table + WebGL fallback, offline, API down,
 fps). Screenshots: `eval/results/ui/*.png`.

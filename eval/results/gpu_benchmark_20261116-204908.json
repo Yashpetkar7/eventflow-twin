@@ -1,0 +1,30 @@
+{
+  "suite": "gpu_benchmark",
+  "git_sha": "ff66d81-dirty",
+  "timestamp": "2026-11-16T20:49:08",
+  "models": {
+    "engine": "graph",
+    "llm_model": null
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "mission_n": 20,
+    "mission_p50_s": 0.5642,
+    "mission_p95_s": 1.2757,
+    "simulator_runs": 291,
+    "simulator_runs_per_s": 36.3,
+    "sweep_hours_10k_scenarios": 3.67,
+    "sweep_hours_100k_scenarios": 36.71
+  },
+  "n": 20,
+  "split": "gold scenarios 1-20 + simulator loop",
+  "hardware": {
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cores": 14,
+    "python": "3.11.6",
+    "os": "Windows 10"
+  },
+  "grid_plans": 48
+}

@@ -10,6 +10,7 @@ import { LAYER_AGENTS, useEventText } from "@/lib/mission";
 import { CORRIDOR_ORDER, useTwin } from "@/lib/store";
 import { DebateCard } from "./Debate";
 import { AskCard, MessengerCard } from "./Standing";
+import { TraceCard } from "./Trace";
 
 const MEASURES = ["extra_trains", "extended_hours", "station_metering", "wayfinding_redirect", "staggered_exit", "shuttle_bus", "robotaxi_staging"] as const;
 const CAPS = [null, 20, 50, 150] as const;
@@ -52,7 +53,8 @@ export function TeamFeed({ mission, shown, max = 60 }: { mission: Mission; shown
     <ol className="team-feed" data-testid="team-feed" aria-live="polite">
       {evs.map((e) => (
         <li key={e.seq} className={`L${e.layer}`} data-key={e.key}>
-          <span className="who">{td(`agent.${e.agent}`)}{e.llm ? <em className="ai">AI</em> : null}</span>
+          <span className="who">{td(`agent.${e.agent}`)}{e.llm ? <em className="ai">AI</em> : null}
+            {e.to?.length ? <small className="to" data-testid="team-msg-to"><bdi>{(t as unknown as (k: string, v: Record<string, string>) => string)("ev.to", { who: e.to.map((a) => td(`agent.${a}`)).join(", ") })}</bdi></small> : null}</span>
           <span className="what"><bdi><N>{text(e)}</N></bdi>{e.run_id ? <small><bdi>{e.run_id}</bdi></small> : null}</span>
         </li>
       ))}
@@ -100,6 +102,9 @@ export function TeamTab() {
   const f = useFmt();
   const { locale } = useLocale();
   const mission = useTwin((s) => s.mission);
+  const live = useTwin((s) => s.missionLive);
+  // while the stream runs, the events received so far stand in for the mission in the graph and the feed only
+  const view = useMemo(() => mission ?? (live ? ({ events: live, roster: [] } as unknown as Mission) : null), [mission, live]);
   const shown = useTwin((s) => s.missionShown);
   const status = useTwin((s) => s.planStatus);
   const ready = useTwin((s) => !!s.forecast && !s.loading);
@@ -143,13 +148,15 @@ export function TeamTab() {
           <h3 className="team-h">{t("graph")}</h3>
           {mission && status === "ready" && <button type="button" className="pill" onClick={() => setReplay(0)} data-testid="team-replay">{t("replay")}</button>}
         </div>
-        <TeamGraph mission={mission} shown={n} />
+        <TeamGraph mission={view} shown={n} />
       </div>
 
-      {mission && (
+      {mission && status === "ready" && <TraceCard mission={mission} />}
+
+      {view && (
         <div className="card">
-          <h3 className="team-h">{t("feed")}</h3>
-          <TeamFeed mission={mission} shown={n} />
+          <h3 className="team-h">{t("feed")}{!mission && live ? <small className="badge sm" style={{ marginInlineStart: 6 }} data-testid="team-live">{t("live")}</small> : null}</h3>
+          <TeamFeed mission={view} shown={n} />
         </div>
       )}
 
