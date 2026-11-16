@@ -439,4 +439,13 @@ body.kiosk .railtabs { display: none; }
   body.brief-open .brief-page { box-shadow: none !important; max-width: none !important; padding: 0 !important; border-radius: 0 !important; }
   .brief .noprint { display: none !important; }
 }
+/* phone width (found in the #128 audit): the landmark menu opened half off the screen, and a long "approve instead"
+   chip pushed the page sideways */
+.duty .pill { white-space: normal; text-align: start; max-width: 100%; }
+.duty small bdi, .duty .note bdi { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .lmwrap { position: static; }                                   /* the menu spans the toolbar instead of hanging off its button */
+  .camtools { position: relative; }
+  .lmmenu { inset-inline: 0; width: auto; max-height: min(60dvh, 420px); }
+}
 
