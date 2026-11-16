@@ -10,6 +10,11 @@ cd apps/web && npm install && cd ../..
 python tasks.py synth                                   # only if data/synthetic is empty
 ```
 The 3D map is already baked into the repo (`apps/web/public/geo/`). Nothing is downloaded at the venue.
+**After pulling the 16 Nov agent team (#122–#125), run `pip install -r requirements.txt` again once, online** — it adds
+LangGraph. Without it the same agents still run in sequence (the AI team tab then says so), but the booth should show
+LangGraph. Check: `curl -s localhost:8000/healthz` → `"engine": "graph"`.
+Optional, with the team's OpenAI key in `.env`: `python tasks.py record-missions` records the agents' model answers
+for the demo scenarios (then commit `data/demo_cache/llm/`); without it the agents use their code rules and say so.
 Or all of it in one go, with an offline self-check at the end (use it for laptop B too):
 `python3 scripts/setup_booth_laptop.py` → prints `OK — this laptop is ready`.
 
@@ -29,6 +34,9 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
    Arabic first: add `&lang=ar`. Rehearsal with a 10-second idle timer: add `&idle=10`.
 4. Ten-minute check: tap **Guided demo** and let it finish; tap a station; open **Landmarks → Burj Khalifa**; press the
    red **Recentre** button after dragging the map; switch to Arabic and back.
+5. Agent team check: **Hot day** → **AI team** tab → **Run the AI team**: the layers light up, the feed fills, the
+   critic's table and stress tests appear. **Alerts** tab: the watcher shows World Trade Centre "crosses the line at
+   15:00". Approve option 1 in **AI plan**, then **AI team**: the messenger's drafts appear (marked DRAFT).
 
 ## The visitor kiosk (`?kiosk=1`; kiosk plus since 13 Nov)
 - **Attract screen** (golden-hour 3D city, "Will the metro cope?", a live fact from the twin, today's visitor count)

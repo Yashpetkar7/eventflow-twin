@@ -1,58 +1,71 @@
 # 03 — Architecture
 
+Updated 16 Nov 2026 to match the code (contract 1.12.0). The agent team is described in depth in
+`docs/15_AGENT_ARCHITECTURE.md`; decisions in `docs/09_DECISIONS.md`.
+
 ```mermaid
 flowchart LR
   subgraph Data
-    A1[Dubai Pulse metro ridership CSVs] --> I[Ingest\nPolars/DuckDB]
-    A2[Metro stations + GIS] --> I
-    A3[GTFS feed] --> I
-    A4[Metro/Tram capacity] --> I
-    A5[events.yaml\nresearched + synthetic] --> F
-    A6[Synthetic generator\nlabelled] --> I
-    I --> F[Feature store\nhourly station panel parquet]
+    A1[RTA GTFS timetable 2021<br/>capacity, stations] --> N[network.yaml<br/>capacity_gtfs.yaml]
+    A2[events.yaml<br/>researched + what-if] --> FC
+    A3[SYNTHETIC hourly panel<br/>labelled] --> FC
+    A4[Ridership check<br/>real station totals] --> CAL[calibration.yaml]
+    A5[OpenStreetMap + Overture<br/>Sentinel-2, WorldCover, DEM] --> SC[baked 3D scene<br/>apps/web/public/geo]
   end
-  subgraph Models
-    F --> M1[Seasonal-naive baseline]
-    F --> M2[LightGBM + event features]
-    M2 --> S[Capacity & Intervention Simulator\ndeterministic]
+  subgraph Tools[Deterministic tools]
+    FC[forecast.build_forecast<br/>weekday quantiles + event overlay] --> SIM[simulate.simulate<br/>15-min fluid queue]
+    N --> SIM
+    CAL --> FC
+    SIM --> BP[breakpoint.break_points]
+    SIM --> RD[road.road_pressure]
   end
-  subgraph Agents[LangGraph agents]
-    P[Planner] --> T1[forecast tool]
-    P --> T2[simulate tool]
-    P --> T3[rank tool]
-    P --> X[Explainer\ncites tool run ids]
-    X --> H{Human approval}
+  subgraph Agents[Agent team · LangGraph StateGraph]
+    SUP[Supervisor] --> UND[Intake · Forecast · Diagnosis]
+    UND --> PRO[Rail · Station & crowd · Venue · First/last mile<br/>in parallel]
+    PRO --> CMP[Composer] --> TST[Simulation → Critic ⟲ Supervisor]
+    TST --> RNK[Ranker] --> EXS[Explainer ∥ Stress test] --> VER[Verifier]
+    VER --> H{Human approval}
+    W[Watcher] -.-> SUP
+    H -->|approved| MSG[Messenger: drafts, never sent]
+    ASK[Ask the twin]
   end
-  S --> T2
-  M2 --> T1
-  H -->|approved| S
-  API[FastAPI] --> Agents
-  API --> S
-  WEB[Next.js + deck.gl/MapLibre\nEN/AR] --> API
-  Cache[(demo_cache\noffline replay)] --- API
+  Tools --> Agents
+  API[FastAPI · contract 1.12.0] --> Agents
+  API --> Tools
+  WEB[Next.js + react-three-fiber twin<br/>workspace · kiosk · EN/AR] --> API
+  REC[(data/demo_cache<br/>plan cache + recorded model answers)] --- Agents
+  SNAP[(public/cache<br/>offline snapshot)] --- WEB
   E[eval suites + gate] --> R[(eval/results)]
 ```
 
 ## Components
 | Component | Tech | Responsibility |
 |---|---|---|
-| Ingest | Polars, DuckDB | Read daily ridership CSVs, normalise station names, aggregate to station × hour entries/exits |
-| Features | Polars | Calendar (hour, dow, UAE weekend regime, holiday, Ramadan flag), lags (t-24h, t-168h), event features (distance-weighted, time-to-start/end, attendance bucket) |
-| Forecaster | LightGBM (quantile 0.1/0.5/0.9) + seasonal-naive | Hourly entries and exits per station, with intervals |
-| Simulator | Pure Python/NumPy | Capacity per hour from headway × train capacity; applies interventions; computes load factor, over-capacity station-hours, peak LF, cost proxy |
-| Agents | LangGraph + Anthropic SDK | Plan → call tools → rank → explain; no free-form numbers |
-| API | FastAPI | `/healthz`, `/stations`, `/events`, `/forecast`, `/simulate`, `/agent/plan`, `/decisions`, `/evidence` |
-| Web | Next.js, deck.gl, MapLibre, Recharts, next-intl | Map, timeline, inspector, scoreboard, evidence, EN/AR |
-| Eval | pytest + eval suites | Forecast backtest, simulator invariants, agent faithfulness, red-team, latency |
+| Forecast | Python, pandas | Same-weekday p10/p50/p90 background + parametric event overlay; what-ifs (attendance, exit window, weather, metro share, real station totals, own event). LightGBM quantile models are backtested (`scripts/baseline.py`), not served |
+| Simulator | NumPy | 15-minute bins, GTFS capacity per line and direction, seven typed and bounded interventions, fluid queue (waits), conservation-tested |
+| Agent team | LangGraph 1.2 (`agents/engine.py`); same nodes in a plain loop as fallback | 18 agents in 5 layers + 2 standing agents; models only propose, route and explain, code computes and decides (`docs/15`) |
+| Language models | OpenAI (GPT-5 family) or Claude, behind one interface (`agents/llm.py`) | Optional: live with `DEMO_MODE=live`; otherwise recorded answers replayed (`agents/personas.py`) or code policies |
+| API | FastAPI, Pydantic v2 | Stateless: every run rebuilds from its request spec, so any serverless instance can answer |
+| Web | Next.js 16, react-three-fiber, zustand, next-intl | 3D twin on a baked offline scene, workspace (tabs incl. AI team), touch kiosk, EN/AR RTL, offline snapshot fallback |
+| Eval | pytest + suites + `eval/gate.py` | forecast, simulator, agents, redteam, orchestration, critic, optimality, safety (all required), latency |
 
-## API contract (v1)
-- `GET /stations` → `[{id, name_en, name_ar, line, lat, lon, capacity_per_train, in_corridor}]`
-- `GET /events` → `[{id, name, venue, lat, lon, start, end, attendance, is_synthetic, source_url}]`
-- `POST /forecast {event_id|null, date, hours:[0..23], stations:[...]}` → `{run_id, rows:[{station_id, hour, entries_p10,p50,p90, exits_p10,p50,p90}], model, is_synthetic}`
-- `POST /simulate {forecast_run_id, interventions:[{type, params}]}` → `{run_id, rows:[{station_id, hour, demand, capacity, load_factor}], summary:{overcap_station_hours, peak_lf, cost_proxy}}`
-- `POST /agent/plan {forecast_run_id, goal}` → `{plan_id, options:[{rank, title, interventions, summary_delta, rationale, sources:[run_id...]}]}`
-- `POST /decisions {plan_id, option_rank, decision: approve|reject, user}` → logged
-- `GET /evidence` → latest eval metrics + data provenance
+## API (contract 1.12.0, `contract/openapi.json`)
+| Endpoint | What |
+|---|---|
+| `GET /healthz` | ok, contract version, storage, agent engine |
+| `GET /stations`, `GET /events` | network and events |
+| `POST /forecast` | hourly demand with band; deterministic `run_id` |
+| `POST /simulate` | simulation with interventions; summary, hourly rows, road pressure, `source` |
+| `POST /breakpoint` | crowd size at which each station crosses the threshold (exact) |
+| `POST /agent/run` | **the agent team**: mission with events, objective, constraints, plan, rejected plans, C1–C7 checks, stress tests, budget, recording |
+| `GET /agent/roster` | the agents, layers and the orchestration graph (Mermaid, from the compiled graph) |
+| `POST /agent/plan` | the plan only (classic single planner; same plans as the team without a model) |
+| `POST /watch/scan` · `/agent/message` · `/agent/ask` | standing agents: watcher alerts, messenger drafts, ask the twin |
+| `POST /decisions`, `GET /decisions` | human approvals and rejections, append-only audit log |
+| `GET /evidence` | newest eval metrics per suite + data provenance |
 
 ## Offline mode
-`DEMO_MODE=offline`: `/agent/plan` returns cached JSON keyed by (scenario_id, goal hash) from `data/demo_cache/`. Map tiles: use a bundled style with local vector/GeoJSON (no remote tiles), or a pre-rendered basemap PNG under the deck.gl layers.
+The booth runs with no network. `DEMO_MODE=offline`: `/agent/plan` replays `data/demo_cache/plan_*.json`; the agent team
+recomputes every simulation and check, and replays recorded model answers from `data/demo_cache/llm/` (or uses code
+policies). The web app falls back to `apps/web/public/cache/` (built by `npm run snapshot`) when the API is down, and
+says so. The 3D scene, fonts and models are files in the repo.

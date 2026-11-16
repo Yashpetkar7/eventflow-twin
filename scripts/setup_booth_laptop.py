@@ -100,6 +100,11 @@ def check() -> bool:
         plan = get(f"{API}/agent/plan", {"forecast_run_id": fc["run_id"], "forecast": spec})
         assert plan["options"] and plan["verify"]["all_matched"], "AI plan missing or numbers not verified"
         print(f"   AI plan ok: {len(plan['options'])} options, numbers verified, mode {plan['mode']}")
+        # the agent team (docs/15): LangGraph should be installed (pip install -r requirements.txt after 16 Nov)
+        m = get(f"{API}/agent/run", {"forecast_run_id": fc["run_id"], "forecast": spec})
+        assert m["status"] == "awaiting_human" and m["plan"]["verify"]["all_matched"], "agent team: no options or numbers not verified"
+        assert m["engine"] == "graph", f"agent team runs '{m['engine']}', not LangGraph: run `pip install -r requirements.txt` once, online"
+        print(f"   agent team ok: {m['counts']['agents']} agents on LangGraph, {len(m['events'])} events, AI: {m['recording']['mode']}")
         assert wait(f"http://localhost:{WEB_PORT}/", 90), f"web app did not start on :{WEB_PORT}"
         page = get(f"http://localhost:{WEB_PORT}/?kiosk=1")
         assert "EventFlow" in page, "kiosk page did not render"
