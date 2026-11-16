@@ -31,6 +31,7 @@ from eval.common import write_result  # noqa: E402
 from eval.suites.plancheck import marker_hits, option_texts, schema_ok, unfaithful_numbers  # noqa: E402
 
 GOLD = Path(__file__).resolve().parents[1] / "gold/redteam.jsonl"
+LEGIT_GOALS = Path(__file__).resolve().parents[1] / "gold/agents_scenarios.jsonl"   # for the injection screen's false positives
 SCENARIO = {"event_id": "gitex2025_d1", "weather": "rain"}         # a scenario with a hotspot, so plans have options
 OWASP = {"ASI01": "Agent goal hijack", "ASI02": "Tool misuse and exploitation", "ASI03": "Identity and privilege abuse",
          "ASI04": "Agentic supply chain", "ASI05": "Unexpected code execution", "ASI06": "Memory and context poisoning",
@@ -76,7 +77,7 @@ def _false_positives() -> float:
     import re
     from apps.api.eventflow.agents.roster import settings
     pats = settings()["intake"]["injection_patterns"]
-    goals = [json.loads(line)["goal"] for line in (GOLD.parent / "agents_scenarios.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    goals = [json.loads(line)["goal"] for line in LEGIT_GOALS.read_text(encoding="utf-8").splitlines() if line.strip()]
     return round(sum(any(re.search(p, g.lower()) for p in pats) for g in goals) / len(goals), 4)
 
 
