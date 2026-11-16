@@ -68,7 +68,7 @@ def load_panel() -> Panel:
 def config_hash() -> str:
     h = hashlib.sha256()
     for f in ("config/corridor.yaml", "config/events.yaml"):
-        h.update((ROOT / f).read_bytes())
+        h.update((ROOT / f).read_bytes().replace(b"\r\n", b"\n"))      # a Windows checkout has CRLF: same hash, same run ids
     return h.hexdigest()[:10]
 
 
@@ -152,7 +152,7 @@ def incident_config() -> tuple[dict, str]:
     """The incident what-ifs (config/incidents.yaml) and a hash of the file, which enters the run id of a run that
     uses one (the file is deliberately not part of config_hash: see its header)."""
     f = ROOT / "config/incidents.yaml"
-    return yaml.safe_load(f.read_text(encoding="utf-8")), hashlib.sha256(f.read_bytes()).hexdigest()[:8]
+    return yaml.safe_load(f.read_text(encoding="utf-8")), hashlib.sha256(f.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:8]
 
 
 def resolve_incident(incident: dict | None, ev: dict | None, attendance: float | None, weather: str | None,
