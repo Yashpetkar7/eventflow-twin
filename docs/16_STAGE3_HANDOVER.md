@@ -12,13 +12,15 @@ Read `CLAUDE.md` first (the hard rules bind), then this file, then `docs/09_DECI
 The lead asked for three stages after the professor's second review. Each stage is tested, merged and deployed
 before the next.
 
-| Stage | What | State on 16 Nov, evening |
+| Stage | What | State on 16 Nov, 18:10 Dubai time |
 |---|---|---|
-| 1 | Rendering faults fixed, new station gauge, welcome sheet closes (#126) | **Live.** PR #31 merged and deployed; smoke test passed; checked on the live site |
-| 2 | Dubai Mall rebuilt, animated fountain, One Za'abeel, Address Sky View, Address Downtown, Coca-Cola Arena, Burj Al Arab (#127) | **PR #32 open, not merged, not deployed.** Local: pytest 218 passed, Playwright 49/49. Its `eval` check sat for 30 minutes on a slow GitHub runner and was re-run; see step A1 |
-| 3 | Incident mode, duty shift on autopilot, agent debate, operations brief (#128) | **Built and tested locally, pushed on branch `b/incident-shift`, PR open, not merged, not deployed.** Local: pytest 217 passed, gate 30 of 30 checks, Playwright 52/52 on a production build |
+| 1 | Rendering faults fixed, new station gauge, welcome sheet closes (#126) | **Live.** PR #31 |
+| 2 | Dubai Mall rebuilt, animated fountain, One Za'abeel, Address Sky View, Address Downtown, Coca-Cola Arena, Burj Al Arab (#127) | **Live.** PR #32 merged and deployed |
+| 3 | Incident mode, duty shift on autopilot, agent debate, operations brief (#128) | **Live.** PR #33 merged and deployed; smoke test reports contract 1.13.0 |
 
-Stage 3's branch is cut from stage 2's, so its PR shows stage 2's commits too until #32 is merged.
+Checked on the live site after the last deploy: the duty shift with a train fault (inbox item at 16:00 for World Trade
+Centre, Approve, "No station is over the line", operations brief), the fountain at night, the Dubai Mall, Burj Al
+Arab, and Financial Centre station in close-up. **Section 2A below is done; start at 2B.**
 
 ### What stage 3 already contains (do not rebuild)
 
@@ -42,7 +44,7 @@ shift" → Approve → "Operations brief". The **AI team** tab then shows the de
 
 ## 2. What is left, in order
 
-### A. Ship stages 2 and 3 (must do; about an hour, mostly waiting)
+### A. Ship stages 2 and 3 — DONE on 16 Nov (kept as the recipe for the next deploy)
 
 1. **PR #32** (`c/dubai-landmarks`): when its `eval` check is green, merge it into `main` (merge commit, as before).
    If the check sits in "Run evals" for more than 15 minutes, cancel and re-run it
@@ -67,6 +69,10 @@ shift" → Approve → "Operations brief". The **AI team** tab then shows the de
 
 Done means: both PRs merged, production deployed twice, smoke test green, the checks in steps 3 and 6 seen with your
 own eyes. Report anything that differs; do not paper over it.
+
+Two things seen while doing it on 16 Nov: `vercel deploy` once answered "Not authorized" and worked on the next try;
+and after a deploy the production address served the old files for about a minute (check with
+`curl -s https://eventflow-twin-roan.vercel.app/api/healthz`, which must report the new contract).
 
 ### B. Duty shift on the kiosk (should do; half a day)
 
@@ -171,6 +177,6 @@ landmark menu on screen, no sideways scroll.
 ## 6. A prompt to start your Claude Code session (Fable 5.2)
 
 > Read CLAUDE.md and docs/16_STAGE3_HANDOVER.md in full before doing anything. I am Atharva; I now own the rest of
-> stage 3. Start with section 2A (ship stages 2 and 3): tell me the state of PR #32 and of the stage 3 PR, then do
-> each step in order and verify it before the next. Stop and ask me before merging, deploying, or anything outside
-> section 2. Do not use subagents unless I ask. Report plainly what you verified and what you could not.
+> stage 3. Sections 1 and 2A are done (stages 1 to 3 are live). First confirm that for yourself: run the smoke test
+> and tell me the contract version it reports. Then start section 2B (the duty shift on the kiosk) on a new branch.
+> Stop and ask me before merging, deploying, or anything outside section 2. Do not use subagents unless I ask. Report plainly what you verified and what you could not.
