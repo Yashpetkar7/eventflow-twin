@@ -4,16 +4,17 @@
 // interpolates between 15-minute bins for animation.
 import { create } from "zustand";
 import {
-  api, ApiError, setFallbackListener, type AgentPlanResponse, type BreakpointResponse, type EventInfo, type ForecastRequest, type ForecastResponse, type Intervention,
-  type SimulateResponse, type Station,
+  api, ApiError, setFallbackListener, type AgentPlanResponse, type BreakpointResponse, type Constraints, type EventInfo, type ForecastRequest, type ForecastResponse,
+  type Intervention, type Mission, type SimulateResponse, type Station,
 } from "./api";
+import { paceFor, STEP_OF, stationOf } from "./mission";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
 import { MIN_TIER } from "./manifest";
-import { breakpointBody, forecastBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
+import { breakpointBody, forecastBody, missionBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
 
 export type { Priority, Scenario, Weather };
 export type CamMode = "overview" | "close" | "top" | "fly" | "orbit" | "landmark" | "free";
-export type Tab = "station" | "ai" | "build" | "alerts" | "report";
+export type Tab = "station" | "ai" | "team" | "build" | "alerts" | "report";
 export type LayerKey = "buildings" | "landmarks" | "trains" | "traffic" | "flows" | "labels";
 export type Decision = "approve" | "reject";
 
@@ -141,6 +142,10 @@ interface State {
   flows: Record<string, { out: number[]; in: number[] }>;
   applied: Applied[];
   plan: AgentPlanResponse | null; planStatus: "idle" | "running" | "ready" | "error"; planStep: number; planError: string | null;
+  mission: Mission | null;            // the agent team's run behind `plan` (POST /agent/run); null when only /agent/plan answered
+  missionShown: number;               // how many of its events have been played back on screen so far
+  missionSkip: boolean;               // a visitor skipped the playback: show the rest at once
+  constraints: Constraints;           // the planner's typed constraints (never taken from free text)
   decisions: Record<number, Decision>; decisionError: string | null;
   build: BuildState; preview: SimView | null; previewError: string | null;
   log: LogEntry[];
@@ -166,6 +171,8 @@ interface State {
   recentre: () => void;
   focusLandmark: (key: string) => void;
   runAgents: (locale: "en" | "ar") => Promise<void>;
+  setConstraints: (c: Partial<Constraints>) => void;
+  skipMission: () => void;
   decide: (rank: number, d: Decision, user?: string) => Promise<void>;
   patchBuild: (p: Partial<BuildState>) => void;
   approveMine: (title: string) => Promise<void>;
@@ -203,7 +210,7 @@ export const useTwin = create<State>((set, get) => {
         const f = (flows[r.station_id] ??= { out: Array(24).fill(0), in: Array(24).fill(0) });
         f.out[r.hour] = r.event_entries_p50; f.in[r.hour] = r.event_exits_p50 ?? 0;
       }
-      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, plan: null, planStatus: "idle", decisions: {}, planError: null };
+      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {}, planError: null };
       if (opts.jump) {
         const pk = peakOf(base, corridorIds(get()));
         Object.assign(patch, { time: Math.min(T_MAX, pk.time), selected: pk.id, camNonce: get().camNonce + 1 });
@@ -240,7 +247,7 @@ export const useTwin = create<State>((set, get) => {
   async function applyPlan(title: string, ivs: Intervention[]) {
     const s = get();
     const applied = [...s.applied, { title, ivs }];
-    set({ applied, plan: null, planStatus: "idle", decisions: {}, build: { ...s.build, headway: 0, wayShare: 0, buses: 0, rt: 0, stag: 0, meterLoad: 0, ext: 0 }, preview: null });
+    set({ applied, plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {}, build: { ...s.build, headway: 0, wayShare: 0, buses: 0, rt: 0, stag: 0, meterLoad: 0, ext: 0 }, preview: null });
     try {
       const r = await api.simulate(simulateBody(s.forecast!.run_id, mergeInterventions(applied.map((a) => a.ivs)), s.threshold, s.forecastReq!));
       set({ cur: buildView(r) });
@@ -255,12 +262,13 @@ export const useTwin = create<State>((set, get) => {
     scenario: { eventId: "", attendance: null, exitSigma: null, weather: "normal", custom: { near: "FIC", start: "19:00", end: "22:00", weekend: false } },
     threshold: 0.85, priority: "balanced",
     forecast: null, forecastReq: null, base: null, cur: null, breaks: null, flows: {},
-    applied: [], plan: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
+    applied: [], plan: null, mission: null, missionShown: 0, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
     build: BUILD0, preview: null, previewError: null, log: [],
     time: 15.5, playing: false, speed: 1,
     selected: "WTC", tab: "station", view: "3d",
     layers: { buildings: true, landmarks: true, trains: true, traffic: true, flows: true, labels: true },
     cam: "overview", lastCam: "overview", camNonce: 0,
+    missionSkip: false, constraints: { forbid_types: [], protect_stations: [], cost_cap: null },
     kiosk: false, tourStep: null, sceneReady: false, glFailed: false, reducedMotion: false,
     focus: null, expanded: false, tier: MIN_TIER, fpsOverride: null,
 
@@ -277,17 +285,17 @@ export const useTwin = create<State>((set, get) => {
     },
     selectEvent: (id) => {
       const s = get();
-      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null }, applied: [], plan: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
+      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null }, applied: [], plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
       schedule({ forecast: true, jump: true }, 0);
     },
     patchScenario: (p) => { set({ scenario: { ...get().scenario, ...p } }); schedule({ forecast: true }); },
     patchCustom: (p) => {
       const s = get().scenario;
-      set({ scenario: { ...s, custom: { ...s.custom, ...p } }, applied: [], plan: null, planStatus: "idle" });
+      set({ scenario: { ...s, custom: { ...s.custom, ...p } }, applied: [], plan: null, mission: null, missionShown: 0, planStatus: "idle" });
       schedule({ forecast: true, jump: true });
     },
     setThreshold: (v) => { set({ threshold: v }); schedule({ forecast: false }); },
-    setPriority: (p) => set({ priority: p, plan: null, planStatus: "idle", decisions: {} }),
+    setPriority: (p) => set({ priority: p, plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {} }),
     setTime: (t) => set({ time: Math.max(T_MIN, Math.min(T_MAX, t)) }),
     setPlaying: (p) => set((s) => ({ playing: p, time: p && s.time >= T_MAX - 0.05 ? T_MIN : s.time })),
     select: (id, opts) => set((s) => ({ selected: id, tab: opts?.tab ? "station" : s.tab, camNonce: s.camNonce + (opts?.fly && s.cam === "close" ? 1 : 0) })),
@@ -301,19 +309,39 @@ export const useTwin = create<State>((set, get) => {
     runAgents: async (locale) => {
       const s = get();
       if (s.planStatus === "running" || !s.forecast || !s.forecastReq) return;
-      set({ planStatus: "running", planStep: 0, plan: null, planError: null, decisions: {} });
-      const body = planBody(s.forecast.run_id, mergeInterventions(s.applied.map((a) => a.ivs)), s.threshold, s.priority, locale, s.forecastReq);
-      const pending = api.agentPlan(body).then((p) => ({ p, e: null as string | null }), (e) => ({ p: null, e: e instanceof ApiError ? e.detail : String(e) }));
-      const pace = get().reducedMotion ? 40 : 230;
-      for (let i = 0; i < 8; i++) {                // the 8 pipeline steps; the last one waits for the API answer
-        set({ planStep: i });
-        await sleep(pace);
-        if (i === 7) await pending;
+      set({ planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, missionSkip: false, planError: null, decisions: {} });
+      const applied = mergeInterventions(s.applied.map((a) => a.ivs));
+      // The agent team first (events, checks, stress tests); the single planner if the team cannot answer.
+      let mission: Mission | null = null, plan: AgentPlanResponse | null = null, err: string | null = null;
+      try {
+        mission = await api.agentRun(missionBody(s.forecast.run_id, applied, s.threshold, s.priority, locale, s.forecastReq, s.constraints));
+        plan = mission.plan;
+      } catch {
+        try {
+          plan = await api.agentPlan(planBody(s.forecast.run_id, applied, s.threshold, s.priority, locale, s.forecastReq));
+        } catch (e) { err = e instanceof ApiError ? e.detail : String(e); }
       }
-      const { p, e } = await pending;
-      if (p) set({ plan: p, planStatus: "ready", planStep: 8 });
-      else set({ planStatus: "error", planError: e, planStep: -1 });
+      if (!plan) { set({ planStatus: "error", planError: err, planStep: -1 }); return; }
+      if (mission) {
+        set({ mission });
+        let step = 0;
+        for (let i = 0; i < mission.events.length; i++) {
+          const g = get();
+          if (g.planStatus !== "running" || g.mission !== mission) return;     // a new scenario or plan replaced this one
+          const e = mission.events[i];
+          step = Math.max(step, STEP_OF[e.agent] ?? step);
+          set({ missionShown: i + 1, planStep: Math.min(7, step) });
+          if (e.key === "diagnosis.hotspots" && !g.kiosk) { const st = stationOf(e); if (st) set({ selected: st }); }
+          if (!get().missionSkip) await sleep(paceFor(g.kiosk, g.reducedMotion));
+        }
+      } else {
+        for (let i = 0; i < 8; i++) { set({ planStep: i }); await sleep(get().reducedMotion ? 40 : 230); }
+      }
+      if (get().planStatus !== "running") return;
+      set({ plan, planStatus: "ready", planStep: 8 });
     },
+    setConstraints: (c) => set((s) => ({ constraints: { ...s.constraints, ...c }, plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {} })),
+    skipMission: () => set({ missionSkip: true }),
     decide: async (rank, d, user = "visitor") => {
       const s = get();
       const opt = s.plan?.options.find((o) => o.rank === rank);
@@ -347,7 +375,7 @@ export const useTwin = create<State>((set, get) => {
     clearPlans: () => {
       const s = get();
       if (!s.applied.length && !s.plan) return;
-      set({ applied: [], plan: null, planStatus: "idle", decisions: {}, cur: s.base, preview: null,
+      set({ applied: [], plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {}, cur: s.base, preview: null,
         log: [{ ts: new Date().toISOString(), kind: "reset" as const }, ...s.log].slice(0, LOG_MAX) });
       schedulePreview();
     },

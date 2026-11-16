@@ -5,8 +5,9 @@ import { alertsOf, hourOf, lfAt, T_MIN, useTwin, type SimView, type Tab } from "
 import { AiTab, BuildTab } from "./PlanTabs";
 import { BreakCard } from "./BreakCard";
 import { ReportTab } from "./ReportTab";
+import { TeamTab } from "./mission/TeamTab";
 
-const TABS: Tab[] = ["station", "ai", "build", "alerts", "report"];
+const TABS: Tab[] = ["station", "ai", "team", "build", "alerts", "report"];
 
 /** Load through the day for one station: 15-minute load factors straight from the simulator. */
 function LoadChart({ id, cur, base, showBase, label }: { id: string; cur: SimView; base: SimView | null; showBase: boolean; label: string }) {
@@ -122,6 +123,7 @@ export function Panel() {
       <div className="tabpanel" role="tabpanel" id="tabpanel" aria-labelledby={`tab-${tab}`}>
         {tab === "station" && <StationTab />}
         {tab === "ai" && <AiTab />}
+        {tab === "team" && <TeamTab />}
         {tab === "build" && <BuildTab />}
         {tab === "alerts" && <AlertsTab />}
         {tab === "report" && <ReportTab />}

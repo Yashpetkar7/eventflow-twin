@@ -324,3 +324,19 @@
 .klm .kpill { justify-self: start; margin-top: 6px; border-color: var(--navy); color: var(--navy); font-size: 15.5px; }
 .khc .klm { background: #fff; color: #000; border: 2px solid #000; } .khc .klm p, .khc .klm small { color: #000; }
 .kreach .klm { inset-block-start: auto; inset-block-end: 150px; }
+
+/* "Watch the AI team work" (docs/15): the eight steps as a compact two-column list, the team's five layers below */
+.kplanrun { display: grid; gap: 12px; }
+.kplanrun .kagent { grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 0; }
+.kplanrun .kagent li { font-size: 14.5px; gap: 9px; line-height: 1.2; }
+.kplanrun .kagent li span { width: 22px; height: 22px; font-size: 12px; }
+.kteam { display: grid; gap: 7px; background: rgba(15, 47, 143, .045); border: 1px solid rgba(15, 47, 143, .12); border-radius: 18px; padding: 12px 14px; }
+.kteam-head { font-size: 13.5px; line-height: 1.35; color: var(--ink-2, var(--ink)); }
+.kteam .team-layer { grid-template-columns: 96px 1fr; gap: 6px; }
+.kteam .team-graph { gap: 5px; }
+.kteam .team-chip { font-size: 13.5px; padding: 3px 10px 3px 4px; min-block-size: 32px; }
+.kteam .team-chip i { min-inline-size: 23px; block-size: 23px; font-size: 10px; }
+.kteam .team-layer-name { font-size: 11px; padding-block-start: 8px; }
+.kteam-now { margin: 2px 0 0; font-size: 16px; line-height: 1.35; display: grid; gap: 2px; min-block-size: 3.1em; }
+.kteam-now span { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--brand); font-weight: 700; }
+.kteam .kpill { justify-self: start; min-block-size: 48px; }

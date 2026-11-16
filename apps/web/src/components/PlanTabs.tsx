@@ -27,6 +27,8 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
   const decision = useTwin((s) => s.decisions[o.rank]);
   const decide = useTwin((s) => s.decide);
   const names = (o.new_hotspots ?? []).map((id) => f.station(stations.find((s) => s.id === id))).join(", ");
+  const tm = useTranslations("mission");
+  const a = useTwin((s) => (s.mission?.plan.plan_id === s.plan?.plan_id ? s.mission?.assessments.find((x) => x.rank === o.rank) : undefined));
   return (
     <article className={`opt${o.rank === 1 ? " top" : ""}${decision === "reject" ? " rejected" : ""}`}>
       <div className="rank">{t("rankL", { n: f.int(o.rank) })}</div>
@@ -35,6 +37,11 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
         <div className="row" style={{ gap: 6 }}>
           {o.goal_met && <span className="badge sm ok" data-testid="goal-met">✓ {t("goalMet")}</span>}
           {(o.round ?? 1) > 1 && <span className="badge sm navy"><N>{t("replannedRound", { r: f.int(o.round ?? 1) })}</N></span>}
+        </div>
+      )}
+      {a && (a.total ?? 0) > 0 && (
+        <div className="row" style={{ gap: 6, marginTop: 4 }}>
+          <span className={`badge sm ${a.holds === a.total ? "ok" : ""}`} data-testid="stress-badge"><N>{tm("holdsBadge", { holds: a.holds ?? 0, total: a.total ?? 0 })}</N></span>
         </div>
       )}
       <p>{o.what}</p>
@@ -116,6 +123,7 @@ function modelName(planner: string): string {
 
 export function AiTab() {
   const t = useTranslations();
+  const tm = useTranslations("mission");
   const { locale } = useLocale();
   const status = useTwin((s) => s.planStatus);
   const step = useTwin((s) => s.planStep);
@@ -140,6 +148,9 @@ export function AiTab() {
           </ol>
         )}
         <div className="note" style={{ marginTop: 8 }}>{t("planNote")}</div>
+        {(status === "running" || status === "ready") && (
+          <button type="button" className="pill" style={{ marginTop: 8 }} onClick={() => useTwin.setState({ tab: "team" })} data-testid="team-link">{tm("teamLink")} →</button>
+        )}
         {plan && plan.planner === "deterministic-template" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planMode")}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
         {plan && plan.mode === "live" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planLive", { model: modelName(plan.planner) })}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
       </div>

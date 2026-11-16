@@ -42,6 +42,14 @@ export function planBody(runId: string, applied: unknown[], threshold: number, p
   return { forecast_run_id: runId, forecast, locale, threshold, scope: "corridor", priority, applied } as S["AgentPlanRequest"];
 }
 
+/** The agent team's request: the plan request plus the planner's typed constraints (sent only when set, so the
+ *  default request is byte-identical to the one the offline snapshot recorded). */
+export function missionBody(runId: string, applied: unknown[], threshold: number, priority: Priority, locale: "en" | "ar", forecast: S["ForecastRequest"],
+  constraints?: S["Constraints"] | null): S["AgentRunRequest"] {
+  const c = constraints && ((constraints.forbid_types?.length ?? 0) || (constraints.protect_stations?.length ?? 0) || constraints.cost_cap != null) ? { constraints } : {};
+  return { ...planBody(runId, applied, threshold, priority, locale, forecast), forecast, ...c } as S["AgentRunRequest"];
+}
+
 export function breakpointBody(runId: string, threshold: number, forecast: S["ForecastRequest"]): S["BreakpointRequest"] {
   return { forecast_run_id: runId, forecast, threshold } as S["BreakpointRequest"];
 }

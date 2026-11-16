@@ -18,6 +18,7 @@ import { simulateBody } from "@/lib/requests";
 import { CORRIDOR_ORDER, mergeInterventions, T_MIN, useTwin } from "@/lib/store";
 import { LabelLayer } from "../LabelLayer";
 import { SceneProgress } from "../SceneProgress";
+import { KioskTeam } from "../mission/KioskTeam";
 import { bump, busiest, closure, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -627,11 +628,14 @@ export function Kiosk() {
               {planStatus !== "ready" && planStatus !== "error" && (
                 <>
                   <p className="ksub">{T.s3Sub}</p>
-                  <ol className="kagent">
-                    {T.agentSteps.map((label, i) => (
-                      <li key={label} className={i < planStep ? "done" : i === planStep ? "on" : ""}><span>{i < planStep ? "✓" : ""}</span>{label}</li>
-                    ))}
-                  </ol>
+                  <div className="kplanrun">
+                    <ol className="kagent">
+                      {T.agentSteps.map((label, i) => (
+                        <li key={label} className={i < planStep ? "done" : i === planStep ? "on" : ""}><span>{i < planStep ? "✓" : ""}</span>{label}</li>
+                      ))}
+                    </ol>
+                    <KioskTeam />
+                  </div>
                 </>
               )}
               {planStatus === "ready" && plan && plan.options.length === 0 && (
