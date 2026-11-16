@@ -238,3 +238,15 @@ need the planning service: they are not in the offline snapshot.
 - **Self-hosted model**: `LLM_PROVIDER=local` + `LLM_BASE_URL` for an OpenAI-compatible server on the college's GPUs;
   `python -m eval.suites.gpu_benchmark [--llm]`; `docs/GPU_REQUEST.md`.
 - **Docker and CI**: `Dockerfile`, `docker-compose.yml` (+ `docker-compose.saas.yml`), CI jobs `saas`, `docker`, `ui`.
+
+## 9. Customer convenience: the duty inbox and the rider page (contract 1.15.0, decision #140)
+
+- **Duty managers, `/inbox` (phone first).** Register an event (form or CSV) → the event chain starts by itself →
+  the recommendation waits here → Approve / Reject (logged first) → "Publish the rider notice". Optional alert
+  notifications (`NOTIFY_WEBHOOK_URL`) say only that a decision is waiting. Endpoints: `POST /events/register`,
+  `POST /events/import`, `GET /events/registered`, `GET /inbox`, `POST /chain/{id}/publish`.
+- **Riders, `/travel` (no sign-in, shareable link).** How busy a station is at an hour, the longest platform wait,
+  until when it stays busy, a later hour that saves waiting, stations within walking distance, a metering warning for
+  step-free travellers, and the duty team's published notice — from the simulator with the approved plan's
+  measures (`POST /travel/advice`, `GET /notices`). No language model; every figure names its simulator run.
+- Rule kept: nothing reaches riders unless a person approved the plan **and** pressed publish.

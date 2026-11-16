@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.14.0"
+    "version": "1.15.0"
   },
   "paths": {
     "/healthz": {
@@ -637,6 +637,299 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChainState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/register": {
+      "post": {
+        "summary": "Events Register",
+        "description": "Register an event (organiser or duty manager). With auto_chain the event chain starts at once: the Watcher\nscans the day, an alert triggers the planning team, and the plan waits in the inbox (GET /inbox).",
+        "operationId": "events_register_events_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventRegistration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisteredEvent"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/import": {
+      "post": {
+        "summary": "Events Import",
+        "description": "Register many events from a CSV (header: name,near_station,date,start,end,attendance[,venue,organiser]).\nRows that fail are reported with their line number; the others are registered (and their chains started).",
+        "operationId": "events_import_events_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventImportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/registered": {
+      "get": {
+        "summary": "Events Registered",
+        "operationId": "events_registered_events_registered_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegisteredEvent"
+                  },
+                  "title": "Response Events Registered Events Registered Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inbox": {
+      "get": {
+        "summary": "Inbox List",
+        "description": "Every chain waiting for a decision, newest first (the duty manager's phone view).",
+        "operationId": "inbox_list_inbox_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inbox"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chain/{chain_id}/publish": {
+      "post": {
+        "summary": "Chain Publish",
+        "description": "Publish the last approval's Messenger drafts as a rider notice (shown on the travel page). Needs a logged\napproval; with auth on, the planner role. Nothing is published automatically.",
+        "operationId": "chain_publish_chain__chain_id__publish_post",
+        "parameters": [
+          {
+            "name": "chain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Chain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiderNotice"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notices": {
+      "get": {
+        "summary": "Rider Notices",
+        "description": "Rider notices a duty manager published (public, no sign-in), newest first.",
+        "operationId": "rider_notices_notices_get",
+        "parameters": [
+          {
+            "name": "forecast_run_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Forecast Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RiderNotice"
+                  },
+                  "title": "Response Rider Notices Notices Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/travel/advice": {
+      "post": {
+        "summary": "Travel Advice",
+        "description": "For a rider: how busy a station is at an hour, how long the platform wait is, until when it stays busy, a\nquieter station within walking distance and a later time to leave — from the simulator, with the measures of\npublished rider notices for this scenario. Public; no model involved.",
+        "operationId": "travel_advice_travel_advice_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TravelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TravelAdvice"
                 }
               }
             }
@@ -2119,6 +2412,32 @@
           "forecast": {
             "$ref": "#/components/schemas/ForecastRequest"
           },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "What the inbox calls this chain (a registered event's name)"
+          },
+          "event_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Key",
+            "description": "The registered event that started it, if any"
+          },
           "threshold": {
             "anyOf": [
               {
@@ -2876,6 +3195,142 @@
         ],
         "title": "Event"
       },
+      "EventImport": {
+        "properties": {
+          "csv": {
+            "type": "string",
+            "maxLength": 200000,
+            "title": "Csv",
+            "description": "Header: name,near_station,date,start,end,attendance[,venue,organiser]"
+          },
+          "auto_chain": {
+            "type": "boolean",
+            "title": "Auto Chain",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "csv"
+        ],
+        "title": "EventImport"
+      },
+      "EventImportResult": {
+        "properties": {
+          "created": {
+            "items": {
+              "$ref": "#/components/schemas/RegisteredEvent"
+            },
+            "type": "array",
+            "title": "Created"
+          },
+          "errors": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Errors",
+            "description": "{line, error} for rows that were not imported"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created"
+        ],
+        "title": "EventImportResult"
+      },
+      "EventRegistration": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "near_station": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Near Station",
+            "description": "Station id from GET /stations"
+          },
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Date"
+          },
+          "start": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "End"
+          },
+          "attendance": {
+            "type": "integer",
+            "maximum": 200000.0,
+            "minimum": 1.0,
+            "title": "Attendance"
+          },
+          "venue": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Venue"
+          },
+          "organiser": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organiser"
+          },
+          "auto_chain": {
+            "type": "boolean",
+            "title": "Auto Chain",
+            "description": "Start the event chain at once (Watcher → team → inbox)",
+            "default": true
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "near_station",
+          "date",
+          "start",
+          "end",
+          "attendance"
+        ],
+        "title": "EventRegistration",
+        "description": "An organiser's or duty manager's event. It becomes a build-your-own event at its station (an assumption)."
+      },
       "ExtendedHours": {
         "properties": {
           "type": {
@@ -3348,6 +3803,162 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Inbox": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InboxItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "auth": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off"
+            ],
+            "title": "Auth"
+          },
+          "notifications": {
+            "type": "boolean",
+            "title": "Notifications",
+            "description": "True when NOTIFY_WEBHOOK_URL is configured"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "auth",
+          "notifications"
+        ],
+        "title": "Inbox"
+      },
+      "InboxItem": {
+        "properties": {
+          "chain_id": {
+            "type": "string",
+            "title": "Chain Id"
+          },
+          "updated": {
+            "type": "string",
+            "title": "Updated"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          },
+          "event_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Key"
+          },
+          "station": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station"
+          },
+          "crosses_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crosses At"
+          },
+          "hour": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hour"
+          },
+          "recommended_rank": {
+            "type": "integer",
+            "title": "Recommended Rank"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "what": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "What"
+          },
+          "before": {
+            "type": "number",
+            "title": "Before"
+          },
+          "after": {
+            "type": "number",
+            "title": "After"
+          },
+          "basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis"
+          },
+          "options": {
+            "type": "integer",
+            "title": "Options"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chain_id",
+          "updated",
+          "recommended_rank",
+          "title",
+          "before",
+          "after",
+          "options",
+          "is_synthetic"
+        ],
+        "title": "InboxItem"
       },
       "Incident": {
         "properties": {
@@ -4325,6 +4936,118 @@
         ],
         "title": "RegisterRequest"
       },
+      "RegisteredEvent": {
+        "properties": {
+          "event_key": {
+            "type": "string",
+            "title": "Event Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "near_station": {
+            "type": "string",
+            "title": "Near Station"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "start": {
+            "type": "string",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "title": "End"
+          },
+          "attendance": {
+            "type": "integer",
+            "title": "Attendance"
+          },
+          "weekend": {
+            "type": "boolean",
+            "title": "Weekend"
+          },
+          "venue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Venue"
+          },
+          "organiser": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organiser"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "registered": {
+            "type": "string",
+            "title": "Registered"
+          },
+          "registered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registered By"
+          },
+          "chain_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chain Id"
+          },
+          "chain_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chain Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_key",
+          "name",
+          "near_station",
+          "date",
+          "start",
+          "end",
+          "attendance",
+          "weekend",
+          "forecast",
+          "registered"
+        ],
+        "title": "RegisteredEvent"
+      },
       "RejectedPlan": {
         "properties": {
           "label": {
@@ -4425,6 +5148,116 @@
           "reason"
         ],
         "title": "RejectedPlan"
+      },
+      "RiderNotice": {
+        "properties": {
+          "notice_id": {
+            "type": "string",
+            "title": "Notice Id"
+          },
+          "published": {
+            "type": "string",
+            "title": "Published"
+          },
+          "published_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published By"
+          },
+          "chain_id": {
+            "type": "string",
+            "title": "Chain Id"
+          },
+          "decision_id": {
+            "type": "string",
+            "title": "Decision Id"
+          },
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "stations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Stations"
+          },
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "applied": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Applied"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          },
+          "text": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Text",
+            "description": "{en|ar: {notice, sign}} from the Messenger (figures re-simulated)"
+          },
+          "numbers_checked": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numbers Checked"
+          },
+          "status": {
+            "type": "string",
+            "const": "published",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "notice_id",
+          "published",
+          "chain_id",
+          "decision_id",
+          "plan_id",
+          "title",
+          "stations",
+          "forecast_run_id",
+          "forecast",
+          "applied",
+          "text",
+          "status"
+        ],
+        "title": "RiderNotice"
       },
       "RoadPressure": {
         "properties": {
@@ -5597,6 +6430,240 @@
         ],
         "title": "TraceEvent",
         "description": "One tool call of the planner, in order. Figures in `data` are the simulator's (run_id says which run)."
+      },
+      "TravelAdvice": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "easy",
+              "busy",
+              "crowded",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "now": {
+            "$ref": "#/components/schemas/TravelHour"
+          },
+          "ahead": {
+            "items": {
+              "$ref": "#/components/schemas/TravelHour"
+            },
+            "type": "array",
+            "title": "Ahead"
+          },
+          "busy_until": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Busy Until"
+          },
+          "leave_later": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leave Later"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/TravelAlternative"
+            },
+            "type": "array",
+            "title": "Alternatives"
+          },
+          "entry_metered": {
+            "type": "boolean",
+            "title": "Entry Metered"
+          },
+          "metered_stations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Metered Stations"
+          },
+          "notices": {
+            "items": {
+              "$ref": "#/components/schemas/RiderNotice"
+            },
+            "type": "array",
+            "title": "Notices"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "assumptions": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Assumptions"
+          },
+          "source": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "hour",
+          "status",
+          "now",
+          "ahead",
+          "alternatives",
+          "entry_metered",
+          "metered_stations",
+          "notices",
+          "threshold",
+          "is_synthetic",
+          "assumptions",
+          "source"
+        ],
+        "title": "TravelAdvice"
+      },
+      "TravelAlternative": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "walk_min": {
+            "type": "integer",
+            "title": "Walk Min"
+          },
+          "load": {
+            "type": "number",
+            "title": "Load"
+          },
+          "wait_min": {
+            "type": "number",
+            "title": "Wait Min"
+          },
+          "better": {
+            "type": "boolean",
+            "title": "Better"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "walk_min",
+          "load",
+          "wait_min",
+          "better"
+        ],
+        "title": "TravelAlternative"
+      },
+      "TravelHour": {
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "load": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Load"
+          },
+          "wait_min": {
+            "type": "number",
+            "title": "Wait Min"
+          },
+          "trains_per_hour": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trains Per Hour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "load",
+          "wait_min",
+          "trains_per_hour"
+        ],
+        "title": "TravelHour"
+      },
+      "TravelRequest": {
+        "properties": {
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "station": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Station"
+          },
+          "hour": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Hour"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "use_notices": {
+            "type": "boolean",
+            "title": "Use Notices",
+            "description": "Include the measures of rider notices published for this scenario",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast",
+          "station",
+          "hour"
+        ],
+        "title": "TravelRequest"
       },
       "ValidationError": {
         "properties": {

@@ -21,7 +21,7 @@ from typing import Any
 
 from .config import ROOT
 
-_TABLES = ("chains", "users", "sessions")
+_TABLES = ("chains", "users", "sessions", "events", "notices")
 _LOCK = threading.Lock()
 
 

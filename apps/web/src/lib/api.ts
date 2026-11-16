@@ -46,6 +46,14 @@ export type ChainState = S["ChainState"];
 export type ChainEvent = S["ChainEvent"];
 export type ChainStartRequest = S["ChainStartRequest"];
 export type ChainDecideRequest = S["ChainDecideRequest"];
+export type EventRegistration = S["EventRegistration"];
+export type RegisteredEvent = S["RegisteredEvent"];
+export type EventImportResult = S["EventImportResult"];
+export type Inbox = S["Inbox"];
+export type InboxItem = S["InboxItem"];
+export type RiderNotice = S["RiderNotice"];
+export type TravelRequest = S["TravelRequest"];
+export type TravelAdvice = S["TravelAdvice"];
 
 /** True when the page is served from this machine (laptop, booth). */
 export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
@@ -66,6 +74,11 @@ const mem = new Map<string, unknown>();
 let snapshot: Promise<Record<string, string>> | null = null;
 let onFallback: (down: boolean) => void = () => {};
 export const setFallbackListener = (fn: (down: boolean) => void) => { onFallback = fn; };
+
+/** Bearer token for the product mode (EVENTFLOW_AUTH=on); set by the inbox page's sign-in, never stored on disk. */
+let authToken: string | null = null;
+export const setAuthToken = (t: string | null) => { authToken = t; };
+const authHeader = (): Record<string, string> => (authToken ? { Authorization: `Bearer ${authToken}` } : {});
 
 const LS = "eft.cache.";
 function remember(key: string, data: unknown, persist: boolean) {
@@ -98,7 +111,7 @@ async function call<T>(path: string, body?: unknown, opts: { signal?: AbortSigna
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      headers: { ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...authHeader() },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: opts.signal,
     });
@@ -183,6 +196,16 @@ export const api = {
   /** The event chain (contract 1.14.0): never cached, every call moves the chain on. */
   chainStart: (req: ChainStartRequest) => call<ChainState>("/chain/start", req, { cache: false }),
   chainDecide: (id: string, req: ChainDecideRequest) => call<ChainState>(`/chain/${encodeURIComponent(id)}/decide`, req, { cache: false }),
+  /** Operations and riders (contract 1.15.0). Never cached: each call reads or changes live state. */
+  eventsRegister: (req: EventRegistration) => call<RegisteredEvent>("/events/register", req, { cache: false }),
+  eventsImport: (csv: string, autoChain = true) => call<EventImportResult>("/events/import", { csv, auto_chain: autoChain }, { cache: false }),
+  eventsRegistered: () => call<RegisteredEvent[]>("/events/registered", undefined, { cache: false }),
+  inbox: () => call<Inbox>("/inbox", undefined, { cache: false }),
+  chainPublish: (id: string) => call<RiderNotice>(`/chain/${encodeURIComponent(id)}/publish`, {}, { cache: false }),
+  notices: () => call<RiderNotice[]>("/notices", undefined, { cache: false }),
+  travel: (req: TravelRequest) => call<TravelAdvice>("/travel/advice", req, { cache: false }),
+  authMe: () => call<{ auth: "on" | "off"; user: { username: string; role: string } | null }>("/auth/me", undefined, { cache: false }),
+  authLogin: (username: string, password: string) => call<{ token: string; username: string; role: string; expires: string }>("/auth/login", { username, password }, { cache: false }),
   /** Standing agents (contract 1.12.0): the watcher's alerts for the day, the messenger's drafts, ask the twin. */
   watch: (req: WatchRequest) => call<WatchResponse>("/watch/scan", req),
   message: (req: MessageRequest) => call<MessageResponse>("/agent/message", req),

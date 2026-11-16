@@ -410,7 +410,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_d1451e81e16c",
-      "ms": 16.4,
+      "ms": 19.5,
       "data": {
         "label": "baseline",
         "over": 0.75,
@@ -424,7 +424,7 @@
       "role": "planner",
       "tool": "diagnose",
       "run_id": "sim_d1451e81e16c",
-      "ms": 0.1,
+      "ms": 0.2,
       "data": {
         "station": "EMT",
         "hours": [
@@ -439,7 +439,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_a30b7c920e11",
-      "ms": 21.9,
+      "ms": 27.7,
       "data": {
         "label": "probe_stagger_30",
         "spread": 30,
@@ -452,7 +452,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_728c72a38f82",
-      "ms": 18.2,
+      "ms": 31.2,
       "data": {
         "label": "probe_stagger_45",
         "spread": 45,
@@ -465,7 +465,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_7df6aa25ab28",
-      "ms": 17.4,
+      "ms": 24.2,
       "data": {
         "label": "probe_stagger_60",
         "spread": 60,
@@ -478,7 +478,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_f2589efc3e9e",
-      "ms": 17.1,
+      "ms": 18.4,
       "data": {
         "label": "probe_stagger_90",
         "spread": 90,
@@ -503,7 +503,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_f8992067f6ed",
-      "ms": 17.1,
+      "ms": 20.4,
       "data": {
         "label": "stagway",
         "types": [
@@ -523,7 +523,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_f9cf4db57a23",
-      "ms": 14.1,
+      "ms": 15.2,
       "data": {
         "label": "trains",
         "types": [
@@ -542,7 +542,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_086d47f168f7",
-      "ms": 14.7,
+      "ms": 19.5,
       "data": {
         "label": "bus",
         "types": [
@@ -561,7 +561,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_7e75eb188efa",
-      "ms": 15.0,
+      "ms": 15.8,
       "data": {
         "label": "way",
         "types": [
@@ -582,7 +582,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_1d0d36a14d96",
-      "ms": 17.5,
+      "ms": 24.7,
       "data": {
         "label": "trainstag",
         "types": [
@@ -602,7 +602,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_25ea2e7a8c74",
-      "ms": 14.0,
+      "ms": 18.9,
       "data": {
         "label": "trainsway",
         "types": [
@@ -622,7 +622,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_e1b80c420cfe",
-      "ms": 13.6,
+      "ms": 14.9,
       "data": {
         "label": "meter",
         "types": [
@@ -643,7 +643,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_540e2e698803",
-      "ms": 14.2,
+      "ms": 15.0,
       "data": {
         "label": "meterq",
         "types": [
@@ -662,7 +662,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_b974388114e0",
-      "ms": 15.2,
+      "ms": 15.6,
       "data": {
         "label": "buslite",
         "types": [
@@ -681,7 +681,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_fdd613e730a4",
-      "ms": 14.5,
+      "ms": 16.6,
       "data": {
         "label": "trainsbus",
         "types": [

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.14.0"   # 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.15.0"   # 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -672,6 +672,8 @@ class ShiftStep(BaseModel):
 # ---------------------------------------------------------------- event chain (1.14.0, docs/15 §8)
 class ChainStartRequest(BaseModel):
     forecast: ForecastRequest
+    label: str | None = Field(None, max_length=120, description="What the inbox calls this chain (a registered event's name)")
+    event_key: str | None = Field(None, max_length=40, description="The registered event that started it, if any")
     threshold: float | None = Field(None, ge=0.5, le=1.0)
     scope: Scope = "corridor"
     priority: Literal["cost", "balanced", "impact"] = "balanced"
@@ -727,3 +729,129 @@ class LoginRequest(BaseModel):
 
 class RegisterRequest(LoginRequest):
     role: Literal["viewer", "planner", "admin"] = "planner"
+
+
+# ---------------------------------------------------------------- operations and riders (1.15.0, decision #140)
+class EventRegistration(BaseModel):
+    """An organiser's or duty manager's event. It becomes a build-your-own event at its station (an assumption)."""
+    name: str = Field(min_length=2, max_length=120)
+    near_station: str = Field(max_length=40, description="Station id from GET /stations")
+    date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    start: str = Field(pattern=HHMM)
+    end: str = Field(pattern=HHMM)
+    attendance: int = Field(ge=1, le=200_000)
+    venue: str | None = Field(None, max_length=120)
+    organiser: str | None = Field(None, max_length=120)
+    auto_chain: bool = Field(True, description="Start the event chain at once (Watcher → team → inbox)")
+    threshold: float | None = Field(None, ge=0.5, le=1.0)
+
+
+class EventImport(BaseModel):
+    csv: str = Field(max_length=200_000, description="Header: name,near_station,date,start,end,attendance[,venue,organiser]")
+    auto_chain: bool = True
+
+
+class RegisteredEvent(BaseModel):
+    event_key: str
+    name: str
+    near_station: str
+    date: str
+    start: str
+    end: str
+    attendance: int
+    weekend: bool
+    venue: str | None = None
+    organiser: str | None = None
+    forecast: ForecastRequest
+    registered: str
+    registered_by: str | None = None
+    chain_id: str | None = None
+    chain_status: str | None = None
+
+
+class EventImportResult(BaseModel):
+    created: list[RegisteredEvent]
+    errors: list[dict] = Field(default_factory=list, description="{line, error} for rows that were not imported")
+
+
+class InboxItem(BaseModel):
+    chain_id: str
+    updated: str
+    event: str | None = None
+    event_key: str | None = None
+    station: str | None = None
+    crosses_at: int | None = None
+    hour: int | None = None
+    recommended_rank: int
+    title: str
+    what: str | None = None
+    before: float
+    after: float
+    basis: str | None = None
+    options: int
+    is_synthetic: bool
+
+
+class Inbox(BaseModel):
+    items: list[InboxItem]
+    auth: Literal["on", "off"]
+    notifications: bool = Field(description="True when NOTIFY_WEBHOOK_URL is configured")
+
+
+class RiderNotice(BaseModel):
+    notice_id: str
+    published: str
+    published_by: str | None = None
+    chain_id: str
+    decision_id: str
+    plan_id: str
+    title: str
+    stations: list[str]
+    forecast_run_id: str
+    forecast: ForecastRequest
+    applied: list[dict]
+    event: str | None = None
+    text: dict = Field(description="{en|ar: {notice, sign}} from the Messenger (figures re-simulated)")
+    numbers_checked: int | None = None
+    status: Literal["published"]
+
+
+class TravelRequest(BaseModel):
+    forecast: ForecastRequest
+    station: str = Field(max_length=40)
+    hour: int = Field(ge=0, le=23)
+    threshold: float | None = Field(None, ge=0.5, le=1.0)
+    use_notices: bool = Field(True, description="Include the measures of rider notices published for this scenario")
+
+
+class TravelHour(BaseModel):
+    hour: int
+    load: float | None
+    wait_min: float
+    trains_per_hour: float | None
+
+
+class TravelAlternative(BaseModel):
+    station: str
+    walk_min: int
+    load: float
+    wait_min: float
+    better: bool
+
+
+class TravelAdvice(BaseModel):
+    station: str
+    hour: int
+    status: Literal["easy", "busy", "crowded", "closed"]
+    now: TravelHour
+    ahead: list[TravelHour]
+    busy_until: int | None = None
+    leave_later: dict | None = None
+    alternatives: list[TravelAlternative]
+    entry_metered: bool
+    metered_stations: list[str]
+    notices: list[RiderNotice]
+    threshold: float
+    is_synthetic: bool
+    assumptions: dict
+    source: dict
