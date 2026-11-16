@@ -369,6 +369,148 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Events Register
+         * @description Register an event (organiser or duty manager). With auto_chain the event chain starts at once: the Watcher
+         *     scans the day, an alert triggers the planning team, and the plan waits in the inbox (GET /inbox).
+         */
+        post: operations["events_register_events_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Events Import
+         * @description Register many events from a CSV (header: name,near_station,date,start,end,attendance[,venue,organiser]).
+         *     Rows that fail are reported with their line number; the others are registered (and their chains started).
+         */
+        post: operations["events_import_events_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/registered": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Events Registered */
+        get: operations["events_registered_events_registered_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inbox List
+         * @description Every chain waiting for a decision, newest first (the duty manager's phone view).
+         */
+        get: operations["inbox_list_inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/{chain_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chain Publish
+         * @description Publish the last approval's Messenger drafts as a rider notice (shown on the travel page). Needs a logged
+         *     approval; with auth on, the planner role. Nothing is published automatically.
+         */
+        post: operations["chain_publish_chain__chain_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rider Notices
+         * @description Rider notices a duty manager published (public, no sign-in), newest first.
+         */
+        get: operations["rider_notices_notices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/travel/advice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Travel Advice
+         * @description For a rider: how busy a station is at an hour, how long the platform wait is, until when it stays busy, a
+         *     quieter station within walking distance and a later time to leave — from the simulator, with the measures of
+         *     published rider notices for this scenario. Public; no model involved.
+         */
+        post: operations["travel_advice_travel_advice_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/chain/{chain_id}": {
         parameters: {
             query?: never;
@@ -959,6 +1101,16 @@ export interface components {
         /** ChainStartRequest */
         ChainStartRequest: {
             forecast: components["schemas"]["ForecastRequest"];
+            /**
+             * Label
+             * @description What the inbox calls this chain (a registered event's name)
+             */
+            label?: string | null;
+            /**
+             * Event Key
+             * @description The registered event that started it, if any
+             */
+            event_key?: string | null;
             /** Threshold */
             threshold?: number | null;
             /**
@@ -1245,6 +1397,64 @@ export interface components {
             /** Note Ar */
             note_ar?: string | null;
         };
+        /** EventImport */
+        EventImport: {
+            /**
+             * Csv
+             * @description Header: name,near_station,date,start,end,attendance[,venue,organiser]
+             */
+            csv: string;
+            /**
+             * Auto Chain
+             * @default true
+             */
+            auto_chain: boolean;
+        };
+        /** EventImportResult */
+        EventImportResult: {
+            /** Created */
+            created: components["schemas"]["RegisteredEvent"][];
+            /**
+             * Errors
+             * @description {line, error} for rows that were not imported
+             */
+            errors?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
+         * EventRegistration
+         * @description An organiser's or duty manager's event. It becomes a build-your-own event at its station (an assumption).
+         */
+        EventRegistration: {
+            /** Name */
+            name: string;
+            /**
+             * Near Station
+             * @description Station id from GET /stations
+             */
+            near_station: string;
+            /** Date */
+            date: string;
+            /** Start */
+            start: string;
+            /** End */
+            end: string;
+            /** Attendance */
+            attendance: number;
+            /** Venue */
+            venue?: string | null;
+            /** Organiser */
+            organiser?: string | null;
+            /**
+             * Auto Chain
+             * @description Start the event chain at once (Watcher → team → inbox)
+             * @default true
+             */
+            auto_chain: boolean;
+            /** Threshold */
+            threshold?: number | null;
+        };
         /**
          * ExtendedHours
          * @description Run trains in hours when the line is normally closed (e.g. after midnight), at `headway_min`.
@@ -1430,6 +1640,54 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Inbox */
+        Inbox: {
+            /** Items */
+            items: components["schemas"]["InboxItem"][];
+            /**
+             * Auth
+             * @enum {string}
+             */
+            auth: "on" | "off";
+            /**
+             * Notifications
+             * @description True when NOTIFY_WEBHOOK_URL is configured
+             */
+            notifications: boolean;
+        };
+        /** InboxItem */
+        InboxItem: {
+            /** Chain Id */
+            chain_id: string;
+            /** Updated */
+            updated: string;
+            /** Event */
+            event?: string | null;
+            /** Event Key */
+            event_key?: string | null;
+            /** Station */
+            station?: string | null;
+            /** Crosses At */
+            crosses_at?: number | null;
+            /** Hour */
+            hour?: number | null;
+            /** Recommended Rank */
+            recommended_rank: number;
+            /** Title */
+            title: string;
+            /** What */
+            what?: string | null;
+            /** Before */
+            before: number;
+            /** After */
+            after: number;
+            /** Basis */
+            basis?: string | null;
+            /** Options */
+            options: number;
+            /** Is Synthetic */
+            is_synthetic: boolean;
         };
         /**
          * Incident
@@ -1802,6 +2060,38 @@ export interface components {
              */
             role: "viewer" | "planner" | "admin";
         };
+        /** RegisteredEvent */
+        RegisteredEvent: {
+            /** Event Key */
+            event_key: string;
+            /** Name */
+            name: string;
+            /** Near Station */
+            near_station: string;
+            /** Date */
+            date: string;
+            /** Start */
+            start: string;
+            /** End */
+            end: string;
+            /** Attendance */
+            attendance: number;
+            /** Weekend */
+            weekend: boolean;
+            /** Venue */
+            venue?: string | null;
+            /** Organiser */
+            organiser?: string | null;
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Registered */
+            registered: string;
+            /** Registered By */
+            registered_by?: string | null;
+            /** Chain Id */
+            chain_id?: string | null;
+            /** Chain Status */
+            chain_status?: string | null;
+        };
         /** RejectedPlan */
         RejectedPlan: {
             /** Label */
@@ -1823,6 +2113,48 @@ export interface components {
             /** Run Id */
             run_id?: string | null;
             summary?: components["schemas"]["SimSummary"] | null;
+        };
+        /** RiderNotice */
+        RiderNotice: {
+            /** Notice Id */
+            notice_id: string;
+            /** Published */
+            published: string;
+            /** Published By */
+            published_by?: string | null;
+            /** Chain Id */
+            chain_id: string;
+            /** Decision Id */
+            decision_id: string;
+            /** Plan Id */
+            plan_id: string;
+            /** Title */
+            title: string;
+            /** Stations */
+            stations: string[];
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Applied */
+            applied: {
+                [key: string]: unknown;
+            }[];
+            /** Event */
+            event?: string | null;
+            /**
+             * Text
+             * @description {en|ar: {notice, sign}} from the Messenger (figures re-simulated)
+             */
+            text: {
+                [key: string]: unknown;
+            };
+            /** Numbers Checked */
+            numbers_checked?: number | null;
+            /**
+             * Status
+             * @constant
+             */
+            status: "published";
         };
         /**
          * RoadPressure
@@ -2320,6 +2652,87 @@ export interface components {
             data?: {
                 [key: string]: unknown;
             };
+        };
+        /** TravelAdvice */
+        TravelAdvice: {
+            /** Station */
+            station: string;
+            /** Hour */
+            hour: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "easy" | "busy" | "crowded" | "closed";
+            now: components["schemas"]["TravelHour"];
+            /** Ahead */
+            ahead: components["schemas"]["TravelHour"][];
+            /** Busy Until */
+            busy_until?: number | null;
+            /** Leave Later */
+            leave_later?: {
+                [key: string]: unknown;
+            } | null;
+            /** Alternatives */
+            alternatives: components["schemas"]["TravelAlternative"][];
+            /** Entry Metered */
+            entry_metered: boolean;
+            /** Metered Stations */
+            metered_stations: string[];
+            /** Notices */
+            notices: components["schemas"]["RiderNotice"][];
+            /** Threshold */
+            threshold: number;
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /** Assumptions */
+            assumptions: {
+                [key: string]: unknown;
+            };
+            /** Source */
+            source: {
+                [key: string]: unknown;
+            };
+        };
+        /** TravelAlternative */
+        TravelAlternative: {
+            /** Station */
+            station: string;
+            /** Walk Min */
+            walk_min: number;
+            /** Load */
+            load: number;
+            /** Wait Min */
+            wait_min: number;
+            /** Better */
+            better: boolean;
+        };
+        /** TravelHour */
+        TravelHour: {
+            /** Hour */
+            hour: number;
+            /** Load */
+            load: number | null;
+            /** Wait Min */
+            wait_min: number;
+            /** Trains Per Hour */
+            trains_per_hour: number | null;
+        };
+        /** TravelRequest */
+        TravelRequest: {
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Station */
+            station: string;
+            /** Hour */
+            hour: number;
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Use Notices
+             * @description Include the measures of rider notices published for this scenario
+             * @default true
+             */
+            use_notices: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -2987,6 +3400,229 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChainState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_register_events_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventRegistration"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisteredEvent"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_import_events_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_registered_events_registered_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisteredEvent"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    inbox_list_inbox_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inbox"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_publish_chain__chain_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderNotice"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rider_notices_notices_get: {
+        parameters: {
+            query?: {
+                forecast_run_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderNotice"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    travel_advice_travel_advice_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TravelRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TravelAdvice"];
                 };
             };
             /** @description Validation Error */

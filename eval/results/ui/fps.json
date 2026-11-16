@@ -1,14 +1,14 @@
 {
   "suite": "ui_fps",
-  "timestamp": "2026-11-16T17:00:49.343Z",
+  "timestamp": "2026-11-16T18:15:59.299Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing",
   "mode": "production build",
-  "avg_fps": 59.9,
-  "min_fps": 58,
+  "avg_fps": 60,
+  "min_fps": 59.9,
   "per_camera": {
-    "overview": 59.8,
-    "close": 59.6,
+    "overview": 60,
+    "close": 60,
     "top": 60,
     "fly": 60,
     "orbit": 60

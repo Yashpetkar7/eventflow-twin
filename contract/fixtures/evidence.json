@@ -1,8 +1,8 @@
 {
   "eval": {
     "agents": {
-      "file": "agents_20261116-174152.json",
-      "timestamp": "2026-11-16T17:41:52",
+      "file": "agents_20261116-204539.json",
+      "timestamp": "2026-11-16T20:45:39",
       "metrics": {
         "number_faithfulness": 1.0,
         "schema_validity": 1.0,
@@ -13,11 +13,11 @@
         "critic_consistent": 1.0,
         "trace_complete": 1.0,
         "goal_met_rate": 1.0,
-        "replan_rate": 0.1818,
+        "replan_rate": 0.0909,
         "hotspot_scenarios": 44,
         "options_checked": 132,
-        "plan_latency_p50_s": 0.074,
-        "plan_latency_p95_s": 0.209
+        "plan_latency_p50_s": 0.261,
+        "plan_latency_p95_s": 0.55
       },
       "n": 60,
       "split": "all (dev+test)",
@@ -25,8 +25,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "critic": {
-      "file": "critic_20261116-144400.json",
-      "timestamp": "2026-11-16T14:44:00",
+      "file": "critic_20261116-204831.json",
+      "timestamp": "2026-11-16T20:48:31",
       "metrics": {
         "critic_recall": 1.0,
         "critic_precision": 1.0,
@@ -39,8 +39,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "forecast": {
-      "file": "forecast_20261112-2226.json",
-      "timestamp": "2026-11-12T22:26:57",
+      "file": "forecast_20261116-2045.json",
+      "timestamp": "2026-11-16T20:45:15",
       "metrics": {
         "naive_mase": 0.9707583955016034,
         "naive_smape": 0.08867938631213816,
@@ -53,9 +53,26 @@
       "is_synthetic": true,
       "dataset_version": "synthetic:2026-08-03..2026-09-27"
     },
+    "gpu_benchmark": {
+      "file": "gpu_benchmark_20261116-204908.json",
+      "timestamp": "2026-11-16T20:49:08",
+      "metrics": {
+        "mission_n": 20,
+        "mission_p50_s": 0.5642,
+        "mission_p95_s": 1.2757,
+        "simulator_runs": 291,
+        "simulator_runs_per_s": 36.3,
+        "sweep_hours_10k_scenarios": 3.67,
+        "sweep_hours_100k_scenarios": 36.71
+      },
+      "n": 20,
+      "split": "gold scenarios 1-20 + simulator loop",
+      "is_synthetic": true,
+      "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
+    },
     "incidents": {
-      "file": "incidents_20261116-173152.json",
-      "timestamp": "2026-11-16T17:31:52",
+      "file": "incidents_20261116-204848.json",
+      "timestamp": "2026-11-16T20:48:48",
       "metrics": {
         "incident_deterministic": 1.0,
         "incident_never_easier": 1.0,
@@ -68,7 +85,7 @@
         "shifts_with_crowding": 10,
         "proposals_checked": 10,
         "decisions_asked_max": 1,
-        "shift_p95_s": 0.247
+        "shift_p95_s": 0.954
       },
       "n": 15,
       "split": "all",
@@ -174,15 +191,15 @@
       "dataset_version": null
     },
     "optimality": {
-      "file": "optimality_20261116-144359.json",
-      "timestamp": "2026-11-16T14:43:59",
+      "file": "optimality_20261116-204831.json",
+      "timestamp": "2026-11-16T20:48:31",
       "metrics": {
         "goal_coverage": 1.0,
         "scenarios": 22,
         "scenarios_where_grid_meets_goal": 22,
         "relief_gap_mean": 0.0,
         "relief_gap_max": 0.0,
-        "top_score_ratio_mean": 0.8024,
+        "top_score_ratio_mean": 0.9608,
         "grid_plans_mean": 47.9
       },
       "n": 22,
@@ -191,8 +208,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "orchestration": {
-      "file": "orchestration_20261116-174226.json",
-      "timestamp": "2026-11-16T17:42:26",
+      "file": "orchestration_20261116-204754.json",
+      "timestamp": "2026-11-16T20:47:54",
       "metrics": {
         "engines_agree": 1.0,
         "events_deterministic": 1.0,
@@ -200,8 +217,14 @@
         "budget_respected": 1.0,
         "layers_covered": 1.0,
         "missions_with_options": 44,
-        "mission_p50_s": 0.208,
-        "mission_p95_s": 0.38,
+        "recommendation_consistent": 1.0,
+        "recommended_all_checks_rate": 0.3182,
+        "objections_answered": 1.0,
+        "objections": 12,
+        "objections_with_answer": 12,
+        "missions_with_replan": 4,
+        "mission_p50_s": 0.536,
+        "mission_p95_s": 0.86,
         "engine_default": "graph"
       },
       "n": 60,
@@ -210,8 +233,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "redteam": {
-      "file": "redteam_20261116-145733.json",
-      "timestamp": "2026-11-16T14:57:33",
+      "file": "redteam_20261116-204631.json",
+      "timestamp": "2026-11-16T20:46:31",
       "metrics": {
         "attack_success_rate": 0.0,
         "cases": 53,
@@ -473,8 +496,8 @@
       "dataset_version": "rta_metro_ridership_open:10files:2025-07-01..2025-12-31"
     },
     "safety": {
-      "file": "safety_20261116-151748.json",
-      "timestamp": "2026-11-16T15:17:48",
+      "file": "safety_20261116-204835.json",
+      "timestamp": "2026-11-16T20:48:35",
       "metrics": {
         "disallowed_refusal_rate": 1.0,
         "allowed_over_refusal": 0.0,
@@ -500,8 +523,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "simulator": {
-      "file": "simulator_20261116-174145.json",
-      "timestamp": "2026-11-16T17:41:45",
+      "file": "simulator_20261116-204519.json",
+      "timestamp": "2026-11-16T20:45:19",
       "metrics": {
         "property_pass_rate": 1.0,
         "conservation_error_max": 0.0
@@ -518,6 +541,6 @@
     "file": "station_hour_synthetic.parquet",
     "config_hash": "94ae032aa3"
   },
-  "decisions_logged": 12,
-  "contract": "1.14.0"
+  "decisions_logged": 40,
+  "contract": "1.15.0"
 }

@@ -65,6 +65,8 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
              [[PY, "scripts/preflight.py"], [PY, "scripts/build_demo_cache.py"], [PY, "scripts/run_demo.py"]]),
     "doctor": ("Booth pre-flight: packages, LangGraph engine, data, scene, ports (no internet needed)",
                [[PY, "scripts/preflight.py"]]),
+    "clean-store": ("Empty the local SQLite store (chains, registered events, rider notices, users); keeps the decision log",
+                    [[PY, "scripts/clean_store.py"]]),
     "ui-metrics": ("Write docs/metrics.md from eval/results/ui (run after the Playwright tests)", [[PY, "scripts/ui_metrics.py"]]),
     "smoke": ("End-to-end check of a deployed site: python tasks.py smoke https://<deployment>", [[PY, "scripts/smoke_live.py"]]),
     "api": ("Run FastAPI on :8000", [[PY, "-m", "uvicorn", "apps.api.eventflow.main:app", "--reload", "--port", "8000"]]),

@@ -29,6 +29,8 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
    ports) and stops with the fix if anything is wrong; then it builds the offline agent cache, starts the API, checks
    that the API reports the `graph` engine, builds the web app and prints the kiosk address. Leave this window open.
    On Windows activate with `.venv\Scriptsctivate` instead of `source .venv/bin/activate`.
+   If UI tests or rehearsals registered test events (the duty inbox and rider page at `/inbox` and `/travel` keep
+   them), run `python tasks.py clean-store` once before opening; it keeps the decision log.
 3. Open Chrome full screen on the touch monitor:
    ```bash
    open -a "Google Chrome" --args --kiosk "http://localhost:3000/?kiosk=1"                 # macOS

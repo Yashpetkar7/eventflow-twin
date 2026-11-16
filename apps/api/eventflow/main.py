@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_from_spec, config_hash, load_panel, mak
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, ShiftRequest, ShiftStep, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -410,7 +410,10 @@ def _chain_deps(state: dict):
     def message(before: list[dict], ivs: list[dict]) -> dict:
         mr = _MR(forecast_run_id=run["run_id"], forecast=spec, threshold=r.get("threshold"), scope=r.get("scope", "corridor"),
                  applied=before, interventions=ivs)
-        return message_for(mr, run, run_simulation)
+        named = run
+        if r.get("label") and (run.get("event") or {}).get("id") == "custom":     # a registered event: riders read its own name
+            named = {**run, "event": {**run["event"], "name": r["label"], "name_ar": r["label"]}}
+        return message_for(mr, named, run_simulation)
 
     def log(fields: dict) -> dict:
         return decisions(DecisionRequest(**fields))
@@ -431,9 +434,12 @@ def chain_start(req: ChainStartRequest, request: Request):
     from .agents import chain as ch
     from .store import store
     run = build_run(req.forecast)
+    _remember(run)                                    # later steps look the run up by id (cold instance)
     state = ch.new_state(req.model_dump(mode="json"), run["run_id"])
     state = ch.start(state, _chain_deps(state))
     store().put("chains", state["chain_id"], ch.public(state), owner=_chain_owner(request))
+    from .ops import notify_chain
+    notify_chain(state, 0)                            # "decision needed" when NOTIFY_WEBHOOK_URL is set
     return ch.public(state)
 
 
@@ -449,12 +455,128 @@ def chain_decide(chain_id: str, req: ChainDecideRequest, request: Request):
     state = store().get("chains", chain_id)
     if state is None:
         raise HTTPException(404, f"unknown chain {chain_id} (chains live in this server's store; see GET /chains)")
+    since = len(state["events"])
     try:
         state = ch.decide(state, _chain_deps(state), req.rank, req.decision, req.user)
     except ch.ChainError as e:
         raise HTTPException(409, str(e)) from e
     store().put("chains", chain_id, ch.public(state), owner=_chain_owner(request))
+    from .ops import notify_chain
+    notify_chain(state, since)
+    _sync_event(state)
     return ch.public(state)
+
+
+def _sync_event(state: dict) -> None:
+    """Keep a registered event's chain status in step with its chain."""
+    from .store import store
+    key = state["request"].get("event_key")
+    ev = store().get("events", key) if key else None
+    if ev:
+        ev["chain_id"], ev["chain_status"] = state["chain_id"], state["status"] if state["status"] != "ended" else f"ended:{state.get('ended_reason')}"
+        store().put("events", key, ev, owner=ev.get("registered_by"))
+
+
+# ---------------------------------------------------------------- operations: events, inbox, rider notices (1.15.0)
+def _start_event_chain(ev: dict, threshold: float | None, request: Request) -> dict:
+    from .agents import chain as ch
+    from .ops import notify_chain
+    from .store import store
+    req = ChainStartRequest(forecast=ForecastRequest(**ev["forecast"]), threshold=threshold, label=ev["name"], event_key=ev["event_key"])
+    run = build_run(req.forecast)
+    _remember(run)                                    # later steps look the run up by id (cold instance)
+    state = ch.new_state(req.model_dump(mode="json"), run["run_id"])
+    state = ch.start(state, _chain_deps(state))
+    store().put("chains", state["chain_id"], ch.public(state), owner=_chain_owner(request))
+    notify_chain(state, 0)
+    _sync_event(state)
+    return store().get("events", ev["event_key"])
+
+
+@app.post("/events/register", response_model=RegisteredEvent)
+def events_register(req: EventRegistration, request: Request):
+    """Register an event (organiser or duty manager). With auto_chain the event chain starts at once: the Watcher
+    scans the day, an alert triggers the planning team, and the plan waits in the inbox (GET /inbox)."""
+    from .auth import require_role
+    from .ops import save_event, validate_event
+    u = require_role(request, "planner")
+    try:
+        ev = validate_event(req.model_dump())
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
+    doc = save_event(ev, u["username"] if u else None)
+    return _start_event_chain(doc, req.threshold, request) if req.auto_chain else doc
+
+
+@app.post("/events/import", response_model=EventImportResult)
+def events_import(req: EventImport, request: Request):
+    """Register many events from a CSV (header: name,near_station,date,start,end,attendance[,venue,organiser]).
+    Rows that fail are reported with their line number; the others are registered (and their chains started)."""
+    from .auth import require_role
+    from .ops import parse_csv, save_event
+    u = require_role(request, "planner")
+    good, bad = parse_csv(req.csv)
+    created = []
+    for ev in good:
+        doc = save_event(ev, u["username"] if u else None)
+        created.append(_start_event_chain(doc, None, request) if req.auto_chain else doc)
+    return {"created": created, "errors": bad}
+
+
+@app.get("/events/registered", response_model=list[RegisteredEvent])
+def events_registered(limit: int = 50):
+    from .store import store
+    return [d for r in store().list("events", limit=limit) if (d := store().get("events", r["id"]))]
+
+
+@app.get("/inbox", response_model=Inbox)
+def inbox_list(request: Request, limit: int = 50):
+    """Every chain waiting for a decision, newest first (the duty manager's phone view)."""
+    from . import auth
+    from .ops import inbox
+    auth.require_role(request, "viewer")
+    return {"items": inbox(limit), "auth": "on" if auth.enabled() else "off", "notifications": bool(os.environ.get("NOTIFY_WEBHOOK_URL", "").strip())}
+
+
+@app.post("/chain/{chain_id}/publish", response_model=RiderNotice)
+def chain_publish(chain_id: str, request: Request):
+    """Publish the last approval's Messenger drafts as a rider notice (shown on the travel page). Needs a logged
+    approval; with auth on, the planner role. Nothing is published automatically."""
+    from .auth import require_role
+    from .ops import publish
+    from .store import store
+    u = require_role(request, "planner")
+    state = store().get("chains", chain_id)
+    if state is None:
+        raise HTTPException(404, f"unknown chain {chain_id}")
+    return publish(state, u["username"] if u else "duty-manager")
+
+
+@app.get("/notices", response_model=list[RiderNotice])
+def rider_notices(forecast_run_id: str | None = None):
+    """Rider notices a duty manager published (public, no sign-in), newest first."""
+    from .ops import notices
+    from .travel import settings
+    return notices(float(settings()["notices_max_age_h"]), forecast_run_id)
+
+
+@app.post("/travel/advice", response_model=TravelAdvice)
+def travel_advice(req: TravelRequest):
+    """For a rider: how busy a station is at an hour, how long the platform wait is, until when it stays busy, a
+    quieter station within walking distance and a later time to leave — from the simulator, with the measures of
+    published rider notices for this scenario. Public; no model involved."""
+    from .ops import notices
+    from .travel import advice, settings
+    run = build_run(req.forecast)
+    _remember(run)                                    # later steps look the run up by id (cold instance)
+    pub = notices(float(settings()["notices_max_age_h"]), run["run_id"]) if req.use_notices else []
+    applied = pub[0]["applied"] if pub else []
+    sim = run_simulation(run["run_id"], applied, True, req.threshold, "network")
+    thr = sim["summary"]["threshold"]
+    try:
+        return advice(sim, req.station, req.hour, thr, applied, pub)
+    except KeyError as e:
+        raise HTTPException(422, f"unknown station {e}") from e
 
 
 @app.get("/chain/{chain_id}", response_model=ChainState)

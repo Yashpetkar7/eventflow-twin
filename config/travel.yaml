@@ -1,0 +1,7 @@
+# Rider travel advice (apps/api/eventflow/travel.py, decision #140). Not part of config_hash: changing these never
+# changes a forecast or simulation run id, only how the advice reads the simulator's answer.
+walk_kmh: 4.8              # walking speed to a neighbouring station [ASSUMPTION – typical adult pace]
+walk_max_min: 25           # a quieter station is suggested only within this walk (same as max_redirect_walk_min)
+horizon_h: 3               # how far ahead "leave later" looks
+quiet_wait_min: 2          # a station hour counts as easy when the longest platform wait is at most this
+notices_max_age_h: 24      # rider notices older than this are no longer shown
