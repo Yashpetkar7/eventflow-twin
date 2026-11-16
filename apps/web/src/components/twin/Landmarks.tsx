@@ -12,12 +12,16 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { useTwin } from "@/lib/store";
 import { canvasTexture } from "./builders";
 import { curtainWall } from "./facade";
-import { mergeModels, ModelMesh, SITE_MODELS, withAo, type Models } from "./models";
+import { Fountain } from "./Fountain";
+import { fountainSite, mergeModels, ModelMesh, SITE_MODELS, withAo, type Models } from "./models";
 import { R7 } from "./perf";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
 const STEEL = new THREE.Color(0x9aa7b4);             // tower roofs and crown bands by day
 const CROWN = new THREE.Color(0xe9e2d4);             // the models' concrete slot by day; darkened after dark in useFrame
+// decision #127 (scripts/blender/dubai_landmarks.py): day colours of the new slots; useFrame takes them into the night
+const STONE = new THREE.Color(0xd8c6a2), ROOF = new THREE.Color(0xc4c3bd), WHITE = new THREE.Color(0xf1f0ea), DARK = new THREE.Color(0x343a42);
+const hue = new THREE.Color();
 
 function burjGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
@@ -190,12 +194,24 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
       // roofs, crown bands and roof plant of the R8b towers: plain metal that goes dark after dark (the landmark steel
       // carries façade lighting, which on a flat roof read as pale glowing slabs at night)
       towerSteel: Object.assign(withAo(mats.steel), { emissiveIntensity: 0 }),
-      jet: new THREE.MeshBasicMaterial({ color: 0xeef6ff, transparent: true, opacity: 0, depthWrite: false }) };   // the Dubai Fountain, after dark only
+      // ---- decision #127: the Dubai Mall rebuilt, One Za'abeel, the Address towers, Coca-Cola Arena, Burj Al Arab
+      blueGlass: curtainWall(Object.assign(glass(), { color: new THREE.Color(0x4f84b4) }), wallU, { lit: 0.3 }),      // Burj Al Arab's wings
+      stone: new THREE.MeshStandardMaterial({ color: STONE.clone(), roughness: 0.86, vertexColors: true, emissive: 0xffb469, emissiveIntensity: 0 }),   // sandstone, floodlit warm after dark
+      roof: new THREE.MeshStandardMaterial({ color: ROOF.clone(), roughness: 0.92, vertexColors: true }),
+      skylight: new THREE.MeshStandardMaterial({ color: 0x8fb4c8, metalness: 0.55, roughness: 0.16, envMapIntensity: 1.2, vertexColors: true, emissive: 0xffd7a0, emissiveIntensity: 0 }),   // glazed vaults: lit from inside
+      white: new THREE.MeshStandardMaterial({ color: WHITE.clone(), roughness: 0.55, vertexColors: true, emissive: 0xdfe8ff, emissiveIntensity: 0 }),
+      sail: new THREE.MeshStandardMaterial({ color: 0xf6f5f0, roughness: 0.7, vertexColors: true, emissive: 0xffffff, emissiveIntensity: 0 }),     // Burj Al Arab's fabric wall: a slow colour wash after dark
+      dark: new THREE.MeshStandardMaterial({ color: DARK.clone(), metalness: 0.55, roughness: 0.42, vertexColors: true }),
+      led: new THREE.MeshStandardMaterial({ color: 0xd3d8de, roughness: 0.4, vertexColors: true, emissive: 0xff2a3c, emissiveIntensity: 0 }),      // the arena's light bands
+      glow: new THREE.MeshStandardMaterial({ color: 0xe9e4d8, roughness: 0.5, vertexColors: true, emissive: 0xffdfa8, emissiveIntensity: 0 }),     // architectural light lines
+      water: new THREE.MeshStandardMaterial({ color: 0x2f86a8, metalness: 0.3, roughness: 0.12, vertexColors: true, emissive: 0x3fb0d0, emissiveIntensity: 0 }) };
   }, [mats, models, wallU]);
   const burjMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.burjGlass } : null), [vmats]);
-  // the ten R8b towers share their materials, so they are drawn as one model; the mall, gate and fountain on their own
+  // the ten R8b towers share their materials, so they are drawn as one model; the mall, the gate and the #127 landmarks on
+  // their own (each can be tapped); the fountain is animated (Fountain.tsx)
   const towers = useMemo(() => (models ? mergeModels(SITE_MODELS.filter((k) => k.startsWith("tower_")).map((k) => models[k])) : null), [models]);
   const towerMats = useMemo(() => (vmats ? { ...vmats, glass: vmats.towerGlass, gold: vmats.goldGlass, steel: vmats.towerSteel } : null), [vmats]);
+  const arabMats = useMemo(() => (towerMats && vmats ? { ...towerMats, glass: vmats.blueGlass } : null), [towerMats, vmats]);
   useEffect(() => () => {
     Object.values(built).forEach((v) => (v instanceof THREE.BufferGeometry || v instanceof THREE.Texture) && v.dispose());
     Object.values(mats).forEach((m) => m.dispose());
@@ -213,16 +229,25 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
       vmats.glass.emissiveIntensity = n * 0.025;                              // Emirates Towers: dark glass, lit floors (a blanket glow read as pale slabs)
       // R8b towers, the Gate and the mall: no blanket glow (it read as a uniform pale-blue slab at night); their lit
       // floors come from the curtain wall, like the city's own towers
-      vmats.towerGlass.emissiveIntensity = vmats.goldGlass.emissiveIntensity = 0;
+      vmats.towerGlass.emissiveIntensity = vmats.goldGlass.emissiveIntensity = vmats.blueGlass.emissiveIntensity = 0;
       // Glass mirrors the sky map; after dark that reflection made the towers and the Gate read light grey against a
       // black city. Reflect far less at night, so only the lit floors show (as on the city's own towers).
-      for (const g of [vmats.glass, vmats.burjGlass, vmats.towerGlass, vmats.goldGlass]) g.envMapIntensity = 1.35 * (1 - 0.82 * n);
+      for (const g of [vmats.glass, vmats.burjGlass, vmats.towerGlass, vmats.goldGlass, vmats.blueGlass]) g.envMapIntensity = 1.35 * (1 - 0.82 * n);
       // podiums, roofs, the Gate's arch: dark at night (lit by moonlight alone they stayed pale blue-grey)
       vmats.concrete.color.copy(CROWN).multiplyScalar(1 - 0.88 * n); vmats.concrete.envMapIntensity = 1 - 0.85 * n;
       vmats.towerSteel.color.copy(STEEL).multiplyScalar(1 - 0.88 * n); vmats.towerSteel.envMapIntensity = 1.25 * (1 - 0.85 * n);
       vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
       vmats.mof.emissiveIntensity = mats.mof.emissiveIntensity; vmats.gold.emissiveIntensity = mats.gold.emissiveIntensity; vmats.dwtc.emissiveIntensity = mats.dwtc.emissiveIntensity;
-      vmats.jet.opacity = 0.85 * Math.max(0, (n - 0.5) * 2); vmats.jet.visible = vmats.jet.opacity > 0;
+      // #127: stone is floodlit, roofs go dark, vaults and light lines glow, the sail and the arena change colour slowly
+      vmats.stone.color.copy(STONE).multiplyScalar(1 - 0.5 * n); vmats.stone.emissiveIntensity = n * 0.2;
+      vmats.roof.color.copy(ROOF).multiplyScalar(1 - 0.86 * n);
+      vmats.white.color.copy(WHITE).multiplyScalar(1 - 0.6 * n); vmats.white.emissiveIntensity = n * 0.1;
+      vmats.dark.color.copy(DARK).multiplyScalar(1 - 0.5 * n); vmats.dark.envMapIntensity = 1 - 0.8 * n;
+      vmats.skylight.emissiveIntensity = n * 1.05; vmats.skylight.envMapIntensity = 1.2 * (1 - 0.8 * n);
+      vmats.glow.emissiveIntensity = n * 1.5; vmats.water.emissiveIntensity = n * 0.5;
+      vmats.sail.emissive.copy(hue.setHSL((live.animT * 0.012) % 1, 0.55, 0.62)); vmats.sail.emissiveIntensity = n * 0.7;
+      vmats.sail.color.setScalar(1 - 0.55 * n);
+      vmats.led.emissive.copy(hue.setHSL((0.97 + live.animT * 0.018) % 1, 0.9, 0.56)); vmats.led.emissiveIntensity = n * 1.7;
     }
   });
   const side = (a: number) => Math.sqrt((4 * a) / Math.sqrt(3));
@@ -252,8 +277,14 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
         {R7.r8b && (
           <>
             <ModelMesh model={towers} mats={towerMats} />
-            <ModelMesh model={m.dubai_mall} mats={towerMats} /><ModelMesh model={m.difc_gate} mats={towerMats} />
-            <ModelMesh model={m.dubai_fountain} mats={vmats} castShadow={false} />
+            <group {...tap("mall")}><ModelMesh model={m.dubai_mall} mats={towerMats} /></group>
+            <group {...tap("difc")}><ModelMesh model={m.difc_gate} mats={towerMats} /></group>
+            <group {...tap("zaabeel")}><ModelMesh model={m.one_zaabeel} mats={towerMats} /></group>
+            <group {...tap("skyview")}><ModelMesh model={m.address_sky_view} mats={towerMats} /></group>
+            <group {...tap("address")}><ModelMesh model={m.address_downtown} mats={towerMats} /></group>
+            <group {...tap("arena")}><ModelMesh model={m.coca_cola_arena} mats={towerMats} /></group>
+            <group {...tap("arab")}><ModelMesh model={m.burj_al_arab} mats={arabMats ?? towerMats} castShadow={false} /></group>
+            {fountainSite && <Fountain site={fountainSite} />}
           </>
         )}
       </group>

@@ -14,7 +14,7 @@ import { live } from "./sceneData";
 
 /** R8b: models built where they stand in the scene frame (scripts/r8b_sites.py), so they are drawn at the origin. */
 export const SITE_MODELS = ["tower_01", "tower_02", "tower_03", "tower_04", "tower_05", "tower_06", "tower_07", "tower_08", "tower_09",
-  "tower_10", "dubai_mall", "difc_gate", "dubai_fountain"] as const;
+  "tower_10", "dubai_mall", "difc_gate", "one_zaabeel", "address_sky_view", "address_downtown", "coca_cola_arena", "burj_al_arab"] as const;
 export const MODEL_NAMES = ["burj_khalifa", "emirates_office_tower", "emirates_hotel_tower", "museum_of_the_future", "trade_centre_tower",
   "dubai_frame", "metro_station", "metro_car", "palm_a", "palm_b", "palm_c", "car", "bus", ...SITE_MODELS] as const;          // viaduct_segment.glb is built too; the scene sweeps its viaduct along the real track
 export type ModelName = (typeof MODEL_NAMES)[number];
@@ -43,6 +43,9 @@ export let siteSkip: number[] = [];
 /** The site models' footprints as flat [x0, z0, x1, z1, …] rings: every ring building whose centre is inside one is
  *  left out, so nothing pokes through a model (scripts/r8b_polys.py). */
 export let sitePolys: number[][] = [];
+/** The Dubai Fountain in the scene frame: where its jets stand (Fountain.tsx animates them; it is not a model). */
+export interface FountainSite { x: number; z: number; axis_rad: number; length_m: number }
+export let fountainSite: FountainSite | null = null;
 
 /** Even-odd point-in-polygon test on a flat [x0, z0, x1, z1, …] ring. */
 export function insidePoly(px: number, pz: number, p: number[]): boolean {
@@ -61,8 +64,9 @@ export function loadModels(): Promise<Models | null> {
     try {
       const out = {} as Models;
       const sites = await (await fetch("/models/sites.json")).json();
-      siteSkip = sites.skip;
+      siteSkip = [...sites.skip, ...(sites.station_skip ?? [])];            // replaced map records, and buildings mapped on top of a station
       sitePolys = sites.polys ?? [];
+      fountainSite = sites.fountain ?? null;
       await Promise.all(MODEL_NAMES.map(async (n) => {
         const [full, lod] = await Promise.all([loader.loadAsync(`/models/${n}.glb`), loader.loadAsync(`/models/${n}_lod1.glb`)]);
         out[n] = { full: parts(full.scene), lod: parts(lod.scene) };

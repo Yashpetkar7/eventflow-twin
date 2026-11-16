@@ -13,8 +13,9 @@ and apps/web/public/models/models.json (triangle counts, sizes, the public dimen
 Stylised but proportioned from public dimensions; approximations, not survey models. No logos, signage or text.
 Blender is Z-up: +X is the model's length, +Z is up; the glTF exporter turns that into three.js's Y-up.
 Every mesh carries ambient occlusion in its vertex colours (ray-cast in this script, so it needs no render engine);
-material slots are named (glass, steel, concrete, gold, green, mof, dwtc, shell, red, body, win) and the web app
-maps those names onto its own materials, which already handle sky reflections and night lighting.
+material slots are named (glass, steel, concrete, gold, green, mof, dwtc, shell, red, body, win, and the ones listed in
+dubai_landmarks.py) and the web app maps those names onto its own materials, which already handle sky reflections and
+night lighting.
 """
 import json
 import math
@@ -25,6 +26,9 @@ import bmesh
 import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import dubai_landmarks  # noqa: E402  (the second set of landmarks, decision #127; it takes this module's helpers)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "apps", "web", "public", "models")
@@ -37,7 +41,6 @@ COLOURS = {                         # preview colours only; the web app supplies
     "dwtc": (0.9, 0.87, 0.8, 0.0, 0.65), "shell": (0.83, 0.7, 0.42, 0.82, 0.3), "red": (0.85, 0.06, 0.06, 0.0, 0.5),
     "body": (0.95, 0.96, 0.97, 0.4, 0.3), "win": (0.1, 0.15, 0.22, 0.6, 0.2),
     "trunk": (0.5, 0.39, 0.26, 0.0, 0.9), "leaf": (0.27, 0.46, 0.2, 0.0, 0.8), "roof": (0.9, 0.9, 0.9, 0.3, 0.4),
-    "jet": (0.92, 0.96, 1.0, 0.0, 0.2),
 }
 
 
@@ -134,18 +137,22 @@ def bake_ao(obj, reach=None):
     reach = reach or min(40.0, 0.25 * max(obj.dimensions))        # occlusion from nearby geometry only
     layer = me.color_attributes.get("Col") or me.color_attributes.new(name="Col", type="FLOAT_COLOR", domain="CORNER")      # linear values: glTF vertex colours are linear
     bm.free()
-    for poly in me.polygons:
+    inset = obj.get("ao_inset", 0.0)           # dubai_landmarks.py: sample a little inside each face, because its bands and
+    for poly in me.polygons:                   # cornices are slabs that swallow a wall's corners (the whole wall baked dark)
         n = poly.normal
         t = n.orthogonal().normalized()
         b = n.cross(t)
         for li in poly.loop_indices:
-            p = me.vertices[me.loops[li].vertex_index].co + n * (0.002 * reach + 0.02)
+            co = me.vertices[me.loops[li].vertex_index].co
+            p = co + (poly.center - co) * inset + n * (0.002 * reach + 0.02)
             free = 0
             for r in RAYS:
                 d = t * r.x + b * r.y + n * r.z
                 hit = tree.ray_cast(p, d, reach)
                 free += 1 if hit[0] is None else min(1.0, hit[3] / reach) * 0.6
             v = 0.6 + 0.4 * (free / len(RAYS)) ** 0.8                 # gentle: it multiplies materials that are already shaded
+            if inset and free < 0.04 * len(RAYS):                     # no ray gets out at all: the sample is buried in another solid
+                v = 0.84                                              # (a roof corner under the block above it), so it says nothing
             layer.data[li].color = (v, v, v, 1.0)
     me.color_attributes.active_color = layer
     me.color_attributes.render_color_index = list(me.color_attributes).index(layer)
@@ -615,21 +622,6 @@ def r8b_tower(site):
     return join(parts, site["model"]), {"name": site["name"], "height_m": site["height_m"], "source": site["height_source"], "crown": style or "generic"}
 
 
-def r8b_mall(site):
-    """The Dubai Mall as one block at its mapped height, a glass skylight strip along its long axis and a roof band."""
-    q = site["prisms"][0]
-    h = q["h"] or 20.0
-    parts = prism(q["ring"], 0, h, "concrete", "concrete")
-    ring = q["ring"]
-    cx, cz = site_centre(ring)
-    sxx = sum((x - cx) ** 2 for x, _ in ring); szz = sum((z - cz) ** 2 for _, z in ring); sxz = sum((x - cx) * (z - cz) for x, z in ring)
-    ang = 0.5 * math.atan2(2 * sxz, sxx - szz)
-    length = 0.55 * max(math.hypot(x - cx, z - cz) for x, z in ring)
-    sky = box((length * 2, 14, 3.0), (cx, -cz, h + 1.4), "glass", rot_z=-ang)      # the long glazed roof over the main mall
-    parts.append(sky)
-    return join(parts, site["model"]), {"name": site["name"], "height_m": h, "source": site["height_source"]}
-
-
 def r8b_gate(site):
     """The Gate, DIFC: its footprint at its mapped height with the arch cut through it, across Sheikh Zayed Road's axis.
     The opening's size is an approximation (about a third of the width, from a fifth to four fifths of the height)."""
@@ -651,29 +643,20 @@ def r8b_gate(site):
     return out, {"name": site["name"], "height_m": h, "source": site["height_source"]}
 
 
-def r8b_fountain(site):
-    """The Dubai Fountain as a still frame of jets along a gentle arc, 275 m long, in the Burj Khalifa lake. The web app
-    shows it after dark only (the shows run in the evening). Jet heights are a pattern, not a recording of a show."""
-    (cx, cz), ang, length, n = site["centre"], site["axis_rad"], site["length_m"], site["jets"]
-    ux, uz, nx, nz = math.cos(ang), math.sin(ang), -math.sin(ang), math.cos(ang)
-    parts = []
-    for i in range(n):
-        t = i / (n - 1) - 0.5
-        along, bow = t * length, 18.0 * (1 - (2 * t) ** 2)                       # a shallow bow, 18 m at the middle
-        x, z = cx + ux * along + nx * bow, cz + uz * along + nz * bow
-        h = 16 + 34 * (0.5 + 0.5 * math.cos(6 * math.pi * t)) + 10 * (1 - abs(2 * t))
-        parts.append(cyl(1.6, 0.35, h, (x, -z, h / 2), "jet", 6))
-    return join(parts, site["model"]), {"name": site["name"], "length_m": length, "source": site["height_source"]}
-
-
 def r8b_models():
     try:
         with open(SITES, encoding="utf-8") as f:
             sites = json.load(f)["sites"]
     except OSError:
         return []
-    make = {"tower": r8b_tower, "mall": r8b_mall, "gate": r8b_gate, "fountain": r8b_fountain}
-    return [((lambda s_=s_: make[s_["role"]](s_)), (), 25000) for s_ in sites]
+    # the Dubai Mall is built by dubai_landmarks.py (decision #127); the Dubai Fountain is no longer a model: the web
+    # app animates its jets (apps/web/src/components/twin/Fountain.tsx) from the site's centre, axis and length
+    kit, far = dubai_landmarks.Kit(sys.modules[__name__]), dubai_landmarks.Kit(sys.modules[__name__], lite=True)
+    make = {"tower": r8b_tower, "mall": lambda s_: dubai_landmarks.dubai_mall(kit, s_), "gate": r8b_gate}
+    # a fourth entry builds the model's far version itself (see dubai_landmarks.Kit); without one it is decimated
+    lod = {"mall": lambda s_: dubai_landmarks.dubai_mall(far, dubai_landmarks.lite_site(s_))[0]}
+    return [((lambda s_=s_: make[s_["role"]](s_)), (), 25000, *([lambda s_=s_: lod[s_["role"]](s_)] if s_["role"] in lod else []))
+            for s_ in sites if s_["role"] in make]
 
 
 MODELS = [
@@ -682,7 +665,7 @@ MODELS = [
     (trade_centre_tower, (), 25000), (dubai_frame, (), 25000), (metro_station, (), 15000), (viaduct_segment, (), 15000), (metro_car, (), 8000),
     (lambda: date_palm("palm_a", 9.0, 15, 0.6, 1), (), 1500), (lambda: date_palm("palm_b", 11.0, 17, -0.9, 2), (), 1500),
     (lambda: date_palm("palm_c", 7.2, 13, 0.3, 3), (), 1500), (car, (), 1500), (bus, (), 1500),
-    *r8b_models(),
+    *r8b_models(), *dubai_landmarks.models(sys.modules[__name__]),
 ]
 
 
@@ -696,13 +679,13 @@ def main():
                 report = json.load(f)["models"]
         except (OSError, ValueError, KeyError):
             report = {}
-    for build, args, budget in MODELS:
+    for build, args, budget, *far in MODELS:
         reset()
         obj, info = build(*args)
         if ONLY and obj.name not in ONLY[0]:
             continue
         bake_ao(obj)
-        lod = make_lod(obj)
+        lod = far[0]() if far else make_lod(obj)
         bake_ao(lod)
         n, n1 = tris(obj), tris(lod)
         if n > budget:

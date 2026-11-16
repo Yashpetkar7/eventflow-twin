@@ -53,7 +53,7 @@ function FocusChip() {
   const st = stations.find((x) => x.id === LANDMARK_STATION[focus]);
   return (
     <div className="focuschip" data-overlay role="status">
-      <span><b>{t(`lmName.${focus}`)}</b><br /><span className="note">{t("nearest", { station: f.station(st) })}</span></span>
+      <span><b>{t(`lmName.${focus}`)}</b><br /><span className="note">{st ? t("nearest", { station: f.station(st) }) : t("outsideCorridor")}</span></span>
       <button type="button" aria-label={t("backToOverview")} onClick={() => useTwin.getState().setCam("overview")}>✕</button>
     </div>
   );

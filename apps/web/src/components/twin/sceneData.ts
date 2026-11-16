@@ -117,11 +117,19 @@ export const live = {
 
 /** Places a visitor can jump to. Modelled landmarks take their position from the baked scene; districts are
  *  projected from fixed coordinates. `h` = height to frame, `r` = camera distance that shows the place and its area. */
-export interface LandmarkSpot { key: LandmarkKey; x: number; z: number; h: number; r: number }
-const DISTRICTS: Partial<Record<LandmarkKey, { lat: number; lon: number; h: number; r: number }>> = {
-  mall: { lat: 25.1975, lon: 55.2793, h: 60, r: 1500 },      // The Dubai Mall
+/** `theta`: the bearing the camera starts from (default: the sea side); set where another landmark would stand in the way. */
+export interface LandmarkSpot { key: LandmarkKey; x: number; z: number; h: number; r: number; theta?: number }
+const DISTRICTS: Partial<Record<LandmarkKey, { lat: number; lon: number; h: number; r: number; theta?: number }>> = {
+  mall: { lat: 25.1975, lon: 55.2793, h: 60, r: 1350, theta: 2.64 },      // The Dubai Mall, from inland: the lake and Burj Khalifa behind it
   difc: { lat: 25.2136, lon: 55.2798, h: 120, r: 1300 },     // DIFC Gate district
   canal: { lat: 25.1885, lon: 55.2560, h: 20, r: 1700 },     // Dubai Water Canal at Sheikh Zayed Road
+  // decision #127: the centres of the models built by scripts/blender/dubai_landmarks.py (scripts/landmark_sites.py)
+  fountain: { lat: 25.19519, lon: 55.27534, h: 70, r: 760, theta: 2.75 },  // across the lake, Burj Khalifa behind the jets (clear of Address Downtown)
+  address: { lat: 25.19402, lon: 55.27892, h: 306, r: 1000, theta: 2.5 },
+  skyview: { lat: 25.20154, lon: 55.27072, h: 264, r: 950 },
+  zaabeel: { lat: 25.22748, lon: 55.29178, h: 305, r: 1150 },
+  arena: { lat: 25.20375, lon: 55.26572, h: 34, r: 620 },
+  arab: { lat: 25.14148, lon: 55.18524, h: 321, r: 1500 },   // on its island, 9 km down the coast from the corridor
 };
 export function landmarkSpots(data: SceneJson): LandmarkSpot[] {
   const f = data.meta.frame, lm = data.landmarks, out: LandmarkSpot[] = [];
@@ -132,7 +140,7 @@ export function landmarkSpots(data: SceneJson): LandmarkSpot[] {
     const d = DISTRICTS[k];
     if (!d) continue;
     const e = (d.lon - f.lon0) * f.m_lon, n = (d.lat - f.lat0) * f.m_lat;
-    out.push({ key: k, x: e * f.ux + n * f.uy, z: e * f.uy - n * f.ux, h: d.h, r: d.r });
+    out.push({ key: k, x: e * f.ux + n * f.uy, z: e * f.uy - n * f.ux, h: d.h, r: d.r, theta: d.theta });
   }
   return out;
 }
