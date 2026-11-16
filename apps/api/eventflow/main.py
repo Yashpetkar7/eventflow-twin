@@ -214,6 +214,38 @@ def agent_run(req: AgentRunRequest):
     return mission
 
 
+@app.post("/agent/run/stream")
+def agent_run_stream(req: AgentRunRequest):
+    """The same mission as POST /agent/run, streamed as Server-Sent Events while the agents work: one `agent` event per
+    agent event (in the final order, the moment it is logged), then one `mission` event with the whole answer (the
+    /agent/run shape), or `error`. Nothing is paced or replayed: what arrives is what has happened."""
+    import queue
+    from fastapi.responses import StreamingResponse
+    from .agents.engine import run_mission
+    run = get_run(req.forecast_run_id, req.forecast)
+    q: "queue.Queue[tuple[str, object]]" = queue.Queue()
+
+    def work() -> None:
+        try:
+            m = run_mission(run, req, run_simulation, on_event=lambda e: q.put(("agent", e)))
+            with _LOCK:
+                _PLANS[m["plan"]["plan_id"]] = m["plan"]
+            q.put(("mission", Mission.model_validate(m).model_dump(mode="json")))
+        except Exception as ex:  # noqa: BLE001 - reported to the client, never swallowed
+            _LOG.exception("stream mission failed")
+            q.put(("error", {"detail": f"{type(ex).__name__}: {ex}"[:300]}))
+        q.put(("end", None))
+
+    def sse():
+        threading.Thread(target=work, daemon=True).start()
+        while True:
+            kind, data = q.get()
+            if kind == "end":
+                return
+            yield f"event: {kind}\ndata: {json.dumps(data, ensure_ascii=False, default=str)}\n\n"
+    return StreamingResponse(sse(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 @app.get("/agent/roster", response_model=Roster)
 def agent_roster():
     """Who is on the team, in which layer, which can call a model, and the orchestration graph (from the code)."""

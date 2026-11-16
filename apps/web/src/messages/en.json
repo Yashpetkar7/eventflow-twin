@@ -218,7 +218,10 @@
     "passed": "{a} of {b} checks passed",
     "logged": "Decisions in the audit log",
     "ephemeral": "Public demo: decisions are kept for this session only, not stored.",
-    "print": "Print / save as PDF"
+    "print": "Print / save as PDF",
+    "chain": "Decision log",
+    "chainOk": "verified · {n} records",
+    "chainBad": "broken at record {line}"
   },
   "tableH": {
     "station": "Station",
@@ -317,10 +320,10 @@
       "classic": "Single classic planner"
     },
     "rec": {
-      "badge": "Recommended",
-      "all_checks": "Passes all {n} checks the critic applies",
-      "goal_and_most": "Clears every station; passes {p} of {n} checks (not {failed})",
-      "most_checks": "Passes the most checks: {p} of {n} (not {failed})"
+      "code": "No language model in this run: every agent used its code rules.",
+      "recorded": "AI answers recorded {date} · {model}. Simulations and checks ran now.",
+      "live": "Live AI: {model}.",
+      "mixed": "Live and recorded AI answers · {model}."
     },
     "agentKind": {
       "code": "Code",
@@ -480,7 +483,7 @@
       "brief": "Brief to the specialists: {station} is {gap} riders an hour over the line at its peak",
       "railSized": "Needs about {need} trains an hour (now {now}) for {gap} riders over: a train every {hw} minutes",
       "crowdSized": "Walk {share} of riders to {to}, which has room for {room} an hour",
-      "mileSized": "{buses} shuttles to {to} at {per} riders an hour each, {veh} robotaxis for the rest",
+      "mileSized": "{buses} shuttles to {to} at {per} riders an hour each{veh, plural, =0 {} other {, # robotaxis for the rest}}",
       "staggerProbe": "{clears, select, yes {Tested {tried} minutes in the simulator: {m} minutes clears the hotspot} other {Tested {tried} minutes in the simulator: {m} minutes helps most, not enough alone}}",
       "objection": "{station} still {excess} riders over{own, select, none {: add measures there} other {: resize your {own}}}",
       "revised": "{changes}{added, plural, =0 {} one { · # more plan for what is left} other { · # more plans for what is left}}",
@@ -652,6 +655,40 @@
       "critic": "Critic",
       "more": "{n, plural, one {# more tested plan} other {# more tested plans}}",
       "empty": "Run the AI team to see the debate."
+    },
+    "chain": {
+      "title": "Event chain · agents trigger each other",
+      "sub": "The Watcher's alert triggers the planning team; the plan waits for you; your decision triggers the Messenger and the next scan. Each row is one event: who published it and which agents it triggered.",
+      "start": "Start the chain",
+      "restart": "Start again",
+      "inbox": "Waiting for your decision",
+      "approve": "Approve the recommendation",
+      "reject": "Reject",
+      "figures": "Over-threshold station-hours: {before} → {over}",
+      "ended": "{n, plural, =0 {Chain ended} one {Chain ended after # decision} other {Chain ended after # decisions}}",
+      "to": "to {who}",
+      "ev": {
+        "loaded": "Scenario loaded",
+        "alert": "{station} crosses the line at {at}:00{n, plural, one {} other { (# alerts)}}",
+        "alertNone": "Alert",
+        "plan": "The team tested and checked {n, plural, one {# option} other {# options}} ({events} agent events); recommends option {rank}",
+        "approved": "Approved option {rank} (logged)",
+        "rejected": "Rejected option {rank} (logged)",
+        "drafts": "Passenger notice, sign and operations briefing drafted (not sent)",
+        "end": {
+          "clear": "Day ends clear: no station over the line",
+          "residual": "Every alert handled; some crowding remains for the duty manager",
+          "step_limit": "Too many decisions asked: the rest goes to the duty manager",
+          "other": "Chain ended"
+        }
+      }
+    },
+    "live": "live",
+    "recommend": {
+      "badge": "Recommended",
+      "all_checks": "Passes all {n} checks the critic applies",
+      "goal_and_most": "Clears every station; passes {p} of {n} checks (not {failed})",
+      "most_checks": "Passes the most checks: {p} of {n} (not {failed})"
     }
   },
   "outsideCorridor": "Outside the modelled corridor"

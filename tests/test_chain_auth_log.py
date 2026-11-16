@@ -142,3 +142,28 @@ def test_old_records_are_unchained_not_broken(c):
     _decide(c, 2)
     v = c.get("/decisions/verify").json()
     assert v["ok"] and v["unchained"] == 1 and v["chained"] == 2
+
+
+# ---------------------------------------------------------------- live stream of a mission
+def test_the_mission_streams_live_in_final_order(c):
+    spec = {"event_id": "downtown_night"}
+    fc = c.post("/forecast", json=spec).json()
+    body = {"forecast_run_id": fc["run_id"], "forecast": spec, "scope": "corridor"}
+    agent, mission = [], None
+    with c.stream("POST", "/agent/run/stream", json=body) as r:
+        assert r.status_code == 200 and r.headers["content-type"].startswith("text/event-stream")
+        kind = None
+        for line in r.iter_lines():
+            if line.startswith("event: "):
+                kind = line[7:]
+            elif line.startswith("data: "):
+                d = json.loads(line[6:])
+                if kind == "agent":
+                    agent.append(d)
+                elif kind == "mission":
+                    mission = d
+                assert kind != "error", d
+    assert mission is not None and [e["seq"] for e in agent] == [e["seq"] for e in mission["events"]]
+    plain = c.post("/agent/run", json=body).json()
+    strip = lambda evs: [{k: v for k, v in e.items() if k != "t_ms"} for e in evs]      # noqa: E731
+    assert strip(mission["events"]) == strip(plain["events"]), "streaming changes nothing in the mission"

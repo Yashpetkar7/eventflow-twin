@@ -19,7 +19,7 @@
   "options": [
     {
       "rank": 1,
-      "title": "Feeder shuttles + robotaxi staging",
+      "title": "Feeder shuttles",
       "interventions": [
         {
           "type": "shuttle_bus",
@@ -27,16 +27,6 @@
             "from_station": "EMT",
             "to_station": "MAX",
             "buses": 18,
-            "hours": [
-              18
-            ]
-          }
-        },
-        {
-          "type": "robotaxi_staging",
-          "params": {
-            "station": "EMT",
-            "vehicles": 10,
             "hours": [
               18
             ]
@@ -49,7 +39,7 @@
         "peak_lf": 0.85,
         "max_wait_min": 0.0,
         "delay_pax_min": 0.0,
-        "cost_proxy": 22.0,
+        "cost_proxy": 18.0,
         "total_demand": 114946.0,
         "end_of_day_queue": 0.0,
         "no_service_pax": 2518.5,
@@ -62,26 +52,26 @@
         "peak_lf": -0.512,
         "max_wait_min": -12.2,
         "delay_pax_min": -82957.7,
-        "cost_proxy": 22.0,
+        "cost_proxy": 18.0,
         "total_demand": 0.0,
         "end_of_day_queue": 0.0,
         "no_service_pax": 0.0
       },
-      "score": 2194.5,
-      "rationale": "18 shuttles from Emirates Towers to Max, plus 10 robotaxis staged at Emirates Towers. Simulated result: station-hours over the threshold go from 0.75 to 0, riders above the threshold from 2,634 to 0, and the peak station load from 136% to 85%. Added cost proxy: 22. Risk: Can shift crowding to the receiving station.",
+      "score": 2274.5,
+      "rationale": "18 shuttles from Emirates Towers to Max. Simulated result: station-hours over the threshold go from 0.75 to 0, riders above the threshold from 2,634 to 0, and the peak station load from 136% to 85%. Added cost proxy: 18. Risk: Can shift crowding to the receiving station.",
       "sources": [
         {
           "tool": "simulate",
-          "run_id": "sim_79d5e9a1447a"
+          "run_id": "sim_086d47f168f7"
         },
         {
           "tool": "forecast",
           "run_id": "fc_6bb2b8ec7312"
         }
       ],
-      "what": "18 shuttles from Emirates Towers to Max, plus 10 robotaxis staged at Emirates Towers.",
+      "what": "18 shuttles from Emirates Towers to Max.",
       "risk": "Can shift crowding to the receiving station.",
-      "cost_added": 22.0,
+      "cost_added": 18.0,
       "new_hotspots": [],
       "figures": 7,
       "goal_met": true,
@@ -123,6 +113,100 @@
     },
     {
       "rank": 2,
+      "title": "Feeder shuttles, lighter setting",
+      "interventions": [
+        {
+          "type": "shuttle_bus",
+          "params": {
+            "from_station": "EMT",
+            "to_station": "MAX",
+            "buses": 9,
+            "hours": [
+              18
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "overcap_station_hours": 0.75,
+        "excess_pax": 1014.5,
+        "peak_lf": 1.103,
+        "max_wait_min": 1.7,
+        "delay_pax_min": 4992.2,
+        "cost_proxy": 9.0,
+        "total_demand": 114946.0,
+        "end_of_day_queue": 0.0,
+        "no_service_pax": 2518.5,
+        "bins_per_hour": 4,
+        "threshold": 0.85
+      },
+      "delta": {
+        "overcap_station_hours": 0.0,
+        "excess_pax": -1620.0,
+        "peak_lf": -0.259,
+        "max_wait_min": -10.5,
+        "delay_pax_min": -77965.5,
+        "cost_proxy": 9.0,
+        "total_demand": 0.0,
+        "end_of_day_queue": 0.0,
+        "no_service_pax": 0.0
+      },
+      "score": 1440.0,
+      "rationale": "9 shuttles from Emirates Towers to Max: about half of what clears the station, at lower cost. Simulated result: station-hours over the threshold go from 0.75 to 0.75, riders above the threshold from 2,634 to 1,014, and the peak station load from 136% to 110%. Added cost proxy: 9. Risk: Some crowding may remain; can shift crowding to the receiving station.",
+      "sources": [
+        {
+          "tool": "simulate",
+          "run_id": "sim_b974388114e0"
+        },
+        {
+          "tool": "forecast",
+          "run_id": "fc_6bb2b8ec7312"
+        }
+      ],
+      "what": "9 shuttles from Emirates Towers to Max: about half of what clears the station, at lower cost.",
+      "risk": "Some crowding may remain; can shift crowding to the receiving station.",
+      "cost_added": 9.0,
+      "new_hotspots": [],
+      "figures": 7,
+      "goal_met": false,
+      "round": 1,
+      "road": {
+        "peak_veh_per_hour": 5354.3,
+        "peak_hour": 18,
+        "pressure": 0.446,
+        "vehicles_total": 16067.5,
+        "reference_capacity": 12000.0,
+        "hourly": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          3.2,
+          174.8,
+          1834.0,
+          3976.0,
+          1834.0,
+          174.8,
+          3.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          28.2,
+          1973.7,
+          5354.3,
+          708.3,
+          3.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "is_assumption": true
+      }
+    },
+    {
+      "rank": 3,
       "title": "Extra trains + wayfinding",
       "interventions": [
         {
@@ -226,112 +310,10 @@
         ],
         "is_assumption": true
       }
-    },
-    {
-      "rank": 3,
-      "title": "Extra trains + staggered exit",
-      "interventions": [
-        {
-          "type": "extra_trains",
-          "params": {
-            "headway_min": 2.5,
-            "hours": [
-              17,
-              18,
-              19
-            ],
-            "line": "Red"
-          }
-        },
-        {
-          "type": "staggered_exit",
-          "params": {
-            "spread_minutes": 45,
-            "event_id": null
-          }
-        }
-      ],
-      "summary": {
-        "overcap_station_hours": 0.25,
-        "excess_pax": 78.8,
-        "peak_lf": 0.877,
-        "max_wait_min": 0.0,
-        "delay_pax_min": 0.0,
-        "cost_proxy": 113.0,
-        "total_demand": 114946.0,
-        "end_of_day_queue": 0.0,
-        "no_service_pax": 2518.5,
-        "bins_per_hour": 4,
-        "threshold": 0.85
-      },
-      "delta": {
-        "overcap_station_hours": -0.5,
-        "excess_pax": -2555.7,
-        "peak_lf": -0.485,
-        "max_wait_min": -12.2,
-        "delay_pax_min": -82957.7,
-        "cost_proxy": 113.0,
-        "total_demand": 0.0,
-        "end_of_day_queue": 0.0,
-        "no_service_pax": 0.0
-      },
-      "score": 295.7,
-      "rationale": "2.5-minute headway from 17:00 to 20:00, plus exits spread over an extra 45 minutes. Simulated result: station-hours over the threshold go from 0.75 to 0.25, riders above the threshold from 2,634 to 79, and the peak station load from 136% to 88%. Added cost proxy: 113. Risk: The most expensive option.",
-      "sources": [
-        {
-          "tool": "simulate",
-          "run_id": "sim_1d0d36a14d96"
-        },
-        {
-          "tool": "forecast",
-          "run_id": "fc_6bb2b8ec7312"
-        }
-      ],
-      "what": "2.5-minute headway from 17:00 to 20:00, plus exits spread over an extra 45 minutes.",
-      "risk": "The most expensive option.",
-      "cost_added": 113.0,
-      "new_hotspots": [],
-      "figures": 7,
-      "goal_met": false,
-      "round": 1,
-      "road": {
-        "peak_veh_per_hour": 4839.3,
-        "peak_hour": 18,
-        "pressure": 0.403,
-        "vehicles_total": 16000.0,
-        "reference_capacity": 12000.0,
-        "hourly": [
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          3.2,
-          174.8,
-          1834.0,
-          3976.0,
-          1834.0,
-          174.8,
-          3.2,
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          7.1,
-          807.2,
-          4839.3,
-          2276.0,
-          70.3,
-          0.1,
-          0.0,
-          0.0
-        ],
-        "is_assumption": true
-      }
     }
   ],
   "verify": {
-    "numbers_checked": 35,
+    "numbers_checked": 29,
     "all_matched": true,
     "fallback_used": true
   },
@@ -357,13 +339,13 @@
     {
       "key": "propose",
       "label": "Propose plans",
-      "detail": "8 candidate plans, each measure sized from the forecast",
+      "detail": "10 candidate plans, each measure sized from the forecast",
       "tool": null
     },
     {
       "key": "simulate",
       "label": "Simulate each plan",
-      "detail": "13 simulator runs",
+      "detail": "15 simulator runs",
       "tool": "simulate"
     },
     {
@@ -381,7 +363,7 @@
     {
       "key": "verify",
       "label": "Check every number",
-      "detail": "35 figures checked, all match",
+      "detail": "29 figures checked, all match",
       "tool": "verify_numbers"
     }
   ],
@@ -401,10 +383,10 @@
   "critic": {
     "rounds": 1,
     "replanned": false,
-    "simulations": 13,
+    "simulations": 15,
     "goal_met_ranks": [
       1,
-      2
+      3
     ],
     "top_meets_goal": true,
     "checked_by": "code",
@@ -428,7 +410,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_d1451e81e16c",
-      "ms": 16.9,
+      "ms": 14.1,
       "data": {
         "label": "baseline",
         "over": 0.75,
@@ -442,7 +424,7 @@
       "role": "planner",
       "tool": "diagnose",
       "run_id": "sim_d1451e81e16c",
-      "ms": 0.2,
+      "ms": 0.1,
       "data": {
         "station": "EMT",
         "hours": [
@@ -457,7 +439,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_a30b7c920e11",
-      "ms": 30.0,
+      "ms": 16.9,
       "data": {
         "label": "probe_stagger_30",
         "spread": 30,
@@ -470,7 +452,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_728c72a38f82",
-      "ms": 17.2,
+      "ms": 18.0,
       "data": {
         "label": "probe_stagger_45",
         "spread": 45,
@@ -483,7 +465,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_7df6aa25ab28",
-      "ms": 18.4,
+      "ms": 17.8,
       "data": {
         "label": "probe_stagger_60",
         "spread": 60,
@@ -496,7 +478,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_f2589efc3e9e",
-      "ms": 17.8,
+      "ms": 17.0,
       "data": {
         "label": "probe_stagger_90",
         "spread": 90,
@@ -512,7 +494,7 @@
       "ms": 0.1,
       "data": {
         "source": "menu",
-        "candidates": 8
+        "candidates": 10
       }
     },
     {
@@ -521,7 +503,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_f8992067f6ed",
-      "ms": 18.3,
+      "ms": 17.2,
       "data": {
         "label": "stagway",
         "types": [
@@ -541,7 +523,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_f9cf4db57a23",
-      "ms": 14.8,
+      "ms": 14.2,
       "data": {
         "label": "trains",
         "types": [
@@ -559,18 +541,17 @@
       "round": 1,
       "role": "simulator",
       "tool": "simulate",
-      "run_id": "sim_79d5e9a1447a",
-      "ms": 17.4,
+      "run_id": "sim_086d47f168f7",
+      "ms": 15.0,
       "data": {
-        "label": "busrt",
+        "label": "bus",
         "types": [
-          "shuttle_bus",
-          "robotaxi_staging"
+          "shuttle_bus"
         ],
         "over": 0.0,
         "excess": 0.0,
         "peak_lf": 0.85,
-        "cost_added": 22.0,
+        "cost_added": 18.0,
         "new_hotspots": []
       }
     },
@@ -580,7 +561,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_7e75eb188efa",
-      "ms": 15.8,
+      "ms": 14.5,
       "data": {
         "label": "way",
         "types": [
@@ -601,7 +582,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_1d0d36a14d96",
-      "ms": 22.3,
+      "ms": 32.9,
       "data": {
         "label": "trainstag",
         "types": [
@@ -621,7 +602,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_25ea2e7a8c74",
-      "ms": 16.1,
+      "ms": 22.3,
       "data": {
         "label": "trainsway",
         "types": [
@@ -641,7 +622,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_e1b80c420cfe",
-      "ms": 14.8,
+      "ms": 13.7,
       "data": {
         "label": "meter",
         "types": [
@@ -662,7 +643,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_540e2e698803",
-      "ms": 28.7,
+      "ms": 15.5,
       "data": {
         "label": "meterq",
         "types": [
@@ -678,18 +659,57 @@
     {
       "n": 17,
       "round": 1,
+      "role": "simulator",
+      "tool": "simulate",
+      "run_id": "sim_b974388114e0",
+      "ms": 13.8,
+      "data": {
+        "label": "buslite",
+        "types": [
+          "shuttle_bus"
+        ],
+        "over": 0.75,
+        "excess": 1014.5,
+        "peak_lf": 1.103,
+        "cost_added": 9.0,
+        "new_hotspots": []
+      }
+    },
+    {
+      "n": 18,
+      "round": 1,
+      "role": "simulator",
+      "tool": "simulate",
+      "run_id": "sim_fdd613e730a4",
+      "ms": 15.9,
+      "data": {
+        "label": "trainsbus",
+        "types": [
+          "extra_trains",
+          "shuttle_bus"
+        ],
+        "over": 0.0,
+        "excess": 0.0,
+        "peak_lf": 0.85,
+        "cost_added": 120.0,
+        "new_hotspots": []
+      }
+    },
+    {
+      "n": 19,
+      "round": 1,
       "role": "critic",
       "tool": "check_goal",
       "run_id": null,
       "ms": 0.0,
       "data": {
         "verdict": "goal_met",
-        "meeting": 2,
-        "tested": 8
+        "meeting": 3,
+        "tested": 10
       }
     },
     {
-      "n": 18,
+      "n": 20,
       "round": 1,
       "role": "planner",
       "tool": "rank",
@@ -697,16 +717,16 @@
       "ms": 0.0,
       "data": {
         "kept": 3,
-        "tested": 8,
+        "tested": 10,
         "order": [
-          "busrt",
-          "trainsway",
-          "trainstag"
+          "bus",
+          "buslite",
+          "trainsway"
         ]
       }
     },
     {
-      "n": 19,
+      "n": 21,
       "round": 1,
       "role": "explainer",
       "tool": "explain",
@@ -719,14 +739,14 @@
       }
     },
     {
-      "n": 20,
+      "n": 22,
       "round": 1,
       "role": "verifier",
       "tool": "verify_numbers",
       "run_id": null,
       "ms": 0.0,
       "data": {
-        "checked": 35,
+        "checked": 29,
         "all_matched": true
       }
     }

@@ -68,7 +68,7 @@ export function useEventText(stations: Station[]) {
         if (p.share_pct != null) return t("ev.crowdSized", { share: pct("share_pct"), to: name(p.toward), room: n("room") });
         return t("ev.proposed", { n: n("n"), kinds: types.join(" + ") || "–", station: name(p.station) });
       case "last_mile.proposed":
-        if (p.buses != null) return t("ev.mileSized", { buses: n("buses"), to: name(p.toward), per: n("per_bus"), veh: n("vehicles") });
+        if (p.buses != null) return t("ev.mileSized", { buses: n("buses"), to: name(p.toward), per: n("per_bus"), veh: Number(p.vehicles ?? 0) });
         return t("ev.proposed", { n: n("n"), kinds: types.join(" + ") || "–", station: name(p.station) });
       case "venue.stagger":
         if (!p.available) return t("ev.staggerNo");

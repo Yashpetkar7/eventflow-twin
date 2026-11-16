@@ -6,6 +6,7 @@ import { AiTab, BuildTab } from "./PlanTabs";
 import { BreakCard } from "./BreakCard";
 import { ReportTab } from "./ReportTab";
 import { TeamTab } from "./mission/TeamTab";
+import { ChainCard } from "./mission/Chain";
 import { DutyCard } from "./mission/Duty";
 import { WatcherCard } from "./mission/Standing";
 
@@ -94,6 +95,7 @@ function AlertsTab() {
   return (
     <>
       <DutyCard />
+      <ChainCard />
       <WatcherCard />
       <h2>{t("alerts.title")}</h2>
       {list.length === 0 && <div className="card empty">{t("alerts.none")}</div>}

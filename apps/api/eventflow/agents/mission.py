@@ -55,6 +55,7 @@ class MissionCtx:
         self.critic_met = False
         self.route = "ranker"
         self.objections: list[dict] = []
+        self.on_event = None
         self.result: dict = {}
         self.spec_llm = None
         self.templates: list[dict] = []
@@ -85,6 +86,9 @@ class MissionCtx:
     def _append(self, e: dict) -> None:
         with self._lock:
             self.events.append({"seq": len(self.events) + 1, **e})
+            ev = self.events[-1]
+        if self.on_event is not None:                 # live stream (POST /agent/run/stream): in final order, as it happens
+            self.on_event(ev)
 
     def flush(self, buffers: list[dict], group: str) -> None:
         """Parallel agents' events, in roster order (never in the order threads happened to finish)."""

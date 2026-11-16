@@ -151,6 +151,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agent/run/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Run Stream
+         * @description The same mission as POST /agent/run, streamed as Server-Sent Events while the agents work: one `agent` event per
+         *     agent event (in the final order, the moment it is logged), then one `mission` event with the whole answer (the
+         *     /agent/run shape), or `error`. Nothing is paced or replayed: what arrives is what has happened.
+         */
+        post: operations["agent_run_stream_agent_run_stream_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/agent/roster": {
         parameters: {
             query?: never;
@@ -2595,6 +2617,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Mission"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_run_stream_agent_run_stream_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

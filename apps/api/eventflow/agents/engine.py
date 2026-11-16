@@ -124,14 +124,16 @@ def _classic(run: dict, req, run_simulation) -> dict:
     return conclude(ctx)
 
 
-def run_mission(run: dict, req, run_simulation, engine: str | None = None) -> dict:
-    """One mission. `engine` overrides the configured one (tests and the orchestration eval use it)."""
+def run_mission(run: dict, req, run_simulation, engine: str | None = None, on_event=None) -> dict:
+    """One mission. `engine` overrides the configured one (tests and the orchestration eval use it); `on_event` is
+    called with every agent event as it is logged (the live stream)."""
     e = engine or available_engine()
     if e == "graph" and _graph() is None:
         e = "seq"
     if e == "classic":
         return _classic(run, req, run_simulation)
     ctx = MissionCtx(run, req, run_simulation, e)
+    ctx.on_event = on_event
     if e == "graph":
         _graph().invoke({"ctx": ctx, "proposals": [], "revisions": [], "buffers": []}, {"recursion_limit": settings()["budget"]["steps_max"]})
     else:

@@ -258,6 +258,43 @@
         }
       }
     },
+    "/agent/run/stream": {
+      "post": {
+        "summary": "Agent Run Stream",
+        "description": "The same mission as POST /agent/run, streamed as Server-Sent Events while the agents work: one `agent` event per\nagent event (in the final order, the moment it is logged), then one `mission` event with the whole answer (the\n/agent/run shape), or `error`. Nothing is paced or replayed: what arrives is what has happened.",
+        "operationId": "agent_run_stream_agent_run_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/agent/roster": {
       "get": {
         "summary": "Agent Roster",

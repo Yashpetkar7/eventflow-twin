@@ -101,6 +101,9 @@ export function TeamTab() {
   const f = useFmt();
   const { locale } = useLocale();
   const mission = useTwin((s) => s.mission);
+  const live = useTwin((s) => s.missionLive);
+  // while the stream runs, the events received so far stand in for the mission in the graph and the feed only
+  const view = useMemo(() => mission ?? (live ? ({ events: live, roster: [] } as unknown as Mission) : null), [mission, live]);
   const shown = useTwin((s) => s.missionShown);
   const status = useTwin((s) => s.planStatus);
   const ready = useTwin((s) => !!s.forecast && !s.loading);
@@ -144,13 +147,13 @@ export function TeamTab() {
           <h3 className="team-h">{t("graph")}</h3>
           {mission && status === "ready" && <button type="button" className="pill" onClick={() => setReplay(0)} data-testid="team-replay">{t("replay")}</button>}
         </div>
-        <TeamGraph mission={mission} shown={n} />
+        <TeamGraph mission={view} shown={n} />
       </div>
 
-      {mission && (
+      {view && (
         <div className="card">
-          <h3 className="team-h">{t("feed")}</h3>
-          <TeamFeed mission={mission} shown={n} />
+          <h3 className="team-h">{t("feed")}{!mission && live ? <small className="badge sm" style={{ marginInlineStart: 6 }} data-testid="team-live">{t("live")}</small> : null}</h3>
+          <TeamFeed mission={view} shown={n} />
         </div>
       )}
 

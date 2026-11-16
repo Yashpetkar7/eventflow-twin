@@ -38,8 +38,8 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
       <h3>{o.title}</h3>
       {isRec && rec && (
         <div className="row" style={{ gap: 6, marginBlockEnd: 4 }} data-testid="recommended">
-          <span className="badge sm ok">★ {tm("rec.badge")}</span>
-          <small><N>{tm(`rec.${rec.basis}`, { n: rec.applicable, p: rec.passed, failed: (rec.failed ?? []).join(", ") })}</N></small>
+          <span className="badge sm ok">★ {tm("recommend.badge")}</span>
+          <small><N>{tm(`recommend.${rec.basis}`, { n: rec.applicable, p: rec.passed, failed: (rec.failed ?? []).join(", ") })}</N></small>
         </div>
       )}
       {(o.goal_met || (o.round ?? 1) > 1) && (
