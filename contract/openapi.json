@@ -1370,6 +1370,78 @@
         ],
         "title": "AgentRunRequest"
       },
+      "AgentSpan": {
+        "properties": {
+          "agent": {
+            "type": "string",
+            "title": "Agent"
+          },
+          "layer": {
+            "type": "integer",
+            "title": "Layer"
+          },
+          "round": {
+            "type": "integer",
+            "title": "Round"
+          },
+          "start_ms": {
+            "type": "number",
+            "title": "Start Ms"
+          },
+          "end_ms": {
+            "type": "number",
+            "title": "End Ms"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keys"
+          },
+          "run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Run Ids"
+          },
+          "llm": {
+            "type": "boolean",
+            "title": "Llm"
+          },
+          "to": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "To"
+          },
+          "events": {
+            "type": "integer",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "layer",
+          "round",
+          "start_ms",
+          "end_ms",
+          "kind",
+          "keys",
+          "run_ids",
+          "llm",
+          "events"
+        ],
+        "title": "AgentSpan",
+        "description": "One agent step (consecutive events of one agent in one round), for the trace view and OpenTelemetry."
+      },
       "AgentStep": {
         "properties": {
           "key": {
@@ -3845,6 +3917,21 @@
                 "type": "null"
               }
             ]
+          },
+          "spans": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AgentSpan"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spans",
+            "description": "One span per agent step, derived from the events (1.14.0, WP4)"
           }
         },
         "type": "object",

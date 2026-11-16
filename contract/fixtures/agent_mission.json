@@ -2484,5 +2484,371 @@
     "failed": [
       "C7"
     ]
-  }
+  },
+  "spans": [
+    {
+      "agent": "supervisor",
+      "layer": 1,
+      "round": 1,
+      "start_ms": 3.7,
+      "end_ms": 5.7,
+      "kind": "start",
+      "keys": [
+        "supervisor.start"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 1
+    },
+    {
+      "agent": "intake",
+      "layer": 2,
+      "round": 1,
+      "start_ms": 5.7,
+      "end_ms": 7.2,
+      "kind": "decision",
+      "keys": [
+        "intake.objective"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 1
+    },
+    {
+      "agent": "forecast",
+      "layer": 2,
+      "round": 1,
+      "start_ms": 7.2,
+      "end_ms": 20.9,
+      "kind": "tool",
+      "keys": [
+        "forecast.run"
+      ],
+      "run_ids": [
+        "fc_6bb2b8ec7312"
+      ],
+      "llm": false,
+      "to": [],
+      "events": 1
+    },
+    {
+      "agent": "diagnosis",
+      "layer": 2,
+      "round": 1,
+      "start_ms": 20.9,
+      "end_ms": 21.1,
+      "kind": "tool",
+      "keys": [
+        "diagnosis.baseline",
+        "diagnosis.hotspots"
+      ],
+      "run_ids": [
+        "sim_d1451e81e16c"
+      ],
+      "llm": false,
+      "to": [],
+      "events": 2
+    },
+    {
+      "agent": "supervisor",
+      "layer": 1,
+      "round": 1,
+      "start_ms": 21.1,
+      "end_ms": 21.7,
+      "kind": "message",
+      "keys": [
+        "supervisor.brief"
+      ],
+      "run_ids": [
+        "sim_d1451e81e16c"
+      ],
+      "llm": false,
+      "to": [
+        "rail",
+        "station_crowd",
+        "venue",
+        "last_mile"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "diagnosis",
+      "layer": 2,
+      "round": 1,
+      "start_ms": 21.7,
+      "end_ms": 23.7,
+      "kind": "tool",
+      "keys": [
+        "diagnosis.breakpoint",
+        "diagnosis.road"
+      ],
+      "run_ids": [
+        "brk_667160f73432",
+        "sim_d1451e81e16c"
+      ],
+      "llm": false,
+      "to": [],
+      "events": 2
+    },
+    {
+      "agent": "rail",
+      "layer": 3,
+      "round": 1,
+      "start_ms": 23.7,
+      "end_ms": 23.8,
+      "kind": "proposal",
+      "keys": [
+        "rail.proposed"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [
+        "composer"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "station_crowd",
+      "layer": 3,
+      "round": 1,
+      "start_ms": 23.8,
+      "end_ms": 91.3,
+      "kind": "proposal",
+      "keys": [
+        "station_crowd.proposed"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [
+        "composer"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "venue",
+      "layer": 3,
+      "round": 1,
+      "start_ms": 91.3,
+      "end_ms": 91.3,
+      "kind": "decision",
+      "keys": [
+        "venue.stagger"
+      ],
+      "run_ids": [
+        "sim_a30b7c920e11",
+        "sim_728c72a38f82",
+        "sim_7df6aa25ab28",
+        "sim_f2589efc3e9e"
+      ],
+      "llm": false,
+      "to": [
+        "composer"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "last_mile",
+      "layer": 3,
+      "round": 1,
+      "start_ms": 22.8,
+      "end_ms": 92.0,
+      "kind": "proposal",
+      "keys": [
+        "last_mile.proposed"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [
+        "composer"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "composer",
+      "layer": 3,
+      "round": 1,
+      "start_ms": 92.0,
+      "end_ms": 247.9,
+      "kind": "decision",
+      "keys": [
+        "composer.bundles"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [
+        "simulation"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "simulation",
+      "layer": 4,
+      "round": 1,
+      "start_ms": 247.9,
+      "end_ms": 248.4,
+      "kind": "tool",
+      "keys": [
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result",
+        "simulation.result"
+      ],
+      "run_ids": [
+        "sim_f8992067f6ed",
+        "sim_f9cf4db57a23",
+        "sim_086d47f168f7",
+        "sim_7e75eb188efa",
+        "sim_1d0d36a14d96",
+        "sim_25ea2e7a8c74",
+        "sim_e1b80c420cfe",
+        "sim_540e2e698803",
+        "sim_fdd613e730a4",
+        "sim_b974388114e0"
+      ],
+      "llm": false,
+      "to": [],
+      "events": 10
+    },
+    {
+      "agent": "critic",
+      "layer": 4,
+      "round": 1,
+      "start_ms": 248.4,
+      "end_ms": 248.6,
+      "kind": "decision",
+      "keys": [
+        "critic.verdict"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [
+        "supervisor"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "supervisor",
+      "layer": 1,
+      "round": 1,
+      "start_ms": 248.6,
+      "end_ms": 249.0,
+      "kind": "decision",
+      "keys": [
+        "supervisor.rank"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 1
+    },
+    {
+      "agent": "ranker",
+      "layer": 4,
+      "round": 1,
+      "start_ms": 249.0,
+      "end_ms": 249.5,
+      "kind": "decision",
+      "keys": [
+        "ranker.kept"
+      ],
+      "run_ids": [
+        "sim_086d47f168f7",
+        "sim_b974388114e0",
+        "sim_25ea2e7a8c74"
+      ],
+      "llm": false,
+      "to": [
+        "explainer",
+        "stress"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "explainer",
+      "layer": 5,
+      "round": 1,
+      "start_ms": 249.5,
+      "end_ms": 549.3,
+      "kind": "tool",
+      "keys": [
+        "explainer.wrote"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 1
+    },
+    {
+      "agent": "stress",
+      "layer": 4,
+      "round": 1,
+      "start_ms": 549.3,
+      "end_ms": 552.0,
+      "kind": "tool",
+      "keys": [
+        "stress.result",
+        "stress.result",
+        "stress.result"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 3
+    },
+    {
+      "agent": "verifier",
+      "layer": 5,
+      "round": 1,
+      "start_ms": 552.0,
+      "end_ms": 552.3,
+      "kind": "decision",
+      "keys": [
+        "verifier.checked"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 1
+    },
+    {
+      "agent": "critic",
+      "layer": 4,
+      "round": 1,
+      "start_ms": 552.3,
+      "end_ms": 552.3,
+      "kind": "decision",
+      "keys": [
+        "critic.recommend"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [
+        "human"
+      ],
+      "events": 1
+    },
+    {
+      "agent": "human",
+      "layer": 5,
+      "round": 1,
+      "start_ms": 552.3,
+      "end_ms": 552.3,
+      "kind": "handoff",
+      "keys": [
+        "human.awaiting"
+      ],
+      "run_ids": [],
+      "llm": false,
+      "to": [],
+      "events": 1
+    }
+  ]
 }

@@ -699,6 +699,34 @@ export interface components {
             applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
             constraints?: components["schemas"]["Constraints"];
         };
+        /**
+         * AgentSpan
+         * @description One agent step (consecutive events of one agent in one round), for the trace view and OpenTelemetry.
+         */
+        AgentSpan: {
+            /** Agent */
+            agent: string;
+            /** Layer */
+            layer: number;
+            /** Round */
+            round: number;
+            /** Start Ms */
+            start_ms: number;
+            /** End Ms */
+            end_ms: number;
+            /** Kind */
+            kind: string;
+            /** Keys */
+            keys: string[];
+            /** Run Ids */
+            run_ids: string[];
+            /** Llm */
+            llm: boolean;
+            /** To */
+            to?: string[];
+            /** Events */
+            events: number;
+        };
         /** AgentStep */
         AgentStep: {
             /** Key */
@@ -1598,6 +1626,11 @@ export interface components {
              */
             recommended_rank?: number | null;
             recommendation?: components["schemas"]["Recommendation"] | null;
+            /**
+             * Spans
+             * @description One span per agent step, derived from the events (1.14.0, WP4)
+             */
+            spans?: components["schemas"]["AgentSpan"][] | null;
         };
         /** Objective */
         Objective: {

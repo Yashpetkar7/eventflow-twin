@@ -689,6 +689,12 @@
       "all_checks": "Passes all {n} checks the critic applies",
       "goal_and_most": "Clears every station; passes {p} of {n} checks (not {failed})",
       "most_checks": "Passes the most checks: {p} of {n} (not {failed})"
+    },
+    "trace": {
+      "title": "Trace · what each agent did, and when",
+      "sub": "{n} agent steps on the mission's own clock ({ms} ms in all). Parallel agents overlap. Hover a bar for its events.",
+      "round": "round {r}",
+      "meta": "{ms} ms · {runs, plural, =0 {no tool run} one {# tool run} other {# tool runs}}"
     }
   },
   "outsideCorridor": "Outside the modelled corridor"

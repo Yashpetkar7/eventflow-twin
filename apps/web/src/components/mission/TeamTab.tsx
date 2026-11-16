@@ -10,6 +10,7 @@ import { LAYER_AGENTS, useEventText } from "@/lib/mission";
 import { CORRIDOR_ORDER, useTwin } from "@/lib/store";
 import { DebateCard } from "./Debate";
 import { AskCard, MessengerCard } from "./Standing";
+import { TraceCard } from "./Trace";
 
 const MEASURES = ["extra_trains", "extended_hours", "station_metering", "wayfinding_redirect", "staggered_exit", "shuttle_bus", "robotaxi_staging"] as const;
 const CAPS = [null, 20, 50, 150] as const;
@@ -149,6 +150,8 @@ export function TeamTab() {
         </div>
         <TeamGraph mission={view} shown={n} />
       </div>
+
+      {mission && status === "ready" && <TraceCard mission={mission} />}
 
       {view && (
         <div className="card">

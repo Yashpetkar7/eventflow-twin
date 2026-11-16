@@ -17,6 +17,7 @@ from ..config import ROOT, corridor
 from ..forecast import build_from_spec, make_run_id
 from ..interventions import validate_interventions
 from ..simulate import simulate
+from ..tracing import spans
 from . import planner
 from .roster import AGENTS, BY_ID, LAYERS, counts, layer_of, settings
 
@@ -314,7 +315,7 @@ def conclude(ctx: MissionCtx) -> dict:
             "roster": roster_view(ctx.engine)["agents"], "counts": counts(), "events": ctx.events, "plan": plan,
             "rejected": rejected, "assessments": assessments, "budget": ctx.budget(), "recording": ctx.recording,
             "is_synthetic": plan["is_synthetic"], "stop_reason": ctx.stop_reason,
-            "recommended_rank": rec["rank"] if rec else None, "recommendation": rec}
+            "recommended_rank": rec["rank"] if rec else None, "recommendation": rec, "spans": spans(ctx.events)}
 
 
 def copy_texts(options: list[dict]) -> list[dict]:

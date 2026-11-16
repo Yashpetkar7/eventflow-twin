@@ -1,0 +1,5 @@
+# Optional extras for the product mode (decisions #132, #133). The booth and the tests need none of these.
+#   pip install -r requirements.txt -r requirements-saas.txt
+psycopg[binary]==3.3.9                      # store.py on Postgres (DATABASE_URL=postgresql://…)
+opentelemetry-sdk==1.45.2                   # tracing.py: agent spans to any OTLP collector (Langfuse, Jaeger, …)
+opentelemetry-exporter-otlp-proto-http==1.45.2

@@ -207,10 +207,13 @@ def agent_run(req: AgentRunRequest):
     composer → simulation → critic ⟲ supervisor → ranker → explainer ∥ stress test → verifier → human approval.
     `plan` has the /agent/plan shape; every number in it and in `events` comes from the simulator."""
     from .agents.engine import run_mission
+    from .tracing import export_mission
     run = get_run(req.forecast_run_id, req.forecast)
+    t0 = time.time_ns()
     mission = run_mission(run, req, run_simulation)
     with _LOCK:
         _PLANS[mission["plan"]["plan_id"]] = mission["plan"]
+    export_mission(mission, t0)                       # only when OTEL_EXPORTER_OTLP_ENDPOINT is set (WP4)
     return mission
 
 

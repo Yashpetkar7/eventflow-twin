@@ -450,3 +450,13 @@ body.kiosk .railtabs { display: none; }
   .lmmenu { inset-inline: 0; width: auto; max-height: min(60dvh, 420px); }
 }
 
+
+/* agent trace (WP4) */
+.trace { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; max-block-size: 340px; overflow-y: auto; }
+.trace li { display: grid; grid-template-columns: 128px 1fr 118px; gap: 8px; align-items: center; font-size: 12px; }
+.trace .who { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trace .lane { position: relative; block-size: 10px; background: var(--line); border-radius: 3px; }
+.trace .lane i { position: absolute; inset-block: 0; border-radius: 3px; background: var(--ink-3); }
+.trace li.L1 .lane i { background: var(--ink-3); } .trace li.L2 .lane i { background: var(--navy); } .trace li.L3 .lane i { background: var(--warn); }
+.trace li.L4 .lane i { background: var(--brand); } .trace li.L5 .lane i { background: var(--ok); }
+.trace .meta { color: var(--ink-3, var(--ink)); font-size: 11px; text-align: end; }

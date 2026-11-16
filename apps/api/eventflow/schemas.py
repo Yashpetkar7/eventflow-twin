@@ -496,6 +496,21 @@ class TeamCounts(BaseModel):
     code_only: int
 
 
+class AgentSpan(BaseModel):
+    """One agent step (consecutive events of one agent in one round), for the trace view and OpenTelemetry."""
+    agent: str
+    layer: int
+    round: int
+    start_ms: float
+    end_ms: float
+    kind: str
+    keys: list[str]
+    run_ids: list[str]
+    llm: bool
+    to: list[str] = Field(default_factory=list)
+    events: int
+
+
 class Recommendation(BaseModel):
     """Which offered option the critic's checks C1–C7 recommend (docs/17 WP3). The plan's own order is unchanged."""
     rank: int
@@ -524,6 +539,7 @@ class Mission(BaseModel):
     stop_reason: str = Field("", description="Why the supervisor stopped testing: goal_met · max_rounds · no_relief · budget · no_variants · no_action")
     recommended_rank: int | None = Field(None, description="The option the critic's checks recommend (1.14.0)")
     recommendation: Recommendation | None = None
+    spans: list[AgentSpan] | None = Field(None, description="One span per agent step, derived from the events (1.14.0, WP4)")
 
 
 class Roster(BaseModel):
