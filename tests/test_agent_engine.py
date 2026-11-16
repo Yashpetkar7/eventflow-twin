@@ -130,8 +130,14 @@ def test_without_langgraph_the_same_agents_run_in_sequence(c, monkeypatch):
 
 
 def test_an_offline_mission_opens_no_network_connection(c, monkeypatch):
-    def refuse(*a, **k):
-        raise AssertionError("a mission tried to open a network connection")
+    real = socket.socket.connect
+
+    def refuse(self, addr, *a, **k):
+        # Loopback is allowed: on Windows asyncio's own event loop wakes itself through a 127.0.0.1 socket pair
+        # (proactor self-pipe), which is not a network connection. Anything else fails the test.
+        if isinstance(addr, tuple) and addr[0] in ("127.0.0.1", "::1"):
+            return real(self, addr, *a, **k)
+        raise AssertionError(f"a mission tried to open a network connection to {addr!r}")
     monkeypatch.setattr(socket.socket, "connect", refuse)
     m = mission(c, monkeypatch, DOWNTOWN)
     assert m["recording"]["mode"] == "code"

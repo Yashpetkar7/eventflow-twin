@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -37,6 +38,11 @@ def main() -> int:
     try:
         if not wait("http://localhost:8000/healthz", 30):
             print("API did not start", file=sys.stderr)
+            return 1
+        with urllib.request.urlopen("http://localhost:8000/healthz", timeout=5) as r:
+            engine = json.load(r).get("engine")
+        if engine != "graph":                                  # the booth must show the LangGraph team, not a fallback
+            print(f"The API runs the '{engine}' engine, not LangGraph: run `pip install -r requirements.txt`.", file=sys.stderr)
             return 1
         subprocess.check_call([NPM, "run", "snapshot"], cwd=WEB, env=env)        # API-down fallback, from the live API
         subprocess.check_call([NPM, "run", "build"], cwd=WEB, env=env)
