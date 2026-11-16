@@ -121,6 +121,51 @@ class OpenAILLM:
             raise LLMUnavailable("answer was not valid JSON") from e
 
 
+class LocalLLM:
+    """A model the team hosts itself behind an OpenAI-compatible endpoint (vLLM, Ollama, llama.cpp server, TGI) — e.g.
+    an open-weight model on the college's GPUs (docs/GPU_REQUEST.md). Chat Completions with a JSON-schema response
+    format; nothing leaves the campus network. Configure:
+
+        LLM_PROVIDER=local  LLM_BASE_URL=http://<gpu-host>:8001/v1  LLM_MODEL=<served model name>  [LLM_API_KEY=…]
+    """
+
+    provider = "local"
+
+    def __init__(self, model: str, timeout: float = 90.0, max_retries: int = 2):
+        import openai                                          # the same SDK, pointed at the local server
+        base = os.environ.get("LLM_BASE_URL", "").strip()
+        if not base:
+            raise LLMUnavailable("LLM_BASE_URL is not set")
+        self._openai = openai
+        self.client = openai.OpenAI(base_url=base, api_key=os.environ.get("LLM_API_KEY", "not-needed"), max_retries=max_retries, timeout=timeout)
+        self.model = model
+        self.last_usage: dict = {}
+
+    def complete_json(self, *, system: str, user: str, schema: dict, effort: str, max_tokens: int) -> dict:
+        o = self._openai
+        try:
+            resp = self.client.chat.completions.create(
+                model=self.model, messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                max_tokens=min(max_tokens, 4096), temperature=0,
+                response_format={"type": "json_schema", "json_schema": {"name": "planner_output", "schema": schema, "strict": True}})
+        except o.APIStatusError as e:
+            raise LLMUnavailable(f"HTTP {e.status_code}: {str(e)[:160]}") from e
+        except o.APIConnectionError as e:
+            raise LLMUnavailable("local model server unreachable") from e
+        u = getattr(resp, "usage", None)
+        self.last_usage = {"input_tokens": getattr(u, "prompt_tokens", 0) or 0, "output_tokens": getattr(u, "completion_tokens", 0) or 0}
+        choice = (resp.choices or [None])[0]
+        text = (getattr(getattr(choice, "message", None), "content", None) or "").strip()
+        if not text:
+            raise LLMUnavailable("no text in the answer")
+        if getattr(choice, "finish_reason", None) == "length":
+            raise LLMUnavailable("answer truncated")
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            raise LLMUnavailable("answer was not valid JSON") from e
+
+
 def provider_for(model: str) -> str:
     """LLM_PROVIDER if set, else guessed from the model id (claude-* → anthropic, anything else → openai)."""
     p = os.environ.get("LLM_PROVIDER", "").strip().lower()
@@ -131,14 +176,14 @@ def provider_for(model: str) -> str:
 
 def display_name(llm: LLMClient) -> str:
     """How the plan steps name the model, e.g. "OpenAI gpt-5" or "Claude claude-opus-5-5"."""
-    brand = {"openai": "OpenAI", "claude": "Claude"}.get(getattr(llm, "provider", ""), "LLM")
+    brand = {"openai": "OpenAI", "claude": "Claude", "anthropic": "Claude", "local": "Local"}.get(getattr(llm, "provider", ""), "LLM")
     return f"{brand} {llm.model}"
 
 
 def make_client(model: str, timeout: float = 90.0, max_retries: int = 2) -> LLMClient | None:
     """A client for `model` (provider from the id or LLM_PROVIDER), or None when its SDK or key is missing."""
     try:
-        return {"openai": OpenAILLM, "anthropic": AnthropicLLM}[provider_for(model)](model, timeout=timeout, max_retries=max_retries)
+        return {"openai": OpenAILLM, "anthropic": AnthropicLLM, "local": LocalLLM}[provider_for(model)](model, timeout=timeout, max_retries=max_retries)
     except Exception:                                          # unknown provider, SDK missing or no key configured
         return None
 

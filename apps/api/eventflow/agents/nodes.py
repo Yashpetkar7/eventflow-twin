@@ -213,7 +213,7 @@ def composer(state: State) -> dict:
             p.llm_added = added
             if p.llm is None and ctx.spec_llm is not None:
                 p.llm = ctx.spec_llm
-                p.llm_name = f"{'OpenAI' if p.llm.provider == 'openai' else 'Claude'} {p.llm.model}"
+                p.llm_name = planner.llm_mod.display_name(p.llm)
         cross = sum(c["agent"] == "composer" for c in allowed)
         ctx.event("composer", "decision", "composer.bundles", rnd=1, to=["simulation"], menu=len(allowed) - cross, cross=cross, model=added,
                   forbidden=len(menu) - len(allowed))
