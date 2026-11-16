@@ -270,9 +270,114 @@ export interface paths {
         put?: never;
         /**
          * Decisions
-         * @description Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL.
+         * @description Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL. Tamper-evident (WP5): each
+         *     record carries `prev` (SHA-256 of the previous line as written, 64 zeros for the first) and `hash` (SHA-256 of
+         *     the record without `hash`, canonical JSON); GET /decisions/verify checks the chain. With EVENTFLOW_AUTH=on the
+         *     planner role is needed and the signed-in account is recorded next to the label.
          */
         post: operations["decisions_decisions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/decisions/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Decisions Verify
+         * @description Is the decision log intact? {ok, records, chained, unchained, first_bad}. On the hosted site the log lives in
+         *     /tmp and does not survive a restart: the chain proves order and integrity while it lasts, not durability.
+         */
+        get: operations["decisions_verify_decisions_verify_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chain Start
+         * @description Start an event chain on a scenario: the Watcher scans, its alert triggers the planning team, and the chain runs
+         *     by itself until the plan reaches the human (or the day ends). Every event says who published it and who it
+         *     triggered. Nothing is applied: approve or reject with POST /chain/{id}/decide.
+         */
+        post: operations["chain_start_chain_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/{chain_id}/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chain Decide
+         * @description The human's decision on the option in the inbox: logged first (append-only decision log), then published as
+         *     `decision.made`, which triggers the Messenger (after an approval) and the Watcher; the chain runs on until the next
+         *     decision or the end of the day.
+         */
+        post: operations["chain_decide_chain__chain_id__decide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/{chain_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chain Get */
+        get: operations["chain_get_chain__chain_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Chain List
+         * @description The most recent chains on this server (id, created, updated, owner).
+         */
+        get: operations["chain_list_chains_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -291,6 +396,77 @@ export interface paths {
          * @description Latest eval metrics per suite + data provenance + decision count.
          */
         get: operations["evidence_evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auth Register
+         * @description The first account on an empty store becomes the admin; after that only an admin can add users.
+         */
+        post: operations["auth_register_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Auth Login */
+        post: operations["auth_login_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Auth Logout */
+        post: operations["auth_logout_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Auth Me */
+        get: operations["auth_me_auth_me_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -326,7 +502,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "start" | "tool" | "decision" | "proposal" | "reject" | "finding" | "handoff" | "model" | "budget";
+            kind: "start" | "tool" | "decision" | "proposal" | "reject" | "finding" | "handoff" | "model" | "budget" | "message";
             /** Key */
             key: string;
             /** Params */
@@ -342,6 +518,11 @@ export interface components {
             llm?: {
                 [key: string]: unknown;
             } | null;
+            /**
+             * To
+             * @description A message: the agents it is addressed to, who act on it next (1.14.0)
+             */
+            to?: string[] | null;
         };
         /** AgentInfo */
         AgentInfo: {
@@ -667,6 +848,137 @@ export interface components {
             wall_ms_max: number;
             /** Exceeded */
             exceeded?: string[];
+        };
+        /** ChainDecideRequest */
+        ChainDecideRequest: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /**
+             * Rank
+             * @description The option decided on; default: the critic's recommendation
+             */
+            rank?: number | null;
+            /**
+             * User
+             * @description Anonymous label only
+             * @default duty-manager
+             */
+            user: string;
+        };
+        /** ChainEvent */
+        ChainEvent: {
+            /** Seq */
+            seq: number;
+            /**
+             * Topic
+             * @enum {string}
+             */
+            topic: "scenario.loaded" | "alert.raised" | "plan.ready" | "decision.made" | "drafts.ready" | "day.ended";
+            /**
+             * Publisher
+             * @description The agent (or the human) that published the event
+             */
+            publisher: string;
+            /**
+             * Subscribers
+             * @description The agents this event triggered, in the order they acted
+             */
+            subscribers: string[];
+            /** At */
+            at: string;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ChainInbox */
+        ChainInbox: {
+            mission: components["schemas"]["Mission"];
+            /** Recommended Rank */
+            recommended_rank?: number | null;
+            /** Alerts */
+            alerts: components["schemas"]["ShiftAlert"][];
+            /** Hour */
+            hour: number;
+            residual: components["schemas"]["SimSummary"];
+            baseline: components["schemas"]["SimSummary"];
+        };
+        /** ChainStartRequest */
+        ChainStartRequest: {
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /**
+             * Priority
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+            /**
+             * Horizon H
+             * @default 3
+             */
+            horizon_h: number;
+        };
+        /**
+         * ChainState
+         * @description An event chain: agents triggered by each other's events until a human decision is needed.
+         */
+        ChainState: {
+            /** Chain Id */
+            chain_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "awaiting_human" | "ended";
+            /**
+             * Ended Reason
+             * @description clear · residual · step_limit · no_option · event_limit
+             */
+            ended_reason?: string | null;
+            request: components["schemas"]["ChainStartRequest"];
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** Applied */
+            applied: {
+                [key: string]: unknown;
+            }[];
+            /** Handled */
+            handled: string[];
+            /** Hour */
+            hour: number;
+            /** Events */
+            events: components["schemas"]["ChainEvent"][];
+            inbox?: components["schemas"]["ChainInbox"] | null;
+            /**
+             * Drafts
+             * @description The Messenger's drafts after each approval (never sent)
+             */
+            drafts?: {
+                [key: string]: unknown;
+            }[];
+            /** Decisions */
+            decisions?: {
+                [key: string]: unknown;
+            }[];
+            /** Started */
+            started: string;
         };
         /**
          * Constraints
@@ -1131,6 +1443,13 @@ export interface components {
             /** Name Ar */
             name_ar: string;
         };
+        /** LoginRequest */
+        LoginRequest: {
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
+        };
         /** MessageDraft */
         MessageDraft: {
             /**
@@ -1251,6 +1570,12 @@ export interface components {
              * @default
              */
             stop_reason: string;
+            /**
+             * Recommended Rank
+             * @description The option the critic's checks recommend (1.14.0)
+             */
+            recommended_rank?: number | null;
+            recommendation?: components["schemas"]["Recommendation"] | null;
         };
         /** Objective */
         Objective: {
@@ -1348,6 +1673,35 @@ export interface components {
             round: number;
             road?: components["schemas"]["RoadPressure"] | null;
         };
+        /**
+         * Recommendation
+         * @description Which offered option the critic's checks C1–C7 recommend (docs/17 WP3). The plan's own order is unchanged.
+         */
+        Recommendation: {
+            /** Rank */
+            rank: number;
+            /**
+             * Basis
+             * @description all_checks: passes every applicable check · goal_and_most: passes C1–C3 and the most of C4–C7 · most_checks: passes the most checks (ties: the plan's order)
+             * @enum {string}
+             */
+            basis: "all_checks" | "goal_and_most" | "most_checks";
+            /**
+             * Passed
+             * @description Applicable checks the option passes
+             */
+            passed: number;
+            /**
+             * Applicable
+             * @description Checks that apply to this scenario (C5 and C7 do not always)
+             */
+            applicable: number;
+            /**
+             * Failed
+             * @description Applicable checks it does not pass
+             */
+            failed?: string[];
+        };
         /** Recording */
         Recording: {
             /**
@@ -1379,6 +1733,19 @@ export interface components {
             share: number;
             /** Hours */
             hours?: number[];
+        };
+        /** RegisterRequest */
+        RegisterRequest: {
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
+            /**
+             * Role
+             * @default planner
+             * @enum {string}
+             */
+            role: "viewer" | "planner" | "admin";
         };
         /** RejectedPlan */
         RejectedPlan: {
@@ -2457,7 +2824,263 @@ export interface operations {
             };
         };
     };
+    decisions_verify_decisions_verify_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    chain_start_chain_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_decide_chain__chain_id__decide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainDecideRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_get_chain__chain_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_list_chains_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     evidence_evidence_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    auth_register_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_login_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_logout_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    auth_me_auth_me_get: {
         parameters: {
             query?: never;
             header?: never;

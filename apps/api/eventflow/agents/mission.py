@@ -54,6 +54,7 @@ class MissionCtx:
         self.composed = False
         self.critic_met = False
         self.route = "ranker"
+        self.objections: list[dict] = []
         self.result: dict = {}
         self.spec_llm = None
         self.templates: list[dict] = []
@@ -70,10 +71,11 @@ class MissionCtx:
         return round((time.perf_counter() - self.t0) * 1000, 1)
 
     def event(self, agent: str, kind: str, key: str, *, rnd: int | None = None, run_id: str | None = None,
-              llm: dict | None = None, into: list | None = None, **params) -> dict:
-        """One thing an agent did. `into` collects the events of an agent running in parallel, flushed in a fixed order."""
+              llm: dict | None = None, into: list | None = None, to: list[str] | None = None, **params) -> dict:
+        """One thing an agent did. `into` collects the events of an agent running in parallel, flushed in a fixed order.
+        `to` makes it a message: the agents it is addressed to, who act on it next (docs/15 §3)."""
         e = {"t_ms": self.now_ms(), "round": rnd if rnd is not None else self.p.rounds, "layer": layer_of(agent), "agent": agent,
-             "kind": kind, "key": key, "params": params, "run_id": run_id, "llm": llm}
+             "kind": kind, "key": key, "params": params, "run_id": run_id, "llm": llm, "to": to}
         if into is not None:
             into.append(e)
         else:
@@ -246,6 +248,34 @@ def failing(o: dict, base_summary: dict) -> list[str]:
     return out
 
 
+GOAL_CHECKS = ("C1", "C2", "C3")
+
+
+def recommend(assessments: list[dict]) -> dict | None:
+    """The option the checks recommend (docs/17 WP3), in the plan's order:
+    1. the first that passes every applicable check C1–C7;
+    2. else the first that passes C1–C3 and the most of C4–C7;
+    3. else the one that passes the most checks. Ties go to the plan's own order. `passed=None` = does not apply."""
+    if not assessments:
+        return None
+    rows = []
+    for a in sorted(assessments, key=lambda a: a["rank"]):
+        app = [c for c in a["checks"] if c["passed"] is not None]
+        ok = [c["id"] for c in app if c["passed"]]
+        rows.append({"rank": a["rank"], "ok": ok, "app": [c["id"] for c in app],
+                     "goal": all(c in ok for c in GOAL_CHECKS if c in [x["id"] for x in app])})
+    allp = next((r for r in rows if len(r["ok"]) == len(r["app"])), None)
+    if allp:
+        r, basis = allp, "all_checks"
+    elif any(r["goal"] for r in rows):
+        g = [r for r in rows if r["goal"]]
+        r, basis = max(g, key=lambda r: (len(r["ok"]), -r["rank"])), "goal_and_most"
+    else:
+        r, basis = max(rows, key=lambda r: (len(r["ok"]), -r["rank"])), "most_checks"
+    return {"rank": r["rank"], "basis": basis, "passed": len(r["ok"]), "applicable": len(r["app"]),
+            "failed": [c for c in r["app"] if c not in r["ok"]]}
+
+
 def roster_view(engine: str, mermaid: str | None = None) -> dict:
     return {"engine": engine, "layers": LAYERS, "agents": [*AGENTS, BY_ID["human"]], "counts": counts(), "graph_mermaid": mermaid or ""}
 
@@ -268,6 +298,10 @@ def conclude(ctx: MissionCtx) -> dict:
         st = ctx.assessments.get(o["rank"])
         assessments.append({"rank": o["rank"], "checks": checks_for(ctx, o, by_rank.get(o["rank"]), st),
                             "stress": (st or {}).get("cases", []), "holds": (st or {}).get("holds", 0), "total": (st or {}).get("total", 0)})
+    rec = recommend(assessments)
+    if rec is not None:
+        ctx.event("critic", "decision", "critic.recommend", to=["human"], rank=rec["rank"], basis=rec["basis"], passed=rec["passed"],
+                  applicable=rec["applicable"], failed=rec["failed"])
     status = "awaiting_human" if plan["options"] else "no_action"
     ctx.event("human" if status == "awaiting_human" else "supervisor", "handoff",
               "human.awaiting" if status == "awaiting_human" else "supervisor.no_action", options=len(plan["options"]))
@@ -275,7 +309,8 @@ def conclude(ctx: MissionCtx) -> dict:
     return {"mission_id": mission_id, "status": status, "engine": ctx.engine, "objective": ctx.objective,
             "roster": roster_view(ctx.engine)["agents"], "counts": counts(), "events": ctx.events, "plan": plan,
             "rejected": rejected, "assessments": assessments, "budget": ctx.budget(), "recording": ctx.recording,
-            "is_synthetic": plan["is_synthetic"], "stop_reason": ctx.stop_reason}
+            "is_synthetic": plan["is_synthetic"], "stop_reason": ctx.stop_reason,
+            "recommended_rank": rec["rank"] if rec else None, "recommendation": rec}
 
 
 def copy_texts(options: list[dict]) -> list[dict]:

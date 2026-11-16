@@ -1,8 +1,8 @@
 {
   "eval": {
     "agents": {
-      "file": "agents_20261116-152953.json",
-      "timestamp": "2026-11-16T15:29:53",
+      "file": "agents_20261116-200423.json",
+      "timestamp": "2026-11-16T20:04:23",
       "metrics": {
         "number_faithfulness": 1.0,
         "schema_validity": 1.0,
@@ -13,11 +13,11 @@
         "critic_consistent": 1.0,
         "trace_complete": 1.0,
         "goal_met_rate": 1.0,
-        "replan_rate": 0.1818,
+        "replan_rate": 0.0909,
         "hotspot_scenarios": 44,
         "options_checked": 132,
-        "plan_latency_p50_s": 0.068,
-        "plan_latency_p95_s": 0.193
+        "plan_latency_p50_s": 0.234,
+        "plan_latency_p95_s": 0.434
       },
       "n": 60,
       "split": "all (dev+test)",
@@ -25,8 +25,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "critic": {
-      "file": "critic_20261116-144400.json",
-      "timestamp": "2026-11-16T14:44:00",
+      "file": "critic_20261116-201156.json",
+      "timestamp": "2026-11-16T20:11:56",
       "metrics": {
         "critic_recall": 1.0,
         "critic_precision": 1.0,
@@ -54,8 +54,8 @@
       "dataset_version": "synthetic:2026-08-03..2026-09-27"
     },
     "incidents": {
-      "file": "incidents_20261116-173152.json",
-      "timestamp": "2026-11-16T17:31:52",
+      "file": "incidents_20261116-200723.json",
+      "timestamp": "2026-11-16T20:07:23",
       "metrics": {
         "incident_deterministic": 1.0,
         "incident_never_easier": 1.0,
@@ -68,7 +68,7 @@
         "shifts_with_crowding": 10,
         "proposals_checked": 10,
         "decisions_asked_max": 1,
-        "shift_p95_s": 0.247
+        "shift_p95_s": 0.722
       },
       "n": 15,
       "split": "all",
@@ -174,15 +174,15 @@
       "dataset_version": null
     },
     "optimality": {
-      "file": "optimality_20261116-144359.json",
-      "timestamp": "2026-11-16T14:43:59",
+      "file": "optimality_20261116-201156.json",
+      "timestamp": "2026-11-16T20:11:56",
       "metrics": {
         "goal_coverage": 1.0,
         "scenarios": 22,
         "scenarios_where_grid_meets_goal": 22,
         "relief_gap_mean": 0.0,
         "relief_gap_max": 0.0,
-        "top_score_ratio_mean": 0.8024,
+        "top_score_ratio_mean": 0.9608,
         "grid_plans_mean": 47.9
       },
       "n": 22,
@@ -191,8 +191,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "orchestration": {
-      "file": "orchestration_20261116-153026.json",
-      "timestamp": "2026-11-16T15:30:26",
+      "file": "orchestration_20261116-200547.json",
+      "timestamp": "2026-11-16T20:05:47",
       "metrics": {
         "engines_agree": 1.0,
         "events_deterministic": 1.0,
@@ -200,8 +200,14 @@
         "budget_respected": 1.0,
         "layers_covered": 1.0,
         "missions_with_options": 44,
-        "mission_p50_s": 0.195,
-        "mission_p95_s": 0.364,
+        "recommendation_consistent": 1.0,
+        "recommended_all_checks_rate": 0.4545,
+        "objections_answered": 1.0,
+        "objections": 12,
+        "objections_with_answer": 12,
+        "missions_with_replan": 4,
+        "mission_p50_s": 0.538,
+        "mission_p95_s": 0.773,
         "engine_default": "graph"
       },
       "n": 60,
@@ -210,8 +216,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "redteam": {
-      "file": "redteam_20261116-145733.json",
-      "timestamp": "2026-11-16T14:57:33",
+      "file": "redteam_20261116-200709.json",
+      "timestamp": "2026-11-16T20:07:09",
       "metrics": {
         "attack_success_rate": 0.0,
         "cases": 53,
@@ -473,8 +479,8 @@
       "dataset_version": "rta_metro_ridership_open:10files:2025-07-01..2025-12-31"
     },
     "safety": {
-      "file": "safety_20261116-151748.json",
-      "timestamp": "2026-11-16T15:17:48",
+      "file": "safety_20261116-200713.json",
+      "timestamp": "2026-11-16T20:07:13",
       "metrics": {
         "disallowed_refusal_rate": 1.0,
         "allowed_over_refusal": 0.0,
@@ -500,8 +506,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "simulator": {
-      "file": "simulator_20261113-093329.json",
-      "timestamp": "2026-11-13T09:33:29",
+      "file": "simulator_20261116-174145.json",
+      "timestamp": "2026-11-16T17:41:45",
       "metrics": {
         "property_pass_rate": 1.0,
         "conservation_error_max": 0.0
@@ -518,6 +524,6 @@
     "file": "station_hour_synthetic.parquet",
     "config_hash": "94ae032aa3"
   },
-  "decisions_logged": 41,
-  "contract": "1.13.0"
+  "decisions_logged": 11,
+  "contract": "1.14.0"
 }

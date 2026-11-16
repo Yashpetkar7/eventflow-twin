@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.13.0"
+    "version": "1.14.0"
   },
   "paths": {
     "/healthz": {
@@ -436,7 +436,7 @@
     "/decisions": {
       "post": {
         "summary": "Decisions",
-        "description": "Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL.",
+        "description": "Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL. Tamper-evident (WP5): each\nrecord carries `prev` (SHA-256 of the previous line as written, 64 zeros for the first) and `hash` (SHA-256 of\nthe record without `hash`, canonical JSON); GET /decisions/verify checks the chain. With EVENTFLOW_AUTH=on the\nplanner role is needed and the signed-in account is recorded next to the label.",
         "operationId": "decisions_decisions_post",
         "requestBody": {
           "required": true,
@@ -511,11 +511,300 @@
         }
       }
     },
+    "/decisions/verify": {
+      "get": {
+        "summary": "Decisions Verify",
+        "description": "Is the decision log intact? {ok, records, chained, unchained, first_bad}. On the hosted site the log lives in\n/tmp and does not survive a restart: the chain proves order and integrity while it lasts, not durability.",
+        "operationId": "decisions_verify_decisions_verify_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chain/start": {
+      "post": {
+        "summary": "Chain Start",
+        "description": "Start an event chain on a scenario: the Watcher scans, its alert triggers the planning team, and the chain runs\nby itself until the plan reaches the human (or the day ends). Every event says who published it and who it\ntriggered. Nothing is applied: approve or reject with POST /chain/{id}/decide.",
+        "operationId": "chain_start_chain_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chain/{chain_id}/decide": {
+      "post": {
+        "summary": "Chain Decide",
+        "description": "The human's decision on the option in the inbox: logged first (append-only decision log), then published as\n`decision.made`, which triggers the Messenger (after an approval) and the Watcher; the chain runs on until the next\ndecision or the end of the day.",
+        "operationId": "chain_decide_chain__chain_id__decide_post",
+        "parameters": [
+          {
+            "name": "chain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Chain Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainDecideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chain/{chain_id}": {
+      "get": {
+        "summary": "Chain Get",
+        "operationId": "chain_get_chain__chain_id__get",
+        "parameters": [
+          {
+            "name": "chain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Chain Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chains": {
+      "get": {
+        "summary": "Chain List",
+        "description": "The most recent chains on this server (id, created, updated, owner).",
+        "operationId": "chain_list_chains_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/evidence": {
       "get": {
         "summary": "Evidence",
         "description": "Latest eval metrics per suite + data provenance + decision count.",
         "operationId": "evidence_evidence_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Auth Register",
+        "description": "The first account on an empty store becomes the admin; after that only an admin can add users.",
+        "operationId": "auth_register_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Auth Login",
+        "operationId": "auth_login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Auth Logout",
+        "operationId": "auth_logout_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Auth Me",
+        "operationId": "auth_me_auth_me_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -565,7 +854,8 @@
               "finding",
               "handoff",
               "model",
-              "budget"
+              "budget",
+              "message"
             ],
             "title": "Kind"
           },
@@ -601,6 +891,21 @@
             ],
             "title": "Llm",
             "description": "Model, tokens, milliseconds and whether the answer was recorded"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To",
+            "description": "A message: the agents it is addressed to, who act on it next (1.14.0)"
           }
         },
         "type": "object",
@@ -1565,6 +1870,307 @@
           "wall_ms_max"
         ],
         "title": "Budget"
+      },
+      "ChainDecideRequest": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank",
+            "description": "The option decided on; default: the critic's recommendation"
+          },
+          "user": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[\\w .\\-]+$",
+            "title": "User",
+            "description": "Anonymous label only",
+            "default": "duty-manager"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "ChainDecideRequest"
+      },
+      "ChainEvent": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "topic": {
+            "type": "string",
+            "enum": [
+              "scenario.loaded",
+              "alert.raised",
+              "plan.ready",
+              "decision.made",
+              "drafts.ready",
+              "day.ended"
+            ],
+            "title": "Topic"
+          },
+          "publisher": {
+            "type": "string",
+            "title": "Publisher",
+            "description": "The agent (or the human) that published the event"
+          },
+          "subscribers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Subscribers",
+            "description": "The agents this event triggered, in the order they acted"
+          },
+          "at": {
+            "type": "string",
+            "title": "At"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "topic",
+          "publisher",
+          "subscribers",
+          "at"
+        ],
+        "title": "ChainEvent"
+      },
+      "ChainInbox": {
+        "properties": {
+          "mission": {
+            "$ref": "#/components/schemas/Mission"
+          },
+          "recommended_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Rank"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftAlert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "residual": {
+            "$ref": "#/components/schemas/SimSummary"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/SimSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mission",
+          "alerts",
+          "hour",
+          "residual",
+          "baseline"
+        ],
+        "title": "ChainInbox"
+      },
+      "ChainStartRequest": {
+        "properties": {
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "default": "balanced"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "horizon_h": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Horizon H",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast"
+        ],
+        "title": "ChainStartRequest"
+      },
+      "ChainState": {
+        "properties": {
+          "chain_id": {
+            "type": "string",
+            "title": "Chain Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "awaiting_human",
+              "ended"
+            ],
+            "title": "Status"
+          },
+          "ended_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended Reason",
+            "description": "clear · residual · step_limit · no_option · event_limit"
+          },
+          "request": {
+            "$ref": "#/components/schemas/ChainStartRequest"
+          },
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "applied": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Applied"
+          },
+          "handled": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Handled"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ChainEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "inbox": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChainInbox"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "drafts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Drafts",
+            "description": "The Messenger's drafts after each approval (never sent)"
+          },
+          "decisions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Decisions"
+          },
+          "started": {
+            "type": "string",
+            "title": "Started"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chain_id",
+          "status",
+          "request",
+          "forecast_run_id",
+          "applied",
+          "handled",
+          "hour",
+          "events",
+          "started"
+        ],
+        "title": "ChainState",
+        "description": "An event chain: agents triggered by each other's events until a human decision is needed."
       },
       "Constraints": {
         "properties": {
@@ -2802,6 +3408,28 @@
         ],
         "title": "LayerInfo"
       },
+      "LoginRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
       "MessageDraft": {
         "properties": {
           "notice": {
@@ -3158,6 +3786,28 @@
             "title": "Stop Reason",
             "description": "Why the supervisor stopped testing: goal_met · max_rounds · no_relief · budget · no_variants · no_action",
             "default": ""
+          },
+          "recommended_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Rank",
+            "description": "The option the critic's checks recommend (1.14.0)"
+          },
+          "recommendation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Recommendation"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -3383,6 +4033,51 @@
         ],
         "title": "PlanOption"
       },
+      "Recommendation": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "all_checks",
+              "goal_and_most",
+              "most_checks"
+            ],
+            "title": "Basis",
+            "description": "all_checks: passes every applicable check · goal_and_most: passes C1–C3 and the most of C4–C7 · most_checks: passes the most checks (ties: the plan's order)"
+          },
+          "passed": {
+            "type": "integer",
+            "title": "Passed",
+            "description": "Applicable checks the option passes"
+          },
+          "applicable": {
+            "type": "integer",
+            "title": "Applicable",
+            "description": "Checks that apply to this scenario (C5 and C7 do not always)"
+          },
+          "failed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failed",
+            "description": "Applicable checks it does not pass"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "basis",
+          "passed",
+          "applicable"
+        ],
+        "title": "Recommendation",
+        "description": "Which offered option the critic's checks C1–C7 recommend (docs/17 WP3). The plan's own order is unchanged."
+      },
       "Recording": {
         "properties": {
           "mode": {
@@ -3473,6 +4168,38 @@
           "share"
         ],
         "title": "RedirectParams"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Password"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "viewer",
+              "planner",
+              "admin"
+            ],
+            "title": "Role",
+            "default": "planner"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "RegisterRequest"
       },
       "RejectedPlan": {
         "properties": {

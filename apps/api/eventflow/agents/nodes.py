@@ -22,7 +22,8 @@ from .roster import AGENT_IDS, SPECIALIST_TYPES, SPECIALISTS
 
 class State(TypedDict, total=False):
     ctx: Any                                                   # MissionCtx (shared working state)
-    proposals: Annotated[list, operator.add]                   # specialists → composer
+    proposals: Annotated[list, operator.add]                   # specialists → composer (round one)
+    revisions: Annotated[list, operator.add]                   # specialists → composer (answers to the critic's objections)
     buffers: Annotated[list, operator.add]                     # events of agents that ran in parallel
 
 
@@ -82,6 +83,9 @@ def diagnosis(state: State) -> dict:
             d["peak_pct"] = max(d["peak_pct"], _pct(r["peak_lf"]))
     ctx.event("diagnosis", "decision", "diagnosis.hotspots", rnd=1, run_id=p.base["run_id"], worst=hot["station"], hours=hot["hours"],
               stations=sorted(bins.values(), key=lambda d: (-d["bins"], d["id"])))
+    t = p.target
+    ctx.event("supervisor", "message", "supervisor.brief", rnd=1, run_id=p.base["run_id"], to=list(SPECIALISTS), station=t["worst"],
+              hours=t["hrs"], gap=t["size"]["why"]["gap"], nb=t["nb"], far=t["far"], threshold_pct=_pct(p.thr))
     try:
         ids = [s["id"] for s in corridor()["stations"] if s.get("in_corridor")]
         bp = break_points(ctx.run, ctx.req.threshold, ids)
@@ -104,20 +108,63 @@ def route_after_diagnosis(state: State) -> list[str] | str:
 def _specialist(agent: str):
     def node(state: State) -> dict:
         ctx: MissionCtx = state["ctx"]
+        if ctx.composed:                             # a replan round: answer the critic's objection, if it named this agent
+            return _revise(ctx, agent)
         ctx.step(agent)
         p, buf = ctx.p, []
         t = p.target
-        own = planner.recipe_bundles(t, {agent})
         if agent == "venue":                         # the venue owns one measure; the composer pairs it with others
-            ctx.event(agent, "decision", "venue.stagger", into=buf, available=t["can_stag"], spread=t["spread"])
-        else:
-            ctx.event(agent, "proposal", f"{agent}.proposed", into=buf, n=len(own), keys=[c["key"] for c in own],
-                      types=sorted({i["type"] for c in own for i in c["ivs"]}), station=t["worst"])
+            probe = p.size_stagger()                 # its own search: exit spreads tested in the simulator
+            ctx.event(agent, "decision", "venue.stagger", into=buf, to=["composer"], available=t["can_stag"], spread=t["spread"],
+                      tried=[x["spread"] for x in (probe or {}).get("tried", [])],
+                      clears=(probe or {}).get("clears"), run_ids=[x["run_id"] for x in (probe or {}).get("tried", [])])
+        own = planner.recipe_bundles(t, {agent})
+        if agent != "venue":
+            ctx.event(agent, "proposal", f"{agent}.proposed", into=buf, to=["composer"], n=len(own), keys=[c["key"] for c in own],
+                      types=sorted({i["type"] for c in own for i in c["ivs"]}), station=t["worst"], **sizing_reason(agent, t))
         props = [{**c, "source": "menu"} for c in own]
         props += model_proposals(ctx, agent, buf)
         return {"proposals": props, "buffers": [{"group": "specialists", "order": _order(agent), "events": buf}]}
     node.__name__ = agent
     return node
+
+
+def _revise(ctx: MissionCtx, agent: str) -> dict:
+    """A specialist's answer to the critic: its own measures resized from the residual gap and its measures for the
+    station still over the line (planner.PlanRun.revisions_for). Silent when the objection did not name it."""
+    if agent not in {o["to"] for o in ctx.objections}:
+        return {}
+    ctx.step(agent)
+    p, buf = ctx.p, []
+    mine = p.revisions_for(agent)
+    changes = [{"type": r["iv"]["type"], **_change(r["was"], r["iv"])} for r in mine if r["kind"] == "resize"]
+    ctx.event(agent, "proposal", f"{agent}.revised", into=buf, to=["composer"], rnd=p.rounds + 1, resized=changes,
+              added=len([r for r in mine if r["kind"] == "combo"]), station=(ctx.objections and next(o for o in ctx.objections if o["to"] == agent)["station"]))
+    return {"revisions": [{**r, "round": p.rounds + 1} for r in mine],
+            "buffers": [{"group": f"revisions{p.rounds + 1}", "order": _order(agent), "events": buf}]}
+
+
+_SIZE_KEYS = ("headway_min", "share", "buses", "vehicles", "spread_minutes", "max_load")
+
+
+def _change(was: dict, now: dict) -> dict:
+    """What a revision changed, for the message: {setting, before, after} for the first setting that moved."""
+    for k in _SIZE_KEYS:
+        if k in was["params"] and was["params"][k] != now["params"].get(k):
+            return {"setting": k, "before": was["params"][k], "after": now["params"][k]}
+    return {"setting": "hours", "before": len(was["params"].get("hours", [])), "after": len(now["params"].get("hours", []))}
+
+
+def sizing_reason(agent: str, t: dict) -> dict:
+    """The figures a specialist sized its measure with (planner.size_measures), for its message to the composer."""
+    z, w = t["size"], t["size"]["why"]
+    if agent == "rail":
+        return {"headway": z["hw"], "tph_now": w["tph_now"], "need_tph": w["need_tph"], "gap": w["gap"]}
+    if agent == "station_crowd":
+        return {"share_pct": round(z["share"] * 100), "gap": w["gap"], "room": w["room_nb"], "toward": t["nb"]}
+    if agent == "last_mile":
+        return {"buses": z["buses"], "vehicles": z["veh"], "gap": w["gap"], "room": w["room_far"], "per_bus": w["per_bus"], "toward": t["far"]}
+    return {}
 
 
 def model_proposals(ctx: MissionCtx, agent: str, buf: list) -> list[dict]:
@@ -168,15 +215,20 @@ def composer(state: State) -> dict:
                 p.llm = ctx.spec_llm
                 p.llm_name = f"{'OpenAI' if p.llm.provider == 'openai' else 'Claude'} {p.llm.model}"
         cross = sum(c["agent"] == "composer" for c in allowed)
-        ctx.event("composer", "decision", "composer.bundles", rnd=1, menu=len(allowed) - cross, cross=cross, model=added,
+        ctx.event("composer", "decision", "composer.bundles", rnd=1, to=["simulation"], menu=len(allowed) - cross, cross=cross, model=added,
                   forbidden=len(menu) - len(allowed))
         ctx.pending = list(p.cands)
         return {}
-    # a replanning round (the supervisor asked for one): stronger settings and combinations
-    variants, seeds = p.replan_variants()
+    # a replanning round: the specialists answered the critic; assemble their revisions in the planner's order
+    rnd = p.rounds + 1
+    ctx.flush(state.get("buffers") or [], f"revisions{rnd}")
+    parts = [r for r in sorted(state.get("revisions") or [], key=lambda r: _order(r["agent"])) if r["round"] == rnd]
+    variants = p.compose_replan(parts)
+    seeds = [sd["seed"] for sd in p.seeds]
     keep = [v for v in variants if not ({i["type"] for i in v["ivs"]} & forbid)]
     ctx.pending = keep[:planner.MAX_SIMS_PER_ROUND]
-    ctx.event("composer", "decision", "composer.replan", rnd=p.rounds, seeds=[s["key"] for s in seeds], variants=len(ctx.pending),
+    ctx.event("composer", "decision", "composer.replan", rnd=p.rounds, to=["simulation"], seeds=[s["key"] for s in seeds],
+              variants=len(ctx.pending), revised=sum(v["key"] == "revised" for v in ctx.pending),
               station=(planner.diagnose(seeds[0]["res"]) or {}).get("station") if seeds else None)
     return {}
 
@@ -212,9 +264,16 @@ def critic(state: State) -> dict:
     p = ctx.p
     met = p.critic(p.rounds)
     v = p.last_verdict
-    ctx.event("critic", "decision", "critic.verdict", rnd=p.rounds, verdict=v["verdict"], meeting=v["meeting"], tested=v["tested"],
-              station=v.get("station"), excess=round(v["excess"]) if v.get("excess") is not None else None, best=v.get("best"))
+    ctx.event("critic", "decision", "critic.verdict", rnd=p.rounds, to=["supervisor"], verdict=v["verdict"], meeting=v["meeting"],
+              tested=v["tested"], station=v.get("station"), excess=round(v["excess"]) if v.get("excess") is not None else None,
+              best=v.get("best"))
     ctx.critic_met = met
+    ctx.objections = []
+    if p.can_replan(met):                            # say what fell short, and to whom
+        ctx.objections = p.prepare_replan()
+        for o in ctx.objections:
+            ctx.event("critic", "message", "critic.objection", rnd=p.rounds, to=[o["to"]], station=o["station"], hours=o["hours"],
+                      excess=o["excess"], gap=o["gap"], plan=o["plan"], own=o["own"])
     return {}
 
 
@@ -226,8 +285,9 @@ def supervisor(state: State) -> dict:
     if over:
         ctx.exceeded += over
     if p.can_replan(ctx.critic_met) and not over:
-        ctx.route = "composer"
+        ctx.route = "specialists"
         ctx.event("supervisor", "decision", "supervisor.replan", rnd=p.rounds, next_round=p.rounds + 1,
+                  to=[o["to"] for o in ctx.objections] or ["composer"],
                   station=p.last_verdict.get("station"), excess=round(p.last_verdict["excess"]) if p.last_verdict.get("excess") is not None else None)
     else:
         ctx.route = "ranker"
@@ -237,8 +297,9 @@ def supervisor(state: State) -> dict:
     return {}
 
 
-def route_after_supervisor(state: State) -> str:
-    return state["ctx"].route
+def route_after_supervisor(state: State) -> list[str] | str:
+    """Replan: back to the specialists (each one checks whether the critic's objection names it), else rank."""
+    return list(SPECIALISTS) if state["ctx"].route == "specialists" else "ranker"
 
 
 def ranker(state: State) -> dict:
@@ -248,7 +309,8 @@ def ranker(state: State) -> dict:
     if not ctx.stop_reason:
         ctx.stop_reason = "no_variants"
     top = p.rank()
-    ctx.event("ranker", "decision", "ranker.kept", rnd=p.rounds, kept=len(top), tested=len(p.pool), order=[o["key"] for o in top],
+    ctx.event("ranker", "decision", "ranker.kept", rnd=p.rounds, to=["explainer", "stress"], kept=len(top), tested=len(p.pool),
+              order=[o["key"] for o in top],
               run_ids=[o["res"]["run_id"] for o in top])
     return {}
 

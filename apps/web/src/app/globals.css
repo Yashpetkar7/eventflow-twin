@@ -365,6 +365,7 @@ body.kiosk .railtabs { display: none; }
 .team-feed li.L1 { border-inline-start-color: var(--ink-3); } .team-feed li.L2 { border-inline-start-color: var(--navy); }
 .team-feed li.L3 { border-inline-start-color: var(--warn); } .team-feed li.L4 { border-inline-start-color: var(--brand); } .team-feed li.L5 { border-inline-start-color: var(--ok); }
 .team-feed .who { font-weight: 600; color: var(--ink-2, var(--ink)); }
+.team-feed .who .to { display: block; font-weight: 400; font-size: 11px; color: var(--ink-3, var(--ink)); }
 .team-feed .who .ai { font-style: normal; font-size: 9.5px; margin-inline-start: 4px; color: var(--brand); border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; }
 .team-feed small { display: block; color: var(--ink-3); font-size: 10.5px; }
 .team-checks, .team-score { inline-size: 100%; border-collapse: collapse; font-size: 12.5px; }

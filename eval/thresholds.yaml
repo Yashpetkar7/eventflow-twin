@@ -27,6 +27,8 @@ orchestration:                    # the agent team (docs/15): LangGraph, the seq
   trace_complete_min: 1.0         # events numbered 1…n, ending with the hand-over, simulation behind every option
   budget_respected_min: 1.0       # every mission inside its step / simulation / model-call / time budget
   layers_covered_min: 1.0         # all five layers act in every mission that offers options
+  recommendation_consistent_min: 1.0   # the recommended option is the one docs/17 WP3's rule picks, recomputed independently (#131)
+  objections_answered_min: 1.0    # every critic objection is answered by the specialist it names, next round (#130)
   mission_p95_seconds_max: 2.0    # offline, no model
 critic:                           # the critic's C1–C3 verdicts vs an independent re-check on ~1,000 grid plans
   critic_recall_min: 1.0

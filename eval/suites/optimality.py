@@ -118,10 +118,16 @@ def run() -> tuple[dict, dict]:
                 failures.append({"id": g["id"], "check": "goal_coverage"})
         gap = max(0.0, grid_relief - agents_relief) / base_ex if base_ex > 0 else 0.0
         gaps.append(gap)
+        ratio = None
         if grid_score > 0 and opts:
-            ratios.append(min(1.0, opts[0]["score"] / grid_score))
+            ratio = min(1.0, opts[0]["score"] / grid_score)
+            ratios.append(ratio)
+        best_o = max(acc, key=lambda o: o["score"], default=None)
         rows.append({"id": g["id"], "grid_plans": len(scored), "grid_goal": grid_goal, "agents_goal": agents_goal,
-                     "relief_gap": round(gap, 4), "grid_best_relief": round(grid_relief, 1), "agents_best_relief": round(agents_relief, 1)})
+                     "relief_gap": round(gap, 4), "grid_best_relief": round(grid_relief, 1), "agents_best_relief": round(agents_relief, 1),
+                     "top_score_ratio": None if ratio is None else round(ratio, 4),
+                     "top_option": {"score": opts[0]["score"], "interventions": opts[0]["interventions"]} if opts else None,
+                     "grid_best": {"score": best_o["score"], "interventions": best_o["ivs"]} if best_o else None})
     os.environ.pop("AGENTS_ENGINE", None)
     opt = {"goal_coverage": round(covered / have_goal, 4) if have_goal else None, "scenarios": len(rows),
            "scenarios_where_grid_meets_goal": have_goal,

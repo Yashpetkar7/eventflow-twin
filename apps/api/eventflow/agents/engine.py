@@ -51,7 +51,7 @@ def _graph():
     g.add_conditional_edges("composer", route_after_composer, ["simulation", "ranker"])
     g.add_edge("simulation", "critic")
     g.add_edge("critic", "supervisor")
-    g.add_conditional_edges("supervisor", route_after_supervisor, ["composer", "ranker"])
+    g.add_conditional_edges("supervisor", route_after_supervisor, [*SPECIALISTS, "ranker"])   # replan: the critic's objections go to the specialists
     g.add_edge("ranker", "explainer")
     g.add_edge("ranker", "stress")                      # explainer and stress test run side by side
     g.add_edge(["explainer", "stress"], "verifier")
@@ -79,14 +79,14 @@ def roster() -> dict:
 
 
 def _apply(state: dict, update: dict) -> None:
-    for k in ("proposals", "buffers"):
+    for k in ("proposals", "revisions", "buffers"):
         if update.get(k):
             state[k] = state.get(k, []) + update[k]
 
 
 def _run_seq(ctx: MissionCtx) -> None:
     """The graph's path, walked one agent at a time (same nodes, same routing functions)."""
-    st: dict = {"ctx": ctx, "proposals": [], "buffers": []}
+    st: dict = {"ctx": ctx, "proposals": [], "revisions": [], "buffers": []}
     for node in (intake, forecast, diagnosis):
         _apply(st, node(st))
     if route_after_diagnosis(st) != "conclude":
@@ -96,8 +96,10 @@ def _run_seq(ctx: MissionCtx) -> None:
         while route_after_composer(st) == "simulation":
             for node in (simulation, critic, supervisor):
                 _apply(st, node(st))
-            if route_after_supervisor(st) != "composer":
+            if route_after_supervisor(st) == "ranker":
                 break
+            for a in SPECIALISTS:                       # the critic's objections, answered by the specialists it named
+                _apply(st, SPECIALIST_NODES[a](st))
             _apply(st, composer(st))
         for node in (ranker, explainer, stress, verifier):
             _apply(st, node(st))
@@ -131,7 +133,7 @@ def run_mission(run: dict, req, run_simulation, engine: str | None = None) -> di
         return _classic(run, req, run_simulation)
     ctx = MissionCtx(run, req, run_simulation, e)
     if e == "graph":
-        _graph().invoke({"ctx": ctx, "proposals": [], "buffers": []}, {"recursion_limit": settings()["budget"]["steps_max"]})
+        _graph().invoke({"ctx": ctx, "proposals": [], "revisions": [], "buffers": []}, {"recursion_limit": settings()["budget"]["steps_max"]})
     else:
         _run_seq(ctx)
     return ctx.result

@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_from_spec, config_hash, load_panel, mak
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, ShiftRequest, ShiftStep, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -263,19 +263,179 @@ def agent_ask(req: AskRequest):
     return ask_for(req, get_run(req.forecast_run_id, req.forecast), run_simulation)
 
 
+GENESIS = "0" * 64
+
+
+def _canon(rec: dict) -> str:
+    return json.dumps(rec, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _last_line(path: Path) -> str | None:
+    """The last non-empty line of the log as written (the next record's `prev` is its SHA-256)."""
+    if not path.exists():
+        return None
+    with path.open("rb") as f:
+        f.seek(0, os.SEEK_END)
+        end = f.tell()
+        chunk, pos = b"", end
+        while pos > 0:
+            step = min(4096, pos)
+            pos -= step
+            f.seek(pos)
+            chunk = f.read(step) + chunk
+            lines = [x.rstrip(b"\r") for x in chunk.split(b"\n") if x.strip()]
+            if len(lines) >= 2 or pos == 0:
+                return lines[-1].decode("utf-8") if lines else None
+    return None
+
+
 @app.post("/decisions", response_model=DecisionResponse)
-def decisions(req: DecisionRequest):
-    """Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL."""
+def decisions(req: DecisionRequest, request: Request = None):  # type: ignore[assignment]
+    """Human-in-the-loop log (CLAUDE.md rule 3). Anonymous labels only; append-only JSONL. Tamper-evident (WP5): each
+    record carries `prev` (SHA-256 of the previous line as written, 64 zeros for the first) and `hash` (SHA-256 of
+    the record without `hash`, canonical JSON); GET /decisions/verify checks the chain. With EVENTFLOW_AUTH=on the
+    planner role is needed and the signed-in account is recorded next to the label."""
+    import hashlib
+    signed = None
+    if request is not None:
+        from .auth import require_role
+        signed = require_role(request, "planner")
     ts = dt.datetime.now(DUBAI).isoformat(timespec="seconds")
     rec = {"decision_id": f"dec_{uuid.uuid4().hex[:10]}", "timestamp": ts, **req.model_dump(),
            "plan_known": req.plan_id in _PLANS}
+    if signed:
+        rec["signed_in"] = signed["username"]
     plan = _PLANS.get(req.plan_id)
     if plan:
         rec["option"] = next((o for o in plan["options"] if o["rank"] == req.option_rank), None)
     DECISIONS_LOG.parent.mkdir(parents=True, exist_ok=True)
-    with _LOCK, DECISIONS_LOG.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    with _LOCK:
+        last = _last_line(DECISIONS_LOG)
+        rec["prev"] = hashlib.sha256(last.encode("utf-8")).hexdigest() if last else GENESIS
+        rec["hash"] = hashlib.sha256(_canon(rec).encode("utf-8")).hexdigest()
+        with DECISIONS_LOG.open("a", encoding="utf-8", newline="\n") as f:     # LF on Windows too: the hash covers the bytes
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     return {"logged": True, "decision_id": rec["decision_id"], "timestamp": ts, "plan_known": rec["plan_known"]}
+
+
+def verify_log(path: Path) -> dict:
+    """Walk the decision log: every chained record's hash must match its content and its `prev` the line before.
+    Records written before the chain existed (no `hash`) are counted as unchained, not as broken."""
+    import hashlib
+    out = {"ok": True, "records": 0, "chained": 0, "unchained": 0, "first_bad": None}
+    if not path.exists():
+        return out
+    prev_line = None
+    for n, line in enumerate((x for x in path.read_text(encoding="utf-8").splitlines() if x.strip()), 1):
+        out["records"] += 1
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            out.update(ok=False, first_bad=n)
+            break
+        if "hash" not in rec:
+            out["unchained"] += 1
+            prev_line = line
+            continue
+        want_prev = hashlib.sha256(prev_line.encode("utf-8")).hexdigest() if prev_line else GENESIS
+        body = {k: v for k, v in rec.items() if k != "hash"}
+        if rec.get("prev") != want_prev or hashlib.sha256(_canon(body).encode("utf-8")).hexdigest() != rec["hash"]:
+            out.update(ok=False, first_bad=n)
+            break
+        out["chained"] += 1
+        prev_line = line
+    return out
+
+
+@app.get("/decisions/verify")
+def decisions_verify():
+    """Is the decision log intact? {ok, records, chained, unchained, first_bad}. On the hosted site the log lives in
+    /tmp and does not survive a restart: the chain proves order and integrity while it lasts, not durability."""
+    return verify_log(DECISIONS_LOG)
+
+
+# ---------------------------------------------------------------- the event chain (docs/15 §8, contract 1.14.0)
+def _chain_deps(state: dict):
+    from .agents.agents_util import message_for
+    from .agents.chain import Deps
+    from .agents.engine import run_mission
+    from .schemas import ForecastRequest as _FR, MessageRequest as _MR
+    r = state["request"]
+    spec = _FR(**r["forecast"])
+    run = get_run(state["forecast_run_id"], spec)
+
+    def mission(applied: list[dict]) -> dict:
+        req = AgentRunRequest(forecast_run_id=run["run_id"], forecast=spec, threshold=r.get("threshold"), scope=r.get("scope", "corridor"),
+                              applied=applied, locale=r.get("locale", "en"), priority=r.get("priority", "balanced"))
+        m = run_mission(run, req, run_simulation)
+        with _LOCK:
+            _PLANS[m["plan"]["plan_id"]] = m["plan"]
+        return m
+
+    def message(before: list[dict], ivs: list[dict]) -> dict:
+        mr = _MR(forecast_run_id=run["run_id"], forecast=spec, threshold=r.get("threshold"), scope=r.get("scope", "corridor"),
+                 applied=before, interventions=ivs)
+        return message_for(mr, run, run_simulation)
+
+    def log(fields: dict) -> dict:
+        return decisions(DecisionRequest(**fields))
+    return Deps(run=run, simulate=run_simulation, mission=mission, message=message, log_decision=log)
+
+
+def _chain_owner(request: Request) -> str | None:
+    from .auth import current_user
+    u = current_user(request)
+    return u["username"] if u else None
+
+
+@app.post("/chain/start", response_model=ChainState)
+def chain_start(req: ChainStartRequest, request: Request):
+    """Start an event chain on a scenario: the Watcher scans, its alert triggers the planning team, and the chain runs
+    by itself until the plan reaches the human (or the day ends). Every event says who published it and who it
+    triggered. Nothing is applied: approve or reject with POST /chain/{id}/decide."""
+    from .agents import chain as ch
+    from .store import store
+    run = build_run(req.forecast)
+    state = ch.new_state(req.model_dump(mode="json"), run["run_id"])
+    state = ch.start(state, _chain_deps(state))
+    store().put("chains", state["chain_id"], ch.public(state), owner=_chain_owner(request))
+    return ch.public(state)
+
+
+@app.post("/chain/{chain_id}/decide", response_model=ChainState)
+def chain_decide(chain_id: str, req: ChainDecideRequest, request: Request):
+    """The human's decision on the option in the inbox: logged first (append-only decision log), then published as
+    `decision.made`, which triggers the Messenger (after an approval) and the Watcher; the chain runs on until the next
+    decision or the end of the day."""
+    from .agents import chain as ch
+    from .auth import require_role
+    from .store import store
+    require_role(request, "planner")
+    state = store().get("chains", chain_id)
+    if state is None:
+        raise HTTPException(404, f"unknown chain {chain_id} (chains live in this server's store; see GET /chains)")
+    try:
+        state = ch.decide(state, _chain_deps(state), req.rank, req.decision, req.user)
+    except ch.ChainError as e:
+        raise HTTPException(409, str(e)) from e
+    store().put("chains", chain_id, ch.public(state), owner=_chain_owner(request))
+    return ch.public(state)
+
+
+@app.get("/chain/{chain_id}", response_model=ChainState)
+def chain_get(chain_id: str):
+    from .store import store
+    state = store().get("chains", chain_id)
+    if state is None:
+        raise HTTPException(404, f"unknown chain {chain_id}")
+    return state
+
+
+@app.get("/chains")
+def chain_list(limit: int = 20):
+    """The most recent chains on this server (id, created, updated, owner)."""
+    from .store import store
+    return {"items": store().list("chains", limit=limit), "store": store().kind}
 
 
 @app.get("/decisions", response_model=DecisionList)
@@ -313,3 +473,30 @@ def evidence():
     n_dec = sum(1 for _ in DECISIONS_LOG.open(encoding="utf-8")) if DECISIONS_LOG.exists() else 0
     return {"eval": latest, "data": {**data, "config_hash": config_hash()}, "decisions_logged": n_dec,
             "contract": CONTRACT_VERSION}
+
+
+# ---------------------------------------------------------------- sign-in and roles (auth.py; off unless EVENTFLOW_AUTH=on)
+@app.post("/auth/register")
+def auth_register(req: RegisterRequest, request: Request):
+    """The first account on an empty store becomes the admin; after that only an admin can add users."""
+    from . import auth
+    return auth.register(req.username, req.password, req.role, auth.current_user(request))
+
+
+@app.post("/auth/login")
+def auth_login(req: LoginRequest):
+    from . import auth
+    return auth.login(req.username, req.password)
+
+
+@app.post("/auth/logout")
+def auth_logout(request: Request):
+    from . import auth
+    auth.logout(request)
+    return {"ok": True}
+
+
+@app.get("/auth/me")
+def auth_me(request: Request):
+    from . import auth
+    return {"auth": "on" if auth.enabled() else "off", "user": auth.current_user(request)}

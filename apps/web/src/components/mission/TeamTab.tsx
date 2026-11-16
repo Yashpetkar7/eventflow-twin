@@ -52,7 +52,8 @@ export function TeamFeed({ mission, shown, max = 60 }: { mission: Mission; shown
     <ol className="team-feed" data-testid="team-feed" aria-live="polite">
       {evs.map((e) => (
         <li key={e.seq} className={`L${e.layer}`} data-key={e.key}>
-          <span className="who">{td(`agent.${e.agent}`)}{e.llm ? <em className="ai">AI</em> : null}</span>
+          <span className="who">{td(`agent.${e.agent}`)}{e.llm ? <em className="ai">AI</em> : null}
+            {e.to?.length ? <small className="to" data-testid="team-msg-to"><bdi>{(t as unknown as (k: string, v: Record<string, string>) => string)("ev.to", { who: e.to.map((a) => td(`agent.${a}`)).join(", ") })}</bdi></small> : null}</span>
           <span className="what"><bdi><N>{text(e)}</N></bdi>{e.run_id ? <small><bdi>{e.run_id}</bdi></small> : null}</span>
         </li>
       ))}

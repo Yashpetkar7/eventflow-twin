@@ -19,7 +19,7 @@
     }
   ],
   "mission": {
-    "mission_id": "mission_4d879027f82b",
+    "mission_id": "mission_7559f872ec52",
     "status": "awaiting_human",
     "engine": "graph",
     "objective": {
@@ -284,7 +284,8 @@
           "engine": "graph"
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
         "seq": 2,
@@ -302,7 +303,8 @@
           "cost_cap": null
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
         "seq": 3,
@@ -321,7 +323,8 @@
           "is_synthetic": true
         },
         "run_id": "fc_88d44e0fdf8d",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
         "seq": 4,
@@ -337,7 +340,8 @@
           "peak_pct": 117
         },
         "run_id": "sim_e6c57d055fff",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
         "seq": 5,
@@ -361,10 +365,38 @@
           ]
         },
         "run_id": "sim_e6c57d055fff",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
         "seq": 6,
+        "t_ms": 0.0,
+        "round": 1,
+        "layer": 1,
+        "agent": "supervisor",
+        "kind": "message",
+        "key": "supervisor.brief",
+        "params": {
+          "station": "WTC",
+          "hours": [
+            16
+          ],
+          "gap": 1161,
+          "nb": "EMT",
+          "far": "FIC",
+          "threshold_pct": 85
+        },
+        "run_id": "sim_e6c57d055fff",
+        "llm": null,
+        "to": [
+          "rail",
+          "station_crowd",
+          "venue",
+          "last_mile"
+        ]
+      },
+      {
+        "seq": 7,
         "t_ms": 0.0,
         "round": 1,
         "layer": 2,
@@ -376,10 +408,11 @@
           "station": "WTC"
         },
         "run_id": "brk_66de66e22eb9",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 7,
+        "seq": 8,
         "t_ms": 0.0,
         "round": 1,
         "layer": 2,
@@ -392,10 +425,11 @@
           "hour": 16
         },
         "run_id": "sim_e6c57d055fff",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 8,
+        "seq": 9,
         "t_ms": 0.0,
         "round": 1,
         "layer": 3,
@@ -403,20 +437,28 @@
         "kind": "proposal",
         "key": "rail.proposed",
         "params": {
-          "n": 1,
+          "n": 2,
           "keys": [
-            "trains"
+            "trains",
+            "trainslite"
           ],
           "types": [
             "extra_trains"
           ],
-          "station": "WTC"
+          "station": "WTC",
+          "headway": 5,
+          "tph_now": 8.0,
+          "need_tph": 11.0,
+          "gap": 1161
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "composer"
+        ]
       },
       {
-        "seq": 9,
+        "seq": 10,
         "t_ms": 0.0,
         "round": 1,
         "layer": 3,
@@ -434,13 +476,20 @@
             "station_metering",
             "wayfinding_redirect"
           ],
-          "station": "WTC"
+          "station": "WTC",
+          "share_pct": 30,
+          "gap": 1161,
+          "room": 1702,
+          "toward": "EMT"
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "composer"
+        ]
       },
       {
-        "seq": 10,
+        "seq": 11,
         "t_ms": 0.0,
         "round": 1,
         "layer": 3,
@@ -449,13 +498,29 @@
         "key": "venue.stagger",
         "params": {
           "available": true,
-          "spread": 60
+          "spread": 30,
+          "tried": [
+            30,
+            45,
+            60,
+            90
+          ],
+          "clears": false,
+          "run_ids": [
+            "sim_b09760d132b1",
+            "sim_fd4bfbb27306",
+            "sim_6d505db5ab96",
+            "sim_7c81aabfe258"
+          ]
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "composer"
+        ]
       },
       {
-        "seq": 11,
+        "seq": 12,
         "t_ms": 0.0,
         "round": 1,
         "layer": 3,
@@ -463,21 +528,30 @@
         "kind": "proposal",
         "key": "last_mile.proposed",
         "params": {
-          "n": 1,
+          "n": 2,
           "keys": [
-            "busrt"
+            "bus",
+            "buslite"
           ],
           "types": [
-            "robotaxi_staging",
             "shuttle_bus"
           ],
-          "station": "WTC"
+          "station": "WTC",
+          "buses": 5,
+          "vehicles": 0,
+          "gap": 1161,
+          "room": 2051,
+          "per_bus": 240,
+          "toward": "FIC"
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "composer"
+        ]
       },
       {
-        "seq": 12,
+        "seq": 13,
         "t_ms": 0.0,
         "round": 1,
         "layer": 3,
@@ -485,16 +559,19 @@
         "kind": "decision",
         "key": "composer.bundles",
         "params": {
-          "menu": 5,
-          "cross": 3,
+          "menu": 7,
+          "cross": 4,
           "model": 0,
           "forbidden": 0
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "simulation"
+        ]
       },
       {
-        "seq": 13,
+        "seq": 14,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -507,17 +584,18 @@
             "staggered_exit",
             "wayfinding_redirect"
           ],
-          "over": 1.0,
-          "excess": 192,
-          "peak_pct": 95,
+          "over": 1.25,
+          "excess": 510,
+          "peak_pct": 98,
           "cost": 2.5,
           "new_hotspots": []
         },
-        "run_id": "sim_60b37e496fb7",
-        "llm": null
+        "run_id": "sim_0c9b322507ab",
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 14,
+        "seq": 15,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -531,15 +609,16 @@
           ],
           "over": 0.0,
           "excess": 0,
-          "peak_pct": 60,
-          "cost": 187.5,
+          "peak_pct": 73,
+          "cost": 52.5,
           "new_hotspots": []
         },
-        "run_id": "sim_4a132b24b4b7",
-        "llm": null
+        "run_id": "sim_0de2db333078",
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 15,
+        "seq": 16,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -547,22 +626,22 @@
         "kind": "tool",
         "key": "simulation.result",
         "params": {
-          "label": "busrt",
+          "label": "bus",
           "types": [
-            "shuttle_bus",
-            "robotaxi_staging"
+            "shuttle_bus"
           ],
           "over": 0.0,
           "excess": 0,
           "peak_pct": 85,
-          "cost": 18.0,
+          "cost": 5.0,
           "new_hotspots": []
         },
-        "run_id": "sim_f171bc2dbdd9",
-        "llm": null
+        "run_id": "sim_6c6381a51028",
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 16,
+        "seq": 17,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -580,11 +659,12 @@
           "cost": 0.5,
           "new_hotspots": []
         },
-        "run_id": "sim_0cbf5244b207",
-        "llm": null
+        "run_id": "sim_90b0f0f02e38",
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 17,
+        "seq": 18,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -597,17 +677,18 @@
             "extra_trains",
             "staggered_exit"
           ],
-          "over": 0.0,
-          "excess": 0,
-          "peak_pct": 45,
-          "cost": 189.5,
+          "over": 0.75,
+          "excess": 65,
+          "peak_pct": 87,
+          "cost": 27.5,
           "new_hotspots": []
         },
-        "run_id": "sim_3075dc8106a7",
-        "llm": null
+        "run_id": "sim_48ec7e8aa96c",
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 18,
+        "seq": 19,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -622,15 +703,16 @@
           ],
           "over": 0.0,
           "excess": 0,
-          "peak_pct": 60,
-          "cost": 188.0,
+          "peak_pct": 80,
+          "cost": 26.0,
           "new_hotspots": []
         },
-        "run_id": "sim_e8ae36cfca24",
-        "llm": null
+        "run_id": "sim_7e8d8fb419ba",
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 19,
+        "seq": 20,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -649,10 +731,11 @@
           "new_hotspots": []
         },
         "run_id": "sim_6220327a8df9",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 20,
+        "seq": 21,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -671,10 +754,81 @@
           "new_hotspots": []
         },
         "run_id": "sim_ca0e16e3c051",
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 21,
+        "seq": 22,
+        "t_ms": 0.0,
+        "round": 1,
+        "layer": 4,
+        "agent": "simulation",
+        "kind": "tool",
+        "key": "simulation.result",
+        "params": {
+          "label": "trainslite",
+          "types": [
+            "extra_trains"
+          ],
+          "over": 0.5,
+          "excess": 60,
+          "peak_pct": 88,
+          "cost": 25.5,
+          "new_hotspots": []
+        },
+        "run_id": "sim_a9db26528fd0",
+        "llm": null,
+        "to": null
+      },
+      {
+        "seq": 23,
+        "t_ms": 0.0,
+        "round": 1,
+        "layer": 4,
+        "agent": "simulation",
+        "kind": "tool",
+        "key": "simulation.result",
+        "params": {
+          "label": "trainsbus",
+          "types": [
+            "extra_trains",
+            "shuttle_bus"
+          ],
+          "over": 0.0,
+          "excess": 0,
+          "peak_pct": 85,
+          "cost": 28.5,
+          "new_hotspots": []
+        },
+        "run_id": "sim_b33c8f60e5c6",
+        "llm": null,
+        "to": null
+      },
+      {
+        "seq": 24,
+        "t_ms": 0.0,
+        "round": 1,
+        "layer": 4,
+        "agent": "simulation",
+        "kind": "tool",
+        "key": "simulation.result",
+        "params": {
+          "label": "buslite",
+          "types": [
+            "shuttle_bus"
+          ],
+          "over": 1.0,
+          "excess": 314,
+          "peak_pct": 97,
+          "cost": 3.0,
+          "new_hotspots": []
+        },
+        "run_id": "sim_e6221c17d920",
+        "llm": null,
+        "to": null
+      },
+      {
+        "seq": 25,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -684,16 +838,19 @@
         "params": {
           "verdict": "goal_met",
           "meeting": 6,
-          "tested": 8,
+          "tested": 11,
           "station": null,
           "excess": null,
           "best": null
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "supervisor"
+        ]
       },
       {
-        "seq": 22,
+        "seq": 26,
         "t_ms": 0.0,
         "round": 1,
         "layer": 1,
@@ -705,10 +862,11 @@
           "budget": []
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 23,
+        "seq": 27,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -717,23 +875,27 @@
         "key": "ranker.kept",
         "params": {
           "kept": 3,
-          "tested": 8,
+          "tested": 11,
           "order": [
             "way",
             "meter",
-            "stagway"
+            "bus"
           ],
           "run_ids": [
-            "sim_0cbf5244b207",
+            "sim_90b0f0f02e38",
             "sim_6220327a8df9",
-            "sim_60b37e496fb7"
+            "sim_6c6381a51028"
           ]
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": [
+          "explainer",
+          "stress"
+        ]
       },
       {
-        "seq": 24,
+        "seq": 28,
         "t_ms": 0.0,
         "round": 1,
         "layer": 5,
@@ -746,10 +908,11 @@
           "template_fallback": []
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 25,
+        "seq": 29,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -771,10 +934,11 @@
           ]
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 26,
+        "seq": 30,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -796,10 +960,11 @@
           ]
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 27,
+        "seq": 31,
         "t_ms": 0.0,
         "round": 1,
         "layer": 4,
@@ -821,10 +986,11 @@
           ]
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 28,
+        "seq": 32,
         "t_ms": 0.0,
         "round": 1,
         "layer": 5,
@@ -832,15 +998,39 @@
         "kind": "decision",
         "key": "verifier.checked",
         "params": {
-          "checked": 25,
+          "checked": 24,
           "all_matched": true,
           "claims_blocked": []
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       },
       {
-        "seq": 29,
+        "seq": 33,
+        "t_ms": 0.0,
+        "round": 1,
+        "layer": 4,
+        "agent": "critic",
+        "kind": "decision",
+        "key": "critic.recommend",
+        "params": {
+          "rank": 1,
+          "basis": "goal_and_most",
+          "passed": 5,
+          "applicable": 6,
+          "failed": [
+            "C7"
+          ]
+        },
+        "run_id": null,
+        "llm": null,
+        "to": [
+          "human"
+        ]
+      },
+      {
+        "seq": 34,
         "t_ms": 0.0,
         "round": 1,
         "layer": 5,
@@ -851,11 +1041,12 @@
           "options": 3
         },
         "run_id": null,
-        "llm": null
+        "llm": null,
+        "to": null
       }
     ],
     "plan": {
-      "plan_id": "plan_8187c82cc63a",
+      "plan_id": "plan_b706a15f670f",
       "forecast_run_id": "fc_88d44e0fdf8d",
       "mode": "offline",
       "is_synthetic": true,
@@ -882,7 +1073,7 @@
               "params": {
                 "from_station": "WTC",
                 "to_station": "EMT",
-                "share": 0.35,
+                "share": 0.3,
                 "hours": [
                   16
                 ]
@@ -914,18 +1105,18 @@
             "no_service_pax": 0.0
           },
           "score": 1024.3,
-          "rationale": "Guide 35% of World Trade Centre riders to Emirates Towers on foot. Simulated result: station-hours over the threshold go from 1 to 0, riders above the threshold from 1,034 to 0, and the peak station load from 117% to 85%. Added cost proxy: 0.5. Risk: Relies on visitors following the signs.",
+          "rationale": "Guide 30% of World Trade Centre riders to Emirates Towers on foot. Simulated result: station-hours over the threshold go from 1 to 0, riders above the threshold from 1,034 to 0, and the peak station load from 117% to 85%. Added cost proxy: 0.5. Risk: Relies on visitors following the signs.",
           "sources": [
             {
               "tool": "simulate",
-              "run_id": "sim_0cbf5244b207"
+              "run_id": "sim_90b0f0f02e38"
             },
             {
               "tool": "forecast",
               "run_id": "fc_88d44e0fdf8d"
             }
           ],
-          "what": "Guide 35% of World Trade Centre riders to Emirates Towers on foot.",
+          "what": "Guide 30% of World Trade Centre riders to Emirates Towers on foot.",
           "risk": "Relies on visitors following the signs.",
           "cost_added": 0.5,
           "new_hotspots": [],
@@ -1063,21 +1254,14 @@
         },
         {
           "rank": 3,
-          "title": "Staggered exit + wayfinding",
+          "title": "Feeder shuttles",
           "interventions": [
             {
-              "type": "staggered_exit",
-              "params": {
-                "spread_minutes": 60,
-                "event_id": null
-              }
-            },
-            {
-              "type": "wayfinding_redirect",
+              "type": "shuttle_bus",
               "params": {
                 "from_station": "WTC",
-                "to_station": "EMT",
-                "share": 0.25,
+                "to_station": "FIC",
+                "buses": 5,
                 "hours": [
                   16
                 ]
@@ -1085,12 +1269,12 @@
             }
           ],
           "summary": {
-            "overcap_station_hours": 1.0,
-            "excess_pax": 191.8,
-            "peak_lf": 0.953,
+            "overcap_station_hours": 0.0,
+            "excess_pax": 0.0,
+            "peak_lf": 0.85,
             "max_wait_min": 0.0,
             "delay_pax_min": 0.0,
-            "cost_proxy": 2.5,
+            "cost_proxy": 5.0,
             "total_demand": 114369.0,
             "end_of_day_queue": 0.0,
             "no_service_pax": 2537.5,
@@ -1098,40 +1282,40 @@
             "threshold": 0.85
           },
           "delta": {
-            "overcap_station_hours": 0.0,
-            "excess_pax": -842.5,
-            "peak_lf": -0.213,
+            "overcap_station_hours": -1.0,
+            "excess_pax": -1034.3,
+            "peak_lf": -0.316,
             "max_wait_min": -7.9,
             "delay_pax_min": -25535.6,
-            "cost_proxy": 2.5,
+            "cost_proxy": 5.0,
             "total_demand": 0.0,
             "end_of_day_queue": 0.0,
             "no_service_pax": 0.0
           },
-          "score": 792.5,
-          "rationale": "Spread venue exits over an extra 60 minutes and guide 25% of World Trade Centre riders to Emirates Towers on foot. Simulated result: station-hours over the threshold go from 1 to 1, riders above the threshold from 1,034 to 192, and the peak station load from 117% to 95%. Added cost proxy: 2.5. Risk: Needs the organiser's cooperation and clear signage.",
+          "score": 934.3,
+          "rationale": "5 shuttles from World Trade Centre to Financial Centre. Simulated result: station-hours over the threshold go from 1 to 0, riders above the threshold from 1,034 to 0, and the peak station load from 117% to 85%. Added cost proxy: 5. Risk: Can shift crowding to the receiving station.",
           "sources": [
             {
               "tool": "simulate",
-              "run_id": "sim_60b37e496fb7"
+              "run_id": "sim_6c6381a51028"
             },
             {
               "tool": "forecast",
               "run_id": "fc_88d44e0fdf8d"
             }
           ],
-          "what": "Spread venue exits over an extra 60 minutes and guide 25% of World Trade Centre riders to Emirates Towers on foot.",
-          "risk": "Needs the organiser's cooperation and clear signage.",
-          "cost_added": 2.5,
+          "what": "5 shuttles from World Trade Centre to Financial Centre.",
+          "risk": "Can shift crowding to the receiving station.",
+          "cost_added": 5.0,
           "new_hotspots": [],
           "figures": 7,
-          "goal_met": false,
+          "goal_met": true,
           "round": 1,
           "road": {
-            "peak_veh_per_hour": 2387.0,
+            "peak_veh_per_hour": 2486.9,
             "peak_hour": 16,
-            "pressure": 0.199,
-            "vehicles_total": 16000.0,
+            "pressure": 0.207,
+            "vehicles_total": 16037.5,
             "reference_capacity": 12000.0,
             "hourly": [
               0.0,
@@ -1144,19 +1328,19 @@
               102.0,
               412.4,
               1083.8,
-              1853.5,
-              2064.3,
-              1508.9,
-              822.5,
-              786.5,
-              1597.7,
-              2387.0,
-              2053.1,
-              995.0,
-              270.5,
-              41.1,
-              3.5,
-              0.2,
+              1853.6,
+              2065.9,
+              1529.7,
+              954.2,
+              1196.9,
+              2142.0,
+              2486.9,
+              1548.6,
+              533.1,
+              99.6,
+              10.1,
+              0.5,
+              0.0,
               0.0
             ],
             "is_assumption": true
@@ -1164,7 +1348,7 @@
         }
       ],
       "verify": {
-        "numbers_checked": 25,
+        "numbers_checked": 24,
         "all_matched": true,
         "fallback_used": true
       },
@@ -1190,13 +1374,13 @@
         {
           "key": "propose",
           "label": "Propose plans",
-          "detail": "8 candidate plans from the fixed menu",
+          "detail": "11 candidate plans, each measure sized from the forecast",
           "tool": null
         },
         {
           "key": "simulate",
           "label": "Simulate each plan",
-          "detail": "9 simulator runs",
+          "detail": "16 simulator runs",
           "tool": "simulate"
         },
         {
@@ -1214,7 +1398,7 @@
         {
           "key": "verify",
           "label": "Check every number",
-          "detail": "25 figures checked, all match",
+          "detail": "24 figures checked, all match",
           "tool": "verify_numbers"
         }
       ],
@@ -1234,10 +1418,11 @@
       "critic": {
         "rounds": 1,
         "replanned": false,
-        "simulations": 9,
+        "simulations": 16,
         "goal_met_ranks": [
           1,
-          2
+          2,
+          3
         ],
         "top_meets_goal": true,
         "checked_by": "code",
@@ -1287,13 +1472,14 @@
         {
           "n": 4,
           "round": 1,
-          "role": "proposer",
-          "tool": "propose",
-          "run_id": null,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_b09760d132b1",
           "ms": 0.0,
           "data": {
-            "source": "menu",
-            "candidates": 8
+            "label": "probe_stagger_30",
+            "spread": 30,
+            "worst_bins": 5
           }
         },
         {
@@ -1301,19 +1487,12 @@
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
-          "run_id": "sim_60b37e496fb7",
+          "run_id": "sim_fd4bfbb27306",
           "ms": 0.0,
           "data": {
-            "label": "stagway",
-            "types": [
-              "staggered_exit",
-              "wayfinding_redirect"
-            ],
-            "over": 1.0,
-            "excess": 191.8,
-            "peak_lf": 0.953,
-            "cost_added": 2.5,
-            "new_hotspots": []
+            "label": "probe_stagger_45",
+            "spread": 45,
+            "worst_bins": 6
           }
         },
         {
@@ -1321,7 +1500,65 @@
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
-          "run_id": "sim_4a132b24b4b7",
+          "run_id": "sim_6d505db5ab96",
+          "ms": 0.0,
+          "data": {
+            "label": "probe_stagger_60",
+            "spread": 60,
+            "worst_bins": 6
+          }
+        },
+        {
+          "n": 7,
+          "round": 1,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_7c81aabfe258",
+          "ms": 0.0,
+          "data": {
+            "label": "probe_stagger_90",
+            "spread": 90,
+            "worst_bins": 7
+          }
+        },
+        {
+          "n": 8,
+          "round": 1,
+          "role": "proposer",
+          "tool": "propose",
+          "run_id": null,
+          "ms": 0.0,
+          "data": {
+            "source": "menu",
+            "candidates": 11
+          }
+        },
+        {
+          "n": 9,
+          "round": 1,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_0c9b322507ab",
+          "ms": 0.0,
+          "data": {
+            "label": "stagway",
+            "types": [
+              "staggered_exit",
+              "wayfinding_redirect"
+            ],
+            "over": 1.25,
+            "excess": 510.2,
+            "peak_lf": 0.984,
+            "cost_added": 2.5,
+            "new_hotspots": []
+          }
+        },
+        {
+          "n": 10,
+          "round": 1,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_0de2db333078",
           "ms": 0.0,
           "data": {
             "label": "trains",
@@ -1330,37 +1567,36 @@
             ],
             "over": 0.0,
             "excess": 0.0,
-            "peak_lf": 0.598,
-            "cost_added": 187.5,
+            "peak_lf": 0.729,
+            "cost_added": 52.5,
             "new_hotspots": []
           }
         },
         {
-          "n": 7,
+          "n": 11,
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
-          "run_id": "sim_f171bc2dbdd9",
+          "run_id": "sim_6c6381a51028",
           "ms": 0.0,
           "data": {
-            "label": "busrt",
+            "label": "bus",
             "types": [
-              "shuttle_bus",
-              "robotaxi_staging"
+              "shuttle_bus"
             ],
             "over": 0.0,
             "excess": 0.0,
             "peak_lf": 0.85,
-            "cost_added": 18.0,
+            "cost_added": 5.0,
             "new_hotspots": []
           }
         },
         {
-          "n": 8,
+          "n": 12,
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
-          "run_id": "sim_0cbf5244b207",
+          "run_id": "sim_90b0f0f02e38",
           "ms": 0.0,
           "data": {
             "label": "way",
@@ -1375,11 +1611,11 @@
           }
         },
         {
-          "n": 9,
+          "n": 13,
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
-          "run_id": "sim_3075dc8106a7",
+          "run_id": "sim_48ec7e8aa96c",
           "ms": 0.0,
           "data": {
             "label": "trainstag",
@@ -1387,19 +1623,19 @@
               "extra_trains",
               "staggered_exit"
             ],
-            "over": 0.0,
-            "excess": 0.0,
-            "peak_lf": 0.453,
-            "cost_added": 189.5,
+            "over": 0.75,
+            "excess": 65.2,
+            "peak_lf": 0.868,
+            "cost_added": 27.5,
             "new_hotspots": []
           }
         },
         {
-          "n": 10,
+          "n": 14,
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
-          "run_id": "sim_e8ae36cfca24",
+          "run_id": "sim_7e8d8fb419ba",
           "ms": 0.0,
           "data": {
             "label": "trainsway",
@@ -1409,13 +1645,13 @@
             ],
             "over": 0.0,
             "excess": 0.0,
-            "peak_lf": 0.598,
-            "cost_added": 188.0,
+            "peak_lf": 0.805,
+            "cost_added": 26.0,
             "new_hotspots": []
           }
         },
         {
-          "n": 11,
+          "n": 15,
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
@@ -1434,7 +1670,7 @@
           }
         },
         {
-          "n": 12,
+          "n": 16,
           "round": 1,
           "role": "simulator",
           "tool": "simulate",
@@ -1453,7 +1689,65 @@
           }
         },
         {
-          "n": 13,
+          "n": 17,
+          "round": 1,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_a9db26528fd0",
+          "ms": 0.0,
+          "data": {
+            "label": "trainslite",
+            "types": [
+              "extra_trains"
+            ],
+            "over": 0.5,
+            "excess": 60.5,
+            "peak_lf": 0.875,
+            "cost_added": 25.5,
+            "new_hotspots": []
+          }
+        },
+        {
+          "n": 18,
+          "round": 1,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_b33c8f60e5c6",
+          "ms": 0.0,
+          "data": {
+            "label": "trainsbus",
+            "types": [
+              "extra_trains",
+              "shuttle_bus"
+            ],
+            "over": 0.0,
+            "excess": 0.0,
+            "peak_lf": 0.85,
+            "cost_added": 28.5,
+            "new_hotspots": []
+          }
+        },
+        {
+          "n": 19,
+          "round": 1,
+          "role": "simulator",
+          "tool": "simulate",
+          "run_id": "sim_e6221c17d920",
+          "ms": 0.0,
+          "data": {
+            "label": "buslite",
+            "types": [
+              "shuttle_bus"
+            ],
+            "over": 1.0,
+            "excess": 314.3,
+            "peak_lf": 0.97,
+            "cost_added": 3.0,
+            "new_hotspots": []
+          }
+        },
+        {
+          "n": 20,
           "round": 1,
           "role": "critic",
           "tool": "check_goal",
@@ -1462,11 +1756,11 @@
           "data": {
             "verdict": "goal_met",
             "meeting": 6,
-            "tested": 8
+            "tested": 11
           }
         },
         {
-          "n": 14,
+          "n": 21,
           "round": 1,
           "role": "planner",
           "tool": "rank",
@@ -1474,16 +1768,16 @@
           "ms": 0.0,
           "data": {
             "kept": 3,
-            "tested": 8,
+            "tested": 11,
             "order": [
               "way",
               "meter",
-              "stagway"
+              "bus"
             ]
           }
         },
         {
-          "n": 15,
+          "n": 22,
           "round": 1,
           "role": "explainer",
           "tool": "explain",
@@ -1496,14 +1790,14 @@
           }
         },
         {
-          "n": 16,
+          "n": 23,
           "round": 1,
           "role": "verifier",
           "tool": "verify_numbers",
           "run_id": null,
           "ms": 0.0,
           "data": {
-            "checked": 25,
+            "checked": 24,
             "all_matched": true
           }
         }
@@ -1546,24 +1840,61 @@
     },
     "rejected": [
       {
-        "label": "busrt",
+        "label": "buslite",
         "interventions": [
           {
             "type": "shuttle_bus",
             "params": {
               "from_station": "WTC",
               "to_station": "FIC",
-              "buses": 6,
+              "buses": 3,
               "hours": [
                 16
               ]
             }
+          }
+        ],
+        "round": 1,
+        "criteria": [
+          "C1"
+        ],
+        "reason": "outranked",
+        "run_id": "sim_e6221c17d920",
+        "summary": {
+          "overcap_station_hours": 1.0,
+          "excess_pax": 314.3,
+          "peak_lf": 0.97,
+          "max_wait_min": 0.0,
+          "delay_pax_min": 0.0,
+          "cost_proxy": 3.0,
+          "total_demand": 114369.0,
+          "end_of_day_queue": 0.0,
+          "no_service_pax": 2537.5,
+          "bins_per_hour": 4,
+          "threshold": 0.85
+        }
+      },
+      {
+        "label": "trainsway",
+        "interventions": [
+          {
+            "type": "extra_trains",
+            "params": {
+              "headway_min": 6.0,
+              "hours": [
+                15,
+                16,
+                17
+              ],
+              "line": "Red"
+            }
           },
           {
-            "type": "robotaxi_staging",
+            "type": "wayfinding_redirect",
             "params": {
-              "station": "WTC",
-              "vehicles": 30,
+              "from_station": "WTC",
+              "to_station": "EMT",
+              "share": 0.15,
               "hours": [
                 16
               ]
@@ -1573,14 +1904,172 @@
         "round": 1,
         "criteria": [],
         "reason": "outranked",
-        "run_id": "sim_f171bc2dbdd9",
+        "run_id": "sim_7e8d8fb419ba",
+        "summary": {
+          "overcap_station_hours": 0.0,
+          "excess_pax": 0.0,
+          "peak_lf": 0.805,
+          "max_wait_min": 0.0,
+          "delay_pax_min": 0.0,
+          "cost_proxy": 26.0,
+          "total_demand": 114369.0,
+          "end_of_day_queue": 0.0,
+          "no_service_pax": 2537.5,
+          "bins_per_hour": 4,
+          "threshold": 0.85
+        }
+      },
+      {
+        "label": "trainsbus",
+        "interventions": [
+          {
+            "type": "extra_trains",
+            "params": {
+              "headway_min": 6.0,
+              "hours": [
+                15,
+                16,
+                17
+              ],
+              "line": "Red"
+            }
+          },
+          {
+            "type": "shuttle_bus",
+            "params": {
+              "from_station": "WTC",
+              "to_station": "FIC",
+              "buses": 3,
+              "hours": [
+                16
+              ]
+            }
+          }
+        ],
+        "round": 1,
+        "criteria": [],
+        "reason": "outranked",
+        "run_id": "sim_b33c8f60e5c6",
         "summary": {
           "overcap_station_hours": 0.0,
           "excess_pax": 0.0,
           "peak_lf": 0.85,
           "max_wait_min": 0.0,
           "delay_pax_min": 0.0,
-          "cost_proxy": 18.0,
+          "cost_proxy": 28.5,
+          "total_demand": 114369.0,
+          "end_of_day_queue": 0.0,
+          "no_service_pax": 2537.5,
+          "bins_per_hour": 4,
+          "threshold": 0.85
+        }
+      },
+      {
+        "label": "trainslite",
+        "interventions": [
+          {
+            "type": "extra_trains",
+            "params": {
+              "headway_min": 6.0,
+              "hours": [
+                15,
+                16,
+                17
+              ],
+              "line": "Red"
+            }
+          }
+        ],
+        "round": 1,
+        "criteria": [
+          "C1"
+        ],
+        "reason": "outranked",
+        "run_id": "sim_a9db26528fd0",
+        "summary": {
+          "overcap_station_hours": 0.5,
+          "excess_pax": 60.5,
+          "peak_lf": 0.875,
+          "max_wait_min": 0.0,
+          "delay_pax_min": 0.0,
+          "cost_proxy": 25.5,
+          "total_demand": 114369.0,
+          "end_of_day_queue": 0.0,
+          "no_service_pax": 2537.5,
+          "bins_per_hour": 4,
+          "threshold": 0.85
+        }
+      },
+      {
+        "label": "trainstag",
+        "interventions": [
+          {
+            "type": "extra_trains",
+            "params": {
+              "headway_min": 6.0,
+              "hours": [
+                15,
+                16,
+                17
+              ],
+              "line": "Red"
+            }
+          },
+          {
+            "type": "staggered_exit",
+            "params": {
+              "spread_minutes": 30,
+              "event_id": null
+            }
+          }
+        ],
+        "round": 1,
+        "criteria": [
+          "C1"
+        ],
+        "reason": "outranked",
+        "run_id": "sim_48ec7e8aa96c",
+        "summary": {
+          "overcap_station_hours": 0.75,
+          "excess_pax": 65.2,
+          "peak_lf": 0.868,
+          "max_wait_min": 0.0,
+          "delay_pax_min": 0.0,
+          "cost_proxy": 27.5,
+          "total_demand": 114369.0,
+          "end_of_day_queue": 0.0,
+          "no_service_pax": 2537.5,
+          "bins_per_hour": 4,
+          "threshold": 0.85
+        }
+      },
+      {
+        "label": "trains",
+        "interventions": [
+          {
+            "type": "extra_trains",
+            "params": {
+              "headway_min": 5.0,
+              "hours": [
+                15,
+                16,
+                17
+              ],
+              "line": "Red"
+            }
+          }
+        ],
+        "round": 1,
+        "criteria": [],
+        "reason": "outranked",
+        "run_id": "sim_0de2db333078",
+        "summary": {
+          "overcap_station_hours": 0.0,
+          "excess_pax": 0.0,
+          "peak_lf": 0.729,
+          "max_wait_min": 0.0,
+          "delay_pax_min": 0.0,
+          "cost_proxy": 52.5,
           "total_demand": 114369.0,
           "end_of_day_queue": 0.0,
           "no_service_pax": 2537.5,
@@ -1624,52 +2113,13 @@
         }
       },
       {
-        "label": "trains",
+        "label": "stagway",
         "interventions": [
           {
-            "type": "extra_trains",
+            "type": "staggered_exit",
             "params": {
-              "headway_min": 3.0,
-              "hours": [
-                15,
-                16,
-                17
-              ],
-              "line": "Red"
-            }
-          }
-        ],
-        "round": 1,
-        "criteria": [],
-        "reason": "outranked",
-        "run_id": "sim_4a132b24b4b7",
-        "summary": {
-          "overcap_station_hours": 0.0,
-          "excess_pax": 0.0,
-          "peak_lf": 0.598,
-          "max_wait_min": 0.0,
-          "delay_pax_min": 0.0,
-          "cost_proxy": 187.5,
-          "total_demand": 114369.0,
-          "end_of_day_queue": 0.0,
-          "no_service_pax": 2537.5,
-          "bins_per_hour": 4,
-          "threshold": 0.85
-        }
-      },
-      {
-        "label": "trainsway",
-        "interventions": [
-          {
-            "type": "extra_trains",
-            "params": {
-              "headway_min": 3.0,
-              "hours": [
-                15,
-                16,
-                17
-              ],
-              "line": "Red"
+              "spread_minutes": 30,
+              "event_id": null
             }
           },
           {
@@ -1677,7 +2127,7 @@
             "params": {
               "from_station": "WTC",
               "to_station": "EMT",
-              "share": 0.2,
+              "share": 0.15,
               "hours": [
                 16
               ]
@@ -1685,57 +2135,19 @@
           }
         ],
         "round": 1,
-        "criteria": [],
-        "reason": "outranked",
-        "run_id": "sim_e8ae36cfca24",
-        "summary": {
-          "overcap_station_hours": 0.0,
-          "excess_pax": 0.0,
-          "peak_lf": 0.598,
-          "max_wait_min": 0.0,
-          "delay_pax_min": 0.0,
-          "cost_proxy": 188.0,
-          "total_demand": 114369.0,
-          "end_of_day_queue": 0.0,
-          "no_service_pax": 2537.5,
-          "bins_per_hour": 4,
-          "threshold": 0.85
-        }
-      },
-      {
-        "label": "trainstag",
-        "interventions": [
-          {
-            "type": "extra_trains",
-            "params": {
-              "headway_min": 3.0,
-              "hours": [
-                15,
-                16,
-                17
-              ],
-              "line": "Red"
-            }
-          },
-          {
-            "type": "staggered_exit",
-            "params": {
-              "spread_minutes": 60,
-              "event_id": null
-            }
-          }
+        "criteria": [
+          "C1",
+          "C3"
         ],
-        "round": 1,
-        "criteria": [],
         "reason": "outranked",
-        "run_id": "sim_3075dc8106a7",
+        "run_id": "sim_0c9b322507ab",
         "summary": {
-          "overcap_station_hours": 0.0,
-          "excess_pax": 0.0,
-          "peak_lf": 0.453,
+          "overcap_station_hours": 1.25,
+          "excess_pax": 510.2,
+          "peak_lf": 0.984,
           "max_wait_min": 0.0,
           "delay_pax_min": 0.0,
-          "cost_proxy": 189.5,
+          "cost_proxy": 2.5,
           "total_demand": 114369.0,
           "end_of_day_queue": 0.0,
           "no_service_pax": 2537.5,
@@ -1797,77 +2209,77 @@
             "kind": "attendance",
             "value": 1.1,
             "holds": false,
-            "overcap_station_hours": 0.25,
+            "overcap_station_hours": 1.0,
             "peak_lf": 0.904,
-            "excess_pax": 63.0,
+            "excess_pax": 121.4,
             "baseline_overcap_station_hours": 1.25,
-            "run_id": "stress_3a5db22864c1"
+            "run_id": "stress_27e255e6bffe"
           },
           {
             "case": "attendance_x1.25",
             "kind": "attendance",
             "value": 1.25,
             "holds": false,
-            "overcap_station_hours": 3.0,
+            "overcap_station_hours": 2.5,
             "peak_lf": 0.989,
-            "excess_pax": 625.8,
+            "excess_pax": 727.0,
             "baseline_overcap_station_hours": 2.5,
-            "run_id": "stress_af110f3b982f"
+            "run_id": "stress_0376c4ce6124"
           },
           {
             "case": "metro_share_0.55",
             "kind": "metro_share",
             "value": 0.55,
             "holds": false,
-            "overcap_station_hours": 2.5,
+            "overcap_station_hours": 2.0,
             "peak_lf": 0.974,
-            "excess_pax": 448.6,
+            "excess_pax": 564.0,
             "baseline_overcap_station_hours": 2.0,
-            "run_id": "stress_25d556e40d0f"
+            "run_id": "stress_c390fd3de25e"
           },
           {
             "case": "metro_share_0.65",
             "kind": "metro_share",
             "value": 0.65,
             "holds": false,
-            "overcap_station_hours": 4.5,
-            "peak_lf": 1.1,
-            "excess_pax": 2191.8,
+            "overcap_station_hours": 4.25,
+            "peak_lf": 1.101,
+            "excess_pax": 2198.0,
             "baseline_overcap_station_hours": 3.5,
-            "run_id": "stress_81cdc695bf88"
+            "run_id": "stress_c5819a49e176"
           },
           {
             "case": "weather_hot",
             "kind": "weather",
             "value": "hot",
             "holds": false,
-            "overcap_station_hours": 2.5,
+            "overcap_station_hours": 2.0,
             "peak_lf": 0.974,
-            "excess_pax": 448.6,
+            "excess_pax": 564.0,
             "baseline_overcap_station_hours": 2.0,
-            "run_id": "stress_b4440501d41b"
+            "run_id": "stress_cb9ebe9b7d9d"
           },
           {
             "case": "weather_rain",
             "kind": "weather",
             "value": "rain",
             "holds": false,
-            "overcap_station_hours": 3.75,
+            "overcap_station_hours": 3.25,
             "peak_lf": 1.037,
-            "excess_pax": 1233.0,
+            "excess_pax": 1279.8,
             "baseline_overcap_station_hours": 2.75,
-            "run_id": "stress_5b95587d660f"
+            "run_id": "stress_441390935358"
           },
           {
             "case": "demand_real_totals",
             "kind": "demand_level",
             "value": "real_totals",
             "holds": false,
-            "overcap_station_hours": 1.25,
+            "overcap_station_hours": 0.75,
             "peak_lf": 0.918,
-            "excess_pax": 211.5,
+            "excess_pax": 100.2,
             "baseline_overcap_station_hours": 1.25,
-            "run_id": "stress_8ded9b023170"
+            "run_id": "stress_4153b57ca8df"
           }
         ],
         "holds": 0,
@@ -2006,8 +2418,8 @@
         "checks": [
           {
             "id": "C1",
-            "passed": false,
-            "value": 1.0,
+            "passed": true,
+            "value": 0.0,
             "limit": 0.0
           },
           {
@@ -2019,7 +2431,7 @@
           {
             "id": "C3",
             "passed": true,
-            "value": 1.0,
+            "value": 0.0,
             "limit": 1.0
           },
           {
@@ -2030,8 +2442,8 @@
           },
           {
             "id": "C5",
-            "passed": true,
-            "value": 2387.0,
+            "passed": false,
+            "value": 2486.9,
             "limit": 2449.4
           },
           {
@@ -2053,22 +2465,22 @@
             "kind": "attendance",
             "value": 1.1,
             "holds": false,
-            "overcap_station_hours": 1.5,
-            "peak_lf": 1.021,
-            "excess_pax": 556.1,
+            "overcap_station_hours": 1.0,
+            "peak_lf": 0.931,
+            "excess_pax": 250.5,
             "baseline_overcap_station_hours": 1.25,
-            "run_id": "stress_7bf4affb88c3"
+            "run_id": "stress_c743995df9e0"
           },
           {
             "case": "attendance_x1.25",
             "kind": "attendance",
             "value": 1.25,
             "holds": false,
-            "overcap_station_hours": 2.0,
-            "peak_lf": 1.122,
-            "excess_pax": 1261.5,
+            "overcap_station_hours": 2.5,
+            "peak_lf": 1.068,
+            "excess_pax": 1016.8,
             "baseline_overcap_station_hours": 2.5,
-            "run_id": "stress_c88dc89d540e"
+            "run_id": "stress_c6c38069b963"
           },
           {
             "case": "metro_share_0.55",
@@ -2076,21 +2488,21 @@
             "value": 0.55,
             "holds": false,
             "overcap_station_hours": 2.0,
-            "peak_lf": 1.103,
-            "excess_pax": 1120.5,
+            "peak_lf": 1.043,
+            "excess_pax": 826.9,
             "baseline_overcap_station_hours": 2.0,
-            "run_id": "stress_c53a732600b0"
+            "run_id": "stress_fb5308da26f4"
           },
           {
             "case": "metro_share_0.65",
             "kind": "metro_share",
             "value": 0.65,
             "holds": false,
-            "overcap_station_hours": 3.25,
-            "peak_lf": 1.253,
-            "excess_pax": 2548.3,
+            "overcap_station_hours": 3.5,
+            "peak_lf": 1.246,
+            "excess_pax": 2543.8,
             "baseline_overcap_station_hours": 3.5,
-            "run_id": "stress_7ed5d56353c9"
+            "run_id": "stress_0388b49833ca"
           },
           {
             "case": "weather_hot",
@@ -2098,10 +2510,10 @@
             "value": "hot",
             "holds": false,
             "overcap_station_hours": 2.0,
-            "peak_lf": 1.103,
-            "excess_pax": 1120.5,
+            "peak_lf": 1.043,
+            "excess_pax": 826.9,
             "baseline_overcap_station_hours": 2.0,
-            "run_id": "stress_8aa7b934838f"
+            "run_id": "stress_6967043e25b8"
           },
           {
             "case": "weather_rain",
@@ -2109,21 +2521,21 @@
             "value": "rain",
             "holds": false,
             "overcap_station_hours": 2.75,
-            "peak_lf": 1.178,
-            "excess_pax": 1763.1,
+            "peak_lf": 1.144,
+            "excess_pax": 1626.3,
             "baseline_overcap_station_hours": 2.75,
-            "run_id": "stress_382979a71e07"
+            "run_id": "stress_088b4e1ca691"
           },
           {
             "case": "demand_real_totals",
             "kind": "demand_level",
             "value": "real_totals",
             "holds": false,
-            "overcap_station_hours": 1.5,
-            "peak_lf": 1.024,
-            "excess_pax": 539.3,
+            "overcap_station_hours": 1.25,
+            "peak_lf": 0.918,
+            "excess_pax": 194.9,
             "baseline_overcap_station_hours": 1.25,
-            "run_id": "stress_6d8195db474a"
+            "run_id": "stress_630adfe02d02"
           }
         ],
         "holds": 0,
@@ -2133,7 +2545,7 @@
     "budget": {
       "steps": 16,
       "steps_max": 60,
-      "simulations": 37,
+      "simulations": 44,
       "simulations_max": 80,
       "model_calls": 0,
       "model_calls_max": 12,
@@ -2150,7 +2562,17 @@
       "misses": 0
     },
     "is_synthetic": true,
-    "stop_reason": "goal_met"
+    "stop_reason": "goal_met",
+    "recommended_rank": 1,
+    "recommendation": {
+      "rank": 1,
+      "basis": "goal_and_most",
+      "passed": 5,
+      "applicable": 6,
+      "failed": [
+        "C7"
+      ]
+    }
   },
   "recommended_rank": 1,
   "watch": {
