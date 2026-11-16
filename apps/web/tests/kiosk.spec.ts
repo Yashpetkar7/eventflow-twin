@@ -1,6 +1,6 @@
 // Visitor kiosk (?kiosk=1) at the booth resolution: the full story, the timeout, accessibility and touch targets.
 // Screenshots of every screen → eval/results/ui/kiosk/.
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -451,4 +451,116 @@ test("kiosk: touch a landmark's name → its name and a line about it, and the c
   await panel.getByRole("button", { name: "Back to the corridor" }).click();
   await expect(panel).toHaveCount(0);
   expect(await page.evaluate(() => (window as unknown as L).__twin.getState().cam)).toBe("overview");
+});
+
+// ---- the duty shift on the kiosk: "What if a train breaks down now?" (decision #129)
+interface Sum { overcap_station_hours: number; excess_pax: number; peak_lf: number }
+interface DState { applied: unknown[]; loading: boolean; scenario: { incident?: { type: string; hour: number } | null }; forecast: { end_used: string };
+  shift: { status: string; items: unknown[]; step: { recommended_rank: number | null; residual: Sum; mission: { plan: { options: { rank: number; title: string; summary: Sum }[] } } | null } | null } }
+type DW = Window & { __twin: { getState: () => DState } };
+const dState = <T,>(page: Page, fn: (s: DState) => T) => page.evaluate(`(${fn.toString()})(window.__twin.getState())`) as Promise<T>;
+const API = `http://localhost:${process.env.EFT_API_PORT ?? 8000}`;
+const decisionsTotal = async (request: APIRequestContext) => ((await (await request.get(`${API}/decisions?limit=1`)).json()) as { total: number }).total;
+const digits = (s: string) => s.replace(/[^\d]/g, "");
+const cleanDay = (page: Page) => page.waitForFunction(() => { const s = (window as unknown as DW).__twin.getState(); return !s.loading && !s.scenario.incident && s.shift.status === "idle" && s.applied.length === 0; });
+async function toApproved(page: Page) {
+  await toReveal(page);
+  await page.getByRole("button", { name: /Ask the AI for a plan/ }).click();
+  await page.getByRole("button", { name: "Not sure. Ask the AI" }).click();
+  await expect(page.locator(".kopt").first()).toBeVisible({ timeout: 30_000 });
+  await page.locator(".kopt").first().getByRole("button", { name: "Approve this plan" }).click();
+  await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "decide", { timeout: 15_000 });
+}
+const recommended = (page: Page) => dState(page, (s) => { const st = s.shift.step!, o = st.mission!.plan.options.find((x) => x.rank === st.recommended_rank)!; return { incident: s.scenario.incident, end: s.forecast.end_used, title: o.title, before: st.residual, after: o.summary }; });
+async function bigTargets(page: Page) {                                                       // big targets, nothing below the footer
+  for (const b of await page.locator(".kcard button").all()) {
+    const box = (await b.boundingBox())!;
+    expect(box.height, await b.innerText()).toBeGreaterThanOrEqual(56);
+    expect(box.y + box.height, await b.innerText()).toBeLessThanOrEqual(1080 - 72);
+  }
+}
+
+test("kiosk: 'What if a train breaks down now?' → the duty shift's first step, one Approve, the result; Skip and Start again leave a clean day", async ({ page, request }) => {
+  test.setTimeout(180_000);
+  await openKiosk(page, "&idle=600");
+  await toApproved(page);
+  await page.getByTestId("kiosk-duty-ask").click();
+  await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "duty");
+  await expect(page.getByRole("heading", { name: "A train breaks down" })).toBeVisible();
+  await expect(page.locator(".ksteps li.on")).toContainText("Your decision");
+  await page.getByTestId("kiosk-duty-skip").click();                                        // Skip before anything is injected: back to the result, plan kept
+  await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "decide");
+  expect(await dState(page, (s) => [s.applied.length, s.scenario.incident ?? null])).toEqual([1, null]);
+
+  await page.getByTestId("kiosk-duty-ask").click();
+  const before = await decisionsTotal(request);
+  await page.getByTestId("kiosk-duty-go").click();
+  const card = page.getByTestId("kiosk-duty");
+  await expect(card).toHaveAttribute("data-view", "decision", { timeout: 60_000 });
+  const r = await recommended(page);
+  expect(r.incident).toEqual({ type: "train_fault", hour: Number(r.end.slice(0, 2)) - 1 });   // the event's last hour
+  await expect(page.getByTestId("kiosk-duty-incident")).toContainText("An assumption for this what-if, not an RTA figure.");
+  await expect(page.getByTestId("kiosk-duty-alert")).toContainText("crosses the line at");
+  await expect(card.locator(".kchosen")).toContainText(r.title);
+  const fig = digits(await page.getByTestId("kiosk-duty-figures").innerText());              // every figure is the shift step's
+  for (const n of [r.before.excess_pax, r.after.excess_pax, r.before.peak_lf * 100, r.after.peak_lf * 100]) expect(fig).toContain(String(Math.round(n)));
+  expect(await decisionsTotal(request)).toBe(before);                                       // nothing is decided or applied before the tap
+  expect(await dState(page, (s) => s.applied.length)).toBe(0);
+  await bigTargets(page);
+  await page.waitForTimeout(2000);
+  await shot(page, "22_duty_step");
+
+  await page.getByTestId("kiosk-duty-approve").click();
+  await expect(card).toHaveAttribute("data-view", "result", { timeout: 60_000 });
+  expect(await decisionsTotal(request)).toBe(before + 1);                                   // logged once, then applied
+  expect(await dState(page, (s) => [s.applied.length, s.shift.items.length])).toEqual([1, 1]);
+  const result = page.getByTestId("kiosk-duty-result");
+  await expect(result).toContainText("Nothing was applied until you approved");
+  await expect(result).toContainText((await dState(page, (s) => s.shift.status)) === "done" ? /over the line/ : "Another alert follows");
+  await bigTargets(page);
+  await page.waitForTimeout(1500);
+  await shot(page, "23_duty_result");
+
+  await page.getByRole("button", { name: /Start again/ }).click();                          // the next visitor starts clean
+  await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "attract");
+  await cleanDay(page);
+});
+
+test("kiosk in Arabic: the train-fault step reads right to left with the shift step's figures", async ({ page }) => {
+  test.setTimeout(180_000);
+  await openKiosk(page, "&idle=600");
+  await toApproved(page);
+  await page.getByRole("button", { name: "عربي" }).click();
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await page.getByTestId("kiosk-duty-ask").click();
+  await expect(page.getByRole("heading", { name: "تعطّل قطار" })).toBeVisible();
+  await page.getByTestId("kiosk-duty-go").click();
+  const card = page.getByTestId("kiosk-duty");
+  await expect(card).toHaveAttribute("data-view", "decision", { timeout: 60_000 });
+  await expect(page.getByTestId("kiosk-duty-approve")).toHaveText("اعتماد");
+  await expect(page.getByTestId("kiosk-duty-incident")).not.toContainText("assumption");    // the assumption line is in Arabic too
+  await expect(page.getByTestId("kiosk-duty-incident")).toContainText("الخط الأحمر");        // the line's name too (it read "الخط Red", decision #130)
+  await expect(page.getByTestId("kiosk-duty-incident")).not.toContainText("Red");
+  const r = await recommended(page);
+  const fig = digits(await page.getByTestId("kiosk-duty-figures").innerText());
+  for (const n of [r.before.excess_pax, r.before.peak_lf * 100, r.after.peak_lf * 100]) expect(fig).toContain(String(Math.round(n)));
+  await bigTargets(page);
+  await page.waitForTimeout(2000);
+  await shot(page, "24_duty_step_arabic");
+  await page.getByTestId("kiosk-duty-skip").click();                                        // Skip after the fault: on to another event, with no incident left
+  await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "event");
+  await cleanDay(page);
+});
+
+test("kiosk: without the planning service the train-fault step says so and the visitor carries on", async ({ page }) => {
+  test.setTimeout(180_000);
+  await openKiosk(page, "&idle=600");
+  await toApproved(page);
+  await page.route("**/shift/next", (route) => route.abort());
+  await page.getByTestId("kiosk-duty-ask").click();
+  await page.getByTestId("kiosk-duty-go").click();
+  await expect(page.getByTestId("kiosk-duty-fail")).toContainText("needs the planning service", { timeout: 60_000 });
+  await page.getByTestId("kiosk-duty-again").click();
+  await expect(page.getByTestId("kiosk")).toHaveAttribute("data-phase", "event");
+  await cleanDay(page);
 });
