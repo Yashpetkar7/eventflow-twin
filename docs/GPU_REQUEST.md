@@ -21,9 +21,9 @@ and in the product, while keeping every rule we have (numbers only from the simu
 |---|---|---|
 | Live GPT-5 through the external API, time per plan | **66 s typical, 96 s p95** — too slow for a visitor; needs an internet connection, a paid key and sends scenario data off campus | `docs/LIVE_AI_TEST.md`, `eval/results/live/agents_20261114-010408.json` |
 | Live GPT-5, numbers in the model's text that match the simulator | **1.0** (48 options) — the verification design works with a real model | same |
-| Agent team without a model (code rules), time per mission on this laptop | **0.45 s typical, 1.30 s p95** (20 scenarios, LangGraph engine; dev servers running beside it) | `eval/results/gpu_benchmark_20261116-204249.json` |
-| Simulator, one CPU core | **41.6 runs per second** | same |
-| Uncertainty sweep at that speed (48 grid plans per day) | **3.2 h** for 10,000 what-if days, **32 h** for 100,000 (one core) | same |
+| Agent team without a model (code rules), time per mission on this laptop | **0.56 s typical, 1.28 s p95** (20 scenarios, LangGraph engine; dev servers running beside it) | `eval/results/gpu_benchmark_20261116-204908.json` |
+| Simulator, one CPU core | **36.3 runs per second** | same |
+| Uncertainty sweep at that speed (48 grid plans per day) | **3.7 h** for 10,000 what-if days, **37 h** for 100,000 (one core) | same |
 
 Laptop: Intel 64-bit, 14 logical cores, Windows, Python 3.11 (from the same file). The sweep figures are for one core;
 spreading it over the laptop's cores would cut them roughly by the core count — a CPU cluster could also do B. That is
