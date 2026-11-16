@@ -34,6 +34,12 @@ function Workspace() {
   const { locale } = useLocale();
   const localeRef = useRef(locale);
   useEffect(() => { localeRef.current = locale; }, [locale]);
+  const shownLocale = useRef(locale);
+  useEffect(() => {                                   // a language switch asks again for the plan on screen (its option titles come in the language they were asked in)
+    if (shownLocale.current === locale) return;
+    shownLocale.current = locale;
+    void useTwin.getState().relocalise(locale);
+  }, [locale]);
   const kiosk = useTwin((s) => s.kiosk);
   const apiDown = useTwin((s) => s.apiDown);
   const error = useTwin((s) => s.error);
