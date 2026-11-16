@@ -310,6 +310,15 @@ function Greenery({ models, manifest, road, lamps }: { models: Models; manifest:
 const STATION_BRIDGE_M = 90;
 const DECK = new THREE.Color(0xbdb8ae);              // flyover decks by day; darkened after dark in City's useFrame
 
+/** Buildings with the cut sea-side towers restored to their full height (`ghosts`: [full height, cut height, …ring]). */
+function fullHeights(buildings: number[][], ghosts: number[][]): number[][] {
+  const full = new Map<string, number[]>(ghosts.map((g) => [g.slice(2).join(","), g]));
+  return buildings.map((b) => {
+    const g = full.get(b.slice(2).join(","));
+    return g && b[0] === g[1] ? [g[0], ...b.slice(1)] : b;
+  });
+}
+
 /** Swept ribbons (positions + normals) merged into one geometry; the inputs are disposed. */
 function mergeSweeps(gs: THREE.BufferGeometry[]): THREE.BufferGeometry {
   const pos: number[] = [], nor: number[] = [];
@@ -323,7 +332,8 @@ function mergeSweeps(gs: THREE.BufferGeometry[]): THREE.BufferGeometry {
 export function City({ data, corridor, manifest, models = null, places = [] }: { data: SceneJson; corridor: Corridor; manifest: Manifest | null; models?: Models | null; places?: StationPlace[] }) {
   const showBuildings = useTwin((s) => s.layers.buildings);
   const groundTex = useLoader(THREE.TextureLoader, `/geo/${data.meta.ground.file}`);
-  const uniforms = useMemo(() => ({ uNight: { value: 0 } }), []);
+  const uniforms = useMemo(() => ({ uNight: { value: 0 }, uCut: { value: new THREE.Vector4() } }), []);
+  const cutAt = useMemo(() => new THREE.Vector3(), []);
 
   const built = useMemo(() => {
     const g = data.meta.ground;
@@ -378,8 +388,9 @@ export function City({ data, corridor, manifest, models = null, places = [] }: {
       ground, glow,
       water: flatPolygons(data.water, 0.35),
       // with the realism ring (v2) the ground, buildings and ghosted tops come from its chunks instead
-      buildings: buildingsGeometry(manifest ? [] : data.buildings),
-      ghosts: buildingsGeometry(manifest ? manifest.ghosts : data.ghosts),
+      // sea-side towers at their full height: the baked data cuts them to podium height with a see-through top, which
+      // left upper parts floating (the station gauges show through buildings instead, Live.tsx)
+      buildings: buildingsGeometry(manifest ? [] : fullHeights(data.buildings, data.ghosts)),
       roadsByClass, szr, decks: mergeSweeps(decks), palms, lamps: new Float32Array(lamps),
     };
   }, [data, corridor, groundTex, manifest]);
@@ -408,7 +419,6 @@ export function City({ data, corridor, manifest, models = null, places = [] }: {
     water: new THREE.MeshStandardMaterial({ color: 0x2a7fa6, roughness: 0.06, metalness: 0.6, envMapIntensity: 1.25, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     facade: manifest ? facadeMaterialV2(uniforms) : facadeMaterial(uniforms),
     facadeFar: manifest ? facadeMaterialV2(uniforms, THREE.FrontSide) : null,
-    ghost: new THREE.MeshBasicMaterial({ color: 0xb8cfe4, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide }),
     road: new THREE.MeshStandardMaterial({ color: 0x45484e, roughness: 0.92, emissive: 0xffb469, emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     highway: highwayMaterial(),
     deck: new THREE.MeshStandardMaterial({ color: 0xbdb8ae, roughness: 0.85 }),
@@ -441,9 +451,15 @@ export function City({ data, corridor, manifest, models = null, places = [] }: {
     palmGeo.trunk.dispose(); palmGeo.crown.dispose();
   }, [built, mats, palmGeo]);
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     uniforms.uNight.value = live.night;
-    mats.ghost.opacity = (0.1 - 0.06 * live.night) * Math.max(0, Math.min(1, (live.camDist - 1400) / 2200));
+    // the cut-away towards the selected station: on in close views, fading out as the camera pulls back
+    const st = useTwin.getState(), sel = places.find((p) => p.id === st.selected);
+    const near = sel ? 1 - Math.max(0, Math.min(1, (live.camDist - 1400) / 700)) : 0;
+    if (sel && near > 0 && st.cam !== "overview" && st.cam !== "top" && st.cam !== "landmark") {
+      cutAt.set(sel.x, 58, sel.z).applyMatrix4(camera.matrixWorldInverse);
+      uniforms.uCut.value.set(cutAt.x, cutAt.y, cutAt.z, 78 * near);
+    } else uniforms.uCut.value.w = 0;
     mats.lamp.opacity = live.night * 0.95;
     mats.lamp.size = Math.max(16, Math.min(90, live.camDist * 0.0125));
     mats.highway.emissiveIntensity = live.night * 0.34;          // sodium-lit carriageways read as glowing arteries from above
@@ -468,7 +484,6 @@ export function City({ data, corridor, manifest, models = null, places = [] }: {
       <mesh geometry={rails} material={mats.glass} />
       <group visible={showBuildings}>
         <mesh geometry={built.buildings} material={mats.facade} castShadow receiveShadow />
-        <mesh geometry={built.ghosts} material={mats.ghost} renderOrder={2} />
         {manifest && models ? <Greenery models={models} manifest={manifest} road={built.palms} lamps={built.lamps} /> : (
           <>
             <instancedMesh args={[palmGeo.trunk, mats.trunk, palmMatrices.length]} ref={(im) => { if (im) { palmMatrices.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; } }} castShadow />

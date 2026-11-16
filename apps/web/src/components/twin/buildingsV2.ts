@@ -54,6 +54,19 @@ export function buildBuildings({ buildings, roof, cls, detail, ids }: BuildingIn
   };
   const centre = (ring: number[]) => { let x = 0, z = 0; for (let i = 0; i < ring.length; i += 2) { x += ring[i]; z += ring[i + 1]; } return [x / (ring.length / 2), z / (ring.length / 2)]; };
   const shrink = (ring: number[], k: number) => { const [cx, cz] = centre(ring); return ring.map((v, i) => (i % 2 ? cz + (v - cz) * k : cx + (v - cx) * k)); };
+  /** Area of the ring's convex hull (monotone chain): a footprint that fills its hull can take a set-back crown, an
+   *  L, C or courtyard shape cannot (its shrunken copy floated beside the shaft as a detached block). */
+  const hullArea = (ring: number[]) => {
+    const pts: number[][] = [];
+    for (let i = 0; i < ring.length; i += 2) pts.push([ring[i], ring[i + 1]]);
+    pts.sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+    const cross = (o: number[], p: number[], q: number[]) => (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0]);
+    const half = (src: number[][]) => { const h: number[][] = []; for (const p of src) { while (h.length > 1 && cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop(); h.push(p); } h.pop(); return h; };
+    const hull = [...half(pts), ...half([...pts].reverse())];
+    let a = 0;
+    for (let i = 0; i < hull.length; i++) { const j = (i + 1) % hull.length; a += hull[i][0] * hull[j][1] - hull[j][0] * hull[i][1]; }
+    return Math.abs(a) / 2;
+  };
   const area = (ring: number[]) => { let a = 0; for (let i = 0, n = ring.length / 2; i < n; i++) { const j = (i + 1) % n; a += ring[i * 2] * ring[j * 2 + 1] - ring[j * 2] * ring[i * 2 + 1]; } return Math.abs(a) / 2; };
   const prism = (cx: number, cz: number, r: number, sides: number, turn: number, y0: number, y1: number) => {     // boxes (4 sides), tanks (6), helipads (10)
     const ring: number[] = [];
@@ -93,7 +106,7 @@ export function buildBuildings({ buildings, roof, cls, detail, ids }: BuildingIn
       const podium = Math.min(22, Math.max(9, h * 0.12)), shaft = shrink(ring, 0.8 - 0.1 * rnd());
       walls(); wall(ring, 0, podium, k);
       roofs(); cap(ring, podium - 0.6);
-      if (h > 200) {                                        // crown: a narrower lit top
+      if (h > 200 && a > 0.86 * hullArea(ring)) {           // crown: a narrower top, on compact footprints only
         const from = h * 0.92, crown = shrink(shaft, 0.62);
         walls(); wall(shaft, podium - 0.6, from, k); wall(crown, from, h, k);
         roofs(); cap(shaft, from); cap(crown, h - 0.8);

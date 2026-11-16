@@ -29,7 +29,7 @@ const AGX = typeof window !== "undefined" && new URLSearchParams(window.location
  *  below 40 fps for 3 s → step down (tier 1: no ambient occlusion, pixel ratio 1, smaller shadow map, fewer cars and
  *  particles; tier 2: no shadows, no particles). 45 s at the display's cap → step back up, at most twice. */
 function Stats() {
-  const { gl } = useThree();
+  const { gl, scene } = useThree();
   const acc = useRef({ t: 0, n: 0, total: 0, low: 0, high: 0, recoveries: 0, warm: 0, shadows: 0 });
   useFrame((_, dt) => {
     const a = acc.current;
@@ -45,6 +45,7 @@ function Stats() {
     a.t = 0; a.n = 0; a.warm++;
     window.__eft = { cam_theta: live.camTheta, fps: measured, frames: a.total, ready: true, tier: s.tier, geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? 0, calls, triangles, shadow_redraws: live.shadowDraws - a.shadows, sun: live.sun };
     a.shadows = live.shadowDraws;
+    (window as unknown as { __eftScene?: unknown }).__eftScene = scene;      // debugging aid: the three.js scene (inspect materials from the console)
     // a hidden or throttled page reports ~1 fps: that is not a slow GPU, so it never changes the tier
     if (a.warm < 8 || (s.fpsOverride === null && measured < 5)) return;
     a.low = fps < (s.tier === 0 ? STEP_DOWN_FPS : 40) ? a.low + 1 : 0;

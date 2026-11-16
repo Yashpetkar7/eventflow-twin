@@ -79,6 +79,8 @@ export function Ring({ manifest, facade, facadeFar, show, skip = NONE, polys = N
     const e = manifest.extent, M = 300, work = builder();
     let fine: THREE.Texture | null = null;
     const mid = (c: { extent: Box }) => Math.hypot((c.extent[0] + c.extent[1]) / 2, (c.extent[2] + c.extent[3]) / 2);
+    const cut = manifest.camera_side_cut_m ?? 42;
+    const fullHeight = new Map<string, number>(manifest.ghosts.map((g) => [g.slice(2).join(","), g[0]]));
     (async () => {
       const [ovMap, ovMask] = await Promise.all([texture(manifest.overview.file, true), texture(manifest.overview.mask, false)]);
       ovMaskTex = ovMask;
@@ -96,7 +98,12 @@ export function Ring({ manifest, facade, facadeFar, show, skip = NONE, polys = N
         // renderer can leave out more of what is outside the view or the shadow box (see perf.ts).
         const tiles = new Map<string, BuildingInput>();
         const seen = [0, 0];                                    // a building's number within the chunk's near / far group
-        json.buildings.forEach((b, i) => {
+        json.buildings.forEach((b0, i) => {
+          // Sea-side towers were baked cut to podium height with a see-through top (so stations stayed visible). That
+          // left bridges and upper parts floating and read as broken, so they are drawn solid at full height again;
+          // the station gauges show through buildings instead (Live.tsx).
+          const full = b0[0] === cut ? fullHeight.get(b0.slice(2).join(",")) : undefined;
+          const b = full ? [full, ...b0.slice(1)] : b0;
           if (skip.length || polys.length) {                    // under a modelled landmark (R8): the model replaces it
             let cx = 0, cz = 0;
             for (let q = 2; q < b.length; q += 2) { cx += b[q]; cz += b[q + 1]; }

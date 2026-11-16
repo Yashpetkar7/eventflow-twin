@@ -491,3 +491,15 @@ test("realism scene: figures at the stations follow the simulator's riders, and 
   await page.waitForTimeout(2500);
   expect(shaderErrors, shaderErrors.join(" | ")).toEqual([]);
 });
+
+test("welcome sheet: centred, and it closes with its close button", async ({ page }) => {
+  await open(page, "/?welcome=1");
+  const sheet = page.getByTestId("welcome");
+  await expect(sheet).toBeVisible();
+  const box = (await sheet.boundingBox())!, vw = page.viewportSize()!.width;
+  expect(Math.abs(box.x + box.width / 2 - vw / 2)).toBeLessThan(4);                 // centred (it used to sit in the top-left corner)
+  const x = (await page.getByTestId("welcome-close").boundingBox())!;
+  expect(Math.min(x.width, x.height)).toBeGreaterThanOrEqual(44);
+  await page.getByTestId("welcome-close").click();
+  await expect(sheet).toBeHidden();
+});
