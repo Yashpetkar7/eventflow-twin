@@ -163,6 +163,12 @@ next step. After an approval a station that is still over the line is a new aler
 not raised again. The shift ends "clear" only when nothing is over the line; otherwise it reports what remains for the
 duty manager. The API keeps no shift state: the client carries the approved measures, the handled alerts and the clock.
 
+**On the kiosk (decision #129).** After a visitor approves a plan, one optional step asks "What if a train breaks
+down now?": a train fault at the event's last hour, the shift's first step, one Approve button, then the result. It
+uses the same store actions as the workspace card; the fault day starts without the plan approved before it. It needs
+the planning service, so it is not in the offline snapshot: without the service the step says so and the visitor
+carries on.
+
 | What | Result | Source |
 |---|---|---|
 | Same incident request → same run id and simulation; an incident never makes the day easier | **1.0 · 1.0** (15 shifts) | `incidents_*.json` |

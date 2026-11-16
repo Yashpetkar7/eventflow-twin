@@ -1,0 +1,96 @@
+{
+ "base": "http://localhost:3000",
+ "when": "2026-11-16T14:48:13.328Z",
+ "checks": {
+  "brief_print": {
+   "pdf_bytes": 267290,
+   "pages": 1
+  },
+  "brief_escape_closes": true,
+  "brief_button_closes": true,
+  "brief_arabic_dir": "rtl",
+  "tablet_workspace": {
+   "w": 768,
+   "vw": 768,
+   "h": 1024,
+   "vh": 1024
+  },
+  "tablet_kiosk_attract": {
+   "w": 768,
+   "vw": 768,
+   "h": 1024,
+   "vh": 1024
+  },
+  "tablet_kiosk_event": {
+   "w": 768,
+   "vw": 768,
+   "h": 1024,
+   "vh": 1024
+  },
+  "kiosk_ar_decide_buttons": [
+   {
+    "text": "↶ تراجع عن الاعتماد",
+    "h": 56,
+    "bottom": 620,
+    "right": 574,
+    "left": 429
+   },
+   {
+    "text": "كيف قرّر الذكاء الاصطناعي؟",
+    "h": 56,
+    "bottom": 620,
+    "right": 421,
+    "left": 240
+   },
+   {
+    "text": "متى أغادر؟",
+    "h": 56,
+    "bottom": 620,
+    "right": 232,
+    "left": 143
+   },
+   {
+    "text": "ماذا لو تعطّل قطار الآن؟",
+    "h": 82,
+    "bottom": 716,
+    "right": 310,
+    "left": 58
+   },
+   {
+    "text": "جرّب فعالية أخرى",
+    "h": 68,
+    "bottom": 980,
+    "right": 574,
+    "left": 280
+   },
+   {
+    "text": "إنهاء",
+    "h": 68,
+    "bottom": 980,
+    "right": 268,
+    "left": 58
+   }
+  ],
+  "kiosk_duty_large_text_buttons": [
+   {
+    "text": "اعتماد",
+    "h": 78,
+    "bottom": 974,
+    "right": 660,
+    "left": 322
+   },
+   {
+    "text": "تخطَّ",
+    "h": 78,
+    "bottom": 974,
+    "right": 308,
+    "left": 67
+   }
+  ],
+  "kiosk_duty_large_text_card": {
+   "scroll": 783,
+   "client": 783
+  }
+ },
+ "console_errors": []
+}
