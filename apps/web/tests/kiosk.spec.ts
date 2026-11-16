@@ -555,6 +555,51 @@ test("kiosk in Arabic: the train-fault step reads right to left with the shift s
   await cleanDay(page);
 });
 
+// ---- the language switch mid-journey (issue #46): option titles come from the API in the language they were asked in
+const ARABIC = /[\u0600-\u06FF]/;
+type PW = Window & { __twin: { getState: () => { plan: { options: { rank: number; title: string; summary: unknown }[] } | null } } };
+const planOptions = (page: Page) => page.evaluate(() => (window as unknown as PW).__twin.getState().plan?.options.map((o) => ({ rank: o.rank, title: o.title, summary: o.summary })) ?? []);
+
+test("kiosk: switching to Arabic while the plan is on screen gives the options Arabic titles, with the same ranks and numbers", async ({ page }) => {
+  test.setTimeout(180_000);
+  await openKiosk(page, "&idle=600");
+  await toReveal(page);
+  await page.getByRole("button", { name: /Ask the AI for a plan/ }).click();
+  await page.getByRole("button", { name: "Not sure. Ask the AI" }).click();
+  await expect(page.locator(".kopt").first()).toBeVisible({ timeout: 30_000 });
+  const en = await planOptions(page);
+  expect(en.length).toBeGreaterThan(0);
+  for (const o of en) expect(o.title).not.toMatch(ARABIC);
+  await page.getByRole("button", { name: "عربي" }).click();
+  await expect.poll(async () => (await planOptions(page)).every((o) => ARABIC.test(o.title)), { timeout: 30_000 }).toBe(true);
+  const ar = await planOptions(page);
+  expect(ar.map((o) => [o.rank, o.summary])).toEqual(en.map((o) => [o.rank, o.summary]));    // only the texts change, never a number
+  await expect(page.locator(".kopt").first()).toContainText(ar[0].title);
+  await page.getByRole("button", { name: "English" }).click();                               // and back again
+  await expect.poll(async () => (await planOptions(page)).every((o) => !ARABIC.test(o.title)), { timeout: 30_000 }).toBe(true);
+});
+
+test("kiosk: switching to Arabic on the train-fault decision gives the recommended option an Arabic title", async ({ page }) => {
+  test.setTimeout(180_000);
+  await openKiosk(page, "&idle=600");
+  await toApproved(page);
+  await page.getByTestId("kiosk-duty-ask").click();
+  await page.getByTestId("kiosk-duty-go").click();
+  const card = page.getByTestId("kiosk-duty");
+  await expect(card).toHaveAttribute("data-view", "decision", { timeout: 60_000 });
+  const en = await recommended(page);
+  expect(en.title).not.toMatch(ARABIC);
+  await page.getByRole("button", { name: "عربي" }).click();
+  await expect.poll(async () => (await recommended(page)).title, { timeout: 60_000 }).toMatch(ARABIC);
+  const ar = await recommended(page);
+  expect(ar.before).toEqual(en.before);                                                       // the same alert and the same figures
+  await expect(card).toHaveAttribute("data-view", "decision");
+  await expect(card.locator(".kchosen")).toContainText(ar.title);
+  await expect(page.getByTestId("kiosk-duty-approve")).toHaveText("اعتماد");
+  await page.getByTestId("kiosk-duty-skip").click();
+  await cleanDay(page);
+});
+
 test("kiosk: without the planning service the train-fault step says so and the visitor carries on", async ({ page }) => {
   test.setTimeout(180_000);
   await openKiosk(page, "&idle=600");

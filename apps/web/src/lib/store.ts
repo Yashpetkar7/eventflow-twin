@@ -182,6 +182,8 @@ interface State {
   recentre: () => void;
   focusLandmark: (key: string) => void;
   runAgents: (locale: "en" | "ar") => Promise<void>;
+  /** The language was switched: ask again, in the new language, for the plan or duty-shift step on screen. */
+  relocalise: (locale: "en" | "ar") => Promise<void>;
   setConstraints: (c: Partial<Constraints>) => void;
   skipMission: () => void;
   decide: (rank: number, d: Decision, user?: string) => Promise<void>;
@@ -201,6 +203,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let reqId = 0, refreshTimer: ReturnType<typeof setTimeout> | null = null, previewTimer: ReturnType<typeof setTimeout> | null = null;
 let abort: AbortController | null = null, previewAbort: AbortController | null = null;
 let shiftLocale: "en" | "ar" = "en";          // the language the running duty shift was started in (its next missions use it)
+let lastPlan: { runId: string; applied: unknown[]; threshold: number; priority: Priority; req: ForecastRequest; constraints: Constraints } | null = null;   // what the plan on screen was asked with (asked again if the language changes)
 
 export const useTwin = create<State>((set, get) => {
   /** scenario → /forecast → /simulate (no plans) → /simulate (approved plans). Stale answers are dropped. */
@@ -350,6 +353,7 @@ export const useTwin = create<State>((set, get) => {
       set({ planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, missionSkip: false, planError: null, decisions: {} });
       const mySeq = ++runSeq;
       const applied = mergeInterventions(s.applied.map((a) => a.ivs));
+      lastPlan = { runId: s.forecast.run_id, applied, threshold: s.threshold, priority: s.priority, req: s.forecastReq, constraints: s.constraints };
       // The agent team first (events, checks, stress tests); the single planner if the team cannot answer.
       let mission: Mission | null = null, plan: AgentPlanResponse | null = null, err: string | null = null;
       // Workspace: the live stream. Events are shown as they arrive, never before (paced so they can be read); the
@@ -407,6 +411,24 @@ export const useTwin = create<State>((set, get) => {
       }
       if (get().planStatus !== "running") return;
       set({ plan, planStatus: "ready", planStep: 8 });
+    },
+    relocalise: async (locale) => {
+      const s = get();
+      if (s.shift.status !== "idle") shiftLocale = locale;                 // the later steps of a running shift follow the language
+      if (!s.forecast || !s.forecastReq) return;
+      if (s.shift.status === "awaiting" && s.shift.step?.mission) {        // same alert, same hour: only the texts come back in the new language
+        set({ shift: { ...s.shift, status: "running" } });
+        await shiftNext(locale);
+        return;
+      }
+      const a = lastPlan, was = s.plan;
+      if (s.planStatus !== "ready" || !was || !a || a.runId !== s.forecast.run_id) return;
+      try {
+        const m = s.mission ? await api.agentRun(missionBody(a.runId, a.applied, a.threshold, a.priority, locale, a.req, a.constraints)) : null;
+        const p = m ? m.plan : await api.agentPlan(planBody(a.runId, a.applied, a.threshold, a.priority, locale, a.req));
+        if (get().plan !== was) return;                                    // a new plan or scenario replaced it meanwhile
+        set(m ? { mission: m, plan: p } : { plan: p });                      // progress, ranks and decisions stay as they were
+      } catch { /* the plan stays in the language it came in */ }
     },
     setConstraints: (c) => set((s) => ({ constraints: { ...s.constraints, ...c }, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {} })),
     skipMission: () => set({ missionSkip: true }),
