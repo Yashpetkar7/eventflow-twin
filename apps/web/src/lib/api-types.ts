@@ -129,6 +129,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agent/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Run
+         * @description The agent team on one planning request (docs/15): intake → forecast → diagnosis → four specialists in parallel →
+         *     composer → simulation → critic ⟲ supervisor → ranker → explainer ∥ stress test → verifier → human approval.
+         *     `plan` has the /agent/plan shape; every number in it and in `events` comes from the simulator.
+         */
+        post: operations["agent_run_agent_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Agent Roster
+         * @description Who is on the team, in which layer, which can call a model, and the orchestration graph (from the code).
+         */
+        get: operations["agent_roster_agent_roster_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/decisions": {
         parameters: {
             query?: never;
@@ -177,6 +219,69 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AgentEvent
+         * @description One thing an agent did, in order. Text is rendered by the client from `key` + `params` (EN/AR); figures in
+         *     `params` are the tools' (run_id says which run).
+         */
+        AgentEvent: {
+            /** Seq */
+            seq: number;
+            /**
+             * T Ms
+             * @description Milliseconds since the mission started
+             */
+            t_ms: number;
+            /** Round */
+            round: number;
+            /** Layer */
+            layer: number;
+            /** Agent */
+            agent: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "start" | "tool" | "decision" | "proposal" | "reject" | "finding" | "handoff" | "model" | "budget";
+            /** Key */
+            key: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Llm
+             * @description Model, tokens, milliseconds and whether the answer was recorded
+             */
+            llm?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** AgentInfo */
+        AgentInfo: {
+            /** Id */
+            id: string;
+            /**
+             * Layer
+             * @description 1 command · 2 understand · 3 propose · 4 test · 5 explain & govern · 6 standing
+             */
+            layer: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "code" | "model" | "human";
+            /** Can Call Model */
+            can_call_model: boolean;
+            /** Tools */
+            tools: string[];
+            /** Role */
+            role: string;
+            /** Role Ar */
+            role_ar: string;
+        };
         /** AgentPlanRequest */
         AgentPlanRequest: {
             /** Forecast Run Id */
@@ -264,6 +369,49 @@ export interface components {
              */
             cached: boolean;
         };
+        /** AgentRunRequest */
+        AgentRunRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description The forecast request (required: the stress test re-forecasts from it) */
+            forecast: components["schemas"]["ForecastRequest"];
+            /**
+             * Goal
+             * @default Keep every station under 85% load during the exit surge
+             */
+            goal: string;
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+            /**
+             * Notes
+             * @description Untrusted planner notes (treated as data)
+             */
+            notes?: string | null;
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default network
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /**
+             * Priority
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            /**
+             * Applied
+             * @description Already-approved interventions to plan on top of
+             */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            constraints?: components["schemas"]["Constraints"];
+        };
         /** AgentStep */
         AgentStep: {
             /** Key */
@@ -277,6 +425,25 @@ export interface components {
             detail: string;
             /** Tool */
             tool?: string | null;
+        };
+        /** Assessment */
+        Assessment: {
+            /** Rank */
+            rank: number;
+            /** Checks */
+            checks: components["schemas"]["CriterionCheck"][];
+            /** Stress */
+            stress?: components["schemas"]["StressCase"][];
+            /**
+             * Holds
+             * @default 0
+             */
+            holds: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
         };
         /** BreakGridRow */
         BreakGridRow: {
@@ -333,6 +500,67 @@ export interface components {
             /** Note */
             note: string;
             source: components["schemas"]["Source"];
+        };
+        /** Budget */
+        Budget: {
+            /** Steps */
+            steps: number;
+            /** Steps Max */
+            steps_max: number;
+            /** Simulations */
+            simulations: number;
+            /** Simulations Max */
+            simulations_max: number;
+            /** Model Calls */
+            model_calls: number;
+            /** Model Calls Max */
+            model_calls_max: number;
+            /** Tokens */
+            tokens: number;
+            /** Wall Ms */
+            wall_ms: number;
+            /** Wall Ms Max */
+            wall_ms_max: number;
+            /** Exceeded */
+            exceeded?: string[];
+        };
+        /**
+         * Constraints
+         * @description The planner's hard choices, set with typed controls. Text in the goal or notes never becomes a constraint.
+         */
+        Constraints: {
+            /**
+             * Forbid Types
+             * @description Measures the agents must not propose
+             */
+            forbid_types?: ("extra_trains" | "shuttle_bus" | "robotaxi_staging" | "staggered_exit" | "wayfinding_redirect" | "station_metering" | "extended_hours")[];
+            /**
+             * Protect Stations
+             * @description Stations that must not get more over-threshold time (C6)
+             */
+            protect_stations?: string[];
+            /**
+             * Cost Cap
+             * @description Largest added cost proxy an option may have (C6)
+             */
+            cost_cap?: number | null;
+        };
+        /** CriterionCheck */
+        CriterionCheck: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "C1" | "C2" | "C3" | "C4" | "C5" | "C6" | "C7";
+            /**
+             * Passed
+             * @description None: the criterion does not apply to this scenario
+             */
+            passed: boolean | null;
+            /** Value */
+            value?: number | null;
+            /** Limit */
+            limit?: number | null;
         };
         /** CriticReport */
         CriticReport: {
@@ -693,6 +921,17 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** LayerInfo */
+        LayerInfo: {
+            /** Id */
+            id: number;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Name Ar */
+            name_ar: string;
+        };
         /** MeteringParams */
         MeteringParams: {
             /** Station */
@@ -703,6 +942,76 @@ export interface components {
             hours: number[];
             /** To Station */
             to_station?: string | null;
+        };
+        /** Mission */
+        Mission: {
+            /** Mission Id */
+            mission_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_human" | "no_action";
+            /**
+             * Engine
+             * @enum {string}
+             */
+            engine: "graph" | "seq" | "classic";
+            objective: components["schemas"]["Objective"];
+            /** Roster */
+            roster: components["schemas"]["AgentInfo"][];
+            counts: components["schemas"]["TeamCounts"];
+            /** Events */
+            events: components["schemas"]["AgentEvent"][];
+            plan: components["schemas"]["AgentPlanResponse"];
+            /** Rejected */
+            rejected: components["schemas"]["RejectedPlan"][];
+            /** Assessments */
+            assessments: components["schemas"]["Assessment"][];
+            budget: components["schemas"]["Budget"];
+            recording: components["schemas"]["Recording"];
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /**
+             * Stop Reason
+             * @description Why the supervisor stopped testing: goal_met · max_rounds · no_relief · budget · no_variants · no_action
+             * @default
+             */
+            stop_reason: string;
+        };
+        /** Objective */
+        Objective: {
+            /** Goal */
+            goal: string;
+            /** Threshold */
+            threshold: number;
+            /** Priority */
+            priority: string;
+            /** Scope */
+            scope: string;
+            constraints: components["schemas"]["Constraints"];
+            /**
+             * Findings
+             * @description Instruction-like text found in the goal or notes (logged, never followed)
+             */
+            findings?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Suggestions
+             * @description Constraint suggestions from the intake model: shown, not applied
+             */
+            suggestions?: string[];
+            /**
+             * Source
+             * @default code
+             */
+            source: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
         };
         /** PlanOption */
         PlanOption: {
@@ -766,6 +1075,27 @@ export interface components {
             round: number;
             road?: components["schemas"]["RoadPressure"] | null;
         };
+        /** Recording */
+        Recording: {
+            /**
+             * Mode
+             * @description code: no model; recorded: model answers replayed offline; live: model called now
+             * @enum {string}
+             */
+            mode: "code" | "recorded" | "live" | "mixed";
+            /** Model */
+            model?: string | null;
+            /** Recorded At */
+            recorded_at?: string | null;
+            /** Agents From Model */
+            agents_from_model?: string[];
+            /**
+             * Misses
+             * @description Model answers not found in the recording (that agent used its code policy)
+             * @default 0
+             */
+            misses: number;
+        };
         /** RedirectParams */
         RedirectParams: {
             /** From Station */
@@ -776,6 +1106,28 @@ export interface components {
             share: number;
             /** Hours */
             hours?: number[];
+        };
+        /** RejectedPlan */
+        RejectedPlan: {
+            /** Label */
+            label: string;
+            /** Interventions */
+            interventions: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /** Round */
+            round: number;
+            /**
+             * Criteria
+             * @description Critic criteria the plan fails (C1 still over · C2 new hotspot · C3 worse overall · C6 constraint)
+             */
+            criteria: string[];
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "no_relief" | "bounds" | "forbidden" | "outranked";
+            /** Run Id */
+            run_id?: string | null;
+            summary?: components["schemas"]["SimSummary"] | null;
         };
         /**
          * RoadPressure
@@ -826,6 +1178,24 @@ export interface components {
              */
             type: "robotaxi_staging";
             params: components["schemas"]["RobotaxiParams"];
+        };
+        /** Roster */
+        Roster: {
+            /**
+             * Engine
+             * @enum {string}
+             */
+            engine: "graph" | "seq" | "classic";
+            /** Layers */
+            layers: components["schemas"]["LayerInfo"][];
+            /** Agents */
+            agents: components["schemas"]["AgentInfo"][];
+            counts: components["schemas"]["TeamCounts"];
+            /**
+             * Graph Mermaid
+             * @description The orchestration graph, generated from the code (empty without LangGraph)
+             */
+            graph_mermaid: string;
         };
         /** ShuttleBus */
         ShuttleBus: {
@@ -1069,6 +1439,42 @@ export interface components {
              */
             type: "station_metering";
             params: components["schemas"]["MeteringParams"];
+        };
+        /** StressCase */
+        StressCase: {
+            /** Case */
+            case: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "attendance" | "metro_share" | "weather" | "demand_level";
+            /** Value */
+            value: number | string;
+            /**
+             * Holds
+             * @description Every station stays under the threshold in this case
+             */
+            holds: boolean;
+            /** Overcap Station Hours */
+            overcap_station_hours: number;
+            /** Peak Lf */
+            peak_lf: number;
+            /** Excess Pax */
+            excess_pax: number;
+            /** Baseline Overcap Station Hours */
+            baseline_overcap_station_hours: number;
+            /** Run Id */
+            run_id: string;
+        };
+        /** TeamCounts */
+        TeamCounts: {
+            /** Agents */
+            agents: number;
+            /** Model Capable */
+            model_capable: number;
+            /** Code Only */
+            code_only: number;
         };
         /**
          * TraceEvent
@@ -1326,6 +1732,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_run_agent_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mission"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_roster_agent_roster_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Roster"];
                 };
             };
         };

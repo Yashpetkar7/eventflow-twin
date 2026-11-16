@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from apps.api.eventflow import main
-from apps.api.eventflow.schemas import (CONTRACT_VERSION, AgentPlanResponse, DecisionResponse, Event,
+from apps.api.eventflow.schemas import (CONTRACT_VERSION, AgentPlanResponse, DecisionResponse, Event, Mission, Roster,
                                         ForecastResponse, SimulateResponse, Station)
 
 CONTRACT = Path(__file__).resolve().parents[1] / "contract"
@@ -42,6 +42,8 @@ def test_api_types_generated():
     ("simulate_option.json", SimulateResponse),
     ("agent_plan.json", AgentPlanResponse),
     ("decision_response.json", DecisionResponse),
+    ("agent_mission.json", Mission),
+    ("agent_roster.json", Roster),
 ])
 def test_fixture_validates(name, model):
     model.model_validate(load(FIXTURES / name))

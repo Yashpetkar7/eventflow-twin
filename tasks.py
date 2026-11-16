@@ -24,12 +24,15 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
     "train": ("Same as baseline with the LightGBM model", [[PY, "scripts/baseline.py", "--model", "lgbm"]]),
     "eval-fast": ("Fast backtest (2 folds) + simulator, agents and red-team suites", [
         [PY, "scripts/baseline.py", "--fast"], [PY, "-m", "eval.suites.simulator"],
-        [PY, "-m", "eval.suites.agents"], [PY, "-m", "eval.suites.redteam"]]),
+        [PY, "-m", "eval.suites.agents"], [PY, "-m", "eval.suites.redteam"],
+        [PY, "-m", "eval.suites.orchestration"], [PY, "-m", "eval.suites.optimality"]]),
     "eval": ("Full backtest + simulator, agents and red-team suites + tests", [
         [PY, "scripts/baseline.py"],
         [PY, "-m", "eval.suites.simulator"],
         [PY, "-m", "eval.suites.agents"],
         [PY, "-m", "eval.suites.redteam"],
+        [PY, "-m", "eval.suites.orchestration"],
+        [PY, "-m", "eval.suites.optimality"],
         [PY, "-m", "pytest", "-q"],
     ]),
     "gate": ("Check latest eval results against eval/thresholds.yaml",

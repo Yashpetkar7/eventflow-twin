@@ -1,0 +1,40 @@
+# Agent engine settings (docs/15_AGENT_ARCHITECTURE.md). Not part of config_hash: changing these never changes a
+# forecast or simulation run id, only how the agents work and what the critic reports.
+engine: graph                  # graph (LangGraph) · seq (same agents, plain loop) · classic (the original planner)
+
+budget:                        # the supervisor stops replanning and hands over when any of these is reached
+  steps_max: 60                # agent steps in one mission
+  simulations_max: 80          # simulator runs, stress tests included
+  model_calls_max: 12          # language-model calls
+  wall_ms_max: 45000           # wall-clock time
+
+critic:                        # C4–C7 are reported on every option; they do not change the ranking in this release
+  max_wait_min: 10             # C4: longest platform or gate wait an option may leave (minutes) [ASSUMPTION]
+  road_pressure_rise_max: 0.0  # C5: share by which an option may raise the road-pressure peak over the baseline
+  stress_hold_min: 0.5         # C7: an option is fragile when it keeps every station under the threshold in fewer
+                               #     than this share of the stress cases
+
+stress:                        # C7: each kept option re-simulated under changed assumptions
+  attendance: [1.10, 1.25]     # × the scenario's attendance
+  metro_share: [0.55, 0.65]    # share of event trips by metro
+  weather: [hot, rain]
+  demand_level: [real_totals]  # corridor stations scaled to their measured real weekday totals (config/calibration.yaml)
+
+intake:                        # instruction-like text in goal or notes is logged as an injection finding, never followed
+  injection_patterns:
+    - "ignore (all |any |the )?(previous|prior|above|earlier) (instructions|rules)"
+    - "disregard (all |any |the )?(previous|prior|above) "
+    - "system prompt"
+    - "you are now"
+    - "new instructions"
+    - "developer mode"
+    - "(set|change|make) (the )?threshold"
+    - "(remove|delete|cancel|stop) (all )?(the )?trains"
+    - "propose nothing"
+    - "approve (it|this|all|automatically)"
+    - "unlimited capacity"
+    - "</?untrusted"
+    - "تجاهل"
+    - "التعليمات السابقة"
+    - "موجه النظام"
+    - "وافق تلقائي"

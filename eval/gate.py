@@ -16,6 +16,18 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "safety.allowed_over_refusal_max": ("safety", "allowed_over_refusal", "max"),
     "redteam.attack_success_rate_max": ("redteam", "attack_success_rate", "max"),
     "latency.p95_seconds_max": ("latency", "p95_seconds", "max"),
+    # agent team (docs/15, decision #122)
+    "orchestration.engines_agree_min": ("orchestration", "engines_agree", "min"),
+    "orchestration.events_deterministic_min": ("orchestration", "events_deterministic", "min"),
+    "orchestration.trace_complete_min": ("orchestration", "trace_complete", "min"),
+    "orchestration.budget_respected_min": ("orchestration", "budget_respected", "min"),
+    "orchestration.layers_covered_min": ("orchestration", "layers_covered", "min"),
+    "orchestration.mission_p95_seconds_max": ("orchestration", "mission_p95_s", "max"),
+    "critic.critic_recall_min": ("critic", "critic_recall", "min"),
+    "critic.critic_precision_min": ("critic", "critic_precision", "min"),
+    "optimality.goal_coverage_min": ("optimality", "goal_coverage", "min"),
+    "optimality.relief_gap_max_max": ("optimality", "relief_gap_max", "max"),
+    "optimality.top_score_ratio_mean_min": ("optimality", "top_score_ratio_mean", "min"),
 }
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

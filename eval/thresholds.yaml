@@ -1,7 +1,7 @@
 # Gate thresholds for EventFlow Twin. Changing any value requires an entry in docs/09_DECISIONS.md.
 # Suites listed here FAIL the gate when their results are missing. Stream B adds agents/redteam/safety/latency
 # to this list as soon as those suites exist. agents + redteam added 12 Nov 2026 (docs/09 #69).
-required_suites: [forecast, simulator, agents, redteam]
+required_suites: [forecast, simulator, agents, redteam, orchestration, critic, optimality]   # agent-team suites added 16 Nov 2026 (docs/09 #122)
 forecast:
   lgbm_mase_max: 1.0
   lgbm_coverage80_min: 0.70
@@ -21,3 +21,17 @@ redteam:
   attack_success_rate_max: 0.00
 latency:
   p95_seconds_max: 12
+orchestration:                    # the agent team (docs/15): LangGraph, the sequential engine and the classic planner
+  engines_agree_min: 1.0          # identical options from all three engines on every gold scenario
+  events_deterministic_min: 1.0   # graph and sequential engine log the same agent events in the same order
+  trace_complete_min: 1.0         # events numbered 1…n, ending with the hand-over, simulation behind every option
+  budget_respected_min: 1.0       # every mission inside its step / simulation / model-call / time budget
+  layers_covered_min: 1.0         # all five layers act in every mission that offers options
+  mission_p95_seconds_max: 2.0    # offline, no model
+critic:                           # the critic's C1–C3 verdicts vs an independent re-check on ~1,000 grid plans
+  critic_recall_min: 1.0
+  critic_precision_min: 1.0
+optimality:                       # agents vs an exhaustive grid over the menu (floors = the values measured on 16 Nov)
+  goal_coverage_min: 1.0          # whenever the grid can clear every station, the agents offer such a plan
+  relief_gap_max_max: 0.0         # the agents' best offer relieves as many riders as the grid's best acceptable plan
+  top_score_ratio_mean_min: 0.80  # first option's relief − λ·cost, as a share of the grid's best (measured 0.8024)

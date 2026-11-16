@@ -1,0 +1,276 @@
+{
+  "engine": "graph",
+  "layers": [
+    {
+      "id": 1,
+      "key": "command",
+      "name": "Command",
+      "name_ar": "القيادة"
+    },
+    {
+      "id": 2,
+      "key": "understand",
+      "name": "Understand",
+      "name_ar": "الفهم"
+    },
+    {
+      "id": 3,
+      "key": "propose",
+      "name": "Propose",
+      "name_ar": "الاقتراح"
+    },
+    {
+      "id": 4,
+      "key": "test",
+      "name": "Test & challenge",
+      "name_ar": "الاختبار والمراجعة"
+    },
+    {
+      "id": 5,
+      "key": "govern",
+      "name": "Explain & govern",
+      "name_ar": "الشرح والحوكمة"
+    },
+    {
+      "id": 6,
+      "key": "standing",
+      "name": "Standing",
+      "name_ar": "دائم"
+    }
+  ],
+  "agents": [
+    {
+      "id": "supervisor",
+      "layer": 1,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "budget",
+        "route"
+      ],
+      "role": "Routes the work between layers, enforces the budget, decides to replan, stop or hand over to a human",
+      "role_ar": "يوزّع العمل بين الطبقات ويطبّق الميزانية ويقرر إعادة التخطيط أو التوقف أو التسليم للإنسان"
+    },
+    {
+      "id": "intake",
+      "layer": 2,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "objective",
+        "screen_injection"
+      ],
+      "role": "Turns the goal and the planner's constraints into an objective; logs instruction-like text as a finding",
+      "role_ar": "يحوّل الهدف وقيود المخطِّط إلى هدف محدد ويسجّل أي نص يشبه التعليمات كملاحظة"
+    },
+    {
+      "id": "forecast",
+      "layer": 2,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "forecast"
+      ],
+      "role": "Hourly demand per station with its p10–p90 band",
+      "role_ar": "الطلب كل ساعة لكل محطة مع نطاق p10–p90"
+    },
+    {
+      "id": "diagnosis",
+      "layer": 2,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "simulate",
+        "diagnose",
+        "breakpoint",
+        "road_pressure"
+      ],
+      "role": "Baseline simulation, every station over the threshold, break points and road pressure",
+      "role_ar": "محاكاة الوضع الحالي وكل محطة فوق الحد ونقاط الانكسار وضغط الطرق"
+    },
+    {
+      "id": "rail",
+      "layer": 3,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "extra_trains",
+        "extended_hours"
+      ],
+      "role": "Rail service: more trains, longer hours",
+      "role_ar": "خدمة القطارات: قطارات إضافية وساعات أطول"
+    },
+    {
+      "id": "station_crowd",
+      "layer": 3,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "station_metering",
+        "wayfinding_redirect"
+      ],
+      "role": "Station & crowd: entry metering, guiding riders to a quieter station",
+      "role_ar": "المحطة والحشود: تنظيم الدخول وتوجيه الركاب إلى محطة أهدأ"
+    },
+    {
+      "id": "venue",
+      "layer": 3,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "staggered_exit"
+      ],
+      "role": "Venue: spreading the exit over time",
+      "role_ar": "مكان الفعالية: توزيع الخروج على مدى زمني"
+    },
+    {
+      "id": "last_mile",
+      "layer": 3,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "shuttle_bus",
+        "robotaxi_staging"
+      ],
+      "role": "First and last mile: feeder shuttles and robotaxis",
+      "role_ar": "الميل الأول والأخير: حافلات مغذية وسيارات أجرة ذاتية القيادة"
+    },
+    {
+      "id": "composer",
+      "layer": 3,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "combine",
+        "intensify",
+        "dedupe"
+      ],
+      "role": "Builds cross-domain bundles from the specialists' measures, removes duplicates, keeps the simulation budget",
+      "role_ar": "يبني حزمًا مشتركة من مقترحات المتخصصين ويزيل التكرار ويلتزم بميزانية المحاكاة"
+    },
+    {
+      "id": "simulation",
+      "layer": 4,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "simulate"
+      ],
+      "role": "Runs every bundle through the deterministic simulator",
+      "role_ar": "يشغّل كل حزمة في المحاكي الحتمي"
+    },
+    {
+      "id": "critic",
+      "layer": 4,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "check_goal"
+      ],
+      "role": "Applies criteria C1–C7, rejects plans with a named reason, asks for a replan",
+      "role_ar": "يطبّق المعايير C1–C7 ويرفض الخطط بسبب محدد ويطلب إعادة التخطيط"
+    },
+    {
+      "id": "stress",
+      "layer": 4,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "forecast",
+        "simulate"
+      ],
+      "role": "Re-tests the finalists under changed assumptions: more visitors, more metro riders, heat, rain, real totals",
+      "role_ar": "يعيد اختبار الخطط النهائية بافتراضات مختلفة: زوار أكثر وركاب مترو أكثر وحر ومطر وأعداد حقيقية"
+    },
+    {
+      "id": "ranker",
+      "layer": 4,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "rank"
+      ],
+      "role": "Orders the plans by relief and cost, three different kinds",
+      "role_ar": "يرتّب الخطط حسب التخفيف والتكلفة، ثلاثة أنواع مختلفة"
+    },
+    {
+      "id": "explainer",
+      "layer": 5,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "explain"
+      ],
+      "role": "Writes each option in plain English and Arabic, numbers copied from the simulator",
+      "role_ar": "يكتب كل خيار بالإنجليزية والعربية بلغة بسيطة والأرقام منسوخة من المحاكي"
+    },
+    {
+      "id": "verifier",
+      "layer": 5,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "verify_numbers",
+        "claim_policy"
+      ],
+      "role": "Checks every number against the simulator and blocks endorsement claims",
+      "role_ar": "يتحقق من كل رقم مقابل المحاكي ويمنع ادعاءات الاعتماد"
+    },
+    {
+      "id": "messenger",
+      "layer": 5,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "draft_message"
+      ],
+      "role": "After approval: passenger notice, signage line and operations briefing, as drafts never sent",
+      "role_ar": "بعد الموافقة: إشعار للركاب وسطر للافتات وموجز للتشغيل، كمسودات لا تُرسل"
+    },
+    {
+      "id": "watcher",
+      "layer": 6,
+      "kind": "code",
+      "can_call_model": false,
+      "tools": [
+        "forecast",
+        "simulate",
+        "alert"
+      ],
+      "role": "Duty view: scans the next hours on the scenario clock and raises alerts before a station crosses the threshold",
+      "role_ar": "عرض المناوب: يراقب الساعات القادمة وينبّه قبل أن تتجاوز أي محطة الحد"
+    },
+    {
+      "id": "ask",
+      "layer": 6,
+      "kind": "model",
+      "can_call_model": true,
+      "tools": [
+        "route_question",
+        "forecast",
+        "simulate",
+        "breakpoint"
+      ],
+      "role": "Answers questions only from tool results, with the run behind each figure; refuses anything out of scope",
+      "role_ar": "يجيب عن الأسئلة من نتائج الأدوات فقط مع مصدر كل رقم، ويرفض ما هو خارج النطاق"
+    },
+    {
+      "id": "human",
+      "layer": 5,
+      "kind": "human",
+      "can_call_model": false,
+      "tools": [
+        "approve",
+        "reject"
+      ],
+      "role": "The planner: approves or rejects each option; nothing is applied without this click",
+      "role_ar": "المخطِّط: يوافق على كل خيار أو يرفضه، ولا يُطبَّق شيء دون هذه النقرة"
+    }
+  ],
+  "counts": {
+    "agents": 18,
+    "model_capable": 8,
+    "code_only": 10
+  },
+  "graph_mermaid": "---\nconfig:\n  flowchart:\n    curve: linear\n---\ngraph TD;\n\t__start__([<p>__start__</p>]):::first\n\tintake(intake)\n\tforecast(forecast)\n\tdiagnosis(diagnosis)\n\tcomposer(composer)\n\tsimulation(simulation)\n\tcritic(critic)\n\tsupervisor(supervisor)\n\tranker(ranker)\n\texplainer(explainer)\n\tstress(stress)\n\tverifier(verifier)\n\tconclude(conclude)\n\trail(rail)\n\tstation_crowd(station_crowd)\n\tvenue(venue)\n\tlast_mile(last_mile)\n\t__end__([<p>__end__</p>]):::last\n\t__start__ --> intake;\n\tcomposer -.-> ranker;\n\tcomposer -.-> simulation;\n\tcritic --> supervisor;\n\tdiagnosis -.-> conclude;\n\tdiagnosis -.-> last_mile;\n\tdiagnosis -.-> rail;\n\tdiagnosis -.-> station_crowd;\n\tdiagnosis -.-> venue;\n\texplainer --> verifier;\n\tforecast --> diagnosis;\n\tintake --> forecast;\n\tlast_mile --> composer;\n\trail --> composer;\n\tranker --> explainer;\n\tranker --> stress;\n\tsimulation --> critic;\n\tstation_crowd --> composer;\n\tstress --> verifier;\n\tsupervisor -.-> composer;\n\tsupervisor -.-> ranker;\n\tvenue --> composer;\n\tverifier --> conclude;\n\tconclude --> __end__;\n\tclassDef default fill:#f2f0ff,line-height:1.2\n\tclassDef first fill-opacity:0\n\tclassDef last fill:#bfb6fc\n"
+}

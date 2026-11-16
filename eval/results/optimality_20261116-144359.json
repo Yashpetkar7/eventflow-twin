@@ -1,0 +1,224 @@
+{
+  "suite": "optimality",
+  "git_sha": "c34e68d-dirty",
+  "timestamp": "2026-11-16T14:43:59",
+  "models": {
+    "planner": "agent team (graph)",
+    "yardstick": "exhaustive menu grid"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "goal_coverage": 1.0,
+    "scenarios": 22,
+    "scenarios_where_grid_meets_goal": 22,
+    "relief_gap_mean": 0.0,
+    "relief_gap_max": 0.0,
+    "top_score_ratio_mean": 0.8024,
+    "grid_plans_mean": 47.9
+  },
+  "n": 22,
+  "split": "hotspot scenarios of the gold set",
+  "rows": [
+    {
+      "id": "en02",
+      "grid_plans": 49,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 106.2,
+      "agents_best_relief": 106.2
+    },
+    {
+      "id": "en03",
+      "grid_plans": 50,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 278.6,
+      "agents_best_relief": 278.6
+    },
+    {
+      "id": "en04",
+      "grid_plans": 53,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 633.0,
+      "agents_best_relief": 633.0
+    },
+    {
+      "id": "en06",
+      "grid_plans": 32,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 2634.5,
+      "agents_best_relief": 2634.5
+    },
+    {
+      "id": "en07",
+      "grid_plans": 32,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 2389.1,
+      "agents_best_relief": 2389.1
+    },
+    {
+      "id": "en08",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 3947.4,
+      "agents_best_relief": 3947.4
+    },
+    {
+      "id": "en09",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 6333.4,
+      "agents_best_relief": 6333.4
+    },
+    {
+      "id": "en10",
+      "grid_plans": 45,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 749.2,
+      "agents_best_relief": 749.2
+    },
+    {
+      "id": "en12",
+      "grid_plans": 48,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 4.5,
+      "agents_best_relief": 4.5
+    },
+    {
+      "id": "en14",
+      "grid_plans": 41,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 14.0,
+      "agents_best_relief": 14.0
+    },
+    {
+      "id": "en15",
+      "grid_plans": 50,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 128.8,
+      "agents_best_relief": 128.8
+    },
+    {
+      "id": "en17",
+      "grid_plans": 53,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 648.8,
+      "agents_best_relief": 648.8
+    },
+    {
+      "id": "en18",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 3406.4,
+      "agents_best_relief": 3406.4
+    },
+    {
+      "id": "en19",
+      "grid_plans": 53,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 510.1,
+      "agents_best_relief": 510.1
+    },
+    {
+      "id": "en21",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 2382.2,
+      "agents_best_relief": 2382.2
+    },
+    {
+      "id": "en22",
+      "grid_plans": 45,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 3950.1,
+      "agents_best_relief": 3950.1
+    },
+    {
+      "id": "en23",
+      "grid_plans": 47,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 8138.4,
+      "agents_best_relief": 8138.4
+    },
+    {
+      "id": "en25",
+      "grid_plans": 54,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 375.5,
+      "agents_best_relief": 375.5
+    },
+    {
+      "id": "en26",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 5016.2,
+      "agents_best_relief": 5016.2
+    },
+    {
+      "id": "en28",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 12693.5,
+      "agents_best_relief": 12693.5
+    },
+    {
+      "id": "en29",
+      "grid_plans": 51,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 8442.4,
+      "agents_best_relief": 8442.4
+    },
+    {
+      "id": "en30",
+      "grid_plans": 44,
+      "grid_goal": true,
+      "agents_goal": true,
+      "relief_gap": 0.0,
+      "grid_best_relief": 3527.6,
+      "agents_best_relief": 3527.6
+    }
+  ],
+  "failures": [],
+  "gold_file": "eval/gold/agents_scenarios.jsonl"
+}

@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT))
 from fastapi.testclient import TestClient  # noqa: E402
 
 from apps.api.eventflow import main  # noqa: E402
-from apps.api.eventflow.schemas import CONTRACT_VERSION, AgentPlanResponse  # noqa: E402
+from apps.api.eventflow.schemas import CONTRACT_VERSION, AgentPlanResponse, Mission  # noqa: E402
 
 OUT = ROOT / "contract"
 FIX = OUT / "fixtures"
@@ -76,6 +76,18 @@ def main_() -> None:
     plan["cached"] = False
     AgentPlanResponse.model_validate(plan)
     dump("agent_plan.json", plan)
+    # The mission fixture: the agent team on the same what-if (events, objective, checks, stress tests, budget).
+    m = c.post("/agent/run", json={"forecast_run_id": fc["run_id"], "forecast": {"event_id": "dfw2026_d1", "attendance": 40000},
+                                   "scope": "corridor"}).json()
+    m["plan"]["cached"] = False
+    m["budget"]["wall_ms"] = 0.0                                # timings vary run to run; fixtures must not
+    for e in m["events"]:
+        e["t_ms"] = 0.0
+    for e in m["plan"]["trace"]:
+        e["ms"] = 0.0
+    Mission.model_validate(m)
+    dump("agent_mission.json", m)
+    dump("agent_roster.json", c.get("/agent/roster").json())
     dump("decision_response.json", {"logged": True, "decision_id": "dec_fixture01", "timestamp": "2026-11-18T18:05:00+04:00",
                                     "plan_known": True})
     dump("evidence.json", c.get("/evidence").json())
