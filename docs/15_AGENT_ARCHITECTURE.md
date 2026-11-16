@@ -145,6 +145,31 @@ record-missions` — only words are replayed; every simulation and check runs ag
 ("AI answers recorded <date> · <model>"). Without a recording each agent uses its code policy, and the screen says that
 too. Live timing and token cost per agent are written to `eval/results/live/missions_*.json` when recorded.
 
+### Incidents and the duty shift (contract 1.13.0, decision #128)
+
+**Incident what-ifs.** A request may carry `incident: {type, hour}`: a train fault (the Red Line runs half its
+scheduled trains for two hours), heavy rain or extreme heat (the weather what-if), or a bigger crowd (attendance × 1.3).
+What an incident changes is fixed in `config/incidents.yaml` and resolved by the server; the client sends only the type
+and the hour, and the forecast answers with the resolved figures and their source. A train fault leaves demand alone
+and reaches the simulator as a service factor, so extra trains count from the reduced timetable. An incident is part of
+the scenario, so every endpoint (simulate, watch, team, messenger, ask, break point) works on it without change.
+
+**The duty shift on autopilot** (`POST /shift/next`, `agents/shift.py`). The standing Watcher and the planning team
+work the scenario day one step at a time: the clock runs to the Watcher's next alert (never earlier than an incident's
+hour), the team plans on top of the measures already approved, and the step returns with one option in the approval
+inbox: the first that the critic says clears every station, else the plan's first. **Nothing is applied by the shift.**
+The human's decision is logged first (`POST /decisions`); only then does the client add the measures and ask for the
+next step. After an approval a station that is still over the line is a new alert; after a rejection the same alert is
+not raised again. The shift ends "clear" only when nothing is over the line; otherwise it reports what remains for the
+duty manager. The API keeps no shift state: the client carries the approved measures, the handled alerts and the clock.
+
+| What | Result | Source |
+|---|---|---|
+| Same incident request → same run id and simulation; an incident never makes the day easier | **1.0 · 1.0** (15 shifts) | `incidents_*.json` |
+| Each proposal's figures equal an independent simulation of the measures in place | **1.0** | same |
+| Every shift ends; "clear" only when nothing is over the line; the shift writes no decision | **1.0 · 1.0 · 1.0** | same |
+| Shifts with crowding that end with nothing over the line, all proposals approved | **1.0** (10 of 10; reported, not gated) | same |
+
 ## 6. Can we watch them work?
 
 Yes. In the workspace, **AI team** tab: the five layers light up agent by agent as the mission plays, with a feed of
@@ -153,11 +178,21 @@ tested and not offered with the reason, the budget and the measured accuracy abo
 shows the same team at work (skippable). The Alerts tab shows the Watcher; the AI team tab has Ask the twin and, after
 an approval, the Messenger's drafts. The same mission replays offline from the snapshot when the API is down.
 
+Since #128 the Alerts tab also runs the **duty shift**: pick an incident (or none), start the shift, and the clock
+runs to the first alert, where the team's recommendation waits with Approve and Reject. The AI team tab shows the
+**debate** behind it: for each plan tested, the specialist's case with the simulator's figures, the critic's objection
+by criterion, and the verdict. When the shift ends, the **operations brief** (a printable draft: incident, decisions,
+before and after, the Messenger's drafts in English and Arabic) opens from the same card. The duty shift and incidents
+need the planning service: they are not in the offline snapshot.
+
 ## 7. Limits (stated, not hidden)
 
 - Demand is synthetic; capacity and timetable are real (RTA GTFS); several model parameters are assumptions
   (`config/corridor.yaml`, labelled `[ASSUMPTION]`).
 - The intake's injection screen and the ask router's patterns were written with their test sets in view (in-sample).
 - C4–C7 are reported, not yet used for ranking.
+- Incident figures (half the trains for two hours, 30 % more visitors) are assumptions for a what-if, not RTA data;
+  rain and heat reuse the weather what-if, which applies to the whole event, not from the incident hour on.
+- The duty shift asks about one recommendation at a time; a real control room would also weigh staff and rolling stock.
 - The model path's quality depends on the recording; replans are code-only to keep a mission under the time budget.
 - "Designed for / aligned with" RTA priorities — not an RTA system, not endorsed by RTA.

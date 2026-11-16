@@ -61,6 +61,8 @@ flowchart LR
 | `GET /agent/roster` | the agents, layers and the orchestration graph (Mermaid, from the compiled graph) |
 | `POST /agent/plan` | the plan only (classic single planner; same plans as the team without a model) |
 | `POST /watch/scan` · `/agent/message` · `/agent/ask` | standing agents: watcher alerts, messenger drafts, ask the twin |
+| `POST /shift/next` | the duty shift on autopilot, one step: clock to the Watcher's next alert, the team plans, the step stops for a human (contract 1.13.0) |
+| `ForecastRequest.incident` | incident what-if (train fault, rain, heat, crowd surge), resolved from `config/incidents.yaml` |
 | `POST /decisions`, `GET /decisions` | human approvals and rejections, append-only audit log |
 | `GET /evidence` | newest eval metrics per suite + data provenance |
 

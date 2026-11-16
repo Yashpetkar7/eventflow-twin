@@ -17,6 +17,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
+import yaml
 
 from .config import ROOT, corridor, events
 from .event_model import overlay, timing_params, to_min
@@ -146,22 +147,72 @@ def weather_metro_share(weather: str | None) -> float | None:
     return float(table[weather])
 
 
+@lru_cache
+def incident_config() -> tuple[dict, str]:
+    """The incident what-ifs (config/incidents.yaml) and a hash of the file, which enters the run id of a run that
+    uses one (the file is deliberately not part of config_hash: see its header)."""
+    f = ROOT / "config/incidents.yaml"
+    return yaml.safe_load(f.read_text(encoding="utf-8")), hashlib.sha256(f.read_bytes()).hexdigest()[:8]
+
+
+def resolve_incident(incident: dict | None, ev: dict | None, attendance: float | None, weather: str | None,
+                     metro_share: float | None) -> tuple[dict | None, float | None, str | None, float | None, dict | None]:
+    """An incident what-if turned into the scenario it stands for: (what happened with its resolved figures,
+    attendance, weather, metro share, service fault). Everything comes from config/incidents.yaml."""
+    if not incident:
+        return None, attendance, weather, metro_share, None
+    cfg, _ = incident_config()
+    kind, hour = incident["type"], int(incident["hour"])
+    c = cfg[kind]
+    info: dict = {"type": kind, "hour": hour, "source": "config/incidents.yaml (assumption)"}
+    service = None
+    if kind in ("rain", "heat"):
+        weather, metro_share = c["weather"], None                # the incident's weather sets the share of trips by metro
+        info["weather"] = weather
+    elif kind == "crowd_surge":
+        if not ev:
+            raise ValueError("a crowd surge needs an event")
+        before = float(attendance if attendance is not None else ev["attendance"])
+        attendance = float(round(before * float(c["attendance_factor"])))
+        info.update({"attendance_factor": float(c["attendance_factor"]), "attendance_before": before, "attendance_after": attendance})
+    else:                                                        # train_fault
+        hours = [h for h in range(hour, hour + int(c["hours"])) if h < 24]
+        service = {c["line"]: {h: float(c["capacity_factor"]) for h in hours}}
+        info.update({"line": c["line"], "capacity_factor": float(c["capacity_factor"]), "hours": hours})
+    return info, attendance, weather, metro_share, service
+
+
+def build_from_spec(spec: dict) -> dict:
+    """build_forecast from a ForecastRequest as a dict: the one place that knows every field of a scenario (the API,
+    the stress test and the what-if answers all rebuild runs from a request)."""
+    return build_forecast(spec.get("event_id"), spec.get("date"), spec.get("weekday"), spec.get("attendance"), spec.get("end_time"),
+                          weather=spec.get("weather"), exit_sigma_min=spec.get("exit_sigma_min"), metro_share=spec.get("metro_share"),
+                          demand_level=spec.get("demand_level"), custom=spec.get("custom_event"), incident=spec.get("incident"))
+
+
 def build_forecast(event_id: str | None = None, date: str | None = None, weekday: int | None = None,
                    attendance: float | None = None, end: str | None = None, *, weather: str | None = None,
                    exit_sigma_min: float | None = None, custom: dict | None = None,
-                   metro_share: float | None = None, demand_level: str | None = None) -> dict:
-    """Return {run_id, demand (bins, p50), rows (hourly p10/p50/p90), meta...}. Pure for fixed data+config."""
+                   metro_share: float | None = None, demand_level: str | None = None,
+                   incident: dict | None = None) -> dict:
+    """Return {run_id, demand (bins, p50), rows (hourly p10/p50/p90), meta...}. Pure for fixed data+config.
+    `incident` ({type, hour}): a duty-view what-if resolved from config/incidents.yaml; a train fault leaves demand
+    as it is and is carried in the run as `service` for the simulator."""
     panel = load_panel()
     ev = custom_event(custom) if custom else find_event(event_id)
+    requested = {"attendance": attendance, "weather": weather, "metro_share": metro_share}
+    info, attendance, weather, metro_share, service = resolve_incident(incident, ev, attendance, weather, metro_share)
     if weekday is None:
         day = date or (ev or {}).get("date")
         weekday = dt.date.fromisoformat(day).weekday() if day else 2
-    payload = {"event_id": event_id, "date": date, "weekday": weekday, "attendance": attendance, "end": end,
+    # the id is hashed from the request as sent; an incident adds itself and its config's hash
+    payload = {"event_id": event_id, "date": date, "weekday": weekday, "attendance": requested["attendance"], "end": end,
                "dataset": panel.dataset_version, "config": config_hash()}
     # new what-ifs only enter the hash when used, so earlier run ids (fixtures, cache, evals) stay valid
-    extra = {"weather": weather if weather not in (None, "normal") else None, "exit_sigma_min": exit_sigma_min,
-             "custom": custom, "metro_share": metro_share,
-             "demand_level": demand_level if demand_level not in (None, "synthetic") else None}
+    extra = {"weather": requested["weather"] if requested["weather"] not in (None, "normal") else None, "exit_sigma_min": exit_sigma_min,
+             "custom": custom, "metro_share": requested["metro_share"],
+             "demand_level": demand_level if demand_level not in (None, "synthetic") else None,
+             "incident": {"type": incident["type"], "hour": int(incident["hour"]), "cfg": incident_config()[1]} if incident else None}
     payload.update({k: v for k, v in extra.items() if v is not None})
     run_id = make_run_id("fc", payload)
 
@@ -212,6 +263,8 @@ def build_forecast(event_id: str | None = None, date: str | None = None, weekday
                         "stations": {k: v["ratio"] for k, v in cal["stations"].items()}} if cal else None,
         "band_note": "p10/p90 = background weekday quantiles + event surge at attendance × "
                      f"{lo}/{hi} (assumption band, not a calibrated interval)",
+        "incident": info,
+        "service": service,
         "demand": demand,
         "rows": rows,
     }

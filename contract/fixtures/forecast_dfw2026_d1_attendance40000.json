@@ -32,6 +32,7 @@
     "note": null,
     "note_ar": null
   },
+  "incident": null,
   "band_note": "p10/p90 = background weekday quantiles + event surge at attendance × 0.75/1.25 (assumption band, not a calibrated interval)",
   "rows": [
     {

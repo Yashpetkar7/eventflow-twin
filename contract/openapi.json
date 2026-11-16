@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.12.0"
+    "version": "1.13.0"
   },
   "paths": {
     "/healthz": {
@@ -299,6 +299,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shift/next": {
+      "post": {
+        "summary": "Shift Next",
+        "description": "The duty shift on autopilot, one step (agents/shift.py): the clock runs to the Watcher's next alert, the team\nplans on top of what is already approved, and the step stops for a human. Nothing is applied here.",
+        "operationId": "shift_next_shift_next_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftStep"
                 }
               }
             }
@@ -2353,6 +2392,17 @@
               }
             ],
             "description": "Build-your-own scenario; overrides event_id"
+          },
+          "incident": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Incident"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Incident what-if for the duty view (assumptions in config/incidents.yaml)"
           }
         },
         "type": "object",
@@ -2471,6 +2521,17 @@
             ],
             "description": "The event behind this run (resolved custom event included)"
           },
+          "incident": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The incident in this scenario, as resolved from config/incidents.yaml"
+          },
           "band_note": {
             "type": "string",
             "title": "Band Note"
@@ -2572,6 +2633,146 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Incident": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "train_fault",
+              "rain",
+              "heat",
+              "crowd_surge"
+            ],
+            "title": "Type"
+          },
+          "hour": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 5.0,
+            "title": "Hour",
+            "description": "Hour of the scenario day at which it happens (a train fault lasts from then; the watcher cannot see it earlier)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "hour"
+        ],
+        "title": "Incident",
+        "description": "A duty-view what-if (contract 1.13.0): what it changes is fixed in config/incidents.yaml, not sent by the client."
+      },
+      "IncidentInfo": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "train_fault",
+              "rain",
+              "heat",
+              "crowd_surge"
+            ],
+            "title": "Type"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "capacity_factor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity Factor",
+            "description": "train_fault: share of the scheduled trains that still run"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours",
+            "description": "train_fault: the hours it lasts"
+          },
+          "attendance_factor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Factor"
+          },
+          "attendance_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Before"
+          },
+          "attendance_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance After"
+          },
+          "weather": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weather"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "hour",
+          "source"
+        ],
+        "title": "IncidentInfo",
+        "description": "The incident as resolved by the server, with the assumption behind each figure."
       },
       "LayerInfo": {
         "properties": {
@@ -3518,6 +3719,287 @@
           "graph_mermaid"
         ],
         "title": "Roster"
+      },
+      "ShiftAlert": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "raised_at": {
+            "type": "integer",
+            "title": "Raised At",
+            "description": "Hour of the scenario day at which the watcher raises the alert"
+          },
+          "crosses_at": {
+            "type": "integer",
+            "title": "Crosses At",
+            "description": "First hour the station is over the threshold"
+          },
+          "lead_h": {
+            "type": "integer",
+            "title": "Lead H"
+          },
+          "hours": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Hours"
+          },
+          "peak_lf": {
+            "type": "number",
+            "title": "Peak Lf"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Key",
+            "description": "'STATION@crosses_at#approved measures': how the client marks the alert as handled"
+          },
+          "seen_at": {
+            "type": "integer",
+            "title": "Seen At",
+            "description": "Hour at which this shift sees the alert (never before from_hour)"
+          },
+          "lead_now_h": {
+            "type": "integer",
+            "title": "Lead Now H",
+            "description": "Hours between seeing it and the crossing (0 or less: already over the line)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "raised_at",
+          "crosses_at",
+          "lead_h",
+          "hours",
+          "peak_lf",
+          "run_id",
+          "key",
+          "seen_at",
+          "lead_now_h"
+        ],
+        "title": "ShiftAlert"
+      },
+      "ShiftRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest",
+            "description": "The forecast request (lets any instance rebuild the run)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied"
+          },
+          "from_hour": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 5.0,
+            "title": "From Hour",
+            "description": "The shift's clock: alerts are raised no earlier than this hour (an incident cannot be seen before it happens)",
+            "default": 5
+          },
+          "handled": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 64,
+            "title": "Handled",
+            "description": "Alert keys (ShiftAlert.key) already approved, rejected or passed to the duty manager"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "horizon_h": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Horizon H",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id",
+          "forecast"
+        ],
+        "title": "ShiftRequest",
+        "description": "One step of a duty shift. The client keeps the state (stateless API): the measures approved so far (`applied`),\nthe alerts already dealt with (`handled`) and the hour the shift has reached."
+      },
+      "ShiftStep": {
+        "properties": {
+          "done": {
+            "type": "boolean",
+            "title": "Done",
+            "description": "True: no alert is left for the rest of the day"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "awaiting_human",
+              "no_option",
+              "clear",
+              "residual",
+              "step_limit"
+            ],
+            "title": "Reason",
+            "description": "clear: nothing is over the line · residual: every alert was dealt with but some crowding remains (for the duty manager) · no_option: the team found nothing that helps · step_limit: too many decisions asked, the rest goes to the duty manager"
+          },
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftAlert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "mission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Mission"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recommended_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Rank",
+            "description": "The option put to the human: the first that clears every station (critic's goal), else the plan's first"
+          },
+          "watch": {
+            "$ref": "#/components/schemas/WatchResponse"
+          },
+          "residual": {
+            "$ref": "#/components/schemas/SimSummary",
+            "description": "The day with the measures approved so far (simulator)"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/SimSummary",
+            "description": "The day with no measures (simulator)"
+          },
+          "applied_count": {
+            "type": "integer",
+            "title": "Applied Count"
+          },
+          "handled_count": {
+            "type": "integer",
+            "title": "Handled Count"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "done",
+          "reason",
+          "hour",
+          "alerts",
+          "watch",
+          "residual",
+          "baseline",
+          "applied_count",
+          "handled_count",
+          "run_id",
+          "is_synthetic"
+        ],
+        "title": "ShiftStep",
+        "description": "What the autonomous shift did until it needed a human: the clock ran to `hour`, the Watcher raised `alerts`,\nthe team planned (`mission`) and its first option waits for approval. Nothing is applied by this call."
       },
       "ShuttleBus": {
         "properties": {

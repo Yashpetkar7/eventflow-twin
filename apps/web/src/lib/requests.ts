@@ -5,6 +5,8 @@ import type { components } from "./api-types";
 type S = components["schemas"];
 export type Weather = "normal" | "hot" | "rain";
 export type Priority = "cost" | "balanced" | "impact";
+export type IncidentType = "train_fault" | "rain" | "heat" | "crowd_surge";
+export const INCIDENT_TYPES: IncidentType[] = ["train_fault", "rain", "heat", "crowd_surge"];
 
 export interface Scenario {
   eventId: string;                 // an id from /events, or "custom"
@@ -14,6 +16,8 @@ export interface Scenario {
   metroShare?: number | null;      // what-if share of event trips by metro (null/absent = the weather's share)
   demandLevel?: "synthetic" | "real_totals" | null;   // real_totals = corridor stations scaled to their real weekday totals (contract 1.10.0)
   custom: { near: string; start: string; end: string; weekend: boolean };
+  /** Incident what-if for the duty view (contract 1.13.0): what it changes is the server's (config/incidents.yaml). */
+  incident?: { type: IncidentType; hour: number } | null;
 }
 
 export const CUSTOM_DEFAULT_ATTENDANCE = 20000;
@@ -30,6 +34,7 @@ export function forecastBody(s: Scenario): S["ForecastRequest"] {
   if (s.exitSigma !== null) body.exit_sigma_min = s.exitSigma;
   if (s.metroShare != null) body.metro_share = s.metroShare;
   if (s.demandLevel === "real_totals") body.demand_level = "real_totals";
+  if (s.incident) body.incident = { type: s.incident.type, hour: s.incident.hour };       // sent only when set: the default request stays byte-identical
   return body as S["ForecastRequest"];
 }
 
@@ -63,6 +68,12 @@ export function messageBody(runId: string, threshold: number, forecast: S["Forec
 export function askBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], locale: "en" | "ar",
   q: { intent?: S["AskRequest"]["intent"]; question?: string }): S["AskRequest"] {
   return { ...scenarioRef(runId, threshold, forecast, applied), locale, ...q } as S["AskRequest"];
+}
+
+/** One step of the duty shift: the client carries the shift's state (approved measures, handled alerts, the clock). */
+export function shiftBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], handled: string[], fromHour: number,
+  locale: "en" | "ar"): S["ShiftRequest"] {
+  return { ...scenarioRef(runId, threshold, forecast, applied), handled, from_hour: fromHour, locale, horizon_h: 3 } as S["ShiftRequest"];
 }
 
 export function breakpointBody(runId: string, threshold: number, forecast: S["ForecastRequest"]): S["BreakpointRequest"] {

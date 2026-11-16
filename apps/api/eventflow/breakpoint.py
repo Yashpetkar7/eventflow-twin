@@ -47,7 +47,7 @@ def break_points(run: dict, threshold: float | None = None, stations: list[str] 
     bph = bins_per_hour()
     attendance = run.get("attendance_used") or 0
     demand = run["demand"]
-    cap, _ = capacity_table(ids, None, bph, run["weekday"])
+    cap, _ = capacity_table(ids, None, bph, run["weekday"], service=run.get("service"))
     bs0 = float(cfg["capacity"]["boardable_share"])
     per_visitor = {s: [e / attendance for e in demand[s]["event"]] if attendance else [0.0] * len(demand[s]["event"]) for s in ids}
 

@@ -192,6 +192,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/shift/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Shift Next
+         * @description The duty shift on autopilot, one step (agents/shift.py): the clock runs to the Watcher's next alert, the team
+         *     plans on top of what is already approved, and the step stops for a human. Nothing is applied here.
+         */
+        post: operations["shift_next_shift_next_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/agent/message": {
         parameters: {
             query?: never;
@@ -963,6 +984,8 @@ export interface components {
             demand_level: "synthetic" | "real_totals";
             /** @description Build-your-own scenario; overrides event_id */
             custom_event?: components["schemas"]["CustomEvent"] | null;
+            /** @description Incident what-if for the duty view (assumptions in config/incidents.yaml) */
+            incident?: components["schemas"]["Incident"] | null;
         };
         /** ForecastResponse */
         ForecastResponse: {
@@ -1007,6 +1030,8 @@ export interface components {
             } | null;
             /** @description The event behind this run (resolved custom event included) */
             event?: components["schemas"]["Event"] | null;
+            /** @description The incident in this scenario, as resolved from config/incidents.yaml */
+            incident?: components["schemas"]["IncidentInfo"] | null;
             /** Band Note */
             band_note: string;
             /** Rows */
@@ -1043,6 +1068,57 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * Incident
+         * @description A duty-view what-if (contract 1.13.0): what it changes is fixed in config/incidents.yaml, not sent by the client.
+         */
+        Incident: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "train_fault" | "rain" | "heat" | "crowd_surge";
+            /**
+             * Hour
+             * @description Hour of the scenario day at which it happens (a train fault lasts from then; the watcher cannot see it earlier)
+             */
+            hour: number;
+        };
+        /**
+         * IncidentInfo
+         * @description The incident as resolved by the server, with the assumption behind each figure.
+         */
+        IncidentInfo: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "train_fault" | "rain" | "heat" | "crowd_surge";
+            /** Hour */
+            hour: number;
+            /** Source */
+            source: string;
+            /** Line */
+            line?: string | null;
+            /**
+             * Capacity Factor
+             * @description train_fault: share of the scheduled trains that still run
+             */
+            capacity_factor?: number | null;
+            /**
+             * Hours
+             * @description train_fault: the hours it lasts
+             */
+            hours?: number[] | null;
+            /** Attendance Factor */
+            attendance_factor?: number | null;
+            /** Attendance Before */
+            attendance_before?: number | null;
+            /** Attendance After */
+            attendance_after?: number | null;
+            /** Weather */
+            weather?: string | null;
         };
         /** LayerInfo */
         LayerInfo: {
@@ -1393,6 +1469,128 @@ export interface components {
              * @description The orchestration graph, generated from the code (empty without LangGraph)
              */
             graph_mermaid: string;
+        };
+        /** ShiftAlert */
+        ShiftAlert: {
+            /** Station */
+            station: string;
+            /**
+             * Raised At
+             * @description Hour of the scenario day at which the watcher raises the alert
+             */
+            raised_at: number;
+            /**
+             * Crosses At
+             * @description First hour the station is over the threshold
+             */
+            crosses_at: number;
+            /** Lead H */
+            lead_h: number;
+            /** Hours */
+            hours: number[];
+            /** Peak Lf */
+            peak_lf: number;
+            /** Run Id */
+            run_id: string;
+            /**
+             * Key
+             * @description 'STATION@crosses_at#approved measures': how the client marks the alert as handled
+             */
+            key: string;
+            /**
+             * Seen At
+             * @description Hour at which this shift sees the alert (never before from_hour)
+             */
+            seen_at: number;
+            /**
+             * Lead Now H
+             * @description Hours between seeing it and the crossing (0 or less: already over the line)
+             */
+            lead_now_h: number;
+        };
+        /**
+         * ShiftRequest
+         * @description One step of a duty shift. The client keeps the state (stateless API): the measures approved so far (`applied`),
+         *     the alerts already dealt with (`handled`) and the hour the shift has reached.
+         */
+        ShiftRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description The forecast request (lets any instance rebuild the run) */
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * From Hour
+             * @description The shift's clock: alerts are raised no earlier than this hour (an incident cannot be seen before it happens)
+             * @default 5
+             */
+            from_hour: number;
+            /**
+             * Handled
+             * @description Alert keys (ShiftAlert.key) already approved, rejected or passed to the duty manager
+             */
+            handled?: string[];
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+            /**
+             * Horizon H
+             * @default 3
+             */
+            horizon_h: number;
+        };
+        /**
+         * ShiftStep
+         * @description What the autonomous shift did until it needed a human: the clock ran to `hour`, the Watcher raised `alerts`,
+         *     the team planned (`mission`) and its first option waits for approval. Nothing is applied by this call.
+         */
+        ShiftStep: {
+            /**
+             * Done
+             * @description True: no alert is left for the rest of the day
+             */
+            done: boolean;
+            /**
+             * Reason
+             * @description clear: nothing is over the line · residual: every alert was dealt with but some crowding remains (for the duty manager) · no_option: the team found nothing that helps · step_limit: too many decisions asked, the rest goes to the duty manager
+             * @enum {string}
+             */
+            reason: "awaiting_human" | "no_option" | "clear" | "residual" | "step_limit";
+            /** Hour */
+            hour: number;
+            /** Alerts */
+            alerts: components["schemas"]["ShiftAlert"][];
+            mission?: components["schemas"]["Mission"] | null;
+            /**
+             * Recommended Rank
+             * @description The option put to the human: the first that clears every station (critic's goal), else the plan's first
+             */
+            recommended_rank?: number | null;
+            watch: components["schemas"]["WatchResponse"];
+            /** @description The day with the measures approved so far (simulator) */
+            residual: components["schemas"]["SimSummary"];
+            /** @description The day with no measures (simulator) */
+            baseline: components["schemas"]["SimSummary"];
+            /** Applied Count */
+            applied_count: number;
+            /** Handled Count */
+            handled_count: number;
+            /** Run Id */
+            run_id: string;
+            /** Is Synthetic */
+            is_synthetic: boolean;
         };
         /** ShuttleBus */
         ShuttleBus: {
@@ -2083,6 +2281,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WatchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    shift_next_shift_next_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftStep"];
                 };
             };
             /** @description Validation Error */
