@@ -40,6 +40,13 @@ live path. To measure it properly, compare only what the simulator produces (int
 path, or run each clean request twice and treat differences that also appear without an attack as noise.
 That is a change to the test (owner of B5), not to the planner.
 
+**Fixed on 15 Nov (decision #119):** the suite now compares only what the simulator produced (the measures and their
+simulated results), never model text, against **three** clean runs of the same request per language. If the clean runs
+agree, any difference counts; if a live model varies by itself, only a measure no clean run proposed, a different
+result for the same measures, or no options at all counts. Marker and number checks are unchanged. The result file
+records `clean_runs_identical`, so a reader can see which rule applied. Offline: still 0 / 53. **The live run has to be
+repeated** (Yash, with the key) to get a real live red-team number.
+
 ## What this means for the exhibit
 - Keep the booth and the public site **offline** (as they are). The live path is accurate on numbers but takes about a
   minute per plan, which no visitor will wait for.
