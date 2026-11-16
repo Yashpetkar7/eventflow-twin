@@ -43,7 +43,9 @@ def intake(state: State) -> dict:
     c = o["constraints"]
     ctx.event("intake", "decision", "intake.objective", rnd=1, threshold_pct=_pct(o["threshold"]), priority=o["priority"],
               forbid=c.get("forbid_types", []), protect=c.get("protect_stations", []), cost_cap=c.get("cost_cap"))
-    for f in o["findings"]:
+    from .personas import intake_model                     # the intake's model, if any: suggestions, never applied
+    intake_model(ctx)
+    for f in ctx.findings:
         ctx.event("intake", "finding", "intake.finding", rnd=1, field=f["field"])
     return {}
 
@@ -159,6 +161,12 @@ def composer(state: State) -> dict:
             p.seen.add(sig)
             p.cands.append({"key": "llm", "ivs": c["ivs"], "ctx": {}, "label": c.get("label", "")})
             added += 1
+        if added:                                     # the plan names the model behind its extra bundles
+            p.llm_used.append("propose")
+            p.llm_added = added
+            if p.llm is None and ctx.spec_llm is not None:
+                p.llm = ctx.spec_llm
+                p.llm_name = f"{'OpenAI' if p.llm.provider == 'openai' else 'Claude'} {p.llm.model}"
         cross = sum(c["agent"] == "composer" for c in allowed)
         ctx.event("composer", "decision", "composer.bundles", rnd=1, menu=len(allowed) - cross, cross=cross, model=added,
                   forbidden=len(menu) - len(allowed))

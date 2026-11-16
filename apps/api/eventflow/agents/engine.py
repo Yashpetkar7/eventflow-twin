@@ -116,7 +116,7 @@ def _classic(run: dict, req, run_simulation) -> dict:
     opts = [{"rank": o["rank"], "interventions": o["interventions"]} for o in plan["options"]]
     ctx.assessments = stress_test(ctx, opts)
     # the classic planner keeps no pool: assessments from its options only, no rejected plans listed
-    ctx.p.assemble = lambda: plan                       # conclude() reuses the plan the classic planner returned
+    ctx.p.assemble = lambda write_cache=True: plan      # conclude() reuses the plan the classic planner returned
     ctx.p.base = {"summary": plan["baseline_summary"], "road": plan.get("baseline_road"), "hourly": []}
     ctx.stop_reason = "classic"
     return conclude(ctx)

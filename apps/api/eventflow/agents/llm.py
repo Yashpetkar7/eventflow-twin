@@ -41,11 +41,12 @@ class AnthropicLLM:
 
     provider = "claude"
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, timeout: float = 90.0, max_retries: int = 2):
         import anthropic                                       # imported lazily: the offline booth never needs it
         self._anthropic = anthropic
-        self.client = anthropic.Anthropic(max_retries=2, timeout=90.0)
+        self.client = anthropic.Anthropic(max_retries=max_retries, timeout=timeout)
         self.model = model
+        self.last_usage: dict = {}
 
     def complete_json(self, *, system: str, user: str, schema: dict, effort: str, max_tokens: int) -> dict:
         a = self._anthropic
@@ -60,6 +61,8 @@ class AnthropicLLM:
             raise LLMUnavailable(f"HTTP {e.status_code}: {str(e)[:160]}") from e
         except a.APIConnectionError as e:
             raise LLMUnavailable("network unavailable") from e
+        u = getattr(resp, "usage", None)
+        self.last_usage = {"input_tokens": getattr(u, "input_tokens", 0) or 0, "output_tokens": getattr(u, "output_tokens", 0) or 0}
         if resp.stop_reason == "refusal":
             raise LLMUnavailable("the model declined")
         if resp.stop_reason == "max_tokens":
@@ -80,11 +83,12 @@ class OpenAILLM:
     provider = "openai"
     MIN_OUTPUT_TOKENS = 25000                                  # OpenAI's advice when reasoning is on
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, timeout: float = 90.0, max_retries: int = 2):
         import openai                                          # imported lazily: the offline booth never needs it
         self._openai = openai
-        self.client = openai.OpenAI(max_retries=2, timeout=90.0)    # reads OPENAI_API_KEY; raises if it is missing
+        self.client = openai.OpenAI(max_retries=max_retries, timeout=timeout)    # reads OPENAI_API_KEY; raises if it is missing
         self.model = model
+        self.last_usage: dict = {}
 
     def complete_json(self, *, system: str, user: str, schema: dict, effort: str, max_tokens: int) -> dict:
         o = self._openai
@@ -99,6 +103,8 @@ class OpenAILLM:
             raise LLMUnavailable(f"HTTP {e.status_code}: {str(e)[:160]}") from e
         except o.APIConnectionError as e:
             raise LLMUnavailable("network unavailable") from e
+        u = getattr(resp, "usage", None)
+        self.last_usage = {"input_tokens": getattr(u, "input_tokens", 0) or 0, "output_tokens": getattr(u, "output_tokens", 0) or 0}
         if getattr(resp, "status", None) == "incomplete":
             why = getattr(getattr(resp, "incomplete_details", None), "reason", None) or "incomplete"
             raise LLMUnavailable("answer truncated" if why == "max_output_tokens" else f"answer incomplete ({why})")
@@ -129,6 +135,14 @@ def display_name(llm: LLMClient) -> str:
     return f"{brand} {llm.model}"
 
 
+def make_client(model: str, timeout: float = 90.0, max_retries: int = 2) -> LLMClient | None:
+    """A client for `model` (provider from the id or LLM_PROVIDER), or None when its SDK or key is missing."""
+    try:
+        return {"openai": OpenAILLM, "anthropic": AnthropicLLM}[provider_for(model)](model, timeout=timeout, max_retries=max_retries)
+    except Exception:                                          # unknown provider, SDK missing or no key configured
+        return None
+
+
 def get_llm() -> LLMClient | None:
     """The configured model, or None to stay offline."""
     if os.environ.get("DEMO_MODE", "offline") != "live":
@@ -136,10 +150,7 @@ def get_llm() -> LLMClient | None:
     model = os.environ.get("LLM_MODEL", "").strip()
     if not model:
         return None
-    try:
-        return {"openai": OpenAILLM, "anthropic": AnthropicLLM}[provider_for(model)](model)
-    except Exception:                                          # unknown provider, SDK missing or no key configured
-        return None
+    return make_client(model)
 
 
 # ---------------------------------------------------------------- Proposer
