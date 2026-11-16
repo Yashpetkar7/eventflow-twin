@@ -204,7 +204,7 @@ test("crash recovery: API drops mid-session, saved results stay, banner clears o
 
 test("every simulate and plan request carries the forecast spec (stateless API)", async ({ page }) => {
   const bodies: { url: string; body: { forecast?: unknown } }[] = [];
-  page.on("request", (r) => { if (r.method() === "POST" && /\/(simulate|agent\/plan|agent\/run)$/.test(r.url())) bodies.push({ url: r.url(), body: r.postDataJSON() }); });
+  page.on("request", (r) => { if (r.method() === "POST" && /\/(simulate|agent\/plan|agent\/run|agent\/run\/stream)$/.test(r.url())) bodies.push({ url: r.url(), body: r.postDataJSON() }); });
   await open(page);
   await page.getByRole("button", { name: "Hot day" }).click();
   // wait until the hot-day forecast has replaced the old one (a refresh clears any plan in progress)
