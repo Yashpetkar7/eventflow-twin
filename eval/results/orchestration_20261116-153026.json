@@ -1,0 +1,26 @@
+{
+  "suite": "orchestration",
+  "git_sha": "2907888-dirty",
+  "timestamp": "2026-11-16T15:30:26",
+  "models": {
+    "engines": "graph,seq,classic",
+    "llm_model": null
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "engines_agree": 1.0,
+    "events_deterministic": 1.0,
+    "trace_complete": 1.0,
+    "budget_respected": 1.0,
+    "layers_covered": 1.0,
+    "missions_with_options": 44,
+    "mission_p50_s": 0.195,
+    "mission_p95_s": 0.364,
+    "engine_default": "graph"
+  },
+  "n": 60,
+  "split": "all (dev+test)",
+  "failures": [],
+  "gold_file": "eval/gold/agents_scenarios.jsonl"
+}

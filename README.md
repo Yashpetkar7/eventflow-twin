@@ -22,7 +22,8 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/03_ARCHITECTURE.md` | System diagram, components, API contract | Build |
 | `docs/04_DATA_SOURCES.md` | Every dataset, URL, schema notes, download steps, licence notes | Day 1–2 |
 | `docs/05_MODELING_SPEC.md` | Forecasting + capacity/intervention simulator maths | Build |
-| `docs/06_AGENTS_SPEC.md` | Agents, tools, prompts, guardrails, human-in-the-loop (built: deterministic planner + optional Claude proposer/explainer, `apps/api/eventflow/agents/`) | Build |
+| `docs/06_AGENTS_SPEC.md` | Agents, graph, personas, guardrails, human-in-the-loop (as built, `apps/api/eventflow/agents/`) | Build |
+| `docs/15_AGENT_ARCHITECTURE.md` | **The agent team**: 18 agents in 5 layers on LangGraph, their logic, and the measured accuracy (answers the professor's review, 16 Nov) | Jury, pitch |
 | `docs/07_UI_SPEC.md` | Screens, design tokens, 3D, Arabic/RTL, booth mode, offline mode | Build |
 | `docs/08_EVAL_PLAN.md` | Metrics, gold sets, thresholds, CI gate | Build |
 | `docs/09_DECISIONS.md` | Decision log (ADR) | Ongoing |

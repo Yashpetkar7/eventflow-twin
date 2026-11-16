@@ -148,3 +148,38 @@ The crowd, drawn as people. One figure stands for 40 riders an hour at that stat
 
 **"Is the city a real 3D scan?"**
 No. Footprints and heights are open data; the windows, rooms behind them, lights and cloud shadows are drawn by code. The landmark towers are approximations from public dimensions, not survey models.
+
+
+## Added 16 Nov — the agent team (decisions #121–#125, `docs/15_AGENT_ARCHITECTURE.md`)
+
+**"How many agents are there, and is it really agentic?"**
+Eighteen agents in five layers — command, understand, propose, test & challenge, explain & govern — plus two standing
+agents (the watcher and "ask the twin"). Eight of them can call a language model; ten are code. They are orchestrated
+as a LangGraph graph: four specialists (rail, station & crowd, venue, first & last mile) propose in parallel, a composer
+combines, the simulator tests every plan, a critic checks seven named criteria and the supervisor sends them back to
+replan when nothing clears the line. Open the **AI team** tab and press **Run** to watch each agent light up.
+
+**"So does a language model make the decisions?"**
+No. Models propose, route and explain. Code simulates, checks, ranks and decides what is offered; you approve. Every
+figure on screen is the simulator's, with its run id; a verifier replaces any text whose numbers don't match.
+
+**"How accurate is it?"** (all from `eval/results/`)
+Every number on screen matches the simulator (1.0, 132 options). The critic's verdicts match an independent re-check on
+1,007 plans (recall and precision 1.0). Against an exhaustive search over every measure (about 48 plans per scenario),
+the team offered a plan that clears every station in 22 of 22 scenarios where one exists, relieving as many riders as
+the best one; its first option scores 0.80 of the cheapest best, on average. 0 of 53 attacks worked. The forecast is
+the weak point: demand is synthetic until ridership data is in — say so.
+
+**"Is the AI live right now?"**
+At the booth there is no internet, so the screen says which: "AI answers recorded <date> · <model>" when the team's
+model answers were recorded beforehand, or "No language model in this run: every agent used its code rules". Either
+way every simulation and check is run now, live, on this laptop.
+
+**"What happens if I tell it to ignore its rules?"**
+Try it: type it in the goal. Text never becomes a constraint — only the typed controls ("Do not use", "Protect", "Cost
+cap") do. The intake agent logs the attempt as a finding and the plan stays the same.
+
+**"What does the watcher / messenger do?"**
+The watcher (Alerts tab) looks three hours ahead on the scenario clock and raises an alert before a station crosses
+the line. After you approve a plan, the messenger drafts the passenger notice and signage in English and Arabic from
+the simulated figures — drafts only, never sent, not an RTA notice.
