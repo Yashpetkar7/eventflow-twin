@@ -54,6 +54,7 @@ class MissionCtx:
         self.critic_met = False
         self.route = "ranker"
         self.result: dict = {}
+        self.spec_llm = None
         self.templates: list[dict] = []
         self.claims_blocked: list[int] = []
         self.explain_t0 = time.perf_counter()
@@ -253,7 +254,7 @@ def roster_view(engine: str, mermaid: str | None = None) -> dict:
 def conclude(ctx: MissionCtx) -> dict:
     """The mission answer: the plan (AgentPlanResponse shape) plus everything the agents found on the way."""
     p = ctx.p
-    plan = p.assemble()
+    plan = p.assemble(write_cache=False)                      # missions never overwrite the classic planner's cache
     offered = {id(o) for o in getattr(p, "top", [])}
     rejected = [{"label": d["key"], "interventions": d["ivs"], "round": d["round"], "criteria": [],
                  "reason": d["reason"], "run_id": d.get("run_id"), "summary": d.get("summary")} for d in p.dropped]

@@ -807,8 +807,8 @@ class PlanRun:
                      options=len(self.options), template_fallback=sorted(self.template_used))
             self.log("verifier", "verify_numbers", self.rounds, time.perf_counter(), checked=self.checked, all_matched=self.all_ok)
 
-    def assemble(self) -> dict:
-        """The plan, in the AgentPlanResponse shape, stored in the plan cache."""
+    def assemble(self, write_cache: bool = True) -> dict:
+        """The plan, in the AgentPlanResponse shape, stored in the plan cache (the classic planner's)."""
         T, options = self.T, self.options
         self.details.update({"propose": T["detail"]["propose"].format(n=self.n_cand), "simulate": T["detail"]["simulate"].format(n=self.n_sims),
                              "rank": T["detail"]["rank"].format(n=len(options)), "explain": T["detail"]["explain"],
@@ -836,6 +836,8 @@ class PlanRun:
                 "hotspot": None if hot is None else {"station": hot["station"], "hours": hot["hours"], "window": hot["window"],
                                                      "peak_lf": hot["peak_lf"]},
                 "critic": critic, "trace": self.trace, "cached": False}
+        if not write_cache:
+            return plan
         try:
             CACHE_WRITE.mkdir(parents=True, exist_ok=True)
             # newline="\n": LF on Windows too, so rebuilding the cache does not rewrite every file (booth laptop, 14 Nov)

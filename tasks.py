@@ -51,6 +51,8 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
                      [[PY, "scripts/fetch_realism_data.py"]]),
     "scene": ("Bake the offline 3D scene (buildings, roads, water, ground map) → apps/web/public/geo",
               [[PY, "scripts/build_scene.py"]]),
+    "record-missions": ("Record the agent team's model answers for the demo scenarios (needs the key in .env) → data/demo_cache/llm",
+                        [[PY, "scripts/record_missions.py"]]),
     "cache": ("Pre-build the offline agent cache for the demo scenarios → data/demo_cache",
               [[PY, "scripts/build_demo_cache.py"]]),
     "visitors": ("What visitors chose today (anonymous decision log) — one line in English and Arabic",
