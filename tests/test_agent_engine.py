@@ -130,7 +130,12 @@ def test_without_langgraph_the_same_agents_run_in_sequence(c, monkeypatch):
 
 
 def test_an_offline_mission_opens_no_network_connection(c, monkeypatch):
-    def refuse(*a, **k):
+    real_connect = socket.socket.connect
+
+    def refuse(self, address, *a, **k):
+        # loopback is not the network: on Windows the event loop's own wake-up socket pair connects to 127.0.0.1
+        if isinstance(address, tuple) and address[0] in ("127.0.0.1", "::1", "localhost"):
+            return real_connect(self, address, *a, **k)
         raise AssertionError("a mission tried to open a network connection")
     monkeypatch.setattr(socket.socket, "connect", refuse)
     m = mission(c, monkeypatch, DOWNTOWN)

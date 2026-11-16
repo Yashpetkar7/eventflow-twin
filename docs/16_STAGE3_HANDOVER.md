@@ -141,7 +141,7 @@ Demo runs offline · numbers only from deterministic code, each with its source 
 Approve click, logged · synthetic data labelled · no claim of RTA endorsement, no RTA logo ("designed for",
 "aligned with") · never commit `.env`, keys, raw data or files over 50 MB · evals write
 `eval/results/<suite>_<timestamp>.json` · one row per non-trivial choice in `docs/09_DECISIONS.md` (next number:
-**131**) · a change to `schemas.py` is a contract change: bump `CONTRACT_VERSION`, run `python tasks.py contract`.
+**132**) · a change to `schemas.py` is a contract change: bump `CONTRACT_VERSION`, run `python tasks.py contract`.
 
 Branches and PRs only; never push to `main`. Arabic strings: no digits inside strings; figures come as parameters.
 
