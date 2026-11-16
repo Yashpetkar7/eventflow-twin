@@ -1,6 +1,7 @@
 # Named towers with a published height, used by the realism bake (scripts/realism_bake.py) only where neither
 # OpenStreetMap / Overture nor 3D-GloBFP gives a height. Matched to the Overture building name (case-insensitive;
-# add `aliases: [...]` where the map spells a name differently).
+# add `aliases: [...]` where the map spells a name differently; the four aliases of 15 Nov 2026 (R8b) were matched on
+# name and on the map's own height tag, which agrees within 1 m).
 # Heights copied on 2026-11-12 from the table "Tallest buildings" of the source below (architectural height, metres).
 towers:
   - {name: "Burj Khalifa", height_m: 828.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
@@ -10,9 +11,9 @@ towers:
   - {name: "Elite Residence", height_m: 381.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Ciel Vignette Collection", height_m: 377.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Kempinski The Boulevard", height_m: 370.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
-  - {name: "City Tower One", height_m: 362.8, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "City Tower One", height_m: 362.8, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai", aliases: ["City Tower 1"]}
   - {name: "Almas Tower", height_m: 360.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
-  - {name: "Gevora Hotel", height_m: 356.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Gevora Hotel", height_m: 356.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai", aliases: ["فندق جيفورا"]}
   - {name: "Il Primo", height_m: 356.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "JW Marriott Marquis Dubai Tower 1", height_m: 355.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "JW Marriott Marquis Dubai Tower 2", height_m: 355.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
@@ -30,7 +31,7 @@ towers:
   - {name: "Grande", height_m: 325.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Mr. C Residences Downtown", height_m: 323.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Burj Al Arab", height_m: 321.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
-  - {name: "HHHR Tower", height_m: 318.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "HHHR Tower", height_m: 318.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai", aliases: ["Blue Tower (HHHR Tower)"]}
   - {name: "Ocean Heights", height_m: 310.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Jumeirah Emirates Towers Hotel", height_m: 309.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Amna Tower", height_m: 307.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
@@ -45,7 +46,7 @@ towers:
   - {name: "Khalid Al Attar Tower 2", height_m: 294.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Sulafa Tower", height_m: 288.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "Opera Grand", height_m: 288.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
-  - {name: "Millennium Tower", height_m: 285.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+  - {name: "Millennium Tower", height_m: 285.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai", aliases: ["Millenium Tower"]}
   - {name: "Address Harbour Point Tower 1", height_m: 284.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "The Address Residence - Fountain Views I", height_m: 283.2, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "The Address Residence - Fountain Views II", height_m: 282.7, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
@@ -91,3 +92,11 @@ towers:
   - {name: "Churchill Residence", height_m: 235.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "The Buildings by Daman", height_m: 235.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
   - {name: "One Za'abeel Tower 2", height_m: 235.0, source: "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai"}
+# R8b sites with no row in the table above (docs/13 → R8b; scripts/r8b_sites.py). Read by r8b_sites.py only, not by the
+# realism bake. Heights are the map's own height tag (Overture 2026-10-21.0, from OpenStreetMap); the fountain's is its length.
+sites:
+  - {name: "The A-Tower", height_m: 334.0, source: "OpenStreetMap height tag via Overture 2026-10-21.0 (e13698d0-4e13-42fb-bb16-93a7abc2975c)"}
+  - {name: "The Tower Plaza Hotel", height_m: 295.0, source: "OpenStreetMap height tag via Overture 2026-10-21.0 (3394151e-ea81-44db-83b8-041034c8ec70)"}
+  - {name: "The Dubai Mall", height_m: 20.0, source: "OpenStreetMap height tag via Overture 2026-10-21.0 (6616dedf-5be8-4422-a5d7-cf0cfd28be1f)"}
+  - {name: "The Gate, DIFC", height_m: 60.0, source: "OpenStreetMap height tag via Overture 2026-10-21.0 (caef1c98-3795-48fc-bb13-dd00948f8a24)"}
+  - {name: "The Dubai Fountain", length_m: 275.0, source: "https://en.wikipedia.org/wiki/Dubai_Fountain (length; the jet heights drawn are a still frame, not a show)"}

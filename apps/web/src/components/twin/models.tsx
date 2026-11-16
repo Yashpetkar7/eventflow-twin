@@ -12,8 +12,11 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { live } from "./sceneData";
 
+/** R8b: models built where they stand in the scene frame (scripts/r8b_sites.py), so they are drawn at the origin. */
+export const SITE_MODELS = ["tower_01", "tower_02", "tower_03", "tower_04", "tower_05", "tower_06", "tower_07", "tower_08", "tower_09",
+  "tower_10", "dubai_mall", "difc_gate", "dubai_fountain"] as const;
 export const MODEL_NAMES = ["burj_khalifa", "emirates_office_tower", "emirates_hotel_tower", "museum_of_the_future", "trade_centre_tower",
-  "dubai_frame", "metro_station", "metro_car", "palm_a", "palm_b", "palm_c", "car", "bus"] as const;          // viaduct_segment.glb is built too; the scene sweeps its viaduct along the real track
+  "dubai_frame", "metro_station", "metro_car", "palm_a", "palm_b", "palm_c", "car", "bus", ...SITE_MODELS] as const;          // viaduct_segment.glb is built too; the scene sweeps its viaduct along the real track
 export type ModelName = (typeof MODEL_NAMES)[number];
 export type Parts = Record<string, THREE.BufferGeometry>;
 export interface Model { full: Parts; lod: Parts }
@@ -35,6 +38,8 @@ function parts(scene: THREE.Object3D): Parts {
 }
 
 let cached: Promise<Models | null> | null = null;
+/** Where the ring buildings the site models replace stand: x, z, radius triples (public/models/sites.json). */
+export let siteSkip: number[] = [];
 /** All models, or null if any file is missing or fails to decode (the scene then keeps its procedural landmarks). */
 export function loadModels(): Promise<Models | null> {
   cached ??= (async () => {
@@ -42,6 +47,7 @@ export function loadModels(): Promise<Models | null> {
     const loader = new GLTFLoader().setDRACOLoader(draco);
     try {
       const out = {} as Models;
+      siteSkip = (await (await fetch("/models/sites.json")).json()).skip;
       await Promise.all(MODEL_NAMES.map(async (n) => {
         const [full, lod] = await Promise.all([loader.loadAsync(`/models/${n}.glb`), loader.loadAsync(`/models/${n}_lod1.glb`)]);
         out[n] = { full: parts(full.scene), lod: parts(lod.scene) };
@@ -73,6 +79,16 @@ export function ModelMesh({ model, mats, castShadow = true }: { model: Model; ma
       <group ref={lod} visible={false}>{meshes(model.lod)}</group>
     </>
   );
+}
+
+/** Several models drawn as one: a geometry per material slot across all of them (fewer draw calls). */
+export function mergeModels(ms: Model[]): Model {
+  const merge = (ps: Parts[]): Parts => {
+    const by: Record<string, THREE.BufferGeometry[]> = {};
+    ps.forEach((p) => Object.entries(p).forEach(([k, g]) => (by[k] ??= []).push(g)));
+    return Object.fromEntries(Object.entries(by).map(([k, gs]) => [k, mergeGeometries(gs) ?? gs[0]]));
+  };
+  return { full: merge(ms.map((m) => m.full)), lod: merge(ms.map((m) => m.lod)) };
 }
 
 /** A copy of a material that reads the model's vertex colours (the baked ambient occlusion). */

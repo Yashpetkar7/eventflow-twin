@@ -205,18 +205,11 @@ Sheikh Zayed Road, figures at the station entrances driven by the simulator, lar
 one: `/Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/blender/build_models.py -- --only=dubai_frame`
 (Windows: the same with `blender.exe`).
 
-**Still open — new landmarks (anyone with Blender):**
-```text
-R8b — new landmarks. Read CLAUDE.md, sections 4 and 4b above, decision #115, scripts/blender/build_models.py and
-apps/web/src/components/twin/Landmarks.tsx, models.tsx and City.tsx (landmarkSkip). Branch b/realism-r8b from main.
-Add to build_models.py and to the scene: Dubai Mall block with the Burj lake and a fountain ring, DIFC Gate, and 10
-correct silhouettes for the tallest towers between Trade Centre and Business Bay. Each needs: its position (lat/lon,
-projected with the scene frame), a height and source in config/landmark_heights.yaml, an entry in MODEL_NAMES, and its
-extruded footprint left out through landmarkSkip. Up to 25k triangles each, ambient occlusion in the vertex colours,
-LOD1 at 25 %, the existing material slot names (the curtain wall draws the windows). No logos, signage or text.
-Done when: node tests/r10_shots.mjs shows them at 10:00, 17:30 and 21:30, r7_fps.mjs loses no more than 5 %, all
-Playwright tests pass, and a decision entry says these are approximations. Pull request to main; no deploy.
-```
+**R8b, done on 15 Nov (decision #120):** ten towers between Trade Centre and Business Bay, the Dubai Mall, the DIFC Gate
+and the Dubai Fountain, built in place from Overture footprints (`python scripts/r8b_sites.py`, then
+`blender --background --python scripts/blender/build_models.py -- --only=tower_01,…,dubai_fountain`). Approximations,
+not survey models. Shots: `node apps/web/tests/r10_shots.mjs <label>` (views r8b_1000, r8b_1730, r8b_2130).
+
 **Still open — needs the raw OpenStreetMap extract (`python tasks.py osm`):**
 ```text
 R9b — street level. Read sections 4 and 4b above, R5, scripts/realism_bake.py and atmosphere.ts (groundMaterial).

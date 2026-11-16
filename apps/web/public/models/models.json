@@ -284,6 +284,285 @@
     "win"
    ],
    "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_01": {
+   "name": "City Tower 1",
+   "height_m": 362.8,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "generic",
+   "triangles": 50,
+   "triangles_lod1": 12,
+   "budget": 25000,
+   "bytes": 4084,
+   "bytes_lod1": 2592,
+   "size_m": [
+    52.7,
+    53.0,
+    367.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_02": {
+   "name": "\u0641\u0646\u062f\u0642 \u062c\u064a\u0641\u0648\u0631\u0627",
+   "height_m": 356.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "gold",
+   "triangles": 125,
+   "triangles_lod1": 30,
+   "budget": 25000,
+   "bytes": 5084,
+   "bytes_lod1": 4040,
+   "size_m": [
+    37.2,
+    38.4,
+    360.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "gold"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_03": {
+   "name": "The A-Tower",
+   "height_m": 334.0,
+   "source": "OpenStreetMap height tag via Overture 2026-10-21.0 (e13698d0-4e13-42fb-bb16-93a7abc2975c)",
+   "crown": "generic",
+   "triangles": 50,
+   "triangles_lod1": 12,
+   "budget": 25000,
+   "bytes": 4032,
+   "bytes_lod1": 2588,
+   "size_m": [
+    37.9,
+    40.1,
+    338.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_04": {
+   "name": "Al Yaqoub Tower",
+   "height_m": 328.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "pyramid",
+   "triangles": 74,
+   "triangles_lod1": 18,
+   "budget": 25000,
+   "bytes": 4984,
+   "bytes_lod1": 4068,
+   "size_m": [
+    39.6,
+    39.3,
+    376.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_05": {
+   "name": "Mr. C Residences Downtown",
+   "height_m": 323.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "generic",
+   "triangles": 164,
+   "triangles_lod1": 41,
+   "budget": 25000,
+   "bytes": 7036,
+   "bytes_lod1": 4852,
+   "size_m": [
+    17.8,
+    28.7,
+    43.0
+   ],
+   "materials": [
+    "glass",
+    "steel",
+    "concrete"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_06": {
+   "name": "Blue Tower (HHHR Tower)",
+   "height_m": 318.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "generic",
+   "triangles": 125,
+   "triangles_lod1": 31,
+   "budget": 25000,
+   "bytes": 5328,
+   "bytes_lod1": 4144,
+   "size_m": [
+    33.9,
+    80.0,
+    321.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_07": {
+   "name": "Rose Rayhaan by Rotana",
+   "height_m": 333.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "generic",
+   "triangles": 78,
+   "triangles_lod1": 18,
+   "budget": 25000,
+   "bytes": 5112,
+   "bytes_lod1": 4052,
+   "size_m": [
+    30.8,
+    27.9,
+    333.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_08": {
+   "name": "The Tower Plaza Hotel",
+   "height_m": 295.0,
+   "source": "OpenStreetMap height tag via Overture 2026-10-21.0 (3394151e-ea81-44db-83b8-041034c8ec70)",
+   "crown": "generic",
+   "triangles": 310,
+   "triangles_lod1": 77,
+   "budget": 25000,
+   "bytes": 8660,
+   "bytes_lod1": 5628,
+   "size_m": [
+    40.5,
+    40.1,
+    299.0
+   ],
+   "materials": [
+    "glass",
+    "steel",
+    "concrete"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_09": {
+   "name": "Millenium Tower",
+   "height_m": 285.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "generic",
+   "triangles": 50,
+   "triangles_lod1": 12,
+   "budget": 25000,
+   "bytes": 4096,
+   "bytes_lod1": 2604,
+   "size_m": [
+    52.2,
+    40.8,
+    289.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "tower_10": {
+   "name": "21st Century Tower",
+   "height_m": 269.0,
+   "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
+   "crown": "generic",
+   "triangles": 110,
+   "triangles_lod1": 27,
+   "budget": 25000,
+   "bytes": 4968,
+   "bytes_lod1": 4020,
+   "size_m": [
+    47.6,
+    31.5,
+    273.0
+   ],
+   "materials": [
+    "concrete",
+    "steel",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "dubai_mall": {
+   "name": "The Dubai Mall",
+   "height_m": 20.0,
+   "source": "OpenStreetMap height tag via Overture 2026-10-21.0 (6616dedf-5be8-4422-a5d7-cf0cfd28be1f)",
+   "triangles": 484,
+   "triangles_lod1": 121,
+   "budget": 25000,
+   "bytes": 9260,
+   "bytes_lod1": 4828,
+   "size_m": [
+    448.9,
+    789.5,
+    22.9
+   ],
+   "materials": [
+    "concrete",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "difc_gate": {
+   "name": "The Gate, DIFC",
+   "height_m": 60.0,
+   "source": "OpenStreetMap height tag via Overture 2026-10-21.0 (caef1c98-3795-48fc-bb13-dd00948f8a24)",
+   "triangles": 53,
+   "triangles_lod1": 18,
+   "budget": 25000,
+   "bytes": 3400,
+   "bytes_lod1": 3064,
+   "size_m": [
+    69.3,
+    69.0,
+    60.0
+   ],
+   "materials": [
+    "concrete",
+    "glass"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
+  },
+  "dubai_fountain": {
+   "name": "The Dubai Fountain",
+   "length_m": 275.0,
+   "source": "https://en.wikipedia.org/wiki/Dubai_Fountain (length; the jet heights drawn are a still frame, not a show)",
+   "triangles": 480,
+   "triangles_lod1": 120,
+   "budget": 25000,
+   "bytes": 7888,
+   "bytes_lod1": 4800,
+   "size_m": [
+    214.0,
+    179.3,
+    58.2
+   ],
+   "materials": [
+    "jet"
+   ],
+   "preview_engine": "BLENDER_EEVEE"
   }
  }
 }

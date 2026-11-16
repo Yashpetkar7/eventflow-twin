@@ -17,6 +17,10 @@ const VIEWS = [
   ["burj_2130", { time: 21.5, focus: "burj", cam: "landmark" }, -6, 8],
   ["towers_1000", { time: 10, focus: "et", cam: "landmark" }, -8, 8],
   ["overview_1500", { time: 15, cam: "overview" }, 0, 7],
+  // R8b: the towers between Trade Centre and Business Bay, the DIFC Gate, the Dubai Mall and its fountain (after dark)
+  ["r8b_1000", { time: 10, selected: "FIC", cam: "close" }, 2, 7],
+  ["r8b_1730", { time: 17.5, focus: "burj", cam: "landmark" }, 3, 8],
+  ["r8b_2130", { time: 21.5, focus: "burj", cam: "landmark" }, 3, 8],
 ];
 const browser = await chromium.launch({ channel: "chrome", headless: true, args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
