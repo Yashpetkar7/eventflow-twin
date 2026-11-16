@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_forecast, config_hash, load_panel, make
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, Mission, Roster, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -130,7 +130,9 @@ def get_run(run_id: str, spec: ForecastRequest | None = None) -> dict:
 
 @app.get("/healthz")
 def healthz():
-    return {"ok": True, "contract": CONTRACT_VERSION, "storage": os.environ.get("EVENTFLOW_STORAGE", "persistent")}
+    from .agents.engine import available_engine
+    return {"ok": True, "contract": CONTRACT_VERSION, "storage": os.environ.get("EVENTFLOW_STORAGE", "persistent"),
+            "engine": available_engine()}
 
 
 @app.get("/stations", response_model=list[Station])
@@ -200,6 +202,26 @@ def agent_plan(req: AgentPlanRequest):
     with _LOCK:
         _PLANS[plan["plan_id"]] = plan
     return plan
+
+
+@app.post("/agent/run", response_model=Mission)
+def agent_run(req: AgentRunRequest):
+    """The agent team on one planning request (docs/15): intake → forecast → diagnosis → four specialists in parallel →
+    composer → simulation → critic ⟲ supervisor → ranker → explainer ∥ stress test → verifier → human approval.
+    `plan` has the /agent/plan shape; every number in it and in `events` comes from the simulator."""
+    from .agents.engine import run_mission
+    run = get_run(req.forecast_run_id, req.forecast)
+    mission = run_mission(run, req, run_simulation)
+    with _LOCK:
+        _PLANS[mission["plan"]["plan_id"]] = mission["plan"]
+    return mission
+
+
+@app.get("/agent/roster", response_model=Roster)
+def agent_roster():
+    """Who is on the team, in which layer, which can call a model, and the orchestration graph (from the code)."""
+    from .agents.engine import roster
+    return roster()
 
 
 @app.post("/decisions", response_model=DecisionResponse)

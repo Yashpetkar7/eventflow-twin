@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.10.0"   # 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.11.0"   # 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -343,3 +343,153 @@ class DecisionList(BaseModel):
     approved: int
     rejected: int
     items: list[DecisionRecord] = Field(description="Newest first")
+
+
+# ---------- agent team (contract 1.11.0, docs/15_AGENT_ARCHITECTURE.md) ----------
+InterventionType = Literal["extra_trains", "shuttle_bus", "robotaxi_staging", "staggered_exit", "wayfinding_redirect",
+                           "station_metering", "extended_hours"]
+
+
+class Constraints(BaseModel):
+    """The planner's hard choices, set with typed controls. Text in the goal or notes never becomes a constraint."""
+    forbid_types: list[InterventionType] = Field(default_factory=list, max_length=7, description="Measures the agents must not propose")
+    protect_stations: list[str] = Field(default_factory=list, max_length=12, description="Stations that must not get more over-threshold time (C6)")
+    cost_cap: float | None = Field(None, ge=0, le=1000, description="Largest added cost proxy an option may have (C6)")
+
+
+class AgentRunRequest(AgentPlanRequest):
+    forecast: ForecastRequest = Field(description="The forecast request (required: the stress test re-forecasts from it)")
+    constraints: Constraints = Field(default_factory=Constraints)
+
+
+class AgentInfo(BaseModel):
+    id: str
+    layer: int = Field(description="1 command · 2 understand · 3 propose · 4 test · 5 explain & govern · 6 standing")
+    kind: Literal["code", "model", "human"]
+    can_call_model: bool
+    tools: list[str]
+    role: str
+    role_ar: str
+
+
+class LayerInfo(BaseModel):
+    id: int
+    key: str
+    name: str
+    name_ar: str
+
+
+class AgentEvent(BaseModel):
+    """One thing an agent did, in order. Text is rendered by the client from `key` + `params` (EN/AR); figures in
+    `params` are the tools' (run_id says which run)."""
+    seq: int
+    t_ms: float = Field(description="Milliseconds since the mission started")
+    round: int
+    layer: int
+    agent: str
+    kind: Literal["start", "tool", "decision", "proposal", "reject", "finding", "handoff", "model", "budget"]
+    key: str
+    params: dict = Field(default_factory=dict)
+    run_id: str | None = None
+    llm: dict | None = Field(None, description="Model, tokens, milliseconds and whether the answer was recorded")
+
+
+class Objective(BaseModel):
+    goal: str
+    threshold: float
+    priority: str
+    scope: str
+    constraints: Constraints
+    findings: list[dict] = Field(default_factory=list, description="Instruction-like text found in the goal or notes (logged, never followed)")
+    suggestions: list[str] = Field(default_factory=list, description="Constraint suggestions from the intake model: shown, not applied")
+    source: str = "code"
+    note: str = ""
+
+
+class RejectedPlan(BaseModel):
+    label: str
+    interventions: list[Intervention]
+    round: int
+    criteria: list[str] = Field(description="Critic criteria the plan fails (C1 still over · C2 new hotspot · C3 worse overall · C6 constraint)")
+    reason: Literal["no_relief", "bounds", "forbidden", "outranked"]
+    run_id: str | None = None
+    summary: SimSummary | None = None
+
+
+class CriterionCheck(BaseModel):
+    id: Literal["C1", "C2", "C3", "C4", "C5", "C6", "C7"]
+    passed: bool | None = Field(description="None: the criterion does not apply to this scenario")
+    value: float | None = None
+    limit: float | None = None
+
+
+class StressCase(BaseModel):
+    case: str
+    kind: Literal["attendance", "metro_share", "weather", "demand_level"]
+    value: float | str
+    holds: bool = Field(description="Every station stays under the threshold in this case")
+    overcap_station_hours: float
+    peak_lf: float
+    excess_pax: float
+    baseline_overcap_station_hours: float
+    run_id: str
+
+
+class Assessment(BaseModel):
+    rank: int
+    checks: list[CriterionCheck]
+    stress: list[StressCase] = Field(default_factory=list)
+    holds: int = 0
+    total: int = 0
+
+
+class Budget(BaseModel):
+    steps: int
+    steps_max: int
+    simulations: int
+    simulations_max: int
+    model_calls: int
+    model_calls_max: int
+    tokens: int
+    wall_ms: float
+    wall_ms_max: float
+    exceeded: list[str] = Field(default_factory=list)
+
+
+class Recording(BaseModel):
+    mode: Literal["code", "recorded", "live", "mixed"] = Field(description="code: no model; recorded: model answers replayed offline; live: model called now")
+    model: str | None = None
+    recorded_at: str | None = None
+    agents_from_model: list[str] = Field(default_factory=list)
+    misses: int = Field(0, description="Model answers not found in the recording (that agent used its code policy)")
+
+
+class TeamCounts(BaseModel):
+    agents: int
+    model_capable: int
+    code_only: int
+
+
+class Mission(BaseModel):
+    mission_id: str
+    status: Literal["awaiting_human", "no_action"]
+    engine: Literal["graph", "seq", "classic"]
+    objective: Objective
+    roster: list[AgentInfo]
+    counts: TeamCounts
+    events: list[AgentEvent]
+    plan: AgentPlanResponse
+    rejected: list[RejectedPlan]
+    assessments: list[Assessment]
+    budget: Budget
+    recording: Recording
+    is_synthetic: bool
+    stop_reason: str = Field("", description="Why the supervisor stopped testing: goal_met · max_rounds · no_relief · budget · no_variants · no_action")
+
+
+class Roster(BaseModel):
+    engine: Literal["graph", "seq", "classic"]
+    layers: list[LayerInfo]
+    agents: list[AgentInfo]
+    counts: TeamCounts
+    graph_mermaid: str = Field(description="The orchestration graph, generated from the code (empty without LangGraph)")

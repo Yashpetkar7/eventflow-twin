@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.10.0"
+    "version": "1.11.0"
   },
   "paths": {
     "/healthz": {
@@ -219,6 +219,64 @@
         }
       }
     },
+    "/agent/run": {
+      "post": {
+        "summary": "Agent Run",
+        "description": "The agent team on one planning request (docs/15): intake → forecast → diagnosis → four specialists in parallel →\ncomposer → simulation → critic ⟲ supervisor → ranker → explainer ∥ stress test → verifier → human approval.\n`plan` has the /agent/plan shape; every number in it and in `events` comes from the simulator.",
+        "operationId": "agent_run_agent_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/roster": {
+      "get": {
+        "summary": "Agent Roster",
+        "description": "Who is on the team, in which layer, which can call a model, and the orchestration graph (from the code).",
+        "operationId": "agent_roster_agent_roster_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Roster"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/decisions": {
       "post": {
         "summary": "Decisions",
@@ -317,6 +375,143 @@
   },
   "components": {
     "schemas": {
+      "AgentEvent": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "t_ms": {
+            "type": "number",
+            "title": "T Ms",
+            "description": "Milliseconds since the mission started"
+          },
+          "round": {
+            "type": "integer",
+            "title": "Round"
+          },
+          "layer": {
+            "type": "integer",
+            "title": "Layer"
+          },
+          "agent": {
+            "type": "string",
+            "title": "Agent"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "start",
+              "tool",
+              "decision",
+              "proposal",
+              "reject",
+              "finding",
+              "handoff",
+              "model",
+              "budget"
+            ],
+            "title": "Kind"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "llm": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm",
+            "description": "Model, tokens, milliseconds and whether the answer was recorded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "t_ms",
+          "round",
+          "layer",
+          "agent",
+          "kind",
+          "key"
+        ],
+        "title": "AgentEvent",
+        "description": "One thing an agent did, in order. Text is rendered by the client from `key` + `params` (EN/AR); figures in\n`params` are the tools' (run_id says which run)."
+      },
+      "AgentInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "layer": {
+            "type": "integer",
+            "title": "Layer",
+            "description": "1 command · 2 understand · 3 propose · 4 test · 5 explain & govern · 6 standing"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "code",
+              "model",
+              "human"
+            ],
+            "title": "Kind"
+          },
+          "can_call_model": {
+            "type": "boolean",
+            "title": "Can Call Model"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tools"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "role_ar": {
+            "type": "string",
+            "title": "Role Ar"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "layer",
+          "kind",
+          "can_call_model",
+          "tools",
+          "role",
+          "role_ar"
+        ],
+        "title": "AgentInfo"
+      },
       "AgentPlanRequest": {
         "properties": {
           "forecast_run_id": {
@@ -552,6 +747,131 @@
         ],
         "title": "AgentPlanResponse"
       },
+      "AgentRunRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest",
+            "description": "The forecast request (required: the stress test re-forecasts from it)"
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Goal",
+            "default": "Keep every station under 85% load during the exit surge"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Untrusted planner notes (treated as data)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "network"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "default": "balanced"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied",
+            "description": "Already-approved interventions to plan on top of"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id",
+          "forecast"
+        ],
+        "title": "AgentRunRequest"
+      },
       "AgentStep": {
         "properties": {
           "key": {
@@ -585,6 +905,44 @@
           "label"
         ],
         "title": "AgentStep"
+      },
+      "Assessment": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CriterionCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "stress": {
+            "items": {
+              "$ref": "#/components/schemas/StressCase"
+            },
+            "type": "array",
+            "title": "Stress"
+          },
+          "holds": {
+            "type": "integer",
+            "title": "Holds",
+            "default": 0
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "checks"
+        ],
+        "title": "Assessment"
       },
       "BreakGridRow": {
         "properties": {
@@ -792,6 +1150,171 @@
           "source"
         ],
         "title": "BreakpointResponse"
+      },
+      "Budget": {
+        "properties": {
+          "steps": {
+            "type": "integer",
+            "title": "Steps"
+          },
+          "steps_max": {
+            "type": "integer",
+            "title": "Steps Max"
+          },
+          "simulations": {
+            "type": "integer",
+            "title": "Simulations"
+          },
+          "simulations_max": {
+            "type": "integer",
+            "title": "Simulations Max"
+          },
+          "model_calls": {
+            "type": "integer",
+            "title": "Model Calls"
+          },
+          "model_calls_max": {
+            "type": "integer",
+            "title": "Model Calls Max"
+          },
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens"
+          },
+          "wall_ms": {
+            "type": "number",
+            "title": "Wall Ms"
+          },
+          "wall_ms_max": {
+            "type": "number",
+            "title": "Wall Ms Max"
+          },
+          "exceeded": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exceeded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "steps",
+          "steps_max",
+          "simulations",
+          "simulations_max",
+          "model_calls",
+          "model_calls_max",
+          "tokens",
+          "wall_ms",
+          "wall_ms_max"
+        ],
+        "title": "Budget"
+      },
+      "Constraints": {
+        "properties": {
+          "forbid_types": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "extra_trains",
+                "shuttle_bus",
+                "robotaxi_staging",
+                "staggered_exit",
+                "wayfinding_redirect",
+                "station_metering",
+                "extended_hours"
+              ]
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Forbid Types",
+            "description": "Measures the agents must not propose"
+          },
+          "protect_stations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Protect Stations",
+            "description": "Stations that must not get more over-threshold time (C6)"
+          },
+          "cost_cap": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cap",
+            "description": "Largest added cost proxy an option may have (C6)"
+          }
+        },
+        "type": "object",
+        "title": "Constraints",
+        "description": "The planner's hard choices, set with typed controls. Text in the goal or notes never becomes a constraint."
+      },
+      "CriterionCheck": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "C1",
+              "C2",
+              "C3",
+              "C4",
+              "C5",
+              "C6",
+              "C7"
+            ],
+            "title": "Id"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed",
+            "description": "None: the criterion does not apply to this scenario"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "passed"
+        ],
+        "title": "CriterionCheck"
       },
       "CriticReport": {
         "properties": {
@@ -1734,6 +2257,34 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "LayerInfo": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "name_ar": {
+            "type": "string",
+            "title": "Name Ar"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "name",
+          "name_ar"
+        ],
+        "title": "LayerInfo"
+      },
       "MeteringParams": {
         "properties": {
           "station": {
@@ -1777,6 +2328,160 @@
           "hours"
         ],
         "title": "MeteringParams"
+      },
+      "Mission": {
+        "properties": {
+          "mission_id": {
+            "type": "string",
+            "title": "Mission Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "awaiting_human",
+              "no_action"
+            ],
+            "title": "Status"
+          },
+          "engine": {
+            "type": "string",
+            "enum": [
+              "graph",
+              "seq",
+              "classic"
+            ],
+            "title": "Engine"
+          },
+          "objective": {
+            "$ref": "#/components/schemas/Objective"
+          },
+          "roster": {
+            "items": {
+              "$ref": "#/components/schemas/AgentInfo"
+            },
+            "type": "array",
+            "title": "Roster"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/TeamCounts"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/AgentEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/AgentPlanResponse"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/components/schemas/RejectedPlan"
+            },
+            "type": "array",
+            "title": "Rejected"
+          },
+          "assessments": {
+            "items": {
+              "$ref": "#/components/schemas/Assessment"
+            },
+            "type": "array",
+            "title": "Assessments"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/Budget"
+          },
+          "recording": {
+            "$ref": "#/components/schemas/Recording"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "stop_reason": {
+            "type": "string",
+            "title": "Stop Reason",
+            "description": "Why the supervisor stopped testing: goal_met · max_rounds · no_relief · budget · no_variants · no_action",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "mission_id",
+          "status",
+          "engine",
+          "objective",
+          "roster",
+          "counts",
+          "events",
+          "plan",
+          "rejected",
+          "assessments",
+          "budget",
+          "recording",
+          "is_synthetic"
+        ],
+        "title": "Mission"
+      },
+      "Objective": {
+        "properties": {
+          "goal": {
+            "type": "string",
+            "title": "Goal"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints"
+          },
+          "findings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Findings",
+            "description": "Instruction-like text found in the goal or notes (logged, never followed)"
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggestions",
+            "description": "Constraint suggestions from the intake model: shown, not applied"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "code"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "goal",
+          "threshold",
+          "priority",
+          "scope",
+          "constraints"
+        ],
+        "title": "Objective"
       },
       "PlanOption": {
         "properties": {
@@ -1924,6 +2629,61 @@
         ],
         "title": "PlanOption"
       },
+      "Recording": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "code",
+              "recorded",
+              "live",
+              "mixed"
+            ],
+            "title": "Mode",
+            "description": "code: no model; recorded: model answers replayed offline; live: model called now"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "recorded_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded At"
+          },
+          "agents_from_model": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Agents From Model"
+          },
+          "misses": {
+            "type": "integer",
+            "title": "Misses",
+            "description": "Model answers not found in the recording (that agent used its code policy)",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "title": "Recording"
+      },
       "RedirectParams": {
         "properties": {
           "from_station": {
@@ -1959,6 +2719,107 @@
           "share"
         ],
         "title": "RedirectParams"
+      },
+      "RejectedPlan": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "interventions": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Interventions"
+          },
+          "round": {
+            "type": "integer",
+            "title": "Round"
+          },
+          "criteria": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Criteria",
+            "description": "Critic criteria the plan fails (C1 still over · C2 new hotspot · C3 worse overall · C6 constraint)"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "no_relief",
+              "bounds",
+              "forbidden",
+              "outranked"
+            ],
+            "title": "Reason"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SimSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "interventions",
+          "round",
+          "criteria",
+          "reason"
+        ],
+        "title": "RejectedPlan"
       },
       "RoadPressure": {
         "properties": {
@@ -2060,6 +2921,50 @@
           "params"
         ],
         "title": "RobotaxiStaging"
+      },
+      "Roster": {
+        "properties": {
+          "engine": {
+            "type": "string",
+            "enum": [
+              "graph",
+              "seq",
+              "classic"
+            ],
+            "title": "Engine"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/LayerInfo"
+            },
+            "type": "array",
+            "title": "Layers"
+          },
+          "agents": {
+            "items": {
+              "$ref": "#/components/schemas/AgentInfo"
+            },
+            "type": "array",
+            "title": "Agents"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/TeamCounts"
+          },
+          "graph_mermaid": {
+            "type": "string",
+            "title": "Graph Mermaid",
+            "description": "The orchestration graph, generated from the code (empty without LangGraph)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "engine",
+          "layers",
+          "agents",
+          "counts",
+          "graph_mermaid"
+        ],
+        "title": "Roster"
       },
       "ShuttleBus": {
         "properties": {
@@ -2658,6 +3563,96 @@
         ],
         "title": "StationMetering",
         "description": "Entry metering at the gates (RTA's New Year's Eve practice): admit riders only up to `max_load` × boarding\ncapacity; the rest wait outside the station or, with `to_station`, are guided on foot to a neighbouring station.\n`max_load` 0 = the station is closed for those hours (then `to_station` is required)."
+      },
+      "StressCase": {
+        "properties": {
+          "case": {
+            "type": "string",
+            "title": "Case"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "attendance",
+              "metro_share",
+              "weather",
+              "demand_level"
+            ],
+            "title": "Kind"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          },
+          "holds": {
+            "type": "boolean",
+            "title": "Holds",
+            "description": "Every station stays under the threshold in this case"
+          },
+          "overcap_station_hours": {
+            "type": "number",
+            "title": "Overcap Station Hours"
+          },
+          "peak_lf": {
+            "type": "number",
+            "title": "Peak Lf"
+          },
+          "excess_pax": {
+            "type": "number",
+            "title": "Excess Pax"
+          },
+          "baseline_overcap_station_hours": {
+            "type": "number",
+            "title": "Baseline Overcap Station Hours"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case",
+          "kind",
+          "value",
+          "holds",
+          "overcap_station_hours",
+          "peak_lf",
+          "excess_pax",
+          "baseline_overcap_station_hours",
+          "run_id"
+        ],
+        "title": "StressCase"
+      },
+      "TeamCounts": {
+        "properties": {
+          "agents": {
+            "type": "integer",
+            "title": "Agents"
+          },
+          "model_capable": {
+            "type": "integer",
+            "title": "Model Capable"
+          },
+          "code_only": {
+            "type": "integer",
+            "title": "Code Only"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agents",
+          "model_capable",
+          "code_only"
+        ],
+        "title": "TeamCounts"
       },
       "TraceEvent": {
         "properties": {

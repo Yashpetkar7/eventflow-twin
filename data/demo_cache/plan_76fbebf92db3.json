@@ -449,7 +449,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_0794c74737d4",
-   "ms": 9.2,
+   "ms": 10.8,
    "data": {
     "label": "baseline",
     "over": 0.5,
@@ -490,7 +490,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_4da06b4aa103",
-   "ms": 12.1,
+   "ms": 13.4,
    "data": {
     "label": "stagway",
     "types": [
@@ -510,7 +510,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_bcaeb834e3a7",
-   "ms": 8.9,
+   "ms": 10.6,
    "data": {
     "label": "trains",
     "types": [
@@ -529,7 +529,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_fac3d53bb639",
-   "ms": 9.1,
+   "ms": 10.5,
    "data": {
     "label": "busrt",
     "types": [
@@ -549,7 +549,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_6b4483e6bd0d",
-   "ms": 8.8,
+   "ms": 10.5,
    "data": {
     "label": "way",
     "types": [
@@ -568,7 +568,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_013591a74776",
-   "ms": 11.8,
+   "ms": 13.3,
    "data": {
     "label": "trainstag",
     "types": [
@@ -588,7 +588,7 @@
    "role": "simulator",
    "tool": "simulate",
    "run_id": "sim_d88d8e71381d",
-   "ms": 9.0,
+   "ms": 10.7,
    "data": {
     "label": "trainsway",
     "types": [
