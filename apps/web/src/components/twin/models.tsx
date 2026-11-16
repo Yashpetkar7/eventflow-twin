@@ -40,6 +40,19 @@ function parts(scene: THREE.Object3D): Parts {
 let cached: Promise<Models | null> | null = null;
 /** Where the ring buildings the site models replace stand: x, z, radius triples (public/models/sites.json). */
 export let siteSkip: number[] = [];
+/** The site models' footprints as flat [x0, z0, x1, z1, …] rings: every ring building whose centre is inside one is
+ *  left out, so nothing pokes through a model (scripts/r8b_polys.py). */
+export let sitePolys: number[][] = [];
+
+/** Even-odd point-in-polygon test on a flat [x0, z0, x1, z1, …] ring. */
+export function insidePoly(px: number, pz: number, p: number[]): boolean {
+  let c = false;
+  for (let i = 0, j = p.length - 2; i < p.length; j = i, i += 2) {
+    const xi = p[i], zi = p[i + 1], xj = p[j], zj = p[j + 1];
+    if (zi > pz !== zj > pz && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c;
+  }
+  return c;
+}
 /** All models, or null if any file is missing or fails to decode (the scene then keeps its procedural landmarks). */
 export function loadModels(): Promise<Models | null> {
   cached ??= (async () => {
@@ -47,7 +60,9 @@ export function loadModels(): Promise<Models | null> {
     const loader = new GLTFLoader().setDRACOLoader(draco);
     try {
       const out = {} as Models;
-      siteSkip = (await (await fetch("/models/sites.json")).json()).skip;
+      const sites = await (await fetch("/models/sites.json")).json();
+      siteSkip = sites.skip;
+      sitePolys = sites.polys ?? [];
       await Promise.all(MODEL_NAMES.map(async (n) => {
         const [full, lod] = await Promise.all([loader.loadAsync(`/models/${n}.glb`), loader.loadAsync(`/models/${n}_lod1.glb`)]);
         out[n] = { full: parts(full.scene), lod: parts(lod.scene) };

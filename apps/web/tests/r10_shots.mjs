@@ -21,7 +21,12 @@ const VIEWS = [
   ["r8b_1000", { time: 10, selected: "FIC", cam: "close" }, 2, 7],
   ["r8b_1730", { time: 17.5, focus: "burj", cam: "landmark" }, 3, 8],
   ["r8b_2130", { time: 21.5, focus: "burj", cam: "landmark" }, 3, 8],
+  // night fixes (decision #121): the DIFC Gate and the Financial Centre station pods and footbridge after dark
+  ["difc_2130", { time: 21.5, focus: "difc", cam: "landmark" }, -4, 8],
+  ["difc_1000", { time: 10, focus: "difc", cam: "landmark" }, -4, 8],
+  ["fic_2130", { time: 21.5, selected: "FIC", cam: "close" }, -20, 7],
 ];
+const ONLY = process.argv[4] ? process.argv[4].split(",") : null;      // optional: a comma-separated subset of views
 const browser = await chromium.launch({ channel: "chrome", headless: true, args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
 const errors = [];
@@ -38,6 +43,7 @@ await page.evaluate(() => {                              // the 3D view alone: h
 });
 const fps = {};
 for (const [name, state, wheel, wait] of VIEWS) {
+  if (ONLY && !ONLY.includes(name)) continue;
   await page.evaluate((s) => { const t = window.__twin; const { cam, ...rest } = s; t.setState({ playing: false, ...rest }); t.getState().setCam(cam); }, state);
   await page.waitForTimeout(3500);
   await page.mouse.move(960, 560);

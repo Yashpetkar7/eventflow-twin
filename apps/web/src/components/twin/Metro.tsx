@@ -14,6 +14,7 @@ import { ModelMesh, withAo, type Models } from "./models";
 import { live, type SceneJson } from "./sceneData";
 
 export const RAIL_Y = 12.2;
+const CONC = new THREE.Color(0xe6e2da);              // station concrete by day; darkened after dark in Metro's useFrame
 export interface StationPlace { id: string; x: number; z: number; s: number; angle: number; tx: number; tz: number; zMin: number; zMax: number }
 
 export function placeStations(data: SceneJson, corridor: Corridor, stations: Station[]): StationPlace[] {
@@ -98,7 +99,8 @@ export function Metro({ corridor, places, models = null }: { corridor: Corridor;
     conc: new THREE.MeshStandardMaterial({ color: 0xe6e2da, roughness: 0.72 }),
     red: new THREE.MeshStandardMaterial({ color: 0xd90f0f, emissive: 0x7a0000, roughness: 0.5 }),
     // champagne-gold shell: metallic with a soft clear-coat sheen, picks up the sky of the hour
-    shell: new THREE.MeshPhysicalMaterial({ color: 0xd8b56e, metalness: 0.82, roughness: 0.3, clearcoat: 0.55, clearcoatRoughness: 0.28, envMapIntensity: 1.25, bumpMap: ribs, bumpScale: 0.6, side: THREE.DoubleSide }),
+    shell: new THREE.MeshPhysicalMaterial({ color: 0xd8b56e, metalness: 0.82, roughness: 0.3, clearcoat: 0.55, clearcoatRoughness: 0.28, envMapIntensity: 1.25, bumpMap: ribs, bumpScale: 0.6, side: THREE.DoubleSide,
+      emissive: 0x9a7438, emissiveIntensity: 0 }),                                 // warm uplight after dark (useFrame)
     glass: new THREE.MeshStandardMaterial({ color: 0x9fc3d8, metalness: 0.35, roughness: 0.12, transparent: true, opacity: 0.62, emissive: 0xffe2b0, emissiveIntensity: 0 }),
     hit: new THREE.MeshBasicMaterial({ visible: false }),
   }), [ribs]);
@@ -111,7 +113,15 @@ export function Metro({ corridor, places, models = null }: { corridor: Corridor;
   const vmats = useMemo(() => (models ? { shell: withAo(mats.shell), concrete: withAo(mats.conc), glass: withAo(mats.glass), steel: withAo(mats.conc) } : null), [mats, models]);
   useEffect(() => () => { if (vmats) Object.values(vmats).forEach((m) => m.dispose()); }, [vmats]);
   useFrame(() => {
-    mats.glass.emissiveIntensity = live.night * 0.9; mats.red.emissiveIntensity = 1 + live.night * 1.5;
+    const n = live.night;
+    mats.glass.emissiveIntensity = n * 0.9; mats.red.emissiveIntensity = 1 + n * 1.5;
+    // After dark the reflection probe is nearly black, so a metallic shell shows nothing but its clear-coat highlight
+    // (a black capsule) and plain concrete stays bright cream under the moonlight. Uplight the gold shell instead and
+    // darken the concrete like the city's walls (facade.ts).
+    for (const m of vmats ? [mats.shell, vmats.shell] : [mats.shell]) {
+      m.metalness = 0.82 - 0.6 * n; m.roughness = 0.3 + 0.22 * n; m.emissiveIntensity = n * 0.42;
+    }
+    for (const m of vmats ? [mats.conc, vmats.concrete, vmats.steel] : [mats.conc]) m.color.copy(CONC).multiplyScalar(1 - 0.62 * n);
     if (vmats) vmats.glass.emissiveIntensity = mats.glass.emissiveIntensity;
   });
 

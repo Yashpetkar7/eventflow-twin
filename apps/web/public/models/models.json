@@ -378,15 +378,15 @@
    "height_m": 323.0,
    "source": "https://en.wikipedia.org/wiki/List_of_tallest_buildings_in_Dubai",
    "crown": "generic",
-   "triangles": 164,
-   "triangles_lod1": 41,
+   "triangles": 198,
+   "triangles_lod1": 49,
    "budget": 25000,
-   "bytes": 7036,
-   "bytes_lod1": 4852,
+   "bytes": 7548,
+   "bytes_lod1": 4992,
    "size_m": [
     17.8,
     28.7,
-    43.0
+    323.0
    ],
    "materials": [
     "glass",
@@ -532,16 +532,16 @@
    "triangles": 53,
    "triangles_lod1": 18,
    "budget": 25000,
-   "bytes": 3400,
-   "bytes_lod1": 3064,
+   "bytes": 3396,
+   "bytes_lod1": 3060,
    "size_m": [
     69.3,
     69.0,
     60.0
    ],
    "materials": [
-    "concrete",
-    "glass"
+    "glass",
+    "concrete"
    ],
    "preview_engine": "BLENDER_EEVEE"
   },

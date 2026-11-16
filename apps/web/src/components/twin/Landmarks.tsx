@@ -16,6 +16,8 @@ import { mergeModels, ModelMesh, SITE_MODELS, withAo, type Models } from "./mode
 import { R7 } from "./perf";
 import { live, mulberry, type SceneJson } from "./sceneData";
 
+const CROWN = new THREE.Color(0xe9e2d4);             // the models' concrete slot by day; darkened after dark in useFrame
+
 function burjGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const STEPS = 27, H_TIERS = 585, stepH = H_TIERS / STEPS;
@@ -203,7 +205,11 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
     beacon.current?.scale.setScalar(Math.max(2.2, Math.min(9, live.camDist / 700)));
     wallU.uNight.value = n; wallU.uTime.value = live.animT;
     if (vmats) {
-      vmats.glass.emissiveIntensity = vmats.burjGlass.emissiveIntensity = vmats.towerGlass.emissiveIntensity = vmats.goldGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
+      vmats.glass.emissiveIntensity = vmats.burjGlass.emissiveIntensity = mats.burj.emissiveIntensity * 0.4;
+      // R8b towers, the Gate and the mall: no blanket glow (it read as a uniform pale-blue slab at night); their lit
+      // floors come from the curtain wall, like the city's own towers
+      vmats.towerGlass.emissiveIntensity = vmats.goldGlass.emissiveIntensity = 0;
+      vmats.concrete.color.copy(CROWN).multiplyScalar(1 - 0.62 * n);        // podiums, roofs, the Gate's arch: dark at night
       vmats.steel.emissiveIntensity = mats.steel.emissiveIntensity;
       vmats.mof.emissiveIntensity = mats.mof.emissiveIntensity; vmats.gold.emissiveIntensity = mats.gold.emissiveIntensity; vmats.dwtc.emissiveIntensity = mats.dwtc.emissiveIntensity;
       vmats.jet.opacity = 0.85 * Math.max(0, (n - 0.5) * 2); vmats.jet.visible = vmats.jet.opacity > 0;
@@ -236,7 +242,7 @@ export function Landmarks({ data, models = null }: { data: SceneJson; models?: M
         {R7.r8b && (
           <>
             <ModelMesh model={towers} mats={towerMats} />
-            <ModelMesh model={m.dubai_mall} mats={vmats} /><ModelMesh model={m.difc_gate} mats={vmats} />
+            <ModelMesh model={m.dubai_mall} mats={towerMats} /><ModelMesh model={m.difc_gate} mats={towerMats} />
             <ModelMesh model={m.dubai_fountain} mats={vmats} castShadow={false} />
           </>
         )}

@@ -8,7 +8,8 @@ import { useTwin } from "@/lib/store";
 import { buildingsGeometry, canvasTexture, flatPolygons, ribbons, sweep } from "./builders";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { facadeMaterialV2 } from "./facade";
-import { siteSkip, type Models } from "./models";
+import { sitePolys, siteSkip, type Models } from "./models";
+import type { StationPlace } from "./Metro";
 import { R7 } from "./perf";
 import { Ring } from "./Ring";
 import type { Manifest } from "@/lib/manifest";
@@ -305,7 +306,21 @@ function Greenery({ models, manifest, road, lamps }: { models: Models; manifest:
   );
 }
 
-export function City({ data, corridor, manifest, models = null }: { data: SceneJson; corridor: Corridor; manifest: Manifest | null; models?: Models | null }) {
+/** A mapped footbridge this close (m) to a corridor station is the station's own, which Metro.tsx already draws. */
+const STATION_BRIDGE_M = 90;
+const DECK = new THREE.Color(0xbdb8ae);              // flyover decks by day; darkened after dark in City's useFrame
+
+/** Swept ribbons (positions + normals) merged into one geometry; the inputs are disposed. */
+function mergeSweeps(gs: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  const pos: number[] = [], nor: number[] = [];
+  for (const g of gs) { pos.push(...(g.attributes.position.array as Float32Array)); nor.push(...(g.attributes.normal.array as Float32Array)); g.dispose(); }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  return out;
+}
+
+export function City({ data, corridor, manifest, models = null, places = [] }: { data: SceneJson; corridor: Corridor; manifest: Manifest | null; models?: Models | null; places?: StationPlace[] }) {
   const showBuildings = useTwin((s) => s.layers.buildings);
   const groundTex = useLoader(THREE.TextureLoader, `/geo/${data.meta.ground.file}`);
   const uniforms = useMemo(() => ({ uNight: { value: 0 } }), []);
@@ -345,23 +360,6 @@ export function City({ data, corridor, manifest, models = null }: { data: SceneJ
       const hw = f.w / 2;
       if (s.length > 1) decks.push(sweep(s, [[-hw, 0], [hw, 0], [hw, -1.1], [-hw, -1.1]]));
     }
-    const rails: THREE.BufferGeometry[] = [];
-    for (const fb of data.footbridges) {
-      const pts = pairs(fb);
-      const s = pts.map(([x, z], i) => {
-        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-        return { x, y: 7.2, z, tx: (b[0] - a[0]) / l, tz: (b[1] - a[1]) / l };
-      });
-      rails.push(sweep(s, [[-2.4, 0], [2.4, 0], [2.4, 3.1], [-2.4, 3.1]]));
-    }
-    const merge = (gs: THREE.BufferGeometry[]) => {
-      const pos: number[] = [], nor: number[] = [];
-      for (const g2 of gs) { pos.push(...(g2.attributes.position.array as Float32Array)); nor.push(...(g2.attributes.normal.array as Float32Array)); g2.dispose(); }
-      const out = new THREE.BufferGeometry();
-      out.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-      out.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
-      return out;
-    };
 
     // palms along both carriageways (outer verge) + street-light points down the median
     const rnd = mulberry(23);
@@ -382,9 +380,27 @@ export function City({ data, corridor, manifest, models = null }: { data: SceneJ
       // with the realism ring (v2) the ground, buildings and ghosted tops come from its chunks instead
       buildings: buildingsGeometry(manifest ? [] : data.buildings),
       ghosts: buildingsGeometry(manifest ? manifest.ghosts : data.ghosts),
-      roadsByClass, szr, decks: merge(decks), rails: merge(rails), palms, lamps: new Float32Array(lamps),
+      roadsByClass, szr, decks: mergeSweeps(decks), palms, lamps: new Float32Array(lamps),
     };
   }, [data, corridor, groundTex, manifest]);
+  // Mapped pedestrian footbridges, except the ones at corridor stations: Metro.tsx draws those with the station.
+  // Kept apart from `built` so the stations arriving from the API does not rebuild the whole city.
+  const rails = useMemo(() => {
+    const out: THREE.BufferGeometry[] = [];
+    for (const fb of data.footbridges) {
+      const pts = pairs(fb);
+      if (!pts.length) continue;
+      const [mx, mz] = pts[Math.floor(pts.length / 2)];
+      if (places.some((p) => Math.hypot(p.x - mx, p.z - mz) < STATION_BRIDGE_M)) continue;   // drawn twice otherwise
+      const s = pts.map(([x, z], i) => {
+        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        return { x, y: 7.2, z, tx: (b[0] - a[0]) / l, tz: (b[1] - a[1]) / l };
+      });
+      out.push(sweep(s, [[-2.4, 0], [2.4, 0], [2.4, 3.1], [-2.4, 3.1]]));
+    }
+    return mergeSweeps(out);
+  }, [data, places]);
+  useEffect(() => () => rails.dispose(), [rails]);
 
   const mats = useMemo(() => ({
     ground: groundMaterial(groundTex),
@@ -432,11 +448,12 @@ export function City({ data, corridor, manifest, models = null }: { data: SceneJ
     mats.lamp.size = Math.max(16, Math.min(90, live.camDist * 0.0125));
     mats.highway.emissiveIntensity = live.night * 0.34;          // sodium-lit carriageways read as glowing arteries from above
     mats.road.emissiveIntensity = live.night * 0.13;
+    mats.deck.color.copy(DECK).multiplyScalar(1 - 0.6 * live.night);    // flyover decks: no bright cream beams after dark
   });
 
   return (
     <group>
-      {manifest ? <Ring manifest={manifest} facade={mats.facade} facadeFar={mats.facadeFar ?? mats.facade} show={showBuildings} skip={models ? landmarkSkip(data) : undefined} /> : (
+      {manifest ? <Ring manifest={manifest} facade={mats.facade} facadeFar={mats.facadeFar ?? mats.facade} show={showBuildings} skip={models ? landmarkSkip(data) : undefined} polys={models && R7.r8b ? sitePolys : undefined} /> : (
         <>
           <mesh rotation-x={-Math.PI / 2} position-y={-0.4} receiveShadow material={mats.sand}>
             <planeGeometry args={[60000, 60000]} />
@@ -448,7 +465,7 @@ export function City({ data, corridor, manifest, models = null }: { data: SceneJ
       {built.roadsByClass.map((g, i) => <mesh key={i} geometry={g} material={manifest ? mats.highway : mats.road} receiveShadow />)}
       <mesh geometry={built.szr} material={mats.highway} receiveShadow />
       <mesh geometry={built.decks} material={mats.deck} castShadow receiveShadow />
-      <mesh geometry={built.rails} material={mats.glass} />
+      <mesh geometry={rails} material={mats.glass} />
       <group visible={showBuildings}>
         <mesh geometry={built.buildings} material={mats.facade} castShadow receiveShadow />
         <mesh geometry={built.ghosts} material={mats.ghost} renderOrder={2} />
