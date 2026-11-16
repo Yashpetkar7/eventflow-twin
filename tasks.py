@@ -25,7 +25,7 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
     "eval-fast": ("Fast backtest (2 folds) + simulator, agents and red-team suites", [
         [PY, "scripts/baseline.py", "--fast"], [PY, "-m", "eval.suites.simulator"],
         [PY, "-m", "eval.suites.agents"], [PY, "-m", "eval.suites.redteam"],
-        [PY, "-m", "eval.suites.orchestration"], [PY, "-m", "eval.suites.optimality"]]),
+        [PY, "-m", "eval.suites.orchestration"], [PY, "-m", "eval.suites.optimality"], [PY, "-m", "eval.suites.safety"]]),
     "eval": ("Full backtest + simulator, agents and red-team suites + tests", [
         [PY, "scripts/baseline.py"],
         [PY, "-m", "eval.suites.simulator"],
@@ -33,6 +33,7 @@ TASKS: dict[str, tuple[str, list[list[str]]]] = {
         [PY, "-m", "eval.suites.redteam"],
         [PY, "-m", "eval.suites.orchestration"],
         [PY, "-m", "eval.suites.optimality"],
+        [PY, "-m", "eval.suites.safety"],
         [PY, "-m", "pytest", "-q"],
     ]),
     "gate": ("Check latest eval results against eval/thresholds.yaml",

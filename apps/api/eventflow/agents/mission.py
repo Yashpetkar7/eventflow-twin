@@ -22,8 +22,9 @@ from .roster import AGENTS, BY_ID, LAYERS, counts, layer_of, settings
 
 # Claims the project must never make (CLAUDE.md rule 5). Checked by the verifier on every option text.
 CLAIM_PATTERNS = [r"\bapproved by (the )?rta\b", r"\brta[- ]approved\b", r"\bendorsed by\b", r"\bin partnership with (the )?rta\b",
-                  r"\bused by (the )?rta\b", r"\bofficial rta (plan|measure|decision)\b", r"معتمد من هيئة الطرق", r"بالشراكة مع هيئة الطرق",
-                  r"وافقت (عليه|عليها) هيئة الطرق"]
+                  r"\bused by (the )?rta\b", r"\bofficial rta (plan|measure|decision)\b", r"\bverified by\b",
+                  r"معتمد(ة)? من (قبل )?هيئة الطرق", r"اعتمدت(ه|ها)? هيئة الطرق", r"بالشراكة مع هيئة الطرق", r"وافقت (عليه|عليها) هيئة الطرق",
+                  r"(خطة|إجراء|قرار) رسمي(ة)? (من|لـ|ل)?\s*هيئة الطرق"]
 
 
 def agents_hash() -> str:

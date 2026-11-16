@@ -171,6 +171,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/watch/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Watch Scan
+         * @description The Watcher (standing agent): every alert of the scenario day, raised `horizon_h` hours before a station crosses
+         *     the threshold, in one answer (the screen follows the clock without polling).
+         */
+        post: operations["watch_scan_watch_scan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Message
+         * @description The Messenger (standing agent): passenger notice, signage line and operations briefing for an approved option,
+         *     in English and Arabic, from figures re-simulated here. Drafts only: nothing is sent anywhere.
+         */
+        post: operations["agent_message_agent_message_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Ask
+         * @description Ask the twin (standing agent): a chip or a question is routed to one tool; the answer's figures come from that
+         *     tool with its run id. Anything outside the corridor's crowding is refused.
+         */
+        post: operations["agent_ask_agent_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/decisions": {
         parameters: {
             query?: never;
@@ -425,6 +488,66 @@ export interface components {
             detail: string;
             /** Tool */
             tool?: string | null;
+        };
+        /** AskRequest */
+        AskRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description The forecast request (lets any instance rebuild the run) */
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Question
+             * @description Free text (untrusted); routed to one tool or refused
+             */
+            question?: string | null;
+            /**
+             * Intent
+             * @description A question chip: the tool to run, no routing needed
+             */
+            intent?: ("peak" | "worst" | "break_point" | "if_hot" | "if_rain" | "if_more" | "road" | "plan") | null;
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+        };
+        /** AskResponse */
+        AskResponse: {
+            /** Intent */
+            intent: ("peak" | "worst" | "break_point" | "if_hot" | "if_rain" | "if_more" | "road" | "plan") | null;
+            /** Refused */
+            refused: boolean;
+            /**
+             * Key
+             * @description Answer text key; the client words it from `params` (EN/AR)
+             */
+            key: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Routed By
+             * @enum {string}
+             */
+            routed_by: "chip" | "code" | "model" | "recorded";
+            /** Is Synthetic */
+            is_synthetic: boolean;
         };
         /** Assessment */
         Assessment: {
@@ -931,6 +1054,80 @@ export interface components {
             name: string;
             /** Name Ar */
             name_ar: string;
+        };
+        /** MessageDraft */
+        MessageDraft: {
+            /**
+             * Notice
+             * @description Passenger notice
+             */
+            notice: string;
+            /**
+             * Sign
+             * @description Signage line
+             */
+            sign: string;
+            /**
+             * Ops
+             * @description Operations briefing
+             */
+            ops: string;
+        };
+        /** MessageRequest */
+        MessageRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description The forecast request (lets any instance rebuild the run) */
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Interventions
+             * @description The approved option's measures (re-simulated here)
+             */
+            interventions: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+        };
+        /** MessageResponse */
+        MessageResponse: {
+            /** Drafts */
+            drafts: {
+                [key: string]: components["schemas"]["MessageDraft"];
+            };
+            /**
+             * Status
+             * @constant
+             */
+            status: "draft";
+            /**
+             * Sent
+             * @constant
+             */
+            sent: false;
+            /** Numbers Checked */
+            numbers_checked: number;
+            /** All Matched */
+            all_matched: boolean;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "template" | "model" | "recorded";
+            /** Model */
+            model?: string | null;
+            /** Note */
+            note: string;
+            /** Sources */
+            sources: components["schemas"]["Source"][];
+            /** Is Synthetic */
+            is_synthetic: boolean;
         };
         /** MeteringParams */
         MeteringParams: {
@@ -1526,6 +1723,83 @@ export interface components {
             /** Fallback Used */
             fallback_used: boolean;
         };
+        /** WatchAlert */
+        WatchAlert: {
+            /** Station */
+            station: string;
+            /**
+             * Raised At
+             * @description Hour of the scenario day at which the watcher raises the alert
+             */
+            raised_at: number;
+            /**
+             * Crosses At
+             * @description First hour the station is over the threshold
+             */
+            crosses_at: number;
+            /** Lead H */
+            lead_h: number;
+            /** Hours */
+            hours: number[];
+            /** Peak Lf */
+            peak_lf: number;
+            /** Run Id */
+            run_id: string;
+        };
+        /** WatchHour */
+        WatchHour: {
+            /** Hour */
+            hour: number;
+            /** Active */
+            active: string[];
+            /** New */
+            new: string[];
+        };
+        /** WatchRequest */
+        WatchRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description The forecast request (lets any instance rebuild the run) */
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Horizon H
+             * @description How far ahead the watcher looks (hours)
+             * @default 3
+             */
+            horizon_h: number;
+        };
+        /** WatchResponse */
+        WatchResponse: {
+            /** Horizon H */
+            horizon_h: number;
+            /** Threshold */
+            threshold: number;
+            /** Alerts */
+            alerts: components["schemas"]["WatchAlert"][];
+            /** Timeline */
+            timeline: components["schemas"]["WatchHour"][];
+            /** Run Id */
+            run_id: string;
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /**
+             * Next Step
+             * @enum {string}
+             */
+            next_step: "run_team" | "none";
+        };
         /** WayfindingRedirect */
         WayfindingRedirect: {
             /**
@@ -1785,6 +2059,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Roster"];
+                };
+            };
+        };
+    };
+    watch_scan_watch_scan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_message_agent_message_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_ask_agent_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

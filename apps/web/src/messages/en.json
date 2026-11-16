@@ -86,7 +86,8 @@
     "ai": "AI plan",
     "build": "My plan",
     "alerts": "Alerts",
-    "report": "Report"
+    "report": "Report",
+    "team": "AI team"
   },
   "kpi": {
     "peak": "Corridor peak load",
@@ -294,5 +295,241 @@
     "critic": "Critic",
     "explainer": "Explainer",
     "verifier": "Verifier"
+  },
+  "mission": {
+    "title": "The AI team",
+    "lede": "{agents} agents in five layers; {model} of them can call a language model. Code simulates, checks and ranks every plan; you decide.",
+    "run": "Run the AI team",
+    "rerun": "Run again with these choices",
+    "idle": "Run the team to see every agent's work, the plans it rejected and how each option holds up under stress.",
+    "replay": "Replay",
+    "skip": "Skip",
+    "watching": "The AI team is working…",
+    "engine": {
+      "graph": "Orchestrated with LangGraph",
+      "seq": "Same agents, run in sequence (LangGraph not installed here)",
+      "classic": "Single classic planner"
+    },
+    "rec": {
+      "code": "No language model in this run: every agent used its code rules.",
+      "recorded": "AI answers recorded {date} · {model}. Simulations and checks ran now.",
+      "live": "Live AI: {model}.",
+      "mixed": "Live and recorded AI answers · {model}."
+    },
+    "agentKind": {
+      "code": "Code",
+      "model": "AI model",
+      "human": "You"
+    },
+    "layer": {
+      "1": "Command",
+      "2": "Understand",
+      "3": "Propose",
+      "4": "Test & challenge",
+      "5": "Explain & decide",
+      "6": "Standing"
+    },
+    "agent": {
+      "supervisor": "Supervisor",
+      "intake": "Intake",
+      "forecast": "Forecast",
+      "diagnosis": "Diagnosis",
+      "rail": "Rail service",
+      "station_crowd": "Station & crowd",
+      "venue": "Venue",
+      "last_mile": "First & last mile",
+      "composer": "Composer",
+      "simulation": "Simulation",
+      "critic": "Critic",
+      "stress": "Stress test",
+      "ranker": "Ranker",
+      "explainer": "Explainer",
+      "verifier": "Verifier",
+      "messenger": "Messenger",
+      "watcher": "Watcher",
+      "ask": "Ask the twin",
+      "human": "You"
+    },
+    "measure": {
+      "extra_trains": "extra trains",
+      "extended_hours": "extended hours",
+      "station_metering": "entry metering",
+      "wayfinding_redirect": "wayfinding",
+      "staggered_exit": "staggered exit",
+      "shuttle_bus": "feeder shuttles",
+      "robotaxi_staging": "robotaxis"
+    },
+    "prio": {
+      "cost": "lower cost",
+      "balanced": "balanced",
+      "impact": "biggest impact"
+    },
+    "field": {
+      "goal": "goal",
+      "notes": "notes",
+      "model": "text (seen by the intake model)"
+    },
+    "feed": "What each agent did",
+    "graph": "Who is working",
+    "objective": "Objective",
+    "constraints": "Your constraints",
+    "constraintsNote": "Only these choices change what the agents may do. Text in the goal is read, never obeyed.",
+    "forbid": "Do not use",
+    "protect": "Protect (no more time over the line)",
+    "costCap": "Cost cap",
+    "noCap": "none",
+    "findings": "{n, plural, one {# instruction-like text found and ignored} other {# instruction-like texts found and ignored}}",
+    "suggestions": "Suggested by the intake model (not applied)",
+    "checks": "Critic's checks on each option",
+    "crit": {
+      "C1": "Every station under the line",
+      "C2": "No new hotspot",
+      "C3": "Not worse overall",
+      "C4": "Waits at most {limit} min",
+      "C5": "No more road pressure",
+      "C6": "Your constraints",
+      "C7": "Holds under stress"
+    },
+    "stressTitle": "Stress test",
+    "holds": "Option {rank}: holds in {holds} of {total} cases",
+    "case": {
+      "attendance": "{v}× visitors",
+      "metro_share": "{v}% by metro",
+      "weather": "{v} weather",
+      "demand_level": "real station totals"
+    },
+    "weather": {
+      "hot": "hot",
+      "rain": "rainy",
+      "normal": "normal"
+    },
+    "rejected": "{n, plural, =0 {No plans rejected} one {# plan tested and not offered} other {# plans tested and not offered}}",
+    "reason": {
+      "no_relief": "relieves nobody",
+      "bounds": "outside the menu's rules",
+      "forbidden": "not allowed by your constraints",
+      "outranked": "a better plan of its kind was offered"
+    },
+    "budget": "Budget",
+    "budgetSteps": "Agent steps",
+    "budgetSims": "Simulations",
+    "budgetModel": "Model calls",
+    "budgetTime": "Time",
+    "scorecard": "Measured accuracy (eval suites)",
+    "score": {
+      "faithful": "Figures matching the simulator",
+      "engines": "Engines agree (LangGraph · sequence · classic)",
+      "criticRecall": "Critic recall on ~1,000 plans",
+      "coverage": "Finds a plan that clears every station when one exists",
+      "gap": "Relief gap to an exhaustive search",
+      "attack": "Prompt-injection attacks that worked",
+      "detect": "Injection attempts detected (in-sample)",
+      "p95": "Mission time, 95th percentile"
+    },
+    "from": "from {file}",
+    "teamLink": "Watch the AI team",
+    "holdsBadge": "Holds in {holds}/{total} stress tests",
+    "ev": {
+      "start": "Mission started",
+      "objective": "Goal: every station under {thr} · priority {prio}{n, plural, =0 {} other { · # constraints}}",
+      "finding": "Instruction-like text in the {field}: logged, not followed",
+      "intakeModel": "{n, plural, =0 {Read the goal: nothing to suggest} one {Read the goal: # suggestion, not applied} other {Read the goal: # suggestions, not applied}}",
+      "forecast": "Demand forecast: {attendance} visitors, {share} by metro",
+      "baseline": "Baseline: {over} station-hours over the line, {excess} riders over, peak {peak}",
+      "hotspots": "Hotspot: {station} · {n, plural, one {# station} other {# stations}} over the line",
+      "none": "No station goes over {thr}",
+      "noBreak": "No break point in this scenario",
+      "breakpoint": "Crosses the line at about {att} visitors ({station})",
+      "road": "Road pressure: {veh} extra cars an hour at {hour}:00",
+      "proposed": "{n, plural, =0 {Nothing to propose} one {# plan} other {# plans}}: {kinds} at {station}",
+      "staggerYes": "Can spread the exit over {m} more minutes",
+      "staggerNo": "Staggered exit not available here",
+      "specModel": "AI added {n, plural, =0 {no plans} one {# plan} other {# plans}}{d, plural, =0 {} other {; # outside the rules dropped}}",
+      "bundles": "{total} plans to test: {menu} from specialists, {cross} combined, {model} from AI",
+      "replanBundles": "Round {round}: {n} stronger and combined plans aimed at {station}",
+      "forbidden": "Dropped before testing (your constraint): {kinds}",
+      "sim": "{plan}: {excess} riders over, peak {peak}{moves}",
+      "moves": " · moves the crowd to {station}",
+      "met": "Goal met by {a} of {b} tested plans",
+      "residual": "Goal not met yet: {excess} riders still over at {station}",
+      "noRelief": "No tested plan relieves the crowd",
+      "noAction": "Nothing to fix",
+      "replan": "Replan: round {round}",
+      "stop": {
+        "goal_met": "Stop testing: the goal is met",
+        "max_rounds": "Stop testing: three rounds done",
+        "budget": "Stop testing: budget reached",
+        "no_relief": "Stop: nothing relieves the crowd",
+        "other": "Stop testing"
+      },
+      "kept": "Kept {k} of {n} plans, three different kinds",
+      "stress": "Option {rank} holds in {holds} of {total} stress tests",
+      "wroteTemplate": "Wrote {n} options (template text)",
+      "wroteModel": "Wrote {n} options ({model})",
+      "explainModel": "AI wrote {k} option texts; numbers checked next",
+      "verified": "{n} figures checked: all match the simulator{blocked, plural, =0 {} other { · # claims blocked}}",
+      "mismatch": "{n} figures checked: a mismatch — template text kept",
+      "human": "Your decision: {n, plural, one {# option} other {# options}} waiting",
+      "noActionDone": "No action needed"
+    },
+    "watch": {
+      "title": "Watcher · standing agent",
+      "sub": "Looks {h} hours ahead on the scenario clock and raises an alert before a station crosses the line.",
+      "now": "Scenario clock {time}",
+      "none": "No alerts today: no station crosses the line.",
+      "alert": "{station} crosses the line at {at}:00",
+      "inH": "{n, plural, one {in # hour} other {in # hours}}",
+      "over": "over the line now, peak {pct}%",
+      "lead": "{lead, plural, =0 {raised as it crosses} one {raised # hour ahead} other {raised # hours ahead}}",
+      "later": "{n, plural, one {# more alert} other {# more alerts}} from {at}:00",
+      "run": "Ask the AI team for a plan"
+    },
+    "ask": {
+      "title": "Ask the twin",
+      "sub": "Answers come only from the forecast, simulator and break-point tools, with the run behind each figure. Anything else is refused.",
+      "placeholder": "Ask about crowding on this corridor…",
+      "send": "Ask",
+      "chips": {
+        "peak": "When is the busiest moment?",
+        "worst": "Which station is worst?",
+        "break_point": "At what crowd size does it break?",
+        "if_hot": "What if it is a hot day?",
+        "if_rain": "What if it rains?",
+        "if_more": "What if 25% more visitors come?",
+        "road": "How busy are the roads?",
+        "plan": "What should we do?"
+      },
+      "a": {
+        "peak": "Busiest moment: {station} at {hour}:00, load {pct}%.",
+        "worst": "{station} is the most crowded: {over} station-hours over the line, peak {pct}%.",
+        "break": "The corridor crosses the line at about {att} visitors ({station}); this scenario has {now}.",
+        "noBreak": "No station crosses the line at any crowd size in this scenario.",
+        "if_hot": "On a hot day: station-hours over the line {ob} → {oa}, peak load {pb}% → {pa}%.",
+        "if_rain": "If it rains: station-hours over the line {ob} → {oa}, peak load {pb}% → {pa}%.",
+        "if_more": "With 25% more visitors: station-hours over the line {ob} → {oa}, peak load {pb}% → {pa}%.",
+        "road": "Road pressure peaks at {veh} extra cars an hour at {hour}:00 ({rp}% of one direction of Sheikh Zayed Road).",
+        "plan": "The AI's first option: {title}. Riders over the line {b} → {a}.",
+        "planNone": "Nothing needs fixing in this scenario.",
+        "noEvent": "This needs an event in the scenario.",
+        "refuse": "I only answer questions about crowding, stations, trains, visitors and roads on this corridor."
+      },
+      "routed": {
+        "chip": "question chip",
+        "code": "routed by code",
+        "model": "routed by the AI model",
+        "recorded": "routed by the AI model (recorded)"
+      }
+    },
+    "msg": {
+      "title": "Messenger · draft messages",
+      "sub": "Written from the approved option's simulated figures, in English and Arabic. A human edits and approves; nothing is sent.",
+      "notice": "Passenger notice",
+      "sign": "Signage line",
+      "ops": "Operations briefing",
+      "checked": "{n} figures checked: all match the simulator",
+      "draft": "DRAFT",
+      "draftLong": "Draft · not sent · not an RTA notice",
+      "screen": "What riders would see"
+    }
   }
 }

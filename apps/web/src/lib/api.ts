@@ -24,6 +24,19 @@ export type BreakpointRequest = S["BreakpointRequest"];
 export type BreakpointResponse = S["BreakpointResponse"];
 export type DecisionResponse = S["DecisionResponse"];
 export type Intervention = NonNullable<S["SimulateRequest"]["interventions"]>[number];
+export type AgentRunRequest = S["AgentRunRequest"];
+export type Mission = S["Mission"];
+export type AgentEvent = S["AgentEvent"];
+export type Roster = S["Roster"];
+export type Constraints = S["Constraints"];
+export type Assessment = S["Assessment"];
+export type WatchRequest = S["WatchRequest"];
+export type WatchResponse = S["WatchResponse"];
+export type MessageRequest = S["MessageRequest"];
+export type MessageResponse = S["MessageResponse"];
+export type AskRequest = S["AskRequest"];
+export type AskResponse = S["AskResponse"];
+export type AskIntent = NonNullable<S["AskRequest"]["intent"]>;
 
 /** True when the page is served from this machine (laptop, booth). */
 export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
@@ -118,6 +131,13 @@ export const api = {
   forecast: (req: ForecastRequest, signal?: AbortSignal) => call<ForecastResponse>("/forecast", req, { signal }),
   simulate: (req: SimulateRequest, signal?: AbortSignal) => call<SimulateResponse>("/simulate", req, { signal }),
   agentPlan: (req: AgentPlanRequest) => call<AgentPlanResponse>("/agent/plan", req),
+  /** The agent team (contract 1.11.0): the plan plus every agent event, checks, stress tests and budget. */
+  agentRun: (req: AgentRunRequest) => call<Mission>("/agent/run", req),
+  agentRoster: () => call<Roster>("/agent/roster"),
+  /** Standing agents (contract 1.12.0): the watcher's alerts for the day, the messenger's drafts, ask the twin. */
+  watch: (req: WatchRequest) => call<WatchResponse>("/watch/scan", req),
+  message: (req: MessageRequest) => call<MessageResponse>("/agent/message", req),
+  ask: (req: AskRequest) => call<AskResponse>("/agent/ask", req),
   breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),
   decide: (req: DecisionRequest) => call<DecisionResponse>("/decisions", req, { cache: false }),
   evidence: () => call<Evidence>("/evidence"),

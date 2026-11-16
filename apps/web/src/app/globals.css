@@ -140,8 +140,8 @@ table.data th { color: var(--ink-3); font-weight: 500; }
 .cell.over::after { content: ""; position: absolute; inset: 5px 40%; border-radius: 2px; background: rgba(255, 255, 255, 0.92); }
 
 .panel { background: var(--surface); border-inline-start: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
-.tabs { display: flex; gap: 2px; padding: 8px 8px 0; border-block-end: 1px solid var(--line); overflow-x: auto; flex: none; }
-.tabs button { border: 0; background: transparent; padding: 9px 10px; font-size: 13px; border-block-end: 2.5px solid transparent; white-space: nowrap; min-height: 40px; color: var(--ink-2); }
+.tabs { display: flex; gap: 0; padding: 8px 6px 0; border-block-end: 1px solid var(--line); overflow-x: auto; flex: none; }
+.tabs button { border: 0; background: transparent; padding: 9px 7px; font-size: 12.5px; flex: 1 0 auto; border-block-end: 2.5px solid transparent; white-space: nowrap; min-height: 40px; color: var(--ink-2); }
 .tabs button[aria-selected="true"] { border-block-end-color: var(--brand); color: var(--ink); font-weight: 600; }
 .tabs .count { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--risk); color: #fff; font-size: 11px; margin-inline-start: 4px; text-align: center; }
 .tabpanel { padding: 14px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
@@ -338,3 +338,49 @@ body.kiosk .railtabs { display: none; }
 .trace code { font-size: 11px; background: var(--muted, rgba(20, 28, 45, .06)); padding: 1px 5px; border-radius: 5px; }
 .trace small { display: block; font-size: 10.5px; color: var(--ink-3); }
 @media print { .trace { display: none; } }
+
+/* ---- the AI team tab and kiosk panel (contract 1.11.0, docs/15) ---- */
+.team-h { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.team-graph { display: grid; gap: 6px; }
+.team-layer { display: grid; grid-template-columns: 92px 1fr; gap: 6px; align-items: start; }
+.team-graph.compact .team-layer { grid-template-columns: 1fr; }
+.team-layer-name { font-size: 11px; color: var(--ink-3); padding-block-start: 5px; text-transform: uppercase; letter-spacing: .04em; }
+.team-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.team-chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px 3px 4px; font-size: 12px; background: var(--surface); transition: background .25s, border-color .25s, box-shadow .25s; }
+.team-chip i { font-style: normal; font-size: 9.5px; font-weight: 700; min-inline-size: 20px; block-size: 20px; border-radius: 999px; display: inline-grid; place-items: center; background: var(--navy-soft); color: var(--navy); }
+.team-chip.model i { background: #FDEBEB; color: var(--brand); }
+.team-chip.human i { background: #E7F6EF; color: var(--ok); }
+.team-chip.done { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.team-chip.done i { background: var(--ok); color: #fff; }
+.team-chip.on { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); background: #fff6f6; }
+.team-chip.on i { background: var(--brand); color: #fff; animation: teamPulse 1s ease-in-out infinite; }
+@keyframes teamPulse { 50% { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .team-chip.on i { animation: none; } }
+.team-feed { list-style: none; margin: 0; padding: 0; max-block-size: 360px; overflow-y: auto; display: grid; gap: 2px; }
+.team-feed li { display: grid; grid-template-columns: 112px 1fr; gap: 8px; font-size: 12.5px; padding: 4px 6px; border-inline-start: 3px solid var(--line); }
+.team-feed li.L1 { border-inline-start-color: var(--ink-3); } .team-feed li.L2 { border-inline-start-color: var(--navy); }
+.team-feed li.L3 { border-inline-start-color: var(--warn); } .team-feed li.L4 { border-inline-start-color: var(--brand); } .team-feed li.L5 { border-inline-start-color: var(--ok); }
+.team-feed .who { font-weight: 600; color: var(--ink-2, var(--ink)); }
+.team-feed .who .ai { font-style: normal; font-size: 9.5px; margin-inline-start: 4px; color: var(--brand); border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; }
+.team-feed small { display: block; color: var(--ink-3); font-size: 10.5px; }
+.team-checks, .team-score { inline-size: 100%; border-collapse: collapse; font-size: 12.5px; }
+.team-checks th, .team-checks td, .team-score th, .team-score td { padding: 4px 6px; border-block-end: 1px solid var(--line); text-align: start; font-weight: 400; }
+.team-checks td { text-align: center; font-weight: 700; }
+.team-checks td.ok { color: var(--ok); } .team-checks td.bad { color: var(--risk); } .team-checks td.na { color: var(--ink-3); }
+.team-score td small { display: block; color: var(--ink-3); font-size: 10.5px; }
+.team-case { font-size: 11px; border-radius: 6px; padding: 2px 7px; }
+.team-case.ok { background: #E7F6EF; color: var(--ok); } .team-case.bad { background: #FBE9EE; color: var(--risk); }
+.team-stress { margin-block-end: 6px; }
+.team-rej { margin: 0; padding-inline-start: 18px; font-size: 12.5px; }
+.team-meter { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; font-size: 12.5px; margin-block: 3px; }
+.team-meter .bar { block-size: 6px; background: var(--navy-soft); border-radius: 999px; overflow: hidden; }
+.team-meter .bar i { display: block; block-size: 100%; background: var(--navy); }
+/* standing agents: watcher, ask, messenger (contract 1.12.0) */
+.watch-alert { display: grid; gap: 2px; padding: 7px 9px; border-radius: 10px; margin-block-start: 6px; border-inline-start: 4px solid var(--warn); background: #FFF7E6; font-size: 13px; }
+.watch-alert.now { border-inline-start-color: var(--risk); background: #FBE9EE; }
+.watch-alert small { color: var(--ink-3); font-size: 11px; }
+.ask-input { flex: 1; min-inline-size: 0; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 13px; background: var(--surface); }
+.msg-screen { background: #0B1430; color: #F4F7FF; border-radius: 12px; padding: 10px 12px; margin-block: 6px; }
+.msg-screen small, .msg-sign small { display: block; font-size: 10.5px; opacity: .7; text-transform: uppercase; letter-spacing: .05em; }
+.msg-screen p { margin: 4px 0 0; font-size: 14px; line-height: 1.4; }
+.msg-sign { border: 2px solid var(--navy); border-radius: 10px; padding: 7px 10px; font-size: 13.5px; }

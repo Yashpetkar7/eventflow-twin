@@ -5,7 +5,7 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { breakpointBody, forecastBody, planBody, requestKey, simulateBody } from "../src/lib/requests.ts";
+import { breakpointBody, forecastBody, missionBody, planBody, requestKey, simulateBody } from "../src/lib/requests.ts";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 // fileURLToPath, not URL.pathname: on Windows .pathname is "/C:/…", which became "C:\C:\…" (booth laptop, 14 Nov)
@@ -37,6 +37,7 @@ for (const [i, ev] of [...events, { id: "custom" }].entries()) {
     await record("/simulate", simulateBody(fc.run_id, [], THR, spec));
     await record("/breakpoint", breakpointBody(fc.run_id, THR, spec));
     for (const locale of ["en", "ar"]) {
+      await record("/agent/run", missionBody(fc.run_id, [], THR, "balanced", locale, spec));     // the agent team (contract 1.11.0)
       const plan = await record("/agent/plan", planBody(fc.run_id, [], THR, "balanced", locale, spec));
       // the re-simulation after approving the top option (the guided demo's path)
       if (locale === "en" && plan.options[0]) await record("/simulate", simulateBody(fc.run_id, plan.options[0].interventions, THR, spec));
