@@ -99,6 +99,29 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
 - Do not say or show that RTA uses or endorses this. It is a student research prototype on synthetic baseline demand.
 
 ## Not verified yet (do this before 18 Nov)
+- **Windows laptop on MAINS power, measured 15 Nov 2026** — same laptop as the battery run below, plugged in and charging,
+  OneDrive stopped for the runs, no other 3D page open. Production build of `main` at `b9bfd2d` (includes the realism
+  passes of 13 Nov, #114–#116). One warm-up run was discarded. Every number is from a file in `eval/results/ui/booth_windows/`
+  or `eval/results/ui/realism_r7/`.
+
+  | Kiosk attract screen (`node tests/kiosk_fps.mjs`, headless Chrome, 3D at 1920×1080, 20 one-second samples) | Runs | Average fps per run | Lowest second per run | Quality tier at the end | File |
+  |---|---|---|---|---|---|
+  | `?kiosk=1` (default: realism scene, full quality) | 5 | 56.2, 55.9, 56, 56.4, 55.9 | 52.9, 52.1, 52.5, 54.3, 52.2 | 0, 0, 0, 0, 0 | `kiosk_default_mains.json` |
+  | `?kiosk=1&quality=light` | 3 | 56.7, 56.3, 56.3 | 56.2, 53.7, 55.9 | 1, 1, 1 | `kiosk_light_mains.json` |
+  | `?kiosk=1&scene=v1` (corridor scene) | 3 | 55.9, 56.3, 56.1 | 49.6, 55.9, 55.6 | 0, 0, 0 | `kiosk_v1_mains.json` |
+
+  - **The level it settles on: full quality (tier 0) in 5 of 5 runs**, no step-down; lowest second
+    52.1 fps. Every scene and level reads about 56 fps: Chrome on this laptop was held at about 56 Hz in these
+    runs (the corridor scene too), so 56 is the cap here, not the load.
+  - **The installed Chrome started with `--kiosk`** (`node tests/kiosk_real_chrome.mjs`, real full screen on the laptop's own
+    screen: screen 1280x800, window 1280x800 at device pixel ratio 1.5, canvas 1920x1200 px), measured after 30 s on
+    `/?kiosk=1`: average 56.1 fps, lowest second 55.4, tier 0 (`kiosk_real_chrome_mains.json`).
+  - **Reach mode** (round button bottom-left) pressed once in that window: `kiosk_real_chrome_mains_reach.png` — the
+    language, contrast and text-size controls move to the lower left.
+  - **With the 60 Hz cap removed** (`node tests/r7_fps.mjs windows_after_mains`): workspace on the realism scene
+    89.2–122.2 fps median over 8 camera / time cases (lowest second 79.2);
+    kiosk attract screen 72.2 median, tier 0, with one stall of 30.9 fps in its 10 samples.
+  - **Not measured:** the booth's touch monitor (C4); a soak on this laptop.
 - **Windows laptop, measured 13 Nov 2026 — ON BATTERY, not on mains (the charger was not available).** Lenovo 83DA,
   Intel Core Ultra 5 125H, 16 GB, `ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)`, built-in screen 1920×1200 at 59 Hz with
   150 % scaling, Balanced power plan, OneDrive running. Production build of `main` at `19bb596` plus one test fix (commit `1162057`). A battery run is the
@@ -120,7 +143,7 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
   - **With the 60 Hz cap removed** (`node tests/r7_fps.mjs windows_after_battery`, file `realism_r7/windows_after_battery_fps.json`):
     workspace on the realism scene 99.9–134 fps median over 8 camera / time cases
     (lowest second 93.8); kiosk attract screen 71.9 median, 58.8 lowest, tier 0.
-  - **Not measured:** mains power; the booth's touch monitor; Chrome's real `--kiosk` full screen started by hand; a soak.
+  - **Not measured in this battery run:** mains power and Chrome's real `--kiosk` full screen — both measured on 15 Nov, above.
   - **These runs are on `19bb596`.** `main` has since gained the realism passes of 13 Nov (decisions #114 and #115:
     rooms behind windows, cloud shadows, figures at stations, landmark models with 5 times the triangles). The mains
     run must be on the current `main`; expect the kiosk to step down to tier 1 a little more often than in the table above.
