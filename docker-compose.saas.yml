@@ -1,0 +1,23 @@
+# Product mode on top of docker-compose.yml: Postgres for chains, users and sessions; sign-in and roles on; a rate limit.
+# Tracing: run Langfuse with its own compose file (https://langfuse.com/self-hosting), create a project key, then set
+#   OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:3001/api/public/otel
+#   OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic <base64 of public_key:secret_key>
+# in your shell (never in a committed file) before `docker compose ... up`.
+services:
+  db:
+    image: postgres:17-alpine
+    environment: {POSTGRES_USER: eventflow, POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your shell}", POSTGRES_DB: eventflow}
+    volumes: ["eft-pg:/var/lib/postgresql/data"]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U eventflow"], interval: 5s, retries: 20}
+  api:
+    build: {context: ., args: {SAAS: "1"}}
+    depends_on: {db: {condition: service_healthy}}
+    environment:
+      EVENTFLOW_AUTH: "on"
+      EVENTFLOW_RATE_LIMIT: "120"
+      DATABASE_URL: "postgresql://eventflow:${POSTGRES_PASSWORD}@db:5432/eventflow"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+      OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+
+volumes:
+  eft-pg: {}

@@ -1,0 +1,14 @@
+.git
+.venv
+**/node_modules
+**/.next
+.env
+.env.*
+data/raw
+data/interim
+data/processed
+eval/results/ui
+apps/web/test-results
+apps/web/playwright-report
+**/__pycache__
+*.pyc

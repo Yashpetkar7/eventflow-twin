@@ -1,0 +1,27 @@
+# Deploy to Vercel and smoke-test the live site (WP6). Manual until the repository has the three secrets
+# VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID (Krishna creates the token; it never goes in chat or a file).
+# When they exist, add `push: {branches: [main]}` under `on:` to deploy on every merge.
+name: deploy
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Deploy (production)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo "VERCEL_TOKEN secret is missing"; exit 1; }
+          npx -y vercel@latest deploy --prod --archive=tgz --token "$VERCEL_TOKEN" --yes > url.txt
+          echo "Deployed: $(tail -1 url.txt)"
+      - name: Smoke test the live site
+        run: pip install -r requirements.txt && python scripts/smoke_live.py "$(tail -1 url.txt)"
