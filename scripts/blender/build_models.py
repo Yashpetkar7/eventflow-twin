@@ -587,6 +587,9 @@ def r8b_tower(site):
     roof height leaves out. Crowns are stylised except where STYLE says otherwise."""
     style, wall = STYLE.get(site["name"], ""), "gold" if STYLE.get(site["name"]) == "gold" else "glass"
     parts = []
+    low = min(site["prisms"], key=lambda q: q["min_h"])
+    if low["min_h"] > 0:                                                 # the map only has an upper part (Mr. C Residences):
+        parts += prism(scaled(low["ring"], 0.94), 0, low["min_h"], wall, "steel")    # a shaft from the ground, not a floating block
     for q in site["prisms"]:
         h, h0, ring = q["h"], q["min_h"], q["ring"]
         if h0 == 0 and h > 120:                                          # podium
@@ -632,7 +635,7 @@ def r8b_gate(site):
     The opening's size is an approximation (about a third of the width, from a fifth to four fifths of the height)."""
     q = site["prisms"][0]
     h = q["h"] or 60.0
-    parts = prism(q["ring"], 0, h, "concrete", "concrete")
+    parts = prism(q["ring"], 0, h, "glass", "concrete")             # glazed walls: lit floors after dark, like the towers
     body = join(parts, site["model"])
     xs, zs = [x for x, _ in q["ring"]], [z for _, z in q["ring"]]
     cx, cz = (min(xs) + max(xs)) / 2, (min(zs) + max(zs)) / 2

@@ -128,6 +128,8 @@ def main() -> None:
     (ROOT / "apps/web/public/models/sites.json").write_text(json.dumps({"skip": skip, "models": [s["model"] for s in sites]}), encoding="utf-8", newline="\n")
     for s in sites:
         print(s["model"], s["name"], "prisms", len(s["prisms"]), "roof", s.get("roof_m"), "height", s.get("height_m"), "spire", s.get("spire_m"), "|", s["height_source"][:60])
+    import r8b_polys                                          # footprint polygons for the web app (scripts/r8b_polys.py)
+    r8b_polys.main()
 
 
 if __name__ == "__main__":

@@ -1,17 +1,17 @@
 {
   "suite": "ui_fps_v2",
-  "timestamp": "2026-11-13T07:30:19.818Z",
+  "timestamp": "2026-11-16T10:33:07.141Z",
   "viewport": "1920x1080",
   "layers": "all on, clock playing, ?scene=v2",
   "mode": "next dev",
   "avg_fps": 60,
-  "min_fps": 59.8,
+  "min_fps": 60,
   "tier_at_end": 0,
   "samples": {
     "overview": [
-      59.8,
       60,
-      60.3,
+      60,
+      60,
       60,
       60
     ],
@@ -27,7 +27,7 @@
       60,
       60,
       60,
-      60.1
+      60
     ],
     "fly": [
       60,

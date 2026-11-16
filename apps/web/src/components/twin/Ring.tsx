@@ -10,6 +10,7 @@ import { buildBuildings, toGeometry, type BuildingArrays, type BuildingInput } f
 import type { ChunkJson, Manifest } from "@/lib/manifest";
 import { R7, TILE_FAR, TILE_NEAR } from "./perf";
 import { live } from "./sceneData";
+import { insidePoly } from "./models";
 
 const DIR = "/geo/v2/";
 // The ground is drawn after everything else that is opaque, top layer first (chunks, then the overview under them, then
@@ -18,6 +19,7 @@ const GROUND = R7.order ? [1, 2, 3] : [0, 0, 0];
 type Box = [number, number, number, number];
 
 const NONE: number[] = [];
+const NO_POLYS: number[][] = [];
 function plane([x0, x1, z0, z1]: Box, y: number): THREE.BufferGeometry {
   const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0);
   g.rotateX(-Math.PI / 2);
@@ -56,7 +58,7 @@ const EMPTY = buildBuildings({ buildings: [], roof: [], cls: [], detail: false }
 interface Loaded { id: string; plane: THREE.BufferGeometry; mat: THREE.MeshStandardMaterial; ao: THREE.Texture; mask: THREE.Texture; far: THREE.BufferGeometry[]; near: THREE.BufferGeometry[] }
 
 /** `skip`: x, z, radius triples — buildings whose centre falls inside one are left out (a modelled landmark stands there). */
-export function Ring({ manifest, facade, facadeFar, show, skip = NONE }: { manifest: Manifest; facade: THREE.Material; facadeFar: THREE.Material; show: boolean; skip?: number[] }) {
+export function Ring({ manifest, facade, facadeFar, show, skip = NONE, polys = NO_POLYS }: { manifest: Manifest; facade: THREE.Material; facadeFar: THREE.Material; show: boolean; skip?: number[]; polys?: number[][] }) {
   const [overview, setOverview] = useState<THREE.MeshStandardMaterial | null>(null);
   const [chunks, setChunks] = useState<Loaded[]>([]);
   const time = useMemo(() => ({ value: 0 }), []);                                       // one clock for every water surface
@@ -95,11 +97,12 @@ export function Ring({ manifest, facade, facadeFar, show, skip = NONE }: { manif
         const tiles = new Map<string, BuildingInput>();
         const seen = [0, 0];                                    // a building's number within the chunk's near / far group
         json.buildings.forEach((b, i) => {
-          if (skip.length) {                                    // under a modelled landmark (R8): the model replaces it
+          if (skip.length || polys.length) {                    // under a modelled landmark (R8): the model replaces it
             let cx = 0, cz = 0;
             for (let q = 2; q < b.length; q += 2) { cx += b[q]; cz += b[q + 1]; }
             cx /= (b.length - 2) / 2; cz /= (b.length - 2) / 2;
             for (let q = 0; q < skip.length; q += 3) if (Math.hypot(cx - skip[q], cz - skip[q + 1]) < skip[q + 2]) return;
+            for (const p of polys) if (insidePoly(cx, cz, p)) return;     // anything else standing inside its footprint
           }
           const near = b[2] > e[0] - M && b[2] < e[1] + M && b[3] > e[2] - M && b[3] < e[3] + M;
           const key = `${near ? "n" : "f"}${R7.tiles ? `${Math.floor(b[2] / (near ? TILE_NEAR : TILE_FAR))}_${Math.floor(b[3] / (near ? TILE_NEAR : TILE_FAR))}` : ""}`;
@@ -125,7 +128,7 @@ export function Ring({ manifest, facade, facadeFar, show, skip = NONE }: { manif
       ov?.map?.dispose(); ov?.dispose(); ovMaskTex?.dispose();
       for (const c of made) { c.plane.dispose(); c.mat.map?.dispose(); c.mat.dispose(); c.ao.dispose(); c.mask.dispose(); for (const g of [...c.far, ...c.near]) g.dispose(); }
     };
-  }, [manifest, time, skip]);
+  }, [manifest, time, skip, polys]);
   useEffect(() => { live.shadowDirty = 2; }, [chunks, show]);            // new or hidden casters: redraw the shadow map
   useEffect(() => () => { base.wide.dispose(); base.far.dispose(); base.sea.dispose(); base.seaTex.dispose(); }, [base]);
 
