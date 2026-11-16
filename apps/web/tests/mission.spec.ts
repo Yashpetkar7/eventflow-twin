@@ -1,6 +1,9 @@
 // The agent team on screen (contract 1.11.0, docs/15): the workspace "AI team" tab, typed constraints, Arabic,
 // the offline snapshot when the API is down, and the kiosk's "watch the AI team work" step with its Skip button.
 import { expect, test, type Page } from "@playwright/test";
+
+// The planning-service banner only: with WebGL off a second banner ("3D needs WebGL") is also on screen.
+const apiBanner = (page: Page) => page.locator(".banner:not(.demo)").filter({ hasText: "planning service" });
 import fs from "node:fs";
 import path from "node:path";
 
@@ -91,7 +94,7 @@ test("API down: a mission recorded in the offline snapshot still plays", async (
   const m = await mission(page);
   expect(m.events.length).toBeGreaterThan(5);                                                // a normal day: no station over the line
   expect(m.events.at(-1)!.key).toBe("supervisor.no_action");
-  await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable");
+  await expect(apiBanner(page)).toContainText("not reachable");
 });
 
 test("kiosk: the visitor watches the AI team work, and can skip it", async ({ page }) => {
