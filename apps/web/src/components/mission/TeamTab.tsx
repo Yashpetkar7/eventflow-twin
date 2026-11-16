@@ -8,6 +8,7 @@ import { api, type Evidence, type Mission } from "@/lib/api";
 import { N, useFmt, useLocale } from "@/lib/i18n";
 import { LAYER_AGENTS, useEventText } from "@/lib/mission";
 import { CORRIDOR_ORDER, useTwin } from "@/lib/store";
+import { AskCard, MessengerCard } from "./Standing";
 
 const MEASURES = ["extra_trains", "extended_hours", "station_metering", "wayfinding_redirect", "staggered_exit", "shuttle_bus", "robotaxi_staging"] as const;
 const CAPS = [null, 20, 50, 150] as const;
@@ -103,6 +104,7 @@ export function TeamTab() {
   const ready = useTwin((s) => !!s.forecast && !s.loading);
   const cons = useTwin((s) => s.constraints);
   const stations = useTwin((s) => s.stations);
+  const drafts = useTwin((s) => s.drafts);
   const [replay, setReplay] = useState<number | null>(null);
   const n = replay ?? shown;
   useEffect(() => {
@@ -247,6 +249,8 @@ export function TeamTab() {
         </div>
       )}
 
+      {drafts && <MessengerCard d={drafts} />}
+      <AskCard />
       <Scorecard />
     </>
   );

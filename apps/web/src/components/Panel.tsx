@@ -6,6 +6,7 @@ import { AiTab, BuildTab } from "./PlanTabs";
 import { BreakCard } from "./BreakCard";
 import { ReportTab } from "./ReportTab";
 import { TeamTab } from "./mission/TeamTab";
+import { WatcherCard } from "./mission/Standing";
 
 const TABS: Tab[] = ["station", "ai", "team", "build", "alerts", "report"];
 
@@ -91,6 +92,7 @@ function AlertsTab() {
   const list = alertsOf(cur, stations.map((s) => s.id));
   return (
     <>
+      <WatcherCard />
       <h2>{t("alerts.title")}</h2>
       {list.length === 0 && <div className="card empty">{t("alerts.none")}</div>}
       {list.map((a) => {

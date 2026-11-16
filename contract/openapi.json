@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.11.0"
+    "version": "1.12.0"
   },
   "paths": {
     "/healthz": {
@@ -270,6 +270,123 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Roster"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/watch/scan": {
+      "post": {
+        "summary": "Watch Scan",
+        "description": "The Watcher (standing agent): every alert of the scenario day, raised `horizon_h` hours before a station crosses\nthe threshold, in one answer (the screen follows the clock without polling).",
+        "operationId": "watch_scan_watch_scan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/message": {
+      "post": {
+        "summary": "Agent Message",
+        "description": "The Messenger (standing agent): passenger notice, signage line and operations briefing for an approved option,\nin English and Arabic, from figures re-simulated here. Drafts only: nothing is sent anywhere.",
+        "operationId": "agent_message_agent_message_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/ask": {
+      "post": {
+        "summary": "Agent Ask",
+        "description": "Ask the twin (standing agent): a chip or a question is routed to one tool; the answer's figures come from that\ntool with its run id. Anything outside the corridor's crowding is refused.",
+        "operationId": "agent_ask_agent_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -905,6 +1022,205 @@
           "label"
         ],
         "title": "AgentStep"
+      },
+      "AskRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest",
+            "description": "The forecast request (lets any instance rebuild the run)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question",
+            "description": "Free text (untrusted); routed to one tool or refused"
+          },
+          "intent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "peak",
+                  "worst",
+                  "break_point",
+                  "if_hot",
+                  "if_rain",
+                  "if_more",
+                  "road",
+                  "plan"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent",
+            "description": "A question chip: the tool to run, no routing needed"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id",
+          "forecast"
+        ],
+        "title": "AskRequest"
+      },
+      "AskResponse": {
+        "properties": {
+          "intent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "peak",
+                  "worst",
+                  "break_point",
+                  "if_hot",
+                  "if_rain",
+                  "if_more",
+                  "road",
+                  "plan"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent"
+          },
+          "refused": {
+            "type": "boolean",
+            "title": "Refused"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "Answer text key; the client words it from `params` (EN/AR)"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "routed_by": {
+            "type": "string",
+            "enum": [
+              "chip",
+              "code",
+              "model",
+              "recorded"
+            ],
+            "title": "Routed By"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent",
+          "refused",
+          "key",
+          "params",
+          "sources",
+          "routed_by",
+          "is_synthetic"
+        ],
+        "title": "AskResponse"
       },
       "Assessment": {
         "properties": {
@@ -2284,6 +2600,243 @@
           "name_ar"
         ],
         "title": "LayerInfo"
+      },
+      "MessageDraft": {
+        "properties": {
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "Passenger notice"
+          },
+          "sign": {
+            "type": "string",
+            "title": "Sign",
+            "description": "Signage line"
+          },
+          "ops": {
+            "type": "string",
+            "title": "Ops",
+            "description": "Operations briefing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "notice",
+          "sign",
+          "ops"
+        ],
+        "title": "MessageDraft"
+      },
+      "MessageRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest",
+            "description": "The forecast request (lets any instance rebuild the run)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied"
+          },
+          "interventions": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Interventions",
+            "description": "The approved option's measures (re-simulated here)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id",
+          "forecast",
+          "interventions"
+        ],
+        "title": "MessageRequest"
+      },
+      "MessageResponse": {
+        "properties": {
+          "drafts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MessageDraft"
+            },
+            "propertyNames": {
+              "enum": [
+                "en",
+                "ar"
+              ]
+            },
+            "type": "object",
+            "title": "Drafts"
+          },
+          "status": {
+            "type": "string",
+            "const": "draft",
+            "title": "Status"
+          },
+          "sent": {
+            "type": "boolean",
+            "const": false,
+            "title": "Sent"
+          },
+          "numbers_checked": {
+            "type": "integer",
+            "title": "Numbers Checked"
+          },
+          "all_matched": {
+            "type": "boolean",
+            "title": "All Matched"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "template",
+              "model",
+              "recorded"
+            ],
+            "title": "Source"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drafts",
+          "status",
+          "sent",
+          "numbers_checked",
+          "all_matched",
+          "source",
+          "note",
+          "sources",
+          "is_synthetic"
+        ],
+        "title": "MessageResponse"
       },
       "MeteringParams": {
         "properties": {
@@ -3774,6 +4327,232 @@
           "fallback_used"
         ],
         "title": "VerifyReport"
+      },
+      "WatchAlert": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "raised_at": {
+            "type": "integer",
+            "title": "Raised At",
+            "description": "Hour of the scenario day at which the watcher raises the alert"
+          },
+          "crosses_at": {
+            "type": "integer",
+            "title": "Crosses At",
+            "description": "First hour the station is over the threshold"
+          },
+          "lead_h": {
+            "type": "integer",
+            "title": "Lead H"
+          },
+          "hours": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Hours"
+          },
+          "peak_lf": {
+            "type": "number",
+            "title": "Peak Lf"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "raised_at",
+          "crosses_at",
+          "lead_h",
+          "hours",
+          "peak_lf",
+          "run_id"
+        ],
+        "title": "WatchAlert"
+      },
+      "WatchHour": {
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "active": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Active"
+          },
+          "new": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "New"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "active",
+          "new"
+        ],
+        "title": "WatchHour"
+      },
+      "WatchRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest",
+            "description": "The forecast request (lets any instance rebuild the run)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied"
+          },
+          "horizon_h": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Horizon H",
+            "description": "How far ahead the watcher looks (hours)",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id",
+          "forecast"
+        ],
+        "title": "WatchRequest"
+      },
+      "WatchResponse": {
+        "properties": {
+          "horizon_h": {
+            "type": "integer",
+            "title": "Horizon H"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/WatchAlert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/WatchHour"
+            },
+            "type": "array",
+            "title": "Timeline"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "next_step": {
+            "type": "string",
+            "enum": [
+              "run_team",
+              "none"
+            ],
+            "title": "Next Step"
+          }
+        },
+        "type": "object",
+        "required": [
+          "horizon_h",
+          "threshold",
+          "alerts",
+          "timeline",
+          "run_id",
+          "forecast_run_id",
+          "is_synthetic",
+          "next_step"
+        ],
+        "title": "WatchResponse"
       },
       "WayfindingRedirect": {
         "properties": {

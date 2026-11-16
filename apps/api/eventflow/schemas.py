@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.11.0"   # 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.12.0"   # 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -493,3 +493,85 @@ class Roster(BaseModel):
     agents: list[AgentInfo]
     counts: TeamCounts
     graph_mermaid: str = Field(description="The orchestration graph, generated from the code (empty without LangGraph)")
+
+
+# ---------- standing agents (contract 1.12.0, docs/15) ----------
+class _ScenarioRef(BaseModel):
+    forecast_run_id: str = Field(max_length=40)
+    forecast: ForecastRequest = Field(description="The forecast request (lets any instance rebuild the run)")
+    threshold: float | None = Field(None, ge=0.5, le=1.0)
+    scope: Scope = "corridor"
+    applied: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
+
+
+class WatchRequest(_ScenarioRef):
+    horizon_h: int = Field(3, ge=1, le=6, description="How far ahead the watcher looks (hours)")
+
+
+class WatchAlert(BaseModel):
+    station: str
+    raised_at: int = Field(description="Hour of the scenario day at which the watcher raises the alert")
+    crosses_at: int = Field(description="First hour the station is over the threshold")
+    lead_h: int
+    hours: list[int]
+    peak_lf: float
+    run_id: str
+
+
+class WatchHour(BaseModel):
+    hour: int
+    active: list[str]
+    new: list[str]
+
+
+class WatchResponse(BaseModel):
+    horizon_h: int
+    threshold: float
+    alerts: list[WatchAlert]
+    timeline: list[WatchHour]
+    run_id: str
+    forecast_run_id: str
+    is_synthetic: bool
+    next_step: Literal["run_team", "none"]
+
+
+class MessageRequest(_ScenarioRef):
+    interventions: list[Intervention] = Field(min_length=1, max_length=MAX_INTERVENTIONS, description="The approved option's measures (re-simulated here)")
+
+
+class MessageDraft(BaseModel):
+    notice: str = Field(description="Passenger notice")
+    sign: str = Field(description="Signage line")
+    ops: str = Field(description="Operations briefing")
+
+
+class MessageResponse(BaseModel):
+    drafts: dict[Literal["en", "ar"], MessageDraft]
+    status: Literal["draft"]
+    sent: Literal[False]
+    numbers_checked: int
+    all_matched: bool
+    source: Literal["template", "model", "recorded"]
+    model: str | None = None
+    note: str
+    sources: list[Source]
+    is_synthetic: bool
+
+
+AskIntent = Literal["peak", "worst", "break_point", "if_hot", "if_rain", "if_more", "road", "plan"]
+
+
+class AskRequest(_ScenarioRef):
+    question: str | None = Field(None, max_length=300, description="Free text (untrusted); routed to one tool or refused")
+    intent: AskIntent | None = Field(None, description="A question chip: the tool to run, no routing needed")
+    locale: Literal["en", "ar"] = "en"
+
+
+class AskResponse(BaseModel):
+    intent: AskIntent | None
+    refused: bool
+    key: str = Field(description="Answer text key; the client words it from `params` (EN/AR)")
+    params: dict
+    sources: list[dict]
+    routed_by: Literal["chip", "code", "model", "recorded"]
+    is_synthetic: bool

@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_forecast, config_hash, load_panel, make
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, Mission, Roster, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -222,6 +222,32 @@ def agent_roster():
     """Who is on the team, in which layer, which can call a model, and the orchestration graph (from the code)."""
     from .agents.engine import roster
     return roster()
+
+
+@app.post("/watch/scan", response_model=WatchResponse)
+def watch_scan(req: WatchRequest):
+    """The Watcher (standing agent): every alert of the scenario day, raised `horizon_h` hours before a station crosses
+    the threshold, in one answer (the screen follows the clock without polling)."""
+    from .agents.standing import watch
+    get_run(req.forecast_run_id, req.forecast)
+    base = run_simulation(req.forecast_run_id, req.applied, False, req.threshold, req.scope)
+    return watch(get_run(req.forecast_run_id), base, req.horizon_h)
+
+
+@app.post("/agent/message", response_model=MessageResponse)
+def agent_message(req: MessageRequest):
+    """The Messenger (standing agent): passenger notice, signage line and operations briefing for an approved option,
+    in English and Arabic, from figures re-simulated here. Drafts only: nothing is sent anywhere."""
+    from .agents.agents_util import message_for
+    return message_for(req, get_run(req.forecast_run_id, req.forecast), run_simulation)
+
+
+@app.post("/agent/ask", response_model=AskResponse)
+def agent_ask(req: AskRequest):
+    """Ask the twin (standing agent): a chip or a question is routed to one tool; the answer's figures come from that
+    tool with its run id. Anything outside the corridor's crowding is refused."""
+    from .agents.agents_util import ask_for
+    return ask_for(req, get_run(req.forecast_run_id, req.forecast), run_simulation)
 
 
 @app.post("/decisions", response_model=DecisionResponse)

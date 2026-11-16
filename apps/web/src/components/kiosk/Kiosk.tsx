@@ -19,6 +19,7 @@ import { CORRIDOR_ORDER, mergeInterventions, T_MIN, useTwin } from "@/lib/store"
 import { LabelLayer } from "../LabelLayer";
 import { SceneProgress } from "../SceneProgress";
 import { KioskTeam } from "../mission/KioskTeam";
+import { KioskMessage } from "../mission/Standing";
 import { bump, busiest, closure, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -672,6 +673,7 @@ export function Kiosk() {
               <h1>{T.s4Title}</h1>
               <p className="kchosen">{picked.title}</p>
               <p className="ksub">{T.s4Sub}</p>
+              <KioskMessage />
               <div className="kba">
                 <div><small>{T.peakLoad}</small><span><N>{f.pct(picked.before.peak_lf)}</N></span><i>→</i><b className={over(after.peak_lf) ? "risk" : "okc"}><N>{f.pct(after.peak_lf)}</N></b></div>
                 <div><small>{T.ridersOver}</small><span><N>{f.int(picked.before.excess_pax)}</N></span><i>→</i><b className={after.excess_pax > 0 ? "risk" : "okc"}><N>{f.int(after.excess_pax)}</N></b></div>

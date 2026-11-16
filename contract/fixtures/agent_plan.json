@@ -462,7 +462,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_d1451e81e16c",
-      "ms": 10.9,
+      "ms": 11.0,
       "data": {
         "label": "baseline",
         "over": 0.75,
@@ -503,7 +503,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_a4e1d45b094d",
-      "ms": 13.7,
+      "ms": 14.3,
       "data": {
         "label": "stagway",
         "types": [
@@ -523,7 +523,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_8e86c4261c28",
-      "ms": 11.0,
+      "ms": 10.8,
       "data": {
         "label": "trains",
         "types": [
@@ -542,7 +542,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_98bee7e60eef",
-      "ms": 11.0,
+      "ms": 10.9,
       "data": {
         "label": "busrt",
         "types": [
@@ -562,7 +562,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_dddac4fc3006",
-      "ms": 10.9,
+      "ms": 10.7,
       "data": {
         "label": "way",
         "types": [
@@ -583,7 +583,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_6a67a18d71e7",
-      "ms": 13.7,
+      "ms": 13.9,
       "data": {
         "label": "trainstag",
         "types": [
@@ -623,7 +623,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_e1b80c420cfe",
-      "ms": 10.8,
+      "ms": 10.7,
       "data": {
         "label": "meter",
         "types": [
@@ -715,7 +715,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_cdc4e30a163a",
-      "ms": 13.7,
+      "ms": 13.8,
       "data": {
         "label": "combo",
         "types": [
@@ -737,7 +737,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_66dc6e378ef4",
-      "ms": 11.1,
+      "ms": 10.8,
       "data": {
         "label": "combo",
         "types": [
@@ -780,7 +780,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_b691be1ac981",
-      "ms": 13.7,
+      "ms": 13.9,
       "data": {
         "label": "combo",
         "types": [
@@ -801,7 +801,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_b865ecfcc363",
-      "ms": 11.0,
+      "ms": 10.8,
       "data": {
         "label": "combo",
         "types": [
@@ -822,7 +822,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_0c17d941fee6",
-      "ms": 14.0,
+      "ms": 13.9,
       "data": {
         "label": "strong",
         "types": [
@@ -842,7 +842,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_797160d4a0e1",
-      "ms": 13.8,
+      "ms": 13.7,
       "data": {
         "label": "combo",
         "types": [
@@ -884,7 +884,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_73b3e06b275a",
-      "ms": 13.5,
+      "ms": 13.7,
       "data": {
         "label": "combo",
         "types": [
@@ -905,7 +905,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_c67c4fe0f54f",
-      "ms": 13.6,
+      "ms": 13.7,
       "data": {
         "label": "combo",
         "types": [
@@ -926,7 +926,7 @@
       "role": "simulator",
       "tool": "simulate",
       "run_id": "sim_319a20064762",
-      "ms": 13.6,
+      "ms": 13.7,
       "data": {
         "label": "combo",
         "types": [
@@ -998,7 +998,7 @@
       "role": "explainer",
       "tool": "explain",
       "run_id": null,
-      "ms": 0.0,
+      "ms": 261.1,
       "data": {
         "source": "template",
         "options": 3,

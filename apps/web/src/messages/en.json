@@ -471,6 +471,65 @@
       "mismatch": "{n} figures checked: a mismatch — template text kept",
       "human": "Your decision: {n, plural, one {# option} other {# options}} waiting",
       "noActionDone": "No action needed"
+    },
+    "watch": {
+      "title": "Watcher · standing agent",
+      "sub": "Looks {h} hours ahead on the scenario clock and raises an alert before a station crosses the line.",
+      "now": "Scenario clock {time}",
+      "none": "No alerts today: no station crosses the line.",
+      "alert": "{station} crosses the line at {at}:00",
+      "inH": "{n, plural, one {in # hour} other {in # hours}}",
+      "over": "over the line now, peak {pct}%",
+      "lead": "{lead, plural, =0 {raised as it crosses} one {raised # hour ahead} other {raised # hours ahead}}",
+      "later": "{n, plural, one {# more alert} other {# more alerts}} from {at}:00",
+      "run": "Ask the AI team for a plan"
+    },
+    "ask": {
+      "title": "Ask the twin",
+      "sub": "Answers come only from the forecast, simulator and break-point tools, with the run behind each figure. Anything else is refused.",
+      "placeholder": "Ask about crowding on this corridor…",
+      "send": "Ask",
+      "chips": {
+        "peak": "When is the busiest moment?",
+        "worst": "Which station is worst?",
+        "break_point": "At what crowd size does it break?",
+        "if_hot": "What if it is a hot day?",
+        "if_rain": "What if it rains?",
+        "if_more": "What if 25% more visitors come?",
+        "road": "How busy are the roads?",
+        "plan": "What should we do?"
+      },
+      "a": {
+        "peak": "Busiest moment: {station} at {hour}:00, load {pct}%.",
+        "worst": "{station} is the most crowded: {over} station-hours over the line, peak {pct}%.",
+        "break": "The corridor crosses the line at about {att} visitors ({station}); this scenario has {now}.",
+        "noBreak": "No station crosses the line at any crowd size in this scenario.",
+        "if_hot": "On a hot day: station-hours over the line {ob} → {oa}, peak load {pb}% → {pa}%.",
+        "if_rain": "If it rains: station-hours over the line {ob} → {oa}, peak load {pb}% → {pa}%.",
+        "if_more": "With 25% more visitors: station-hours over the line {ob} → {oa}, peak load {pb}% → {pa}%.",
+        "road": "Road pressure peaks at {veh} extra cars an hour at {hour}:00 ({rp}% of one direction of Sheikh Zayed Road).",
+        "plan": "The AI's first option: {title}. Riders over the line {b} → {a}.",
+        "planNone": "Nothing needs fixing in this scenario.",
+        "noEvent": "This needs an event in the scenario.",
+        "refuse": "I only answer questions about crowding, stations, trains, visitors and roads on this corridor."
+      },
+      "routed": {
+        "chip": "question chip",
+        "code": "routed by code",
+        "model": "routed by the AI model",
+        "recorded": "routed by the AI model (recorded)"
+      }
+    },
+    "msg": {
+      "title": "Messenger · draft messages",
+      "sub": "Written from the approved option's simulated figures, in English and Arabic. A human edits and approves; nothing is sent.",
+      "notice": "Passenger notice",
+      "sign": "Signage line",
+      "ops": "Operations briefing",
+      "checked": "{n} figures checked: all match the simulator",
+      "draft": "DRAFT",
+      "draftLong": "Draft · not sent · not an RTA notice",
+      "screen": "What riders would see"
     }
   }
 }

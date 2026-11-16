@@ -340,3 +340,8 @@
 .kteam-now { margin: 2px 0 0; font-size: 16px; line-height: 1.35; display: grid; gap: 2px; min-block-size: 3.1em; }
 .kteam-now span { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--brand); font-weight: 700; }
 .kteam .kpill { justify-self: start; min-block-size: 48px; }
+/* the messenger's draft as a station screen, on the kiosk's decision step (contract 1.12.0) */
+.kmsg { background: #0B1430; color: #F4F7FF; border-radius: 16px; padding: 12px 16px; margin: 4px 0 10px; }
+.kmsg-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
+.kmsg-top em { font-style: normal; color: #FFD27A; }
+.kmsg p { margin: 6px 0 0; font-size: 17px; line-height: 1.4; }

@@ -50,6 +50,21 @@ export function missionBody(runId: string, applied: unknown[], threshold: number
   return { ...planBody(runId, applied, threshold, priority, locale, forecast), forecast, ...c } as S["AgentRunRequest"];
 }
 
+/** Scenario reference shared by the standing agents' requests (watcher, messenger, ask). */
+function scenarioRef(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[]) {
+  return { forecast_run_id: runId, forecast, threshold, scope: "corridor" as const, applied };
+}
+export function watchBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[]): S["WatchRequest"] {
+  return { ...scenarioRef(runId, threshold, forecast, applied), horizon_h: 3 } as S["WatchRequest"];
+}
+export function messageBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], interventions: unknown[]): S["MessageRequest"] {
+  return { ...scenarioRef(runId, threshold, forecast, applied), interventions } as S["MessageRequest"];
+}
+export function askBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], locale: "en" | "ar",
+  q: { intent?: S["AskRequest"]["intent"]; question?: string }): S["AskRequest"] {
+  return { ...scenarioRef(runId, threshold, forecast, applied), locale, ...q } as S["AskRequest"];
+}
+
 export function breakpointBody(runId: string, threshold: number, forecast: S["ForecastRequest"]): S["BreakpointRequest"] {
   return { forecast_run_id: runId, forecast, threshold } as S["BreakpointRequest"];
 }

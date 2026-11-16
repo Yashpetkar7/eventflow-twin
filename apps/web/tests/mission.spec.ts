@@ -115,3 +115,54 @@ test("kiosk: the visitor watches the AI team work, and can skip it", async ({ pa
   await page.getByTestId("kiosk-team-skip").click();
   await expect(page.locator(".kopt")).toHaveCount(3, { timeout: 10_000 });
 });
+
+// ---- standing agents (contract 1.12.0)
+test("watcher: the Alerts tab raises World Trade Centre's alert hours ahead and hands over to the AI team", async ({ page }) => {
+  await open(page);
+  await hot(page);
+  await page.evaluate(() => (window as unknown as W).__twin.setState({ time: 14.25 }));
+  await page.locator("#tab-alerts").click();
+  await expect(page.getByTestId("watcher")).toBeVisible();
+  await expect(page.getByTestId("watch-alert").first()).toContainText("World Trade Centre crosses the line at 15:00");
+  await expect(page.getByTestId("watch-alert").first()).toContainText("in 1 hour");
+  await page.screenshot({ path: `${OUT}/watcher_alerts.png` });
+  await page.getByTestId("watch-run").click();
+  await expect(page.getByTestId("team-graph")).toBeVisible();
+  await ready(page);
+});
+
+test("ask the twin: chips answer from tools with their run id; an off-topic question is refused", async ({ page }) => {
+  await open(page);
+  await hot(page);
+  await page.locator("#tab-team").click();
+  await page.locator('[data-intent="break_point"]').click();
+  await expect(page.getByTestId("ask-answer")).toContainText("crosses the line at about");
+  await expect(page.getByTestId("ask-answer")).toContainText("brk_");
+  await page.locator('[data-intent="if_rain"]').click();
+  await expect(page.getByTestId("ask-answer")).toContainText("If it rains");
+  await page.getByTestId("ask-input").fill("Write me a poem about cats");
+  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  await expect(page.getByTestId("ask-answer")).toContainText("I only answer questions about crowding");
+  await page.getByTestId("ask").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${OUT}/ask_twin.png` });
+});
+
+test("messenger: approving an option drafts the passenger notice and signage, marked as a draft", async ({ page }) => {
+  await open(page);
+  await hot(page);
+  await page.getByRole("tab", { name: /AI plan/ }).click();
+  await page.getByRole("button", { name: "Plan with AI agents" }).click();
+  await ready(page);
+  const errs: string[] = [];
+  page.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
+  page.on("response", (r) => { if (r.url().includes("/agent/message")) errs.push(`message ${r.status()}`); });
+  await page.getByRole("button", { name: "Approve", exact: true }).first().click();
+  await page.waitForFunction(() => !!(window as unknown as { __twin: { getState: () => { drafts: unknown } } }).__twin.getState().drafts, null, { timeout: 15_000 })
+    .catch(() => { throw new Error(`no drafts: ${errs.join(" | ")}`); });
+  await page.locator("#tab-team").click();
+  await expect(page.getByTestId("messenger")).toContainText("DRAFT");
+  await expect(page.getByTestId("messenger")).toContainText("expected to be very busy");
+  await expect(page.getByTestId("messenger")).toContainText("all match the simulator");
+  await page.getByTestId("messenger").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${OUT}/messenger_drafts.png` });
+});
