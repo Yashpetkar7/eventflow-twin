@@ -8,6 +8,7 @@ import { api, type Evidence, type Mission } from "@/lib/api";
 import { N, useFmt, useLocale } from "@/lib/i18n";
 import { LAYER_AGENTS, useEventText } from "@/lib/mission";
 import { CORRIDOR_ORDER, useTwin } from "@/lib/store";
+import { DebateCard } from "./Debate";
 import { AskCard, MessengerCard } from "./Standing";
 
 const MEASURES = ["extra_trains", "extended_hours", "station_metering", "wayfinding_redirect", "staggered_exit", "shuttle_bus", "robotaxi_staging"] as const;
@@ -220,6 +221,8 @@ export function TeamTab() {
           ))}
         </div>
       )}
+
+      {mission && status === "ready" && <DebateCard mission={mission} />}
 
       {mission && status === "ready" && (
         <div className="card" data-testid="team-rejected">

@@ -28,6 +28,13 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "optimality.goal_coverage_min": ("optimality", "goal_coverage", "min"),
     "optimality.relief_gap_max_max": ("optimality", "relief_gap_max", "max"),
     "optimality.top_score_ratio_mean_min": ("optimality", "top_score_ratio_mean", "min"),
+    # incidents and the duty shift (decision #128)
+    "incidents.incident_deterministic_min": ("incidents", "incident_deterministic", "min"),
+    "incidents.incident_never_easier_min": ("incidents", "incident_never_easier", "min"),
+    "incidents.shift_figures_match_min": ("incidents", "shift_figures_match", "min"),
+    "incidents.shift_terminates_min": ("incidents", "shift_terminates", "min"),
+    "incidents.shift_honest_end_min": ("incidents", "shift_honest_end", "min"),
+    "incidents.shift_no_autonomous_apply_min": ("incidents", "shift_no_autonomous_apply", "min"),
 }
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

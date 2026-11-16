@@ -7,6 +7,7 @@ import { useTwin } from "@/lib/store";
 import { armIdle, runTour, stopTour, watchApi } from "@/lib/tour";
 import { Header } from "./Header";
 import { Kiosk } from "./kiosk/Kiosk";
+import { OperationsBrief } from "./mission/Duty";
 import { Panel } from "./Panel";
 import { Rail } from "./Rail";
 import { Stage } from "./Stage";
@@ -107,6 +108,7 @@ function Workspace() {
         <p>{t("howAlign")}</p>
         <button type="button" className="btn navy" onClick={() => setHow(false)}>{t("close")}</button>
       </dialog>
+      <OperationsBrief />
     </div>
   );
 }

@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT))
 from fastapi.testclient import TestClient  # noqa: E402
 
 from apps.api.eventflow import main  # noqa: E402
-from apps.api.eventflow.schemas import CONTRACT_VERSION, AgentPlanResponse, Mission  # noqa: E402
+from apps.api.eventflow.schemas import CONTRACT_VERSION, AgentPlanResponse, Mission, ShiftStep  # noqa: E402
 
 OUT = ROOT / "contract"
 FIX = OUT / "fixtures"
@@ -88,6 +88,19 @@ def main_() -> None:
     Mission.model_validate(m)
     dump("agent_mission.json", m)
     dump("agent_roster.json", c.get("/agent/roster").json())
+    # Incident and duty shift (contract 1.13.0): a train fault during GITEX's exit, and the shift's first step on it.
+    spec = {"event_id": "gitex2025_d1", "incident": {"type": "train_fault", "hour": 16}}
+    inc = c.post("/forecast", json=spec).json()
+    dump("forecast_incident_train_fault.json", {k: v for k, v in inc.items() if k != "rows"} | {"rows": inc["rows"][:24]})   # one station's rows: the shape, not the bulk
+    step = c.post("/shift/next", json={"forecast_run_id": inc["run_id"], "forecast": spec, "scope": "corridor", "from_hour": 16}).json()
+    step["mission"]["plan"]["cached"] = False
+    step["mission"]["budget"]["wall_ms"] = 0.0
+    for e in step["mission"]["events"]:
+        e["t_ms"] = 0.0
+    for e in step["mission"]["plan"]["trace"]:
+        e["ms"] = 0.0
+    ShiftStep.model_validate(step)
+    dump("shift_step.json", step)
     dump("decision_response.json", {"logged": True, "decision_id": "dec_fixture01", "timestamp": "2026-11-18T18:05:00+04:00",
                                     "plan_known": True})
     dump("evidence.json", c.get("/evidence").json())

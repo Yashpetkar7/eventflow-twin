@@ -12,7 +12,7 @@ from typing import Callable
 
 from ..breakpoint import break_points
 from ..config import corridor
-from ..forecast import build_forecast
+from ..forecast import build_from_spec
 from ..simulate import simulate
 from . import planner
 from .personas import AgentLLM, agent_llm, note  # noqa: F401  (AgentLLM: type of the messenger's / ask's model)
@@ -180,10 +180,8 @@ def answer(intent: str, run: dict, req, base: dict, run_simulation: Callable[...
             spec.update({"attendance": round(att * 1.25)})
         else:
             spec.update({"weather": "hot" if intent == "if_hot" else "rain", "metro_share": None})
-        fc = build_forecast(spec.get("event_id"), spec.get("date"), spec.get("weekday"), spec.get("attendance"), spec.get("end_time"),
-                            weather=spec.get("weather"), exit_sigma_min=spec.get("exit_sigma_min"), metro_share=spec.get("metro_share"),
-                            demand_level=spec.get("demand_level"), custom=spec.get("custom_event"))
-        res = simulate(fc["demand"], [], weekday=fc["weekday"], threshold=thr, report=report)
+        fc = build_from_spec(spec)
+        res = simulate(fc["demand"], [], weekday=fc["weekday"], threshold=thr, report=report, service=fc.get("service"))
         return {"key": f"ask.{intent}", "params": {"over_before": base["summary"]["overcap_station_hours"], "over_after": res.summary["overcap_station_hours"],
                                                    "peak_before_pct": round(base["summary"]["peak_lf"] * 100), "peak_after_pct": round(res.summary["peak_lf"] * 100)},
                 "sources": [{"tool": "forecast", "run_id": fc["run_id"]}]}

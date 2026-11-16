@@ -1,8 +1,8 @@
 {
   "eval": {
     "agents": {
-      "file": "agents_20261115-185349.json",
-      "timestamp": "2026-11-15T18:53:49",
+      "file": "agents_20261116-152953.json",
+      "timestamp": "2026-11-16T15:29:53",
       "metrics": {
         "number_faithfulness": 1.0,
         "schema_validity": 1.0,
@@ -16,8 +16,8 @@
         "replan_rate": 0.1818,
         "hotspot_scenarios": 44,
         "options_checked": 132,
-        "plan_latency_p50_s": 0.136,
-        "plan_latency_p95_s": 0.414
+        "plan_latency_p50_s": 0.068,
+        "plan_latency_p95_s": 0.193
       },
       "n": 60,
       "split": "all (dev+test)",
@@ -52,6 +52,28 @@
       "split": "test",
       "is_synthetic": true,
       "dataset_version": "synthetic:2026-08-03..2026-09-27"
+    },
+    "incidents": {
+      "file": "incidents_20261116-173152.json",
+      "timestamp": "2026-11-16T17:31:52",
+      "metrics": {
+        "incident_deterministic": 1.0,
+        "incident_never_easier": 1.0,
+        "shift_figures_match": 1.0,
+        "shift_terminates": 1.0,
+        "shift_honest_end": 1.0,
+        "shift_no_autonomous_apply": 1.0,
+        "shift_cleared": 1.0,
+        "shifts": 15,
+        "shifts_with_crowding": 10,
+        "proposals_checked": 10,
+        "decisions_asked_max": 1,
+        "shift_p95_s": 0.247
+      },
+      "n": 15,
+      "split": "all",
+      "is_synthetic": true,
+      "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "latency": {
       "file": "latency_20261113-094309.json",
@@ -169,8 +191,8 @@
       "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows"
     },
     "orchestration": {
-      "file": "orchestration_20261116-144453.json",
-      "timestamp": "2026-11-16T14:44:53",
+      "file": "orchestration_20261116-153026.json",
+      "timestamp": "2026-11-16T15:30:26",
       "metrics": {
         "engines_agree": 1.0,
         "events_deterministic": 1.0,
@@ -178,8 +200,8 @@
         "budget_respected": 1.0,
         "layers_covered": 1.0,
         "missions_with_options": 44,
-        "mission_p50_s": 0.321,
-        "mission_p95_s": 0.614,
+        "mission_p50_s": 0.195,
+        "mission_p95_s": 0.364,
         "engine_default": "graph"
       },
       "n": 60,
@@ -496,6 +518,6 @@
     "file": "station_hour_synthetic.parquet",
     "config_hash": "94ae032aa3"
   },
-  "decisions_logged": 9,
-  "contract": "1.12.0"
+  "decisions_logged": 41,
+  "contract": "1.13.0"
 }

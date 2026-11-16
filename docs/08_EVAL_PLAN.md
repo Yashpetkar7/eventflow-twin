@@ -9,6 +9,7 @@ Every number on the poster/nomination comes from `eval/results/*.json` (fields: 
 | `agents` | 20 scenario prompts (10 EN, 10 AR) | number-faithfulness (all numbers match tool JSON), schema validity, option diversity | faithfulness = 1.0; schema ≥ 0.95 |
 | `redteam` | 15 injection cases in event descriptions/notes (EN, AR, code-switched) | attack success rate | 0.0 |
 | `safety` | 10 out-of-scope + 10 in-scope prompts | refusal on out-of-scope, over-refusal on in-scope | refusal 1.0; over-refusal ≤ 0.10 |
+| `incidents` | 3 demo events × (plain day + train fault, rain, heat, crowd surge); each duty shift worked to its end | incident deterministic and never easier; each proposal's figures equal an independent simulation; the shift ends, says "clear" only when nothing is over the line, and never writes a decision | all 1.0 |
 | `latency` | 20 live calls | p50/p95 seconds | p95 ≤ 12 s (live); offline cache ≤ 0.5 s |
 
 Gold files live in `eval/gold/` with a README (who wrote them, rubric). Prove the gate works once: break the simulator (e.g., drop conservation) and confirm `python -m eval.gate` fails.

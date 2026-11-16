@@ -5,12 +5,12 @@
 import { create } from "zustand";
 import {
   api, ApiError, setFallbackListener, type AgentPlanResponse, type BreakpointResponse, type Constraints, type EventInfo, type ForecastRequest, type ForecastResponse,
-  type Intervention, type MessageResponse, type Mission, type SimulateResponse, type Station,
+  type Intervention, type MessageResponse, type Mission, type ShiftStep, type SimulateResponse, type Station,
 } from "./api";
 import { paceFor, STEP_OF, stationOf } from "./mission";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
 import { MIN_TIER } from "./manifest";
-import { breakpointBody, forecastBody, messageBody, missionBody, planBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
+import { breakpointBody, forecastBody, messageBody, missionBody, planBody, shiftBody, simulateBody, type Priority, type Scenario, type Weather } from "./requests";
 
 export type { Priority, Scenario, Weather };
 export type CamMode = "overview" | "close" | "top" | "fly" | "orbit" | "landmark" | "free";
@@ -131,6 +131,12 @@ export function buildInterventions(b: BuildState, cur: SimView | null, ids: stri
 }
 
 export interface LogEntry { ts: string; kind: Decision | "reset"; title?: string }
+/** One entry of the duty shift's inbox, kept for the end-of-shift summary and the operations brief. */
+export interface ShiftItem { hour: number; stations: string[]; title: string | null; decision: "approve" | "reject" | "none";
+  overBefore: number; overAfter: number | null; planId: string | null; runId: string | null; ts: string }
+export interface ShiftState { status: "idle" | "running" | "awaiting" | "done" | "error"; step: ShiftStep | null; handled: string[];
+  hour: number; items: ShiftItem[]; error: string | null }
+export const SHIFT0: ShiftState = { status: "idle", step: null, handled: [], hour: 5, items: [], error: null };
 export interface Applied { title: string; ivs: Intervention[] }
 
 interface State {
@@ -147,6 +153,8 @@ interface State {
   missionSkip: boolean;               // a visitor skipped the playback: show the rest at once
   constraints: Constraints;           // the planner's typed constraints (never taken from free text)
   drafts: MessageResponse | null;     // the messenger's drafts for the last approved option (never sent)
+  shift: ShiftState;                  // the duty shift on autopilot (POST /shift/next); its state lives here, the API keeps none
+  brief: boolean;                     // the operations brief is open (a printable page over the app)
   decisions: Record<number, Decision>; decisionError: string | null;
   build: BuildState; preview: SimView | null; previewError: string | null;
   log: LogEntry[];
@@ -175,6 +183,10 @@ interface State {
   setConstraints: (c: Partial<Constraints>) => void;
   skipMission: () => void;
   decide: (rank: number, d: Decision, user?: string) => Promise<void>;
+  setIncident: (i: Scenario["incident"]) => void;
+  startShift: (locale: "en" | "ar") => Promise<void>;
+  shiftDecide: (d: "approve" | "reject" | "none", locale: "en" | "ar", rank?: number) => Promise<void>;
+  stopShift: () => void;
   patchBuild: (p: Partial<BuildState>) => void;
   approveMine: (title: string) => Promise<void>;
   clearPlans: () => void;
@@ -185,6 +197,7 @@ const corridorIds = (s: State) => s.stations.map((x) => x.id);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let reqId = 0, refreshTimer: ReturnType<typeof setTimeout> | null = null, previewTimer: ReturnType<typeof setTimeout> | null = null;
 let abort: AbortController | null = null, previewAbort: AbortController | null = null;
+let shiftLocale: "en" | "ar" = "en";          // the language the running duty shift was started in (its next missions use it)
 
 export const useTwin = create<State>((set, get) => {
   /** scenario → /forecast → /simulate (no plans) → /simulate (approved plans). Stale answers are dropped. */
@@ -211,7 +224,8 @@ export const useTwin = create<State>((set, get) => {
         const f = (flows[r.station_id] ??= { out: Array(24).fill(0), in: Array(24).fill(0) });
         f.out[r.hour] = r.event_entries_p50; f.in[r.hour] = r.event_exits_p50 ?? 0;
       }
-      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, planError: null };
+      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, planError: null,
+        ...(opts.forecast ? { shift: SHIFT0 } : {}) };          // a new scenario ends the duty shift that was running on the old one
       if (opts.jump) {
         const pk = peakOf(base, corridorIds(get()));
         Object.assign(patch, { time: Math.min(T_MAX, pk.time), selected: pk.id, camNonce: get().camNonce + 1 });
@@ -257,6 +271,25 @@ export const useTwin = create<State>((set, get) => {
     }
   }
 
+  /** The next step of the duty shift: the clock runs to the Watcher's next alert and the team's option waits for a
+   *  decision. Nothing is applied here; `shiftDecide` logs the human's decision first. */
+  async function shiftNext(locale: "en" | "ar") {
+    const s = get();
+    if (!s.forecast || !s.forecastReq) return;
+    try {
+      const step = await api.shiftNext(shiftBody(s.forecast.run_id, s.threshold, s.forecastReq, mergeInterventions(s.applied.map((a) => a.ivs)), s.shift.handled, s.shift.hour, locale));
+      const now = get();
+      if (now.shift.status !== "running" || now.forecast !== s.forecast) return;       // stopped, or the scenario changed meanwhile
+      if (step.done) { set({ shift: { ...now.shift, status: "done", step } }); return; }
+      const first = step.alerts[0];
+      set({ shift: { ...now.shift, status: "awaiting", step, hour: step.hour }, playing: false, time: Math.max(T_MIN, Math.min(T_MAX, step.hour + 0.02)),
+        ...(first ? { selected: first.station } : {}),
+        ...(step.mission ? { mission: step.mission, plan: step.mission.plan, missionShown: step.mission.events.length, missionSkip: true, planStatus: "ready" as const, planStep: 8, decisions: {} } : {}) });
+    } catch (e) {
+      set({ shift: { ...get().shift, status: "error", error: e instanceof ApiError ? e.detail : (e as Error).message } });
+    }
+  }
+
   return {
     ready: false, loading: true, error: null, apiDown: false,
     stations: [], events: [],
@@ -264,6 +297,7 @@ export const useTwin = create<State>((set, get) => {
     threshold: 0.85, priority: "balanced",
     forecast: null, forecastReq: null, base: null, cur: null, breaks: null, flows: {},
     applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
+    shift: SHIFT0, brief: false,
     build: BUILD0, preview: null, previewError: null, log: [],
     time: 15.5, playing: false, speed: 1,
     selected: "WTC", tab: "station", view: "3d",
@@ -286,7 +320,7 @@ export const useTwin = create<State>((set, get) => {
     },
     selectEvent: (id) => {
       const s = get();
-      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null }, applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
+      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null, incident: null }, applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
       schedule({ forecast: true, jump: true }, 0);
     },
     patchScenario: (p) => { set({ scenario: { ...get().scenario, ...p } }); schedule({ forecast: true }); },
@@ -343,8 +377,54 @@ export const useTwin = create<State>((set, get) => {
     },
     setConstraints: (c) => set((s) => ({ constraints: { ...s.constraints, ...c }, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {} })),
     skipMission: () => set({ missionSkip: true }),
+    setIncident: (i) => {
+      const s = get();
+      // an incident changes the scenario day: plans approved for the day before it are cleared, like a new event
+      set({ scenario: { ...s.scenario, incident: i ?? null }, applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, preview: null });
+      schedule({ forecast: true, jump: true }, 0);
+    },
+    startShift: async (locale) => {
+      const s = get();
+      if (!s.forecast || !s.forecastReq || s.loading || s.shift.status === "running") return;
+      shiftLocale = locale;
+      set({ shift: { ...SHIFT0, status: "running", hour: s.scenario.incident?.hour ?? T_MIN } });
+      await shiftNext(locale);
+    },
+    shiftDecide: async (d, locale, rank) => {
+      const s = get(), sh = s.shift, step = sh.step;
+      if (sh.status !== "awaiting" || !step || !s.forecast) return;
+      const opt = step.mission?.plan.options.find((o) => o.rank === (rank ?? step.recommended_rank)) ?? null;
+      let ts = new Date().toISOString();
+      set({ shift: { ...sh, status: "running" } });      // from the first click on: a second click cannot log the decision twice
+      if (d !== "none" && opt && step.mission) {
+        try {
+          const r = await api.decide({ plan_id: step.mission.plan.plan_id, option_rank: opt.rank, decision: d, user: "duty-shift", option_title: opt.title.slice(0, 200),
+            forecast_run_id: s.forecast.run_id, interventions: opt.interventions });
+          ts = r.timestamp;
+          set({ log: [{ ts, kind: d, title: opt.title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
+        } catch (e) {
+          set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message, shift: { ...sh, status: "awaiting" } });
+          return;                                  // never move on from a decision that was not logged
+        }
+      }
+      const done = d === "approve" && !!opt;
+      const item: ShiftItem = { hour: step.hour, stations: step.alerts.map((a) => a.station), title: opt?.title ?? null, decision: done ? "approve" : d === "reject" && opt ? "reject" : "none",
+        overBefore: step.residual.overcap_station_hours, overAfter: done ? opt!.summary.overcap_station_hours : null,
+        planId: step.mission?.plan.plan_id ?? null, runId: opt?.sources?.[0]?.run_id ?? null, ts };
+      set({ shift: { ...sh, status: "running", handled: [...sh.handled, ...step.alerts.map((a) => a.key)], items: [...sh.items, item] } });
+      if (done) {
+        const fr = s.forecastReq;
+        if (fr) void api.message(messageBody(s.forecast.run_id, s.threshold, fr, mergeInterventions(s.applied.map((a) => a.ivs)), opt!.interventions))
+          .then((m) => set({ drafts: m }), () => {});
+        await applyPlan(opt!.title, opt!.interventions);
+      } else set({ plan: null, mission: null, missionShown: 0, planStatus: "idle", decisions: {} });
+      await shiftNext(locale);
+    },
+    stopShift: () => set({ shift: SHIFT0 }),
     decide: async (rank, d, user = "visitor") => {
       const s = get();
+      // while a duty shift waits on this very plan, a decision made on the plan's own card is the shift's decision
+      if (s.shift.status === "awaiting" && s.plan && s.shift.step?.mission?.plan.plan_id === s.plan.plan_id) { await get().shiftDecide(d === "approve" ? "approve" : "reject", shiftLocale, rank); return; }
       const opt = s.plan?.options.find((o) => o.rank === rank);
       if (!s.plan || !opt || !s.forecast) return;
       try {
@@ -382,7 +462,7 @@ export const useTwin = create<State>((set, get) => {
     clearPlans: () => {
       const s = get();
       if (!s.applied.length && !s.plan) return;
-      set({ applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, cur: s.base, preview: null,
+      set({ applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, cur: s.base, preview: null, shift: SHIFT0,
         log: [{ ts: new Date().toISOString(), kind: "reset" as const }, ...s.log].slice(0, LOG_MAX) });
       schedulePreview();
     },

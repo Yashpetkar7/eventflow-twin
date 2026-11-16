@@ -37,6 +37,11 @@ export type MessageResponse = S["MessageResponse"];
 export type AskRequest = S["AskRequest"];
 export type AskResponse = S["AskResponse"];
 export type AskIntent = NonNullable<S["AskRequest"]["intent"]>;
+export type ShiftRequest = S["ShiftRequest"];
+export type ShiftStep = S["ShiftStep"];
+export type ShiftAlert = S["ShiftAlert"];
+export type IncidentInfo = S["IncidentInfo"];
+export type RejectedPlan = S["RejectedPlan"];
 
 /** True when the page is served from this machine (laptop, booth). */
 export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
@@ -138,6 +143,8 @@ export const api = {
   watch: (req: WatchRequest) => call<WatchResponse>("/watch/scan", req),
   message: (req: MessageRequest) => call<MessageResponse>("/agent/message", req),
   ask: (req: AskRequest) => call<AskResponse>("/agent/ask", req),
+  /** The duty shift, one step (contract 1.13.0): never cached, each step depends on the decisions before it. */
+  shiftNext: (req: ShiftRequest) => call<ShiftStep>("/shift/next", req, { cache: false }),
   breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),
   decide: (req: DecisionRequest) => call<DecisionResponse>("/decisions", req, { cache: false }),
   evidence: () => call<Evidence>("/evidence"),

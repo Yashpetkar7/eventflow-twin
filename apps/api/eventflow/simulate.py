@@ -85,12 +85,22 @@ def _opened(t0: float, t1: float, key: tuple[str, int], extend: dict[tuple[str, 
     return t0, t1
 
 
+Service = dict[str, dict[int, float]]        # line → hour → share of the scheduled trains that run (a service fault what-if)
+
+
+def _fault(service: Service | None, line: str, hour: int) -> float:
+    return float((service or {}).get(line, {}).get(hour, 1.0))
+
+
 def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], float] | None = None,
                    bph: int | None = None, weekday: int = 2,
-                   extend: dict[tuple[str, int], float] | None = None) -> tuple[dict[str, list[float]], float]:
+                   extend: dict[tuple[str, int], float] | None = None,
+                   service: Service | None = None) -> tuple[dict[str, list[float]], float]:
     """Effective boarding capacity per station per bin, plus train trips added by `headway_override`
     (keyed by (line, hour); a direction never gets fewer trains than scheduled) and by `extend` (extended hours:
-    service in hours that normally have none). Added trips are counted once per line and direction."""
+    service in hours that normally have none). Added trips are counted once per line and direction.
+    `service` scales the scheduled trains of a line in given hours (an incident what-if, config/incidents.yaml);
+    extra trains then count from that reduced service."""
     cfg = corridor()
     cap, bph = cfg["capacity"], bph or bins_per_hour()
     lines_of = {s["id"]: s.get("lines") or [s["line"]] for s in cfg["stations"]}
@@ -106,6 +116,8 @@ def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], 
             for line in lines_of.get(s, ["Red"]):       # an interchange offers the capacity of each of its lines
                 key = (line, h)
                 s0, s1 = scheduled_tph(s, line, h, weekday)
+                f = _fault(service, line, h)
+                s0, s1 = s0 * f, s1 * f
                 t0, t1 = _opened(s0, s1, key, extend)
                 if (t0, t1) != (s0, s1):
                     added[key] = max(added.get(key, 0.0), (t0 - s0) + (t1 - s1))
@@ -122,7 +134,8 @@ def capacity_table(stations: list[str], headway_override: dict[tuple[str, int], 
 
 
 def trains_table(stations: list[str], headway_override: dict[tuple[str, int], float] | None = None,
-                 weekday: int = 2, extend: dict[tuple[str, int], float] | None = None) -> dict[str, list[float]]:
+                 weekday: int = 2, extend: dict[tuple[str, int], float] | None = None,
+                 service: Service | None = None) -> dict[str, list[float]]:
     """Boardable trains per hour in the busier direction of each station's primary line, including any
     extra-train override. Shown in the UI ("trains per hour now") and used to pace the animated trains."""
     cfg = corridor()
@@ -132,7 +145,8 @@ def trains_table(stations: list[str], headway_override: dict[tuple[str, int], fl
     for s in stations:
         line, row = primary.get(s, "Red"), []
         for h in range(24):
-            t0, t1 = _opened(*scheduled_tph(s, line, h, weekday), (line, h), extend)
+            f = _fault(service, line, h)
+            t0, t1 = _opened(*(v * f for v in scheduled_tph(s, line, h, weekday)), (line, h), extend)
             if (line, h) in override:
                 floor = 60.0 / override[(line, h)]
                 t0, t1 = (max(t0, floor) if t0 > 0 else 0.0), (max(t1, floor) if t1 > 0 else 0.0)
@@ -194,9 +208,10 @@ def _hours_to_bins(hours: list[int], bph: int) -> list[int]:
 
 
 def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2, *,
-             threshold: float | None = None, report: list[str] | None = None) -> SimResult:
+             threshold: float | None = None, report: list[str] | None = None, service: Service | None = None) -> SimResult:
     """Pure function: same inputs → same outputs. Raises InterventionError on invalid interventions.
 
+    `service`: a service fault what-if (line → hour → share of scheduled trains running); None = the timetable.
     `threshold` overrides the comfort threshold (planner what-if). `report` limits the rows and the summary to
     those stations (e.g. the featured corridor); every station still takes part in the simulation itself."""
     cfg = corridor()
@@ -234,8 +249,8 @@ def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2
             for h in iv.params.hours:
                 key = (iv.params.line, h)
                 extend[key] = min(extend.get(key, float("inf")), iv.params.headway_min)
-    cap, added_trains = capacity_table(stations, hw_override, bph, weekday, extend)
-    _, ext_trips = capacity_table(stations, None, bph, weekday, extend) if extend else (None, 0.0)
+    cap, added_trains = capacity_table(stations, hw_override, bph, weekday, extend, service)
+    _, ext_trips = capacity_table(stations, None, bph, weekday, extend, service) if extend else (None, 0.0)
     if any(isinstance(iv, (ExtraTrains, ExtendedHours)) for iv in ivs):
         cost += added_trains * iv_cfg["cost_proxy"]["extra_trains_per_train_hour"]
     if any(isinstance(iv, ExtraTrains) for iv in ivs):
@@ -315,7 +330,7 @@ def simulate(demand: Demand, interventions: list | None = None, weekday: int = 2
     rows, hourly = [], []
     overcap_bins, excess, peak_lf, max_wait, delay_pax_min, end_queue, total_dem = 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     no_service = 0.0
-    tph = trains_table(stations, hw_override, weekday, extend)
+    tph = trains_table(stations, hw_override, weekday, extend, service)
     for s in (stations if report is None else [x for x in stations if x in set(report)]):
         q = 0.0
         hour_acc: dict[int, dict] = {}

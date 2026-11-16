@@ -1,7 +1,7 @@
 # Gate thresholds for EventFlow Twin. Changing any value requires an entry in docs/09_DECISIONS.md.
 # Suites listed here FAIL the gate when their results are missing. Stream B adds agents/redteam/safety/latency
 # to this list as soon as those suites exist. agents + redteam added 12 Nov 2026 (docs/09 #69).
-required_suites: [forecast, simulator, agents, redteam, orchestration, critic, optimality, safety]   # agent-team suites added 16 Nov 2026 (docs/09 #122)
+required_suites: [forecast, simulator, agents, redteam, orchestration, critic, optimality, safety, incidents]   # agent-team suites added 16 Nov 2026 (docs/09 #122); incidents (#128)
 forecast:
   lgbm_mase_max: 1.0
   lgbm_coverage80_min: 0.70
@@ -35,3 +35,10 @@ optimality:                       # agents vs an exhaustive grid over the menu (
   goal_coverage_min: 1.0          # whenever the grid can clear every station, the agents offer such a plan
   relief_gap_max_max: 0.0         # the agents' best offer relieves as many riders as the grid's best acceptable plan
   top_score_ratio_mean_min: 0.80  # first option's relief − λ·cost, as a share of the grid's best (measured 0.8024)
+incidents:                        # incidents and the duty shift (docs/09 #128): 3 events × (plain + 4 incident types)
+  incident_deterministic_min: 1.0   # same request, same run id, same simulation
+  incident_never_easier_min: 1.0    # an incident never lowers the peak load or the over-threshold station-hours
+  shift_figures_match_min: 1.0      # each proposal's figures equal an independent simulation of the measures in place
+  shift_terminates_min: 1.0
+  shift_honest_end_min: 1.0         # "clear" only when nothing is over the line
+  shift_no_autonomous_apply_min: 1.0   # the shift never writes to the decision log

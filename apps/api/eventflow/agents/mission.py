@@ -14,7 +14,7 @@ import time
 from typing import Any
 
 from ..config import ROOT, corridor
-from ..forecast import build_forecast, make_run_id
+from ..forecast import build_from_spec, make_run_id
 from ..interventions import validate_interventions
 from ..simulate import simulate
 from . import planner
@@ -168,17 +168,15 @@ def stress_test(ctx: MissionCtx, options: list[dict]) -> dict[int, dict]:
     for case in stress_cases(run, ctx.cfg):
         args = {**base_spec, **case["override"]}
         try:
-            fc = build_forecast(args.get("event_id"), args.get("date"), args.get("weekday"), args.get("attendance"), args.get("end_time"),
-                                weather=args.get("weather"), exit_sigma_min=args.get("exit_sigma_min"), metro_share=args.get("metro_share"),
-                                demand_level=args.get("demand_level"), custom=args.get("custom_event"))
+            fc = build_from_spec(args)
         except (KeyError, ValueError):
             continue
         base = simulate(fc["demand"], [i.model_dump() for i in validate_interventions(list(applied))], weekday=fc["weekday"],
-                        threshold=thr, report=report)
+                        threshold=thr, report=report, service=fc.get("service"))
         ctx.stress_sims += 1
         for o in options:
             ivs = [i.model_dump() for i in validate_interventions(planner.merge(applied, o["interventions"]))]
-            res = simulate(fc["demand"], ivs, weekday=fc["weekday"], threshold=thr, report=report)
+            res = simulate(fc["demand"], ivs, weekday=fc["weekday"], threshold=thr, report=report, service=fc.get("service"))
             ctx.stress_sims += 1
             holds = res.summary["overcap_station_hours"] == 0
             a = out[o["rank"]]

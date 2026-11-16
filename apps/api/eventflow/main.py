@@ -22,12 +22,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .config import ROOT, corridor, events
-from .forecast import NoDataError, build_forecast, config_hash, load_panel, make_run_id
+from .forecast import NoDataError, build_from_spec, config_hash, load_panel, make_run_id
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
 from .schemas import (CONTRACT_VERSION, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
-                      Event, ForecastRequest, ForecastResponse, SimulateRequest, SimulateResponse, Station)
+                      Event, ForecastRequest, ForecastResponse, ShiftRequest, ShiftStep, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
 app = FastAPI(title="EventFlow Twin API", version=CONTRACT_VERSION)
@@ -104,10 +104,7 @@ def _remember(run: dict) -> None:
 def build_run(req: ForecastRequest) -> dict:
     """One place that turns a forecast request into a run (shared by /forecast and cold-instance rebuilds)."""
     try:
-        return build_forecast(req.event_id, req.date, req.weekday, req.attendance, req.end_time,
-                              weather=req.weather, exit_sigma_min=req.exit_sigma_min, metro_share=req.metro_share,
-                              demand_level=req.demand_level,
-                              custom=req.custom_event.model_dump() if req.custom_event else None)
+        return build_from_spec(req.model_dump())
     except KeyError as e:
         raise HTTPException(404, f"Unknown event or station {e}")
     except ValueError as e:     # bad date string
@@ -149,7 +146,7 @@ def list_events():
 def forecast(req: ForecastRequest):
     run = build_run(req)
     _remember(run)
-    return {**{k: v for k, v in run.items() if k != "demand"},
+    return {**{k: v for k, v in run.items() if k not in ("demand", "service")},
             "source": {"tool": "forecast", "run_id": run["run_id"]}}
 
 
@@ -164,8 +161,8 @@ def run_simulation(forecast_run_id: str, interventions: list, detail: bool = Fal
     # canonical form (validated, defaults filled, fixed order) so the same plan always gets the same run id
     ivs = [i.model_dump() for i in validate_interventions(list(interventions))]
     report = corridor_ids() if scope == "corridor" else None
-    base = simulate(run["demand"], weekday=run["weekday"], threshold=threshold, report=report)
-    res = simulate(run["demand"], ivs, weekday=run["weekday"], threshold=threshold, report=report)
+    base = simulate(run["demand"], weekday=run["weekday"], threshold=threshold, report=report, service=run.get("service"))
+    res = simulate(run["demand"], ivs, weekday=run["weekday"], threshold=threshold, report=report, service=run.get("service"))
     key = {"fc": forecast_run_id, "iv": ivs}
     if threshold is not None:
         key["thr"] = threshold
@@ -232,6 +229,22 @@ def watch_scan(req: WatchRequest):
     get_run(req.forecast_run_id, req.forecast)
     base = run_simulation(req.forecast_run_id, req.applied, False, req.threshold, req.scope)
     return watch(get_run(req.forecast_run_id), base, req.horizon_h)
+
+
+@app.post("/shift/next", response_model=ShiftStep)
+def shift_next(req: ShiftRequest):
+    """The duty shift on autopilot, one step (agents/shift.py): the clock runs to the Watcher's next alert, the team
+    plans on top of what is already approved, and the step stops for a human. Nothing is applied here."""
+    from .agents.engine import run_mission
+    from .agents.shift import next_step
+    run = get_run(req.forecast_run_id, req.forecast)
+    plan_req = AgentRunRequest(forecast_run_id=req.forecast_run_id, forecast=req.forecast, threshold=req.threshold, scope=req.scope,
+                               applied=req.applied, locale=req.locale)
+    step = next_step(run, req, run_simulation, lambda: run_mission(run, plan_req, run_simulation))
+    if step["mission"]:
+        with _LOCK:
+            _PLANS[step["mission"]["plan"]["plan_id"]] = step["mission"]["plan"]
+    return step
 
 
 @app.post("/agent/message", response_model=MessageResponse)

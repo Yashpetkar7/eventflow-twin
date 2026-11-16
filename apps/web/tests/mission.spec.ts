@@ -166,3 +166,94 @@ test("messenger: approving an option drafts the passenger notice and signage, ma
   await page.getByTestId("messenger").scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${OUT}/messenger_drafts.png` });
 });
+
+// ---- incidents, the duty shift, the debate and the operations brief (contract 1.13.0, decision #128)
+type Shift = { status: string; items: { hour: number; decision: string; title: string | null; overBefore: number; overAfter: number | null }[]; step: { reason: string; done: boolean; recommended_rank: number | null; residual: { overcap_station_hours: number } } | null };
+const shiftOf = (page: Page) => page.evaluate(() => (window as unknown as { __twin: { getState: () => { shift: Shift } } }).__twin.getState().shift);
+
+test("duty shift: a train fault is injected, the shift stops for a decision, an approval is logged and the day ends clear", async ({ page, request }) => {
+  await open(page);
+  const before = (await (await request.get(`${API}/decisions?limit=1`)).json()).total as number;
+  await page.getByRole("tab", { name: /Alerts/ }).click();
+  await expect(page.getByTestId("duty")).toBeVisible();
+  await page.locator('[data-incident="train_fault"]').click();
+  await expect(page.getByTestId("incident-info")).toContainText("Red Line runs 50% of its trains from 16:00 to 18:00");   // the server's figures (config/incidents.yaml)
+  await expect(page.getByTestId("incident-info")).toContainText("not an RTA figure");
+  await idle(page);
+  await page.getByTestId("duty-start").click();
+  const item = page.getByTestId("duty-item");
+  await expect(item).toBeVisible({ timeout: 60_000 });
+  await expect(item).toContainText("16:00 · your decision");
+  await expect(item).toContainText("World Trade Centre crosses the line at 16:00");
+  await expect(item).toContainText("Clears every station");
+  expect((await (await request.get(`${API}/decisions?limit=1`)).json()).total).toBe(before);     // nothing is decided by the shift itself
+  await page.screenshot({ path: `${OUT}/duty_inbox.png` });
+  // the team's work behind the proposal, with the debate between the specialists and the critic
+  await page.getByTestId("duty-team").click();
+  const debate = page.getByTestId("team-debate");
+  await expect(debate).toBeVisible();
+  await expect(debate.locator("li.kept").first()).toContainText("Offered as option 1");
+  await expect(debate.locator("li").first()).toContainText(/sim_[0-9a-f]{12}/);                  // every case cites its simulation
+  await debate.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${OUT}/debate.png` });
+  await page.getByRole("tab", { name: /Alerts/ }).click();
+  await page.getByTestId("duty-approve").click();
+  await expect(page.getByTestId("duty-done")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("duty-done")).toContainText("No station is over the line for the rest of the day");
+  const sh = await shiftOf(page);
+  expect(sh.status).toBe("done");
+  expect(sh.step!.reason).toBe("clear");
+  expect(sh.items).toHaveLength(1);
+  expect(sh.items[0].decision).toBe("approve");
+  expect(sh.items[0].overAfter).toBe(0);
+  expect((await (await request.get(`${API}/decisions?limit=1`)).json()).total).toBe(before + 1);  // the human's approval, and only that
+  // the operations brief: a draft, with the incident, the decision, the effect and the messenger's drafts in both languages
+  await page.getByTestId("duty-brief").click();
+  const brief = page.getByTestId("brief");
+  await expect(brief).toContainText("DRAFT");
+  await expect(brief).toContainText("not an RTA document");
+  await expect(page.getByTestId("brief-incident")).toContainText("Train fault");
+  await expect(brief).toContainText("Station-hours over the line");
+  await expect(brief.locator('.brief-msg[lang="ar"]')).toBeVisible({ timeout: 20_000 });
+  await page.screenshot({ path: `${OUT}/operations_brief.png` });
+  await page.getByTestId("brief-close").click();
+  await expect(brief).toBeHidden();
+});
+
+test("duty shift: a rejected proposal is not asked again, and what is left is reported, not hidden", async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => (window as unknown as { __twin: { getState: () => { selectEvent: (id: string) => void } } }).__twin.getState().selectEvent("downtown_night"));
+  await page.waitForTimeout(400);
+  await idle(page);
+  await page.getByRole("tab", { name: /Alerts/ }).click();
+  await page.getByTestId("duty-start").click();
+  for (let i = 0; i < 6; i++) {
+    await page.waitForFunction(() => ["awaiting", "done"].includes((window as unknown as { __twin: { getState: () => { shift: { status: string } } } }).__twin.getState().shift.status), null, { timeout: 60_000 });
+    const now = await shiftOf(page);
+    if (now.status === "done") break;
+    await page.getByTestId("duty-reject").click();
+    await page.waitForFunction((n) => (window as unknown as { __twin: { getState: () => { shift: { items: unknown[] } } } }).__twin.getState().shift.items.length > n, now.items.length, { timeout: 30_000 });
+  }
+  const sh = await shiftOf(page);
+  expect(sh.status).toBe("done");
+  expect(sh.step!.reason).toBe("residual");
+  expect(sh.items.length).toBeGreaterThanOrEqual(1);
+  expect(sh.items.every((i) => i.decision === "reject")).toBe(true);
+  expect(sh.step!.residual.overcap_station_hours).toBeGreaterThan(0);
+  await expect(page.getByTestId("duty-done")).toContainText("goes to the duty manager");
+  await page.screenshot({ path: `${OUT}/duty_residual.png` });
+});
+
+test("duty shift in Arabic: the inbox reads right to left with the same figures", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "عربي" }).click();
+  await page.locator("#tab-alerts").click();
+  await page.locator('[data-incident="crowd_surge"]').click();
+  await expect(page.getByTestId("incident-info")).toContainText("52,000");                      // 40,000 × 1.3, resolved by the server
+  await idle(page);
+  await page.getByTestId("duty-start").click();
+  await expect(page.getByTestId("duty-item")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("duty-item")).toContainText("قرارك");
+  expect(await page.evaluate(() => document.documentElement.dir)).toBe("rtl");
+  await page.screenshot({ path: `${OUT}/duty_inbox_ar.png` });
+});

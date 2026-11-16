@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.12.0"   # 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.13.0"   # 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -67,6 +67,29 @@ class CustomEvent(BaseModel):
     attendance: int = Field(ge=0, le=200_000)
 
 
+IncidentType = Literal["train_fault", "rain", "heat", "crowd_surge"]
+
+
+class Incident(BaseModel):
+    """A duty-view what-if (contract 1.13.0): what it changes is fixed in config/incidents.yaml, not sent by the client."""
+    type: IncidentType
+    hour: int = Field(ge=5, le=23, description="Hour of the scenario day at which it happens (a train fault lasts from then; the watcher cannot see it earlier)")
+
+
+class IncidentInfo(BaseModel):
+    """The incident as resolved by the server, with the assumption behind each figure."""
+    type: IncidentType
+    hour: int
+    source: str
+    line: str | None = None
+    capacity_factor: float | None = Field(None, description="train_fault: share of the scheduled trains that still run")
+    hours: list[int] | None = Field(None, description="train_fault: the hours it lasts")
+    attendance_factor: float | None = None
+    attendance_before: float | None = None
+    attendance_after: float | None = None
+    weather: str | None = None
+
+
 class ForecastRequest(BaseModel):
     event_id: str | None = Field(None, max_length=64, description="Event from /events; null = background only")
     date: str | None = Field(None, description="YYYY-MM-DD; picks the weekday profile (defaults to the event date)")
@@ -78,6 +101,7 @@ class ForecastRequest(BaseModel):
     metro_share: float | None = Field(None, ge=0.2, le=0.8, description="What-if share of event trips made by metro; overrides the weather what-if's share (assumption)")
     demand_level: Literal["synthetic", "real_totals"] = Field("synthetic", description="'real_totals' scales each corridor station's background demand to its real weekday total (config/calibration.yaml); the hourly shape stays synthetic")
     custom_event: CustomEvent | None = Field(None, description="Build-your-own scenario; overrides event_id")
+    incident: Incident | None = Field(None, description="Incident what-if for the duty view (assumptions in config/incidents.yaml)")
 
 
 class ForecastRow(BaseModel):
@@ -108,6 +132,7 @@ class ForecastResponse(BaseModel):
     demand_level: Literal["synthetic", "real_totals"] = "synthetic"
     calibration: dict | None = Field(None, description="Station ratios applied when demand_level = real_totals, with their source file")
     event: Event | None = Field(None, description="The event behind this run (resolved custom event included)")
+    incident: IncidentInfo | None = Field(None, description="The incident in this scenario, as resolved from config/incidents.yaml")
     band_note: str
     rows: list[ForecastRow]
     source: Source
@@ -575,3 +600,40 @@ class AskResponse(BaseModel):
     sources: list[dict]
     routed_by: Literal["chip", "code", "model", "recorded"]
     is_synthetic: bool
+
+
+# ---------- duty shift (contract 1.13.0, docs/15) ----------
+class ShiftRequest(_ScenarioRef):
+    """One step of a duty shift. The client keeps the state (stateless API): the measures approved so far (`applied`),
+    the alerts already dealt with (`handled`) and the hour the shift has reached."""
+    from_hour: int = Field(5, ge=5, le=23, description="The shift's clock: alerts are raised no earlier than this hour (an incident cannot be seen before it happens)")
+    handled: list[str] = Field(default_factory=list, max_length=64, description="Alert keys (ShiftAlert.key) already approved, rejected or passed to the duty manager")
+    locale: Literal["en", "ar"] = "en"
+    horizon_h: int = Field(3, ge=1, le=6)
+
+
+class ShiftAlert(WatchAlert):
+    key: str = Field(max_length=40, description="'STATION@crosses_at#approved measures': how the client marks the alert as handled")
+    seen_at: int = Field(description="Hour at which this shift sees the alert (never before from_hour)")
+    lead_now_h: int = Field(description="Hours between seeing it and the crossing (0 or less: already over the line)")
+
+
+class ShiftStep(BaseModel):
+    """What the autonomous shift did until it needed a human: the clock ran to `hour`, the Watcher raised `alerts`,
+    the team planned (`mission`) and its first option waits for approval. Nothing is applied by this call."""
+    done: bool = Field(description="True: no alert is left for the rest of the day")
+    reason: Literal["awaiting_human", "no_option", "clear", "residual", "step_limit"] = Field(
+        description="clear: nothing is over the line · residual: every alert was dealt with but some crowding remains (for the duty manager) · "
+                    "no_option: the team found nothing that helps · step_limit: too many decisions asked, the rest goes to the duty manager")
+    hour: int
+    alerts: list[ShiftAlert]
+    mission: Mission | None = None
+    recommended_rank: int | None = Field(None, description="The option put to the human: the first that clears every station (critic's goal), else the plan's first")
+    watch: WatchResponse
+    residual: SimSummary = Field(description="The day with the measures approved so far (simulator)")
+    baseline: SimSummary = Field(description="The day with no measures (simulator)")
+    applied_count: int
+    handled_count: int
+    run_id: str
+    is_synthetic: bool
+
