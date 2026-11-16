@@ -18,6 +18,7 @@ import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { SCENE_V2 } from "@/lib/manifest";
 import { simulateBody } from "@/lib/requests";
 import { CORRIDOR_ORDER, mergeInterventions, T_MIN, useTwin } from "@/lib/store";
+import { webglAvailable } from "@/lib/webgl";
 import { LabelLayer } from "../LabelLayer";
 import { SceneProgress } from "../SceneProgress";
 import { KioskTeam } from "../mission/KioskTeam";
@@ -124,6 +125,13 @@ export function Kiosk() {
   const tDuty = useTranslations("mission.duty") as unknown as (k: string, v?: Record<string, string | number>) => string;
   const tWatch = useTranslations("mission.watch");
 
+  // The attract map is 3D: mount it only where WebGL exists (checked on the client; the kiosk falls back to its own screens).
+  const [glOk, setGlOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    const ok = webglAvailable();
+    setGlOk(ok);
+    if (!ok) useTwin.setState({ glFailed: true });
+  }, []);
   const [phase, setPhase] = useState<Phase>("attract");
   const [guess, setGuess] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -465,9 +473,9 @@ export function Kiosk() {
   return (
     <div ref={root} className={`kiosk-root${big ? " kbig" : ""}${hc ? " khc" : ""}${reach ? " kreach" : ""}`} data-testid="kiosk" data-phase={phase}>
       <div className="kmap" data-testid="view">
-        <TwinCanvas label={T.attractTitle} />
-        <LabelLayer />
-        <SceneProgress text={T.loadingCity} />
+        {glOk === true && <TwinCanvas label={T.attractTitle} />}
+        {glOk === true && <LabelLayer />}
+        {glOk === true && <SceneProgress text={T.loadingCity} />}
       </div>
 
       <header className="ktop">

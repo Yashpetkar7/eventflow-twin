@@ -6,6 +6,7 @@ import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { nightFactor } from "@/lib/daylight";
 import { LANDMARK_KEYS, LANDMARK_STATION, type LandmarkKey } from "@/lib/landmarks";
 import { loadManifest, type Manifest } from "@/lib/manifest";
+import { webglAvailable } from "@/lib/webgl";
 import { HOURS, hourOf, lfAt, T_MAX, T_MIN, useTwin } from "@/lib/store";
 import { LabelLayer } from "./LabelLayer";
 import { SceneProgress } from "./SceneProgress";
@@ -13,13 +14,6 @@ import { SceneProgress } from "./SceneProgress";
 // The canvas (three.js and the scene code) is a separate chunk, loaded after the page shell and the poster.
 const TwinCanvas = dynamic(() => import("./twin/TwinCanvas"), { ssr: false });
 const CAMS = ["overview", "close", "top", "fly", "orbit"] as const;
-
-function webglAvailable(): boolean {
-  try {
-    const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
-  } catch { return false; }
-}
 
 function Hud() {
   const t = useTranslations();
@@ -230,7 +224,13 @@ export function Stage() {
   const ready = useTwin((s) => s.sceneReady);
   const glFailed = useTwin((s) => s.glFailed);
   const tier = useTwin((s) => s.tier);
-  useEffect(() => { if (!webglAvailable()) useTwin.setState({ glFailed: true, view: "table" }); }, []);
+  // Checked on the client before any 3D canvas mounts (null until then, so the server render has no canvas).
+  const [glOk, setGlOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    const ok = webglAvailable();
+    setGlOk(ok);
+    if (!ok) useTwin.setState({ glFailed: true, view: "table" });
+  }, []);
   useEffect(() => {                                   // Home recentres the 3D view; Escape leaves the full-width map
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest?.("input, select, textarea")) return;
@@ -240,7 +240,8 @@ export function Stage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const show3d = !glFailed;
+  const show3d = glOk === true && !glFailed;
+  const noGl = glOk === false || glFailed;
   return (
     <section className="stage">
       <div className="view" data-testid="view" data-tier={tier}>
@@ -265,8 +266,8 @@ export function Stage() {
           </div>
           {show3d && <Credits />}
         </div>
-        {(view === "table" || glFailed) && <TableView />}
-        {glFailed && <div className="banner" style={{ position: "absolute", insetInline: 0, bottom: 0, zIndex: 6 }} role="status">{t("glfail")}</div>}
+        {(view === "table" || noGl) && <TableView />}
+        {noGl && <div className="banner" style={{ position: "absolute", insetInline: 0, bottom: 0, zIndex: 6 }} role="status">{t("glfail")}</div>}
       </div>
       <TimeBar />
       <HeatStrip />

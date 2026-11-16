@@ -20,7 +20,11 @@ export default defineConfig({
     channel: "chrome",
     viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 1,
-    launchOptions: { args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] },
+    // EFT_NO_GL=1 (the CI ui job): no WebGL at all, so the app takes its table fallback. GitHub runners draw WebGL in
+    // software, too slow for the 3D checks (120 s test timeouts); those checks are skipped under EFT_NO_GL, the rest run.
+    launchOptions: { args: process.env.EFT_NO_GL === "1"
+      ? ["--disable-webgl", "--disable-webgl2", "--disable-3d-apis"]
+      : [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] },
   },
   webServer: remote ? undefined : [
     { command: `${process.platform === "win32" ? ".venv\\Scripts\\python" : ".venv/bin/python"} -m uvicorn apps.api.eventflow.main:app --port ${apiPort}`, cwd: "../..", url: `http://localhost:${apiPort}/healthz`, reuseExistingServer: true, timeout: 60_000 },

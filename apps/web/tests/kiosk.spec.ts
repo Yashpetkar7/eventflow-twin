@@ -143,6 +143,7 @@ test("kiosk: Arabic right to left, larger text, and the hidden expert exit", asy
 });
 
 test("kiosk: the realism scene at full quality is its default; under 50 fps it steps down; ?quality=light and ?scene=v1", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   type T = Window & { __twin: { getState: () => { tier: number }; setState: (p: object) => void } };
   const tier = () => page.evaluate(() => (window as unknown as T).__twin.getState().tier);
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -429,6 +430,7 @@ test("kiosk: stress test shows the cars-versus-metro trade-off and the real stat
 });
 
 test("kiosk: touch a landmark's name → its name and a line about it, and the camera turns all the way round it", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   await openKiosk(page, "&idle=600");
   await page.getByTestId("kiosk-start").click();
   await page.getByTestId("kiosk-planner").click();

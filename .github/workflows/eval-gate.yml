@@ -57,7 +57,8 @@ jobs:
       - name: Offline smoke test inside the image (no network)
         run: docker run --rm --network none eventflow-api python scripts/image_smoke.py
 
-  # UI tests on a production build (WP6). Frame-rate tests skip themselves on CI (no GPU on the runner).
+  # UI tests on a production build (WP6). The runner has no GPU and draws WebGL in software, far too slowly for the 3D checks
+  # (tests hit their 120 s timeouts and the job was cancelled at 40 min), so EFT_NO_GL=1 turns WebGL off and those checks skip.
   ui:
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -80,7 +81,7 @@ jobs:
           for i in $(seq 60); do curl -sf http://localhost:3000 >/dev/null && curl -sf http://localhost:8000/healthz >/dev/null && break; sleep 2; done
       - run: npx playwright test --reporter=line
         working-directory: apps/web
-        env: {CI: "1", EFT_MODE: "production build (CI)"}
+        env: {CI: "1", EFT_NO_GL: "1", EFT_MODE: "production build (CI)"}      # no WebGL on the runner: the app takes its table fallback; the 3D checks skip and run on a laptop
       - uses: actions/upload-artifact@v4
         if: always()
         with:

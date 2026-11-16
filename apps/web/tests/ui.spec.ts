@@ -1,5 +1,8 @@
 // Exhibit UI checks + the screenshots required by the F1 acceptance (eval/results/ui/).
 import { expect, test, type Page } from "@playwright/test";
+
+// The planning-service banner only: with WebGL off a second banner ("3D needs WebGL") is also on screen.
+const apiBanner = (page: Page) => page.locator(".banner:not(.demo)").filter({ hasText: "planning service" });
 import fs from "node:fs";
 import path from "node:path";
 
@@ -119,6 +122,7 @@ test("my plan: live preview from /simulate, approve", async ({ page }) => {
 });
 
 test("recentre brings the 3D view back after dragging and zooming", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   await open(page);
   await page.getByRole("button", { name: "Top-down" }).click();
   const box = (await page.locator(".view canvas").boundingBox())!;
@@ -137,6 +141,7 @@ test("recentre brings the 3D view back after dragging and zooming", async ({ pag
 });
 
 test("landmarks: tap one and the camera frames it with its area", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   await open(page);
   await page.getByRole("button", { name: /Landmarks/ }).click();
   await page.locator(".lmmenu").getByRole("button", { name: "Burj Khalifa" }).click();
@@ -178,6 +183,7 @@ test("overlays never overlap each other or the labels (wide and narrow)", async 
 });
 
 test("quality tier steps down when the frame rate stays under 40 fps", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   await open(page);
   await page.waitForFunction(() => ((window as unknown as TwinWindow).__eft?.frames ?? 0) > 500);     // past the warm-up
   expect(await page.locator(".view").getAttribute("data-tier")).toBe("0");
@@ -196,10 +202,10 @@ test("crash recovery: API drops mid-session, saved results stay, banner clears o
   await idle(page);
   await page.route(`${API}/**`, (r) => r.abort());
   await page.getByRole("button", { name: "Normal", exact: true }).click();        // answered from the saved results
-  await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable", { timeout: 10_000 });
+  await expect(apiBanner(page)).toContainText("not reachable", { timeout: 10_000 });
   await expect(page.locator(".kpi").first()).toContainText("%");
   await page.unroute(`${API}/**`);
-  await expect(page.locator(".banner:not(.demo)")).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
+  await expect(apiBanner(page)).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
 });
 
 test("every simulate and plan request carries the forecast spec (stateless API)", async ({ page }) => {
@@ -339,7 +345,7 @@ test("API down: saved results keep the twin alive", async ({ page }) => {
   await page.route(`${API}/**`, (r) => r.abort());
   await page.goto("/");
   await page.waitForFunction(() => (window as unknown as TwinWindow).__twin?.getState().ready, null, { timeout: 60_000 });
-  await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable");
+  await expect(apiBanner(page)).toContainText("not reachable");
   await expect(page.locator(".kpi").first()).toContainText("%");
 });
 
@@ -476,6 +482,7 @@ test("AI tab: the critic's verdict, the goal badge and every tool call behind th
 });
 
 test("realism scene: figures at the stations follow the simulator's riders, and the new shaders compile", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   const shaderErrors: string[] = [];
   page.on("console", (m) => { if (/THREE\.WebGLProgram|Shader Error|shader error/i.test(m.text())) shaderErrors.push(m.text().slice(0, 200)); });
   await open(page, "/?scene=v2");
@@ -508,6 +515,7 @@ test("welcome sheet: centred, and it closes with its close button", async ({ pag
 });
 
 test("landmarks (#127): the Dubai Mall, the fountain and the new landmarks; Burj Al Arab says it is outside the corridor", async ({ page }) => {
+  test.skip(process.env.EFT_NO_GL === "1", "needs WebGL: the CI runner has no GPU, so the ui job runs with it off (EFT_NO_GL=1)");
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneModels === "30", null, { timeout: 120_000 });
   const menu = page.locator(".lmmenu");
