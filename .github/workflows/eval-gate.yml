@@ -57,11 +57,12 @@ jobs:
       - name: Offline smoke test inside the image (no network)
         run: docker run --rm --network none eventflow-api python scripts/image_smoke.py
 
-  # UI tests on a production build (WP6). Frame-rate tests skip themselves on CI (no GPU on the runner).
+  # UI tests on a production build (WP6). The runner has no GPU and software WebGL never finishes the 3D scene, so
+  # Chrome runs without WebGL (EFT_NO_WEBGL=1): the app takes its table-view fallback and every panel-based test runs;
+  # the tests that drive the 3D scene are listed in playwright.config.ts (NEEDS_3D) and run on a laptop (decision #141).
   ui:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    continue-on-error: true      # make blocking after the first green run on GitHub (3D in software rendering is unproven there)
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -80,7 +81,7 @@ jobs:
           for i in $(seq 60); do curl -sf http://localhost:3000 >/dev/null && curl -sf http://localhost:8000/healthz >/dev/null && break; sleep 2; done
       - run: npx playwright test --reporter=line
         working-directory: apps/web
-        env: {CI: "1", EFT_MODE: "production build (CI)"}
+        env: {CI: "1", EFT_NO_WEBGL: "1", EFT_MODE: "production build (CI, no WebGL)"}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

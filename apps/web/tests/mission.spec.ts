@@ -91,7 +91,7 @@ test("API down: a mission recorded in the offline snapshot still plays", async (
   const m = await mission(page);
   expect(m.events.length).toBeGreaterThan(5);                                                // a normal day: no station over the line
   expect(m.events.at(-1)!.key).toBe("supervisor.no_action");
-  await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable");
+  await expect(page.locator(".banner:not(.demo)").filter({ hasNotText: "WebGL" })).toContainText("not reachable");
 });
 
 test("kiosk: the visitor watches the AI team work, and can skip it", async ({ page }) => {

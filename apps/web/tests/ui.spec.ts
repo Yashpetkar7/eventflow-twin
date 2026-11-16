@@ -196,10 +196,10 @@ test("crash recovery: API drops mid-session, saved results stay, banner clears o
   await idle(page);
   await page.route(`${API}/**`, (r) => r.abort());
   await page.getByRole("button", { name: "Normal", exact: true }).click();        // answered from the saved results
-  await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable", { timeout: 10_000 });
+  await expect(page.locator(".banner:not(.demo)").filter({ hasNotText: "WebGL" })).toContainText("not reachable", { timeout: 10_000 });
   await expect(page.locator(".kpi").first()).toContainText("%");
   await page.unroute(`${API}/**`);
-  await expect(page.locator(".banner:not(.demo)")).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
+  await expect(page.locator(".banner:not(.demo)").filter({ hasNotText: "WebGL" })).toHaveCount(0, { timeout: 15_000 });      // health check every 4 s reconnects
 });
 
 test("every simulate and plan request carries the forecast spec (stateless API)", async ({ page }) => {
@@ -339,7 +339,7 @@ test("API down: saved results keep the twin alive", async ({ page }) => {
   await page.route(`${API}/**`, (r) => r.abort());
   await page.goto("/");
   await page.waitForFunction(() => (window as unknown as TwinWindow).__twin?.getState().ready, null, { timeout: 60_000 });
-  await expect(page.locator(".banner:not(.demo)")).toContainText("not reachable");
+  await expect(page.locator(".banner:not(.demo)").filter({ hasNotText: "WebGL" })).toContainText("not reachable");
   await expect(page.locator(".kpi").first()).toContainText("%");
 });
 
