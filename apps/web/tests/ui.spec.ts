@@ -352,7 +352,7 @@ test("realism ring (?scene=v2): every chunk streams in offline and the credits l
   await open(page, "/?scene=v2");
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
   expect(await page.evaluate(() => document.documentElement.dataset.sceneV2Builder)).toBe("worker");
-  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("26");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
+  expect(await page.evaluate(() => document.documentElement.dataset.sceneModels)).toBe("30");                // R4: every Blender model decoded (Draco, served locally)    // R3: geometry is built off the main thread
   await expect(page.getByTestId("synthetic-badge")).toBeVisible();
   await expect(page.locator(".labels, .label").first()).toBeAttached();         // station overlays still on top
   await page.getByTestId("credits").locator("summary").click();
@@ -502,4 +502,34 @@ test("welcome sheet: centred, and it closes with its close button", async ({ pag
   expect(Math.min(x.width, x.height)).toBeGreaterThanOrEqual(44);
   await page.getByTestId("welcome-close").click();
   await expect(sheet).toBeHidden();
+});
+
+test("landmarks (#127): the Dubai Mall, the fountain and the new landmarks; Burj Al Arab says it is outside the corridor", async ({ page }) => {
+  await open(page, "/?scene=v2");
+  await page.waitForFunction(() => document.documentElement.dataset.sceneModels === "30", null, { timeout: 120_000 });
+  const menu = page.locator(".lmmenu");
+  const visit = async (name: string) => {
+    await page.getByRole("button", { name: /Landmarks/ }).click();
+    await expect(menu.getByRole("button")).toHaveCount(14);
+    await menu.getByRole("button", { name, exact: true }).click();
+    await expect(page.locator(".focuschip")).toContainText(name);
+  };
+  await visit("The Dubai Mall");
+  await expect(page.locator(".focuschip")).toContainText("Nearest station: Burj Khalifa/Dubai Mall");
+  await settle(page, 5000);
+  await page.screenshot({ path: `${OUT}/landmark_dubai_mall.png` });
+  await visit("The Dubai Fountain");
+  await settle(page, 5000);
+  await page.screenshot({ path: `${OUT}/landmark_dubai_fountain.png` });
+  for (const [name, file] of [["One Za'abeel", "one_zaabeel"], ["Address Sky View", "address_sky_view"], ["Coca-Cola Arena", "coca_cola_arena"]] as const) {
+    await visit(name);
+    await settle(page, 4500);
+    await page.screenshot({ path: `${OUT}/landmark_${file}.png` });
+  }
+  await visit("Burj Al Arab");
+  await expect(page.locator(".focuschip")).toContainText("Outside the modelled corridor");      // 9 km down the coast: no station is claimed for it
+  await settle(page, 5000);
+  await page.screenshot({ path: `${OUT}/landmark_burj_al_arab.png` });
+  // the fountain is drawn as animated jets (Fountain.tsx), not a still model
+  expect(await page.evaluate(() => document.documentElement.dataset.fountainJets)).toBe("73");
 });

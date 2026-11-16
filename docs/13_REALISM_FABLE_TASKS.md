@@ -210,6 +210,13 @@ and the Dubai Fountain, built in place from Overture footprints (`python scripts
 `blender --background --python scripts/blender/build_models.py -- --only=tower_01,…,dubai_fountain`). Approximations,
 not survey models. Shots: `node apps/web/tests/r10_shots.mjs <label>` (views r8b_1000, r8b_1730, r8b_2130).
 
+**R8c, done on 16 Nov (decision #127):** the Dubai Mall rebuilt, One Za'abeel with The Link, Address Sky View, Address
+Downtown, Coca-Cola Arena and Burj Al Arab (`scripts/blender/dubai_landmarks.py`), and the Dubai Fountain animated in
+the scene (`apps/web/src/components/twin/Fountain.tsx`; it is no longer a model). Footprints come from the baked scene,
+so no raw map data is needed:
+`python scripts/landmark_sites.py && python scripts/r8b_polys.py`, then
+`blender --background --python scripts/blender/build_models.py -- --only=dubai_mall,one_zaabeel,address_sky_view,address_downtown,coca_cola_arena,burj_al_arab`.
+
 **Still open — needs the raw OpenStreetMap extract (`python tasks.py osm`):**
 ```text
 R9b — street level. Read sections 4 and 4b above, R5, scripts/realism_bake.py and atmosphere.ts (groundMaterial).

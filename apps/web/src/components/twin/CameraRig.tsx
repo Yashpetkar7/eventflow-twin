@@ -29,7 +29,7 @@ export function CameraRig({ places, corridor, spots }: { places: StationPlace[];
       case "close": return { theta: -0.46, phi: 1.08, r: 620, tx: p?.x ?? 0, ty: 70, tz: p?.z ?? 0 };
       case "landmark": {                                 // the landmark and its neighbourhood, seen from the sea side
         const l = spots.find((x) => x.key === s.focus) ?? spots[0];
-        return l ? { theta: -0.38, phi: 1.16, r: l.r, tx: l.x, ty: l.h * 0.42, tz: l.z } : {};
+        return l ? { theta: l.theta ?? -0.38, phi: 1.16, r: l.r, tx: l.x, ty: l.h * 0.42, tz: l.z } : {};
       }
       case "top": return { theta: 0, phi: 0.06, r: overviewR() * 1.02, tx: 60, ty: 0, tz: -300 };
       case "fly": return { phi: 1.34, r: 360, ty: 52 };                                   // low, looking down the corridor to the skyline
@@ -65,8 +65,9 @@ export function CameraRig({ places, corridor, spots }: { places: StationPlace[];
     const free = () => { if (useTwin.getState().cam !== "free") useTwin.setState({ cam: "free" }); };
     const pan = (dx: number, dy: number) => {
       const d = dst.current, k = d.r / 900, c = Math.cos(d.theta), s = Math.sin(d.theta);
-      d.tx = Math.max(-4200, Math.min(4500, d.tx + (-dx * c - dy * s) * k));
-      d.tz = Math.max(-2600, Math.min(1900, d.tz + (dx * s - dy * c) * k));
+      // within the corridor; from a far landmark (Burj Al Arab) a pan can only come back towards it, never jump
+      d.tx = Math.max(Math.min(-4200, d.tx), Math.min(Math.max(4500, d.tx), d.tx + (-dx * c - dy * s) * k));
+      d.tz = Math.max(Math.min(-2600, d.tz), Math.min(Math.max(1900, d.tz), d.tz + (dx * s - dy * c) * k));
     };
     const down = (e: PointerEvent) => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY, b: e.button, sh: e.shiftKey }); pinch = 0; mid = null; };
     const move = (e: PointerEvent) => {

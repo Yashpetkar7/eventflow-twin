@@ -100,7 +100,7 @@ input[type="range"] { width: 100%; accent-color: var(--navy); height: 26px; marg
 .camtools button { border: 0; background: rgba(255, 255, 255, 0.94); color: #151B28; border-radius: 10px; padding: 7px 11px; font-size: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); min-height: 34px; white-space: nowrap; }
 .camtools button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
 .lmwrap { position: relative; }
-.lmmenu { position: absolute; bottom: calc(100% + 6px); inset-inline-end: 0; background: rgba(255, 255, 255, 0.98); border-radius: 12px; padding: 6px; display: grid; gap: 4px; min-width: 210px; box-shadow: 0 12px 32px rgba(15, 25, 50, 0.22); z-index: 5; }
+.lmmenu { position: absolute; bottom: calc(100% + 6px); inset-inline-end: 0; background: rgba(255, 255, 255, 0.98); border-radius: 12px; padding: 6px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: min(420px, calc(100vw - 32px)); max-height: calc(100dvh - 150px); overflow: auto; box-shadow: 0 12px 32px rgba(15, 25, 50, 0.22); z-index: 5; }   /* fourteen places: two columns, never taller than the view */
 .camtools .lmmenu button { text-align: start; box-shadow: none; background: transparent; font-size: 13px; }
 .camtools .lmmenu button:hover { background: var(--navy-soft); }
 .camtools .lmmenu button[aria-pressed="true"] { background: #0F2F8F; color: #fff; }
