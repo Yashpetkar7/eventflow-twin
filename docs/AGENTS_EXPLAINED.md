@@ -1,6 +1,6 @@
 # How the agents work — the version to explain to a professor
 
-Written 16 Nov 2026 (contract 1.14.0, decisions #129–#135). The long technical form is `docs/15_AGENT_ARCHITECTURE.md`;
+Written 16 Nov 2026 (contract 1.14.0, decisions #132–#138). The long technical form is `docs/15_AGENT_ARCHITECTURE.md`;
 this page is the one to talk through. Every claim names the file that proves it.
 
 ## The one-sentence answer

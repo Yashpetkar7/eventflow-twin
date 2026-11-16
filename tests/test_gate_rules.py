@@ -1,4 +1,4 @@
-"""Every threshold in eval/thresholds.yaml has a rule in eval/gate.py (decision #136): an unchecked threshold looked
+"""Every threshold in eval/thresholds.yaml has a rule in eval/gate.py (decision #139): an unchecked threshold looked
 green while checking nothing (found 16 Nov: two new orchestration thresholds were silently skipped)."""
 from pathlib import Path
 

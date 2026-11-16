@@ -1,4 +1,4 @@
-"""Smoke test run inside the API image with no network (CI `docker` job, decision #134).
+"""Smoke test run inside the API image with no network (CI `docker` job, decision #137).
 
     docker run --rm --network none eventflow-api python scripts/image_smoke.py
 """

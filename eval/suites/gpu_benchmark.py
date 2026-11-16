@@ -1,4 +1,4 @@
-"""Compute benchmark for the GPU request (docs/GPU_REQUEST.md, decision #135). A report, not a gated suite.
+"""Compute benchmark for the GPU request (docs/GPU_REQUEST.md, decision #138). A report, not a gated suite.
 
     python -m eval.suites.gpu_benchmark            CPU baseline on this machine (offline, no key)
     python -m eval.suites.gpu_benchmark --llm      + the model agents against the configured model

@@ -4,6 +4,7 @@
 //     "I'm planning the event": ① pick an event (or build your own) → ② guess the busiest station, the twin reveals
 //        it, optional stress test (crowd size, metro share, a closed station) → ③ your idea first, then AI agents
 //        propose plans (every number from the simulator) → ④ you approve one → before/after, you vs the AI
+//        → optional: "What if a train breaks down now?" - the duty shift's first step, one Approve (decision #129)
 //     "I'm travelling to the event": the best time and station to leave from (fastest, or quieter)
 //     "Show me in 60 seconds": the planner story plays by itself with captions (any touch takes over)
 // Home and language are always visible; 60 s without a touch → "Still there?" (10 s) → back to the attract screen.
@@ -11,6 +12,7 @@
 // Every number shown comes from an API answer held in the store (CLAUDE.md rule 2).
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { api, type AgentPlanResponse, type SimulateResponse } from "@/lib/api";
 import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { SCENE_V2 } from "@/lib/manifest";
@@ -20,16 +22,17 @@ import { LabelLayer } from "../LabelLayer";
 import { SceneProgress } from "../SceneProgress";
 import { KioskTeam } from "../mission/KioskTeam";
 import { KioskMessage } from "../mission/Standing";
-import { bump, busiest, closure, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
+import { bump, busiest, closure, faultHour, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
 const TwinCanvas = dynamic(() => import("../twin/TwinCanvas"), { ssr: false });
 
-type Phase = "attract" | "choose" | "event" | "crowd" | "plan" | "decide" | "rider";
+type Phase = "attract" | "choose" | "event" | "crowd" | "plan" | "decide" | "duty" | "rider";
 type Summary = SimulateResponse["summary"];
 type TraceEvent = NonNullable<AgentPlanResponse["trace"]>[number];
-const STEP: Record<Phase, number> = { attract: -1, choose: -1, rider: -1, event: 0, crowd: 1, plan: 2, decide: 3 };
-const AUTOMATIC = new Set(["guided-demo", "soak", "test", "playwright", "smoke"]);
+const STEP: Record<Phase, number> = { attract: -1, choose: -1, rider: -1, event: 0, crowd: 1, plan: 2, decide: 3, duty: 3 };
+// "duty-shift" is the visitor's second approval in the train-fault step: counted once, through the first one
+const AUTOMATIC = new Set(["guided-demo", "soak", "test", "playwright", "smoke", "duty-shift"]);
 const WEATHERS = ["normal", "hot", "rain"] as const;
 const METRO_SHARES = [0.35, 0.45, 0.55, 0.65];                      // what-if request values (pricing nudge)
 const OWN_TIMES: Record<string, { start: string; end: string }> = { afternoon: { start: "13:00", end: "17:00" }, evening: { start: "18:00", end: "21:00" }, night: { start: "20:00", end: "23:00" } };
@@ -116,6 +119,10 @@ export function Kiosk() {
   const time = useTwin((s) => s.time);
   const camMode = useTwin((s) => s.cam);
   const focus = useTwin((s) => s.focus);
+  const shift = useTwin((s) => s.shift);                       // the duty shift (POST /shift/next through the store)
+  const decisionError = useTwin((s) => s.decisionError);
+  const tDuty = useTranslations("mission.duty") as unknown as (k: string, v?: Record<string, string | number>) => string;
+  const tWatch = useTranslations("mission.watch");
 
   const [phase, setPhase] = useState<Phase>("attract");
   const [guess, setGuess] = useState<string | null>(null);
@@ -127,6 +134,8 @@ export function Kiosk() {
   const [idea, setIdea] = useState<Idea | null | undefined>(undefined);   // undefined = not asked yet, null = skipped
   const [mine, setMine] = useState<Summary | "none" | null>(null);        // the visitor's idea, simulated
   const [chosen, setChosen] = useState<number | null>(null);
+  const [fault, setFault] = useState(false);                  // the train fault has been injected (duty step)
+  const faultStarted = useRef(false);
   // The store clears the plan once it is applied: keep what the later screens need (all from API answers).
   const [picked, setPicked] = useState<{ title: string; before: Summary; road: number | null } | null>(null);
   const [kept, setKept] = useState<AgentPlanResponse | null>(null);
@@ -202,14 +211,15 @@ export function Kiosk() {
   }, [phase, chosen]);
 
   // ---- inactivity: "Still there?" then reset for the next visitor
-  const clearRun = () => { setGuess(null); setRevealed(false); revealedRef.current = false; setLab(false); setClosed(null); setOwn(false); setIdea(undefined); setMine(null);
+  const clearRun = () => { setFault(false); faultStarted.current = false; setGuess(null); setRevealed(false); revealedRef.current = false; setLab(false); setClosed(null); setOwn(false); setIdea(undefined); setMine(null);
     setChosen(null); setPicked(null); setKept(null); setModal(null); setPb(null); setCalls(false); };
   const reset = useCallback(() => {
     if (anim.current) cancelAnimationFrame(anim.current);
     if (show.current) show.current.cancel = true;
     const s = st.getState();
+    s.stopShift();                                             // the next visitor starts with no shift and no incident
     s.clearPlans();
-    useTwin.setState({ applied: [], scenario: { ...s.scenario, weather: "normal", metroShare: null, demandLevel: null } });
+    useTwin.setState({ applied: [], scenario: { ...s.scenario, weather: "normal", metroShare: null, demandLevel: null, incident: null } });
     if (s.events[0]) s.selectEvent(s.events[0].id);
     clearRun(); setStill(null); setBig(false); setHc(false); setReach(false); setQuiet(false); setCap(null);
     setPhase("attract");
@@ -331,7 +341,19 @@ export function Kiosk() {
     if (pk) { st.getState().select(pk.id); st.getState().setCam("close"); }
     setPhase("decide");
   };
-  const again = () => { bump("done"); st.getState().clearPlans(); useTwin.setState({ applied: [] }); clearRun(); setPhase("event"); };
+  // ---- "what if a train breaks down now?" (decision #129): the duty shift's first step on the kiosk. The store's own
+  // actions do the work; an incident is a new scenario day, so the plan approved before it is cleared (as in the workspace).
+  const breakTrain = () => {
+    bump("duty"); setFault(true); faultStarted.current = false;
+    st.getState().setIncident({ type: "train_fault", hour: faultHour(st.getState().forecast?.end_used) });
+  };
+  const leaveDuty = () => { const s = st.getState(); s.stopShift(); if (s.scenario.incident) s.setIncident(null); };
+  useEffect(() => {
+    if (phase !== "duty" || !fault) return;
+    if (!loading && !error && forecast?.incident && shift.status === "idle" && !faultStarted.current) { faultStarted.current = true; void st.getState().startShift(locale); }
+    if (shift.status === "awaiting") st.getState().setCam("close");     // the store has moved the clock and the selection to the alert
+  }, [phase, fault, loading, error, forecast, shift.status, locale, st]);
+  const again = () => { bump("done"); leaveDuty(); st.getState().clearPlans(); useTwin.setState({ applied: [] }); clearRun(); setPhase("event"); };
   const finish = () => { bump("done"); reset(); };
   const undo = () => {
     bump("undo");
@@ -410,6 +432,14 @@ export function Kiosk() {
   const road = cur?.resp.road ?? null;                         // road-pressure proxy for the situation on screen (assumption model)
   const level = scenario.demandLevel === "real_totals" ? "real_totals" : "synthetic";
   const critic = shown?.critic ?? null;
+  // the duty step: everything below is read from the shift step or the forecast's resolved incident
+  const dStep = shift.step;
+  const dRec = dStep?.mission?.plan.options.find((o) => o.rank === dStep.recommended_rank) ?? null;
+  const dAlert = dStep?.alerts[0] ?? null;
+  const dItem = shift.items[0] ?? null;                         // the visitor's one decision
+  const dInc = forecast?.incident ?? null;
+  const dFail = fault && (shift.status === "error" || (!loading && !!error));
+  const dView = !fault ? "ask" : dFail ? "fail" : shift.status === "done" || (dItem && shift.status === "awaiting") ? "result" : shift.status === "awaiting" ? "decision" : "wait";
   // One line per tool call, written from the call's own data (every figure in it is the simulator's).
   const traceText = (e: TraceEvent): string => {
     const d = e.data as Record<string, unknown>;
@@ -693,15 +723,81 @@ export function Kiosk() {
                 {scenario.eventId === PLAYBOOK_EVENT && <button type="button" className="kpill" onClick={() => void openPb()} data-testid="kiosk-pb">{T.pbBtn}</button>}
                 <button type="button" className="kpill" onClick={asRider}>{T.toRider}</button>
               </div>
-              <div className="kqr">
-                <div className="kqr-box" aria-hidden><span /><span /><span /><span /></div>
-                <div><b>{T.qrTitle}</b><small>{T.qrSoon}</small></div>
+              <div className="kside">
+                <div className="kqr">
+                  <div className="kqr-box" aria-hidden><span /><span /><span /><span /></div>
+                  <div><b>{T.qrTitle}</b><small>{T.qrSoon}</small></div>
+                </div>
+                <button type="button" className="kgo ghost" onClick={() => { setFault(false); setPhase("duty"); }} data-testid="kiosk-duty-ask">{T.dAsk}</button>
               </div>
               <div className="krow">
                 <button type="button" className="kgo" onClick={again}>{T.again}</button>
                 <button type="button" className="kgo ghost" onClick={finish}>{T.finish}</button>
               </div>
             </>
+          )}
+
+          {phase === "duty" && (
+            <div className="kduty" data-testid="kiosk-duty" data-view={dView}>
+              <h1>{T.dTitle}</h1>
+              {dView === "ask" && (
+                <>
+                  <p className="ksub">{T.dSub}</p>
+                  <p className="knote">{T.dNewDay}</p>
+                  <div className="krow">
+                    <button type="button" className="kgo" disabled={!ready || loading} onClick={breakTrain} data-testid="kiosk-duty-go">{T.dGo}</button>
+                    <button type="button" className="kgo ghost" onClick={() => setPhase("decide")} data-testid="kiosk-duty-skip">{T.dSkip}</button>
+                  </div>
+                </>
+              )}
+              {fault && dInc && (
+                <p className="knote" data-testid="kiosk-duty-incident">
+                  <N>{tDuty("info.train_fault", { line: dInc.line ?? "", pct: Math.round((dInc.capacity_factor ?? 1) * 100), h0: dInc.hours?.[0] ?? dInc.hour, h1: (dInc.hours?.[dInc.hours.length - 1] ?? dInc.hour) + 1 })}</N>{" "}<small>{tDuty("assumption")}</small>
+                </p>
+              )}
+              {dView === "wait" && <div className="kwait"><span className="kspin" />{T.dRunning}</div>}
+              {dView === "fail" && <div className="kalt" data-testid="kiosk-duty-fail"><p>{T.dFail}</p></div>}
+              {dView === "decision" && dStep && (
+                <>
+                  {dAlert && <div className="kline risk" data-testid="kiosk-duty-alert"><N>{tWatch("alert", { station: name(dAlert.station), at: dAlert.crosses_at })} · {f.pct(dAlert.peak_lf)}</N></div>}
+                  {dRec ? (
+                    <>
+                      <p className="kchosen"><small>{T.dTeam}</small>{dRec.title}</p>
+                      <p className="ksub">{dRec.what}</p>
+                      <div className="kba" data-testid="kiosk-duty-figures">
+                        <div><small>{T.dOver}</small><span><N>{f.num(dStep.residual.overcap_station_hours)}</N></span><i>→</i><b className={dRec.summary.overcap_station_hours > 0 ? "risk" : "okc"}><N>{f.num(dRec.summary.overcap_station_hours)}</N></b></div>
+                        <div><small>{T.ridersOver}</small><span><N>{f.int(dStep.residual.excess_pax)}</N></span><i>→</i><b className={dRec.summary.excess_pax > 0 ? "risk" : "okc"}><N>{f.int(dRec.summary.excess_pax)}</N></b></div>
+                        <div><small>{T.peakLoad}</small><span><N>{f.pct(dStep.residual.peak_lf)}</N></span><i>→</i><b className={over(dRec.summary.peak_lf) ? "risk" : "okc"}><N>{f.pct(dRec.summary.peak_lf)}</N></b></div>
+                      </div>
+                      <div className={`kline ${dRec.goal_met ? "okc" : "risk"}`}>{dRec.goal_met ? tDuty("clears") : tDuty("partial")}</div>
+                      {decisionError && <p className="knote risk">{T.dFail}</p>}
+                      <div className="krow">
+                        <button type="button" className="kgo" onClick={() => void st.getState().shiftDecide("approve", locale)} data-testid="kiosk-duty-approve">{T.dApprove}</button>
+                        <button type="button" className="kgo ghost" onClick={again} data-testid="kiosk-duty-skip">{T.dSkip}</button>
+                      </div>
+                    </>
+                  ) : <p className="knote">{tDuty("noOption")}</p>}
+                </>
+              )}
+              {dView === "result" && dStep && (
+                <div className="kres" data-testid="kiosk-duty-result">
+                  {dItem && dItem.title && <p className="kchosen"><small>{T.s4Title}</small>{dItem.title}</p>}
+                  {dItem && dItem.overAfter !== null && (
+                    <div className="kba"><div><small>{T.dOver}</small><span><N>{f.num(dItem.overBefore)}</N></span><i>→</i><b className={dItem.overAfter > 0 ? "risk" : "okc"}><N>{f.num(dItem.overAfter)}</N></b></div></div>
+                  )}
+                  {shift.status === "done"
+                    ? <div className={`kline ${dStep.reason === "clear" ? "okc" : "risk"}`}><N>{tDuty(`done.${dStep.reason}`, { over: f.num(dStep.residual.overcap_station_hours) })}</N></div>
+                    : dAlert && <div className="kline risk"><N>{T.dMore(name(dAlert.station), hhmm(dAlert.crosses_at))}</N></div>}
+                  {dItem && <p className="knote">{T.dLogged}</p>}
+                </div>
+              )}
+              {fault && (dView !== "decision" || !dRec) && (
+                <div className="krow">
+                  <button type="button" className="kgo" disabled={dView === "wait"} onClick={again} data-testid="kiosk-duty-again">{T.again}</button>
+                  <button type="button" className="kgo ghost" onClick={finish}>{T.finish}</button>
+                </div>
+              )}
+            </div>
           )}
 
           {phase === "rider" && (

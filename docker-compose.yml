@@ -1,4 +1,4 @@
-# EventFlow Twin on one machine without Python or Node set up (docs/DEPLOY.md, decision #134).
+# EventFlow Twin on one machine without Python or Node set up (docs/DEPLOY.md, decision #137).
 #   docker compose up --build                                                   booth mode: API + web, offline after the build
 #   docker compose -f docker-compose.yml -f docker-compose.saas.yml up --build  product mode: + Postgres, sign-in and roles
 # Nothing is sent anywhere unless OTEL_EXPORTER_OTLP_ENDPOINT is set (tracing to Langfuse or any OTLP collector).

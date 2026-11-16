@@ -1,4 +1,4 @@
-"""Sign-in and roles for the product mode (decision #132). Off by default, so the booth and the kiosk stay open.
+"""Sign-in and roles for the product mode (decision #135). Off by default, so the booth and the kiosk stay open.
 
     EVENTFLOW_AUTH=off  (default)  anyone may plan and decide; decisions carry the anonymous label the client sends
     EVENTFLOW_AUTH=on              POST /auth/login gives a bearer token; deciding needs the planner role

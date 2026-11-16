@@ -74,7 +74,11 @@ Two things seen while doing it on 16 Nov: `vercel deploy` once answered "Not aut
 and after a deploy the production address served the old files for about a minute (check with
 `curl -s https://eventflow-twin-roan.vercel.app/api/healthz`, which must report the new contract).
 
-### B. Duty shift on the kiosk (should do; half a day)
+### B. Duty shift on the kiosk — DONE on 16 Nov (decision #129)
+
+Built as described below: one optional step after the approval, "What if a train breaks down now?". The fault day
+starts without the plan approved before it (the store's rule from #128). Tests: three at the end of
+`apps/web/tests/kiosk.spec.ts`.
 
 Today the duty shift is in the workspace only (and so in the kiosk's planner mode). The lead asked for agentic
 features on the kiosk too.
@@ -87,7 +91,11 @@ features on the kiosk too.
 - Accept: a new test in `apps/web/tests/kiosk.spec.ts`; the existing kiosk tests and the kiosk frame-rate test
   still pass.
 
-### C. UI and UX audit (should do; two to three hours)
+### C. UI and UX audit — second pass DONE on 16 Nov (decision #130)
+
+Done with `node apps/web/tests/audit2.mjs` (pictures in `eval/results/ui/audit2/`). One fault fixed (the Arabic
+train-fault sentence named the line in English). Still open: the kiosk at tablet width is the booth layout scaled
+down (buttons about 27 px), a real touch screen, Safari, a paper print. The list below is the original one.
 
 Checked so far on stage 3: workspace at 1920 px in English and Arabic, phone width 375 px (two faults found and
 fixed: the landmark menu opened half off screen; a long chip pushed the page sideways).
@@ -133,7 +141,7 @@ Demo runs offline · numbers only from deterministic code, each with its source 
 Approve click, logged · synthetic data labelled · no claim of RTA endorsement, no RTA logo ("designed for",
 "aligned with") · never commit `.env`, keys, raw data or files over 50 MB · evals write
 `eval/results/<suite>_<timestamp>.json` · one row per non-trivial choice in `docs/09_DECISIONS.md` (next number:
-**129**) · a change to `schemas.py` is a contract change: bump `CONTRACT_VERSION`, run `python tasks.py contract`.
+**132**) · a change to `schemas.py` is a contract change: bump `CONTRACT_VERSION`, run `python tasks.py contract`.
 
 Branches and PRs only; never push to `main`. Arabic strings: no digits inside strings; figures come as parameters.
 

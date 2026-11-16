@@ -1,4 +1,4 @@
-"""Agent trace: one span per agent step, and an optional OpenTelemetry export (docs/17 WP4, decision #133).
+"""Agent trace: one span per agent step, and an optional OpenTelemetry export (docs/17 WP4, decision #136).
 
 `spans(events)` derives the spans from the mission's ordered events (no second timing source): consecutive events of
 the same agent in the same round are one step. Graph and sequential engines give the same spans apart from timings.

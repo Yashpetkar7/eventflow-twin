@@ -34,7 +34,7 @@ CACHE = ROOT / "data/demo_cache"                    # shipped with the build (re
 # new entries go to the writable data directory: the same folder on a laptop, a temp folder on serverless hosting
 CACHE_WRITE = Path(os.environ.get("EVENTFLOW_DATA_DIR") or ROOT / "data") / "demo_cache"
 PLANNER = "deterministic-template"
-PLANNER_REV = 5                                   # 5: specialists size measures from the diagnosis; replans resize (docs/09 #130)
+PLANNER_REV = 5                                   # 5: specialists size measures from the diagnosis; replans resize (docs/09 #133)
 DEFAULT_GOAL = "Keep every station under 85% load during the exit surge"   # schemas.AgentPlanRequest.goal default
 LLM_FACTORY = llm_mod.get_llm                    # swapped for a fake model in tests            # bump when the ranking changes, so stale offline-cache entries are not replayed
 

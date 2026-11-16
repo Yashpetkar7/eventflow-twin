@@ -1,4 +1,4 @@
-"""The event chain, sign-in with roles and the tamper-evident decision log (decisions #131, #132)."""
+"""The event chain, sign-in with roles and the tamper-evident decision log (decisions #134, #135)."""
 import json
 import secrets
 

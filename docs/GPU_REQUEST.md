@@ -1,7 +1,7 @@
 # GPU access request — what we would run, why, and what is already measured
 
 Prepared 16 Nov 2026 by Yash for the faculty lead. Every figure below is measured and names its file; nothing is an
-estimate unless it says so. Decision rows: `docs/09_DECISIONS.md` #135.
+estimate unless it says so. Decision rows: `docs/09_DECISIONS.md` #138.
 
 ## 1. What we ask for
 

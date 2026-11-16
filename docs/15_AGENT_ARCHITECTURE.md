@@ -63,7 +63,7 @@ START → intake → forecast → diagnosis ─┬─(no station over the line)�
                                           venue │                                                       └→ ranker ┬→ explainer ┐
                                           last_mile ┘                                                            └→ stress ───┴→ verifier → conclude → END
 
-Since 1.14.0 (decision #130) events can be **messages** (`AgentEvent.to`): the supervisor briefs the specialists, each
+Since 1.14.0 (decision #133) events can be **messages** (`AgentEvent.to`): the supervisor briefs the specialists, each
 specialist sends its sized proposal to the composer, the critic sends an **objection** to each specialist that can act
 on what is still over the line, and the supervisor's replan edge goes back to the specialists (each one answers only
 if an objection names it), not straight to the composer.
@@ -109,7 +109,7 @@ anything outside the specialist's measures or the bounds is dropped before it is
 | C6 | the planner's typed constraints (forbidden measures are never simulated; protected stations; cost cap) | forbidden → rejected; others: recommendation |
 | C7 | holds under stress (≥ half the stress cases keep every station under the line) | recommendation |
 
-**Recommendation (docs/17 WP3, decision #131).** The option put in front of the human is the first that passes every
+**Recommendation (docs/17 WP3, decision #134).** The option put in front of the human is the first that passes every
 applicable check C1–C7; else the first that passes C1–C3 with the most of C4–C7; else the one that passes the most
 checks (ties: the plan's order). `Mission.recommendation` carries the rank, the basis and the failed checks; the card
 says why. The plan's own order is unchanged.
@@ -145,7 +145,7 @@ change a simulation. Instruction-like text is logged as a finding.
 | Critic's C1–C3 verdicts vs an independent re-check from the simulator's hourly rows | recall **1.0**, precision **1.0** (1,007 plans) | `critic_20261116-204831.json` |
 | When an exhaustive grid over the menu (≈ 48 plans per scenario) can clear every station, the team offers such a plan | **1.0** (22 of 22 hotspot scenarios) | `optimality_20261116-204831.json` |
 | Riders relieved: gap between the team's best offer and the grid's best acceptable plan | **0** (mean and max) | same |
-| First option's score (relief − λ·cost) as a share of the grid's best | **0.96** on average (0.80 before the specialists sized their measures, decision #130) | same |
+| First option's score (relief − λ·cost) as a share of the grid's best | **0.96** on average (0.80 before the specialists sized their measures, decision #133) | same |
 | Prompt-injection and API attacks that succeeded (53 cases, EN/AR/mixed, all 10 OWASP agentic categories, both endpoints) | **0** | `redteam_20261116-204631.json` |
 | Injection attempts the intake flags / legitimate goals it flags | **0.93** / **0** (in-sample: patterns written after reading the cases) | same |
 | Ask the twin: off-topic and harmful questions refused / legitimate questions refused | **1.0** / **0** (40 questions EN/AR, in-sample) | `safety_20261116-204835.json` |
@@ -182,6 +182,12 @@ next step. After an approval a station that is still over the line is a new aler
 not raised again. The shift ends "clear" only when nothing is over the line; otherwise it reports what remains for the
 duty manager. The API keeps no shift state: the client carries the approved measures, the handled alerts and the clock.
 
+**On the kiosk (decision #129).** After a visitor approves a plan, one optional step asks "What if a train breaks
+down now?": a train fault at the event's last hour, the shift's first step, one Approve button, then the result. It
+uses the same store actions as the workspace card; the fault day starts without the plan approved before it. It needs
+the planning service, so it is not in the offline snapshot: without the service the step says so and the visitor
+carries on.
+
 | What | Result | Source |
 |---|---|---|
 | Same incident request → same run id and simulation; an incident never makes the day easier | **1.0 · 1.0** (15 shifts) | `incidents_*.json` |
@@ -216,7 +222,7 @@ need the planning service: they are not in the offline snapshot.
 - The model path's quality depends on the recording; replans are code-only to keep a mission under the time budget.
 - "Designed for / aligned with" RTA priorities — not an RTA system, not endorsed by RTA.
 
-## 8. The event chain and the product layer (contract 1.14.0, decisions #130–#135)
+## 8. The event chain and the product layer (contract 1.14.0, decisions #133–#138)
 
 - **Event chain** (`agents/chain.py`): `scenario.loaded` → Watcher → `alert.raised` → Supervisor (runs this team) →
   `plan.ready` → the human's inbox; the decision (logged first) → `decision.made` → Messenger (`drafts.ready`, never

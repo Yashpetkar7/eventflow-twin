@@ -28,7 +28,7 @@ jobs:
           name: eval-results
           path: eval/results/
 
-  # Product mode (decision #132): the store on a real Postgres, the chain, sign-in and the OpenTelemetry export.
+  # Product mode (decision #135): the store on a real Postgres, the chain, sign-in and the OpenTelemetry export.
   saas:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -47,7 +47,7 @@ jobs:
         env: {EVENTFLOW_TEST_PG: "postgresql://eft:eft-ci-only@localhost:5432/eft"}
         run: python -m pytest -q tests/test_store_postgres.py tests/test_chain_auth_log.py tests/test_tracing.py
 
-  # The API image must build and answer with no network (decision #134).
+  # The API image must build and answer with no network (decision #137).
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 20

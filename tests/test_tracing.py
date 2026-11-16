@@ -1,4 +1,4 @@
-"""Agent trace (WP4, decision #133): spans derived from the events, and the optional OpenTelemetry export."""
+"""Agent trace (WP4, decision #136): spans derived from the events, and the optional OpenTelemetry export."""
 import os
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer

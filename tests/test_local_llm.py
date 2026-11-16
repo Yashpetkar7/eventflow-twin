@@ -1,4 +1,4 @@
-"""The self-hosted model provider (LLM_PROVIDER=local, decision #135): an OpenAI-compatible server such as vLLM or
+"""The self-hosted model provider (LLM_PROVIDER=local, decision #138): an OpenAI-compatible server such as vLLM or
 Ollama on the college's GPUs. Tested against a stand-in server on 127.0.0.1 that records what it was sent."""
 import json
 import threading

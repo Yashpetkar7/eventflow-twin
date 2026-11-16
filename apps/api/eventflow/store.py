@@ -1,4 +1,4 @@
-"""Durable state for the product layer: event chains, users and sessions (docs/15 §8, decision #132).
+"""Durable state for the product layer: event chains, users and sessions (docs/15 §8, decision #135).
 
 One small interface over two back ends, chosen at start-up:
 

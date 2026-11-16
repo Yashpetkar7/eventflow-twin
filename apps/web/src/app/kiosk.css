@@ -140,6 +140,8 @@
 .kcheck { font-size: 12.5px; color: var(--ok); font-weight: 550; }
 .kopt .kgo { margin-top: 2px; min-height: 56px; font-size: 17px; border-radius: 14px; }
 
+.kside { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; } .kside .kgo { margin-top: 0; font-size: 18px; line-height: 1.25; padding-inline: 14px; }
+.kduty { display: contents; } .kres { display: grid; gap: 12px; } .kchosen small { display: block; font-size: 15px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; }
 .kchosen { margin: 0; font-size: 23px; font-weight: 650; color: var(--navy); letter-spacing: -.01em; }
 .kba { display: grid; gap: 12px; }
 .kba > div { display: grid; grid-template-columns: 1fr auto auto auto; align-items: baseline; gap: 14px; padding: 14px 20px; border-radius: 18px; background: var(--bg); }

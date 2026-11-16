@@ -1,4 +1,4 @@
-"""The event chain: agents triggered by each other's events, not by button presses (docs/15 §8, decision #132).
+"""The event chain: agents triggered by each other's events, not by button presses (docs/15 §8, decision #135).
 
 An agent publishes an event on a topic; every agent subscribed to that topic is triggered by it and may publish the
 next event. The chain runs by itself until an event reaches the human (the approval inbox, or the end of the day),

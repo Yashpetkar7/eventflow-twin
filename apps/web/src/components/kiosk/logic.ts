@@ -49,6 +49,9 @@ export function closure(id: string, v: SimView | null, ids: string[], endHour: n
   return [{ type: "station_metering", params: { station: id, max_load: 0, hours, to_station: neighbour(v, ids, id, bin) } }];
 }
 
+// ---- "what if a train breaks down now?": the incident hour is the event's last hour (the duty card's own default)
+export const faultHour = (endUsed: string | null | undefined): number => Math.max(5, Math.min(23, Number((endUsed ?? "18:00").slice(0, 2)) - 1));
+
 // ---- RTA's reported New Year's Eve 2026 measures, as interventions the simulator understands (sources: strings.ts)
 export const PLAYBOOK_EVENT = "downtown_night";
 export function playbook(v: SimView | null, ids: string[]): Intervention[] {

@@ -1,0 +1,163 @@
+{
+  "suite": "incidents",
+  "git_sha": "a0d08e8-dirty",
+  "timestamp": "2026-11-16T19:01:36",
+  "models": {
+    "planner": "agent team, code policies (no model)"
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "incident_deterministic": 1.0,
+    "incident_never_easier": 1.0,
+    "shift_figures_match": 1.0,
+    "shift_terminates": 1.0,
+    "shift_honest_end": 1.0,
+    "shift_no_autonomous_apply": 1.0,
+    "shift_cleared": 1.0,
+    "shifts": 15,
+    "shifts_with_crowding": 10,
+    "proposals_checked": 10,
+    "decisions_asked_max": 1,
+    "shift_p95_s": 1.51
+  },
+  "n": 15,
+  "split": "all",
+  "rows": [
+    {
+      "event": "gitex2025_d1",
+      "incident": null,
+      "hour": null,
+      "over_before": 0.0,
+      "over_after": 0.0,
+      "decisions_asked": 0,
+      "end": "clear"
+    },
+    {
+      "event": "gitex2025_d1",
+      "incident": "train_fault",
+      "hour": 16,
+      "over_before": 1.0,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "gitex2025_d1",
+      "incident": "rain",
+      "hour": 16,
+      "over_before": 0.5,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "gitex2025_d1",
+      "incident": "heat",
+      "hour": 16,
+      "over_before": 0.5,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "gitex2025_d1",
+      "incident": "crowd_surge",
+      "hour": 16,
+      "over_before": 0.5,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "dfw2026_d1",
+      "incident": null,
+      "hour": null,
+      "over_before": 0.0,
+      "over_after": 0.0,
+      "decisions_asked": 0,
+      "end": "clear"
+    },
+    {
+      "event": "dfw2026_d1",
+      "incident": "train_fault",
+      "hour": 17,
+      "over_before": 1.0,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "dfw2026_d1",
+      "incident": "rain",
+      "hour": 17,
+      "over_before": 0.0,
+      "over_after": 0.0,
+      "decisions_asked": 0,
+      "end": "clear"
+    },
+    {
+      "event": "dfw2026_d1",
+      "incident": "heat",
+      "hour": 17,
+      "over_before": 0.0,
+      "over_after": 0.0,
+      "decisions_asked": 0,
+      "end": "clear"
+    },
+    {
+      "event": "dfw2026_d1",
+      "incident": "crowd_surge",
+      "hour": 17,
+      "over_before": 0.0,
+      "over_after": 0.0,
+      "decisions_asked": 0,
+      "end": "clear"
+    },
+    {
+      "event": "downtown_night",
+      "incident": null,
+      "hour": null,
+      "over_before": 2.25,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "downtown_night",
+      "incident": "train_fault",
+      "hour": 21,
+      "over_before": 4.25,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "downtown_night",
+      "incident": "rain",
+      "hour": 21,
+      "over_before": 2.75,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "downtown_night",
+      "incident": "heat",
+      "hour": 21,
+      "over_before": 2.75,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    },
+    {
+      "event": "downtown_night",
+      "incident": "crowd_surge",
+      "hour": 21,
+      "over_before": 2.75,
+      "over_after": 0.0,
+      "decisions_asked": 1,
+      "end": "clear"
+    }
+  ]
+}

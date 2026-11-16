@@ -1,4 +1,4 @@
-"""store.py on a real Postgres (decision #132). Runs only when EVENTFLOW_TEST_PG is set (CI starts a Postgres service);
+"""store.py on a real Postgres (decision #135). Runs only when EVENTFLOW_TEST_PG is set (CI starts a Postgres service);
 the booth and laptops use SQLite, which test_chain_auth_log.py covers."""
 import os
 import uuid
