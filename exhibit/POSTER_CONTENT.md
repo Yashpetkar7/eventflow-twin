@@ -16,11 +16,11 @@ source is in brackets — keep the brackets out of the printed poster, keep the 
    |---|---|
    | World Trade Centre, GITEX 2025 Day 1, 40,000 assumed visitors | peak load **78 %** of comfortable capacity [`/agent/plan`, gitex2025_d1] |
    | Crowd size at which it tips over (85 % line) | about **44,400** visitors; **14,900 – 44,400** depending on how full trains arrive [`/breakpoint`] |
-   | Same day, hot weather (55 % take the metro) | **92 %** → **70 %** with the top plan (guide 35 % of riders to Emirates Towers on foot), simulated [`/agent/plan`, weather hot] |
-   | Downtown celebration night (hypothetical) | over-threshold station-hours **2.25 → 1.5** with shuttles (to Max) + robotaxi staging, simulated [`/agent/plan`, downtown_night, corridor view] |
-   | Every number in AI plan texts traced to the simulator | **48 of 48** options [`eval/results/agents_20261112-163846.json`] |
-   | Prompt-injection attacks that changed a plan | **0 of 15** (English, Arabic, mixed) [`eval/results/redteam_20261112-163848.json`] |
-   | Forecasting model backtest (synthetic data) | MASE **0.78** vs **0.97** seasonal baseline [`eval/results/forecast_20261112-0918.json`] |
+   | Same day, hot weather (55 % take the metro) | **92 %** → **74 %** with the recommended plan (spread exits over 45 more minutes and guide 10 % of riders to Emirates Towers on foot), simulated [`/agent/run`, weather hot, `main` 7f33270] |
+   | Downtown celebration night (hypothetical) | over-threshold station-hours **2.25 → 0** with the recommended plan (4-minute headway 20:00–24:00 + guide 20 % to Financial Centre), simulated [`/agent/run`, downtown_night, corridor view, `main` 7f33270] |
+   | Every number in AI plan texts traced to the simulator | **132 of 132** options, 60 scenarios [`eval/results/agents_20261116-204539.json`] |
+   | Prompt-injection attacks that changed a plan | **0 of 53** (English, Arabic, mixed) [`eval/results/redteam_20261116-204631.json`] |
+   | Forecasting model backtest (synthetic data) | MASE **0.78** vs **0.97** seasonal baseline [`eval/results/forecast_20261116-2045.json`] |
    | 3D twin | **60 fps** at 1920×1080, runs fully offline, 0 requests outside the laptop [`docs/metrics.md`] |
 5. **Built around RTA AI Strategy priorities (alignment, not endorsement):** ① Congestion reduction – measures over-capacity station-hours removed by each plan · ② Agentic AI – a planning agent proposes and compares plans, the simulator produces every number · ③ Human approval – nothing applied without a planner's OK; every decision logged.
 6. **Data & limits:** RTA open data (official GTFS metro timetable), OpenStreetMap (© OpenStreetMap contributors); station demand is **synthetic and labelled** until RTA metro ridership (now listed as open on data.dubai) is ingested; attendance, metro share and train fullness are assumptions; research prototype, not an operational RTA system.

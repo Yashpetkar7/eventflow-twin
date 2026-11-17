@@ -57,7 +57,7 @@ def _graph():
     g.add_edge(["explainer", "stress"], "verifier")
     g.add_edge("verifier", "conclude")
     g.add_edge("conclude", END)
-    g.add_edge("pause", END)                            # the human answers; the mission is run again with the answer (decision #144)
+    g.add_edge("pause", END)                            # the human answers; the mission is run again with the answer (decision #145)
     return g.compile()
 
 

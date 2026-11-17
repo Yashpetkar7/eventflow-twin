@@ -251,7 +251,7 @@ need the planning service: they are not in the offline snapshot.
   measures (`POST /travel/advice`, `GET /notices`). No language model; every figure names its simulator run.
 - Rule kept: nothing reaches riders unless a person approved the plan **and** pressed publish.
 
-## 10. The planner's brief: where the human starts (contract 1.16.0, decision #143)
+## 10. The planner's brief: where the human starts (contract 1.16.0, decision #144)
 
 The human now appears at both ends of a mission: at the start with a brief, at the end with the approval.
 
@@ -269,7 +269,7 @@ applies them. Tests: `tests/test_brief.py` (EN + AR rules, demo event by name, m
 values, engines agree with a brief), `apps/web/tests/brief.spec.ts` (read → remove a field → confirm → scenario,
 constraints and first message; phone + Arabic, missing station blocks confirm).
 
-## 11. The agentic loop: the human wherever a decision matters (contract 1.16.0, decision #144)
+## 11. The agentic loop: the human wherever a decision matters (contract 1.16.0, decision #145)
 
 | Where | Who asks | The human's answers | What changes |
 |---|---|---|---|

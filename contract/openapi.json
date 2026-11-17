@@ -222,7 +222,7 @@
     "/agent/brief": {
       "post": {
         "summary": "Agent Brief",
-        "description": "The planner's brief (1.16.0, decision #143): plain words → an event and constraints for the planner to confirm.\nRead by the Intake agent's model when one is available (live or recorded), else by the word rules in\nconfig/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here.",
+        "description": "The planner's brief (1.16.0, decision #144): plain words → an event and constraints for the planner to confirm.\nRead by the Intake agent's model when one is available (live or recorded), else by the word rules in\nconfig/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here.",
         "operationId": "agent_brief_agent_brief_post",
         "requestBody": {
           "content": {
@@ -261,7 +261,7 @@
     "/agent/feedback": {
       "post": {
         "summary": "Agent Feedback",
-        "description": "A rejection's reason (1.16.0, decision #144) → the constraints and priority for the next round. Reason chips\nmap to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model\nwith its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here.",
+        "description": "A rejection's reason (1.16.0, decision #145) → the constraints and priority for the next round. Reason chips\nmap to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model\nwith its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here.",
         "operationId": "agent_feedback_agent_feedback_post",
         "requestBody": {
           "content": {
@@ -786,7 +786,7 @@
     "/chain/{chain_id}/answer": {
       "post": {
         "summary": "Chain Answer",
-        "description": "The human's answer at a checkpoint (1.16.0, decision #144): published as `checkpoint.answered`, which triggers the\nSupervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox.",
+        "description": "The human's answer at a checkpoint (1.16.0, decision #145): published as `checkpoint.answered`, which triggers the\nSupervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox.",
         "operationId": "chain_answer_chain__chain_id__answer_post",
         "parameters": [
           {
@@ -2645,7 +2645,7 @@
           "text"
         ],
         "title": "BriefRequest",
-        "description": "The planner's brief in plain words (1.16.0, decision #143). Untrusted text: read, screened, never followed."
+        "description": "The planner's brief in plain words (1.16.0, decision #144). Untrusted text: read, screened, never followed."
       },
       "BriefResponse": {
         "properties": {
@@ -3439,7 +3439,7 @@
           "action"
         ],
         "title": "CheckpointAnswer",
-        "description": "The human's answer at a checkpoint (1.16.0, decision #144). Answers are replayed in order: a mission run again\nwith the same request and answers takes the same path to the same point, then continues."
+        "description": "The human's answer at a checkpoint (1.16.0, decision #145). Answers are replayed in order: a mission run again\nwith the same request and answers takes the same path to the same point, then continues."
       },
       "CheckpointPause": {
         "properties": {
@@ -4561,7 +4561,7 @@
         },
         "type": "object",
         "title": "FeedbackRequest",
-        "description": "Why the planner rejected an option (1.16.0, decision #144): read into constraints for the next round."
+        "description": "Why the planner rejected an option (1.16.0, decision #145): read into constraints for the next round."
       },
       "FeedbackResponse": {
         "properties": {

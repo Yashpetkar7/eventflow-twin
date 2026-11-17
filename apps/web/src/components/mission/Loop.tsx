@@ -1,5 +1,5 @@
 "use client";
-// The agentic loop's human parts (contract 1.16.0, decision #144), shared by the AI plan tab, the event chain and the
+// The agentic loop's human parts (contract 1.16.0, decision #145), shared by the AI plan tab, the event chain and the
 // duty inbox: the team's question at a checkpoint, the reason form behind "Reject", and what the decision log remembers.
 // Every figure shown comes from the server (the simulator's runs); nothing here computes or applies anything.
 import { useEffect, useRef, useState } from "react";

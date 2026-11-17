@@ -160,7 +160,7 @@ interface State {
   missionSkip: boolean;               // a visitor skipped the playback: show the rest at once
   constraints: Constraints;           // the planner's typed constraints (never taken from free text)
   planBrief: PlanBrief | null;        // the brief the planner confirmed (contract 1.16.0); null once the scenario is changed by hand
-  // the agentic loop (contract 1.16.0, decision #144)
+  // the agentic loop (contract 1.16.0, decision #145)
   askMe: boolean;                     // the team stops and asks at its checkpoints (workspace only; the kiosk never pauses)
   answers: CheckpointAnswer[];        // the human's answers for the plan being made, replayed in order
   pause: CheckpointPause | null;      // the team's question while planStatus is "paused"

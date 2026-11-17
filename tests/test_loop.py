@@ -1,4 +1,4 @@
-"""The agentic loop with the human in it (decision #144): checkpoints inside a mission (both engines, replayed answers),
+"""The agentic loop with the human in it (decision #145): checkpoints inside a mission (both engines, replayed answers),
 a rejection's reason read into constraints, the chain loop (question → answer → plan → reject with a reason → replan →
 approve → changed conditions → plan re-checked), the decision log's memory, and the guards on every human input."""
 from __future__ import annotations

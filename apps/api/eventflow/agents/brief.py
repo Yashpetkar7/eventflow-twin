@@ -1,4 +1,4 @@
-"""The planner's brief (decision #143): plain words in, a structured event and constraints out, for the human to confirm.
+"""The planner's brief (decision #144): plain words in, a structured event and constraints out, for the human to confirm.
 
     "Concert near Business Bay, Saturday 19:00–22:30, 17k people, no buses, keep Burj Khalifa calm"
         → event {station BBY, weekend, 19:00–22:30, 17,000} · constraints {forbid shuttle_bus, protect BKD}

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import fs from "node:fs";
 
-// The planner's brief (decision #143): plain words → "here is what I understood" → the planner removes a field →
+// The planner's brief (decision #144): plain words → "here is what I understood" → the planner removes a field →
 // "Confirm and plan" sets the scenario and the constraints → the team's first message is the planner's brief.
 const OUT = "../../eval/results/ui/brief";
 fs.mkdirSync(OUT, { recursive: true });

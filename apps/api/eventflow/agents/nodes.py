@@ -107,7 +107,7 @@ def diagnosis(state: State) -> dict:
 
 
 def _hotspot_gate(ctx: MissionCtx, bins: dict) -> bool:
-    """Checkpoint 1 (1.16.0, decision #144): the supervisor asks the human whether to plan for the station the diagnosis
+    """Checkpoint 1 (1.16.0, decision #145): the supervisor asks the human whether to plan for the station the diagnosis
     found, another over-threshold station, or nothing. True when the mission does not go on to the specialists."""
     p = ctx.p
     cands = sorted(bins.values(), key=lambda d: (-d["bins"], d["id"]))
@@ -338,7 +338,7 @@ MAX_EXTRA_ROUNDS = 2
 
 
 def _partial_gate(ctx: MissionCtx) -> bool:
-    """Checkpoint 2 (1.16.0, decision #144): no plan meets the goal and the rounds are used up. The supervisor asks the
+    """Checkpoint 2 (1.16.0, decision #145): no plan meets the goal and the rounds are used up. The supervisor asks the
     human: accept the best plan so far, allow one more round, or change a constraint (allow a measure, raise the cost
     cap; the caller applies those and runs the team again). True when the supervisor does not rank now."""
     p = ctx.p

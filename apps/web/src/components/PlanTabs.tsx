@@ -35,7 +35,7 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
   // the critic's recommendation (contract 1.14.0, WP3): absent in older snapshots, then no badge
   const rec = useTwin((s) => (s.mission?.plan.plan_id === s.plan?.plan_id ? s.mission?.recommendation ?? null : null));
   const isRec = rec?.rank === o.rank;
-  const [why, setWhy] = useState(false);                  // the reason form behind Reject (the loop, decision #144)
+  const [why, setWhy] = useState(false);                  // the reason form behind Reject (the loop, decision #145)
   const { locale } = useLocale();
   const memory = useTwin((s) => s.memory);
   const running = useTwin((s) => s.planStatus === "running");

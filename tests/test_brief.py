@@ -1,4 +1,4 @@
-"""The planner's brief (decision #143): plain words → a proposal the planner confirms → the human's first message.
+"""The planner's brief (decision #144): plain words → a proposal the planner confirms → the human's first message.
 Rules reading offline (EN + AR), a demo event by name, instruction-like text logged, the model's fields checked against
 the brief's own words (an invented field is dropped), and the confirmed brief opening the mission on every engine."""
 from __future__ import annotations

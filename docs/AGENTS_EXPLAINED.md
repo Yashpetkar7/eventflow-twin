@@ -16,7 +16,7 @@ There are two ways in. Both end at a human.
 **a) A planner asks** — "Plan with AI agents" (workspace or kiosk) → `POST /agent/run` (or `/agent/run/stream`, which
 sends each message to the screen the moment it happens).
 
-**a′) A planner briefs the team in plain words** (since 1.16.0, decision #143) — AI plan → "Brief the team":
+**a′) A planner briefs the team in plain words** (since 1.16.0, decision #144) — AI plan → "Brief the team":
 
 ```
 "Concert near Business Bay, Saturday 19:00–22:30, 17k people, no buses, keep Burj Khalifa calm"
@@ -52,7 +52,7 @@ Each event records who published it and which agents it triggered (`agents/chain
 | Alerts → Duty shift | `POST /shift/next` | the same loop, driven step by step by the browser |
 | AI team → Ask the twin | `POST /agent/ask` | one question routed to one tool |
 
-**c) The loop with you in it** (since 1.16.0, decision #144) — the agents run as one loop and stop for you wherever a
+**c) The loop with you in it** (since 1.16.0, decision #145) — the agents run as one loop and stop for you wherever a
 human decision matters:
 
 ```

@@ -1,5 +1,8 @@
 # 90-second demo script (EN) — rehearse 3× on 17 Nov
 
+> **17 Nov: figures updated for planner rev 5** (`main` 7f33270, `PROJECT_DISCOVERY.md`). On a hot day the plan
+> marked **Recommended** is "Staggered exit + wayfinding" (92 → 74 %); option 1 is now "Wayfinding only" with 10 %.
+
 Updated 12 Nov 2026 (task K8): numbers filled from the API and `eval/results/` (sources in `exhibit/POSTER_CONTENT.md`
 §4), button names match the current app. Backup: `exhibit/video/eventflow_backup_demo.mp4` (made by
 `apps/web/tests/backup_video.mjs`; on the USB stick, not in git).
@@ -10,7 +13,7 @@ Updated 12 Nov 2026 (task K8): numbers filled from the API and `eval/results/` (
 | 10–25 s | "This twin replays GITEX Day 1. It uses RTA's official metro timetable and an event-surge model – the station demand is synthetic until we get RTA's ridership data. With 40,000 visitors that day, World Trade Centre peaks at 78 % of comfortable capacity." | Play the timeline to the afternoon; World Trade Centre turns amber |
 | 25–35 s | "Whether it breaks depends on how full trains already are. The twin shows the crowd size where it tips over: about 44,400 visitors – or about 14,900 if trains arrive nearly full." | **Station** tab → Break point card |
 | 35–55 s | "Now a hot day: more people take the metro, and it goes to 92 %. I ask the AI agents for a plan. Each specialist sizes its measure to the crowd, a critic pushes back, and a simulator measures each one – the AI can't invent numbers; every figure is checked." | Tap **Hot day** → **AI plan** → **Plan with AI agents**; point at the checklist and "All 7 figures match" |
-| 55–75 s | "A human stays in charge. I approve option 1 – guide 35 % of riders to Emirates Towers on foot – and the peak drops from 92 to 70 %, simulated." | **Approve** on option 1 → before/after in the **Report** tab |
+| 55–75 s | "A human stays in charge. The team recommends spreading the exits over 45 more minutes and guiding 10 % of riders to Emirates Towers on foot – it passes every check. I approve it, and the peak drops from 92 to 74 %, simulated." | **Approve** on the option marked **Recommended** → before/after in the **Report** tab |
 | 75–90 s | "It works in Arabic and English, and runs completely offline. Your turn – pick an event, or tap a landmark, and try approving a plan yourself." | Tap **عربي** and back; hand over the touch screen |
 
 **If asked about the AI:** "Offline it uses a deterministic plan search with template explanations; with a key it can

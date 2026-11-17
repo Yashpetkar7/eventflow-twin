@@ -487,7 +487,7 @@ body.kiosk .railtabs { display: none; }
 .tr-ahead > div.over { background: var(--amber-soft); color: var(--amber-ink); }
 .tr-notice { border-inline-start: 4px solid var(--navy); }
 
-/* The planner's brief card (decision #143). Not `.brief`: that is the printable operations brief overlay. */
+/* The planner's brief card (decision #144). Not `.brief`: that is the printable operations brief overlay. */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .brief-text { width: 100%; box-sizing: border-box; margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; font-size: 14px; resize: vertical; background: var(--surface); color: inherit; }
 .brief-examples { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
@@ -509,7 +509,7 @@ body.kiosk .railtabs { display: none; }
 .brief-x { border: 0; background: var(--muted); border-radius: 999px; width: 24px; height: 24px; line-height: 1; font-size: 15px; cursor: pointer; align-self: flex-start; }
 .brief-summary { font-weight: 600; }
 
-/* The agentic loop (decision #144): the team's question, the reason behind Reject, changed conditions */
+/* The agentic loop (decision #145): the team's question, the reason behind Reject, changed conditions */
 .loop-ask { border: 2px solid var(--brand); }
 .loop-ask-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .loop-ask-head small { opacity: 0.7; }

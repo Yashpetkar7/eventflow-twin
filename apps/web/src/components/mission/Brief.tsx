@@ -1,5 +1,5 @@
 "use client";
-// The planner's brief (contract 1.16.0, decision #143): plain words → the Intake agent's reading → the planner checks,
+// The planner's brief (contract 1.16.0, decision #144): plain words → the Intake agent's reading → the planner checks,
 // edits or removes each field → "Confirm and plan" sets the scenario and the typed constraints and starts the team.
 // Nothing here is applied before the click; every figure the team shows afterwards comes from the forecast and the
 // simulator. Each field shows the words it was read from and who read it (the AI model, or the word rules offline).

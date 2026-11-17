@@ -1,5 +1,5 @@
 """The event chain — the agentic loop: agents triggered by each other's events, the human at every decision
-(docs/15 §8 and §11, decisions #135 and #144).
+(docs/15 §8 and §11, decisions #135 and #145).
 
 An agent publishes an event on a topic; every agent subscribed to that topic is triggered by it and may publish the
 next event. The chain runs by itself until an event reaches the human, and continues when the human's answer is

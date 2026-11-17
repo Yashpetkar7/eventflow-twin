@@ -203,7 +203,7 @@ def agent_plan(req: AgentPlanRequest):
 
 @app.post("/agent/brief", response_model=BriefResponse)
 def agent_brief(req: BriefRequest):
-    """The planner's brief (1.16.0, decision #143): plain words → an event and constraints for the planner to confirm.
+    """The planner's brief (1.16.0, decision #144): plain words → an event and constraints for the planner to confirm.
     Read by the Intake agent's model when one is available (live or recorded), else by the word rules in
     config/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here."""
     from .agents.brief import read_brief
@@ -212,7 +212,7 @@ def agent_brief(req: BriefRequest):
 
 @app.post("/agent/feedback", response_model=FeedbackResponse)
 def agent_feedback(req: FeedbackRequest):
-    """A rejection's reason (1.16.0, decision #144) → the constraints and priority for the next round. Reason chips
+    """A rejection's reason (1.16.0, decision #145) → the constraints and priority for the next round. Reason chips
     map to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model
     with its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here."""
     from .agents.loop import read_feedback
@@ -513,7 +513,7 @@ def _chain_or_404(chain_id: str) -> dict:
 
 @app.post("/chain/{chain_id}/answer", response_model=ChainState)
 def chain_answer(chain_id: str, req: ChainAnswerRequest, request: Request):
-    """The human's answer at a checkpoint (1.16.0, decision #144): published as `checkpoint.answered`, which triggers the
+    """The human's answer at a checkpoint (1.16.0, decision #145): published as `checkpoint.answered`, which triggers the
     Supervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox."""
     from .agents import chain as ch
     from .auth import require_role

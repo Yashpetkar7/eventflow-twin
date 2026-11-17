@@ -1,4 +1,4 @@
-"""The agentic loop's human parts (decision #144): a rejection's reason read into constraints, and the planner's memory.
+"""The agentic loop's human parts (decision #145): a rejection's reason read into constraints, and the planner's memory.
 
     reject with a reason ("too expensive", "no buses", "not enough relief", or own words)
         → read_feedback → the constraints and priority for the next round → the team replans the same alert

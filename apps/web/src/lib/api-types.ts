@@ -140,7 +140,7 @@ export interface paths {
         put?: never;
         /**
          * Agent Brief
-         * @description The planner's brief (1.16.0, decision #143): plain words → an event and constraints for the planner to confirm.
+         * @description The planner's brief (1.16.0, decision #144): plain words → an event and constraints for the planner to confirm.
          *     Read by the Intake agent's model when one is available (live or recorded), else by the word rules in
          *     config/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here.
          */
@@ -162,7 +162,7 @@ export interface paths {
         put?: never;
         /**
          * Agent Feedback
-         * @description A rejection's reason (1.16.0, decision #144) → the constraints and priority for the next round. Reason chips
+         * @description A rejection's reason (1.16.0, decision #145) → the constraints and priority for the next round. Reason chips
          *     map to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model
          *     with its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here.
          */
@@ -445,7 +445,7 @@ export interface paths {
         put?: never;
         /**
          * Chain Answer
-         * @description The human's answer at a checkpoint (1.16.0, decision #144): published as `checkpoint.answered`, which triggers the
+         * @description The human's answer at a checkpoint (1.16.0, decision #145): published as `checkpoint.answered`, which triggers the
          *     Supervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox.
          */
         post: operations["chain_answer_chain__chain_id__answer_post"];
@@ -1192,7 +1192,7 @@ export interface components {
         };
         /**
          * BriefRequest
-         * @description The planner's brief in plain words (1.16.0, decision #143). Untrusted text: read, screened, never followed.
+         * @description The planner's brief in plain words (1.16.0, decision #144). Untrusted text: read, screened, never followed.
          */
         BriefRequest: {
             /** Text */
@@ -1502,7 +1502,7 @@ export interface components {
         };
         /**
          * CheckpointAnswer
-         * @description The human's answer at a checkpoint (1.16.0, decision #144). Answers are replayed in order: a mission run again
+         * @description The human's answer at a checkpoint (1.16.0, decision #145). Answers are replayed in order: a mission run again
          *     with the same request and answers takes the same path to the same point, then continues.
          */
         CheckpointAnswer: {
@@ -1930,7 +1930,7 @@ export interface components {
         };
         /**
          * FeedbackRequest
-         * @description Why the planner rejected an option (1.16.0, decision #144): read into constraints for the next round.
+         * @description Why the planner rejected an option (1.16.0, decision #145): read into constraints for the next round.
          */
         FeedbackRequest: {
             /** Reason Codes */

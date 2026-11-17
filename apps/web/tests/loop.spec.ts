@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import fs from "node:fs";
 
-// The agentic loop with the human in it (decision #144): the team stops and asks, the human answers, a rejection's
+// The agentic loop with the human in it (decision #145): the team stops and asks, the human answers, a rejection's
 // reason makes the team replan, and in the event chain changed conditions make the Watcher re-check the approved plan.
 const OUT = "../../eval/results/ui/loop";
 fs.mkdirSync(OUT, { recursive: true });

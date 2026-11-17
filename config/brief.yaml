@@ -1,4 +1,4 @@
-# The planner's brief (apps/api/eventflow/agents/brief.py, decision #143): the words the rules reader looks for when no
+# The planner's brief (apps/api/eventflow/agents/brief.py, decision #144): the words the rules reader looks for when no
 # language model is available. Nothing here changes a forecast or a simulation; it only proposes fields that the
 # planner confirms or removes before the team runs. Matching is case-insensitive; Arabic is matched as written.
 

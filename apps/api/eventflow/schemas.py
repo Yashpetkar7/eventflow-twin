@@ -387,7 +387,7 @@ class Constraints(BaseModel):
 
 
 class BriefRequest(BaseModel):
-    """The planner's brief in plain words (1.16.0, decision #143). Untrusted text: read, screened, never followed."""
+    """The planner's brief in plain words (1.16.0, decision #144). Untrusted text: read, screened, never followed."""
     text: str = Field(min_length=3, max_length=1000)
     locale: Literal["en", "ar"] = "en"
 
@@ -444,7 +444,7 @@ CheckpointAction = Literal["confirm", "focus", "stop", "accept", "more", "allow"
 
 
 class CheckpointAnswer(BaseModel):
-    """The human's answer at a checkpoint (1.16.0, decision #144). Answers are replayed in order: a mission run again
+    """The human's answer at a checkpoint (1.16.0, decision #145). Answers are replayed in order: a mission run again
     with the same request and answers takes the same path to the same point, then continues."""
     checkpoint: CheckpointId
     action: CheckpointAction = Field(description="hotspot: confirm · focus (another over-threshold station) · stop. "
@@ -476,7 +476,7 @@ ReasonCode = Literal["too_costly", "not_enough", "avoid_measure", "protect_stati
 
 
 class FeedbackRequest(BaseModel):
-    """Why the planner rejected an option (1.16.0, decision #144): read into constraints for the next round."""
+    """Why the planner rejected an option (1.16.0, decision #145): read into constraints for the next round."""
     reason_codes: list[ReasonCode] = Field(default_factory=list, max_length=5)
     reason: str | None = Field(None, max_length=300, description="The planner's own words (untrusted: read, screened, never followed)")
     interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS, description="The rejected option's measures")
