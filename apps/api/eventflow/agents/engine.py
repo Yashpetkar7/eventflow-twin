@@ -15,7 +15,7 @@ from functools import lru_cache
 
 from . import planner
 from .mission import MissionCtx, conclude, roster_view, stress_test
-from .nodes import (SPECIALIST_NODES, State, composer, conclude_node, critic, diagnosis, explainer, forecast, intake, ranker,
+from .nodes import (SPECIALIST_NODES, State, composer, conclude_node, critic, diagnosis, explainer, forecast, intake, pause_node, ranker,
                     route_after_composer, route_after_diagnosis, route_after_supervisor, simulation, stress, supervisor, verifier)
 from .roster import SPECIALISTS, settings
 
@@ -39,24 +39,25 @@ def _graph():
     g = StateGraph(State)
     for name, fn in (("intake", intake), ("forecast", forecast), ("diagnosis", diagnosis), ("composer", composer),
                      ("simulation", simulation), ("critic", critic), ("supervisor", supervisor), ("ranker", ranker),
-                     ("explainer", explainer), ("stress", stress), ("verifier", verifier), ("conclude", conclude_node)):
+                     ("explainer", explainer), ("stress", stress), ("verifier", verifier), ("conclude", conclude_node), ("pause", pause_node)):
         g.add_node(name, fn)
     for a in SPECIALISTS:
         g.add_node(a, SPECIALIST_NODES[a])
     g.add_edge(START, "intake")
     g.add_edge("intake", "forecast")
     g.add_edge("forecast", "diagnosis")
-    g.add_conditional_edges("diagnosis", route_after_diagnosis, [*SPECIALISTS, "conclude"])
+    g.add_conditional_edges("diagnosis", route_after_diagnosis, [*SPECIALISTS, "conclude", "pause"])   # pause: the hotspot checkpoint
     g.add_edge(list(SPECIALISTS), "composer")           # fan-in: the composer waits for all four specialists
     g.add_conditional_edges("composer", route_after_composer, ["simulation", "ranker"])
     g.add_edge("simulation", "critic")
     g.add_edge("critic", "supervisor")
-    g.add_conditional_edges("supervisor", route_after_supervisor, [*SPECIALISTS, "ranker"])   # replan: the critic's objections go to the specialists
+    g.add_conditional_edges("supervisor", route_after_supervisor, [*SPECIALISTS, "ranker", "pause"])   # replan: the critic's objections go to the specialists; pause: the partial checkpoint
     g.add_edge("ranker", "explainer")
     g.add_edge("ranker", "stress")                      # explainer and stress test run side by side
     g.add_edge(["explainer", "stress"], "verifier")
     g.add_edge("verifier", "conclude")
     g.add_edge("conclude", END)
+    g.add_edge("pause", END)                            # the human answers; the mission is run again with the answer (decision #144)
     return g.compile()
 
 
@@ -89,6 +90,9 @@ def _run_seq(ctx: MissionCtx) -> None:
     st: dict = {"ctx": ctx, "proposals": [], "revisions": [], "buffers": []}
     for node in (intake, forecast, diagnosis):
         _apply(st, node(st))
+    if route_after_diagnosis(st) == "pause":
+        _apply(st, pause_node(st))
+        return
     if route_after_diagnosis(st) != "conclude":
         for a in SPECIALISTS:
             _apply(st, SPECIALIST_NODES[a](st))
@@ -96,6 +100,9 @@ def _run_seq(ctx: MissionCtx) -> None:
         while route_after_composer(st) == "simulation":
             for node in (simulation, critic, supervisor):
                 _apply(st, node(st))
+            if route_after_supervisor(st) == "pause":
+                _apply(st, pause_node(st))
+                return
             if route_after_supervisor(st) == "ranker":
                 break
             for a in SPECIALISTS:                       # the critic's objections, answered by the specialists it named

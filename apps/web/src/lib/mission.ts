@@ -11,6 +11,9 @@ export const STEP_OF: Record<string, number> = {
   supervisor: 0, intake: 0, forecast: 1, diagnosis: 2, rail: 3, station_crowd: 3, venue: 3, last_mile: 3, composer: 3,
   simulation: 4, critic: 4, ranker: 5, stress: 5, explainer: 6, verifier: 7, human: 7,
 };
+/** The progress step an event belongs to: the planner's brief opens the mission (step 0), an approval closes it. */
+export const stepOf = (e: { agent: string; key: string }, prev: number): number =>
+  e.key === "human.brief" || e.key === "checkpoint.answer" ? prev : Math.max(prev, STEP_OF[e.agent] ?? prev);
 
 /** Agents by layer, in the order the team works (layer 6 = standing agents, not part of a planning mission). */
 export const LAYER_AGENTS: Record<number, string[]> = {
@@ -49,6 +52,7 @@ export function useEventText(stations: Station[]) {
     const types = ((p.types as string[] | undefined) ?? []).map(kind);
     switch (e.key) {
       case "supervisor.start": return t("ev.start");
+      case "human.brief": return t("ev.humanBrief", { summary: String(p.summary ?? ""), removed: ((p.removed as string[]) ?? []).length });
       case "intake.objective": return t("ev.objective", { thr: pct("threshold_pct"), prio: td(`prio.${String(p.priority)}`),
         n: ((p.forbid as string[]) ?? []).length + ((p.protect as string[]) ?? []).length + (p.cost_cap != null ? 1 : 0) });
       case "intake.finding": return t("ev.finding", { field: td(`field.${String(p.field)}`) });
@@ -97,6 +101,10 @@ export function useEventText(stations: Station[]) {
         : p.verdict === "residual" ? t("ev.residual", { excess: n("excess"), station: name(p.station) }) : t("ev.noRelief");
       case "critic.no_action": return t("ev.noAction");
       case "supervisor.replan": return t("ev.replan", { round: String(p.next_round ?? "") });
+      case "checkpoint.ask": return td("ev.cpAsk", { what: p.checkpoint === "hotspot" ? td("ev.cpHotspot", { station: name(p.station) })
+        : td("ev.cpPartial", { station: name(p.station), excess: n("excess") }) });
+      case "checkpoint.answer": return td("ev.cpAnswer", { what: td(`ev.cpA.${String(p.action)}`, { station: name(p.station) }) });
+      case "diagnosis.focus": return td("ev.focus", { station: name(p.worst) });
       case "supervisor.rank": return td(`ev.stop.${["goal_met", "max_rounds", "budget", "no_relief"].includes(String(p.reason)) ? String(p.reason) : "other"}`);
       case "ranker.kept": return t("ev.kept", { k: n("kept"), n: n("tested") });
       case "stress.result": return t("ev.stress", { rank: String(p.rank), holds: n("holds"), total: n("total") });

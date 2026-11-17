@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_from_spec, config_hash, load_panel, mak
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, BriefRequest, BriefResponse, ChainAnswerRequest, ChainChangeRequest, FeedbackRequest, FeedbackResponse, MemoryResponse, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, ShiftRequest, ShiftStep, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -201,6 +201,35 @@ def agent_plan(req: AgentPlanRequest):
     return plan
 
 
+@app.post("/agent/brief", response_model=BriefResponse)
+def agent_brief(req: BriefRequest):
+    """The planner's brief (1.16.0, decision #143): plain words → an event and constraints for the planner to confirm.
+    Read by the Intake agent's model when one is available (live or recorded), else by the word rules in
+    config/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here."""
+    from .agents.brief import read_brief
+    return read_brief(req.text, req.locale)
+
+
+@app.post("/agent/feedback", response_model=FeedbackResponse)
+def agent_feedback(req: FeedbackRequest):
+    """A rejection's reason (1.16.0, decision #144) → the constraints and priority for the next round. Reason chips
+    map to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model
+    with its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here."""
+    from .agents.loop import read_feedback
+    return read_feedback(req)
+
+
+@app.get("/memory", response_model=MemoryResponse)
+def agent_memory(user: str = "visitor", days: int = 1):
+    """What the decision log remembers about this planner's rejections (today by default): measures they ruled out,
+    stations they protected, cost or relief. Suggestions only (1.16.0)."""
+    from .agents.loop import memory
+    import re as _re
+    if not _re.fullmatch(r"[\w .\-]{1,40}", user):
+        raise HTTPException(422, "user: an anonymous label (letters, digits, space, . _ -)")
+    return memory(DECISIONS_LOG, user, dt.datetime.now(DUBAI).date(), max(1, min(days, 30)))
+
+
 @app.post("/agent/run", response_model=Mission)
 def agent_run(req: AgentRunRequest):
     """The agent team on one planning request (docs/15): intake → forecast → diagnosis → four specialists in parallel →
@@ -336,7 +365,8 @@ def decisions(req: DecisionRequest, request: Request = None):  # type: ignore[as
         from .auth import require_role
         signed = require_role(request, "planner")
     ts = dt.datetime.now(DUBAI).isoformat(timespec="seconds")
-    rec = {"decision_id": f"dec_{uuid.uuid4().hex[:10]}", "timestamp": ts, **req.model_dump(),
+    body = {k: v for k, v in req.model_dump().items() if not (k in ("reason_codes", "reason") and not v)}
+    rec = {"decision_id": f"dec_{uuid.uuid4().hex[:10]}", "timestamp": ts, **body,
            "plan_known": req.plan_id in _PLANS}
     if signed:
         rec["signed_in"] = signed["username"]
@@ -399,9 +429,10 @@ def _chain_deps(state: dict):
     spec = _FR(**r["forecast"])
     run = get_run(state["forecast_run_id"], spec)
 
-    def mission(applied: list[dict]) -> dict:
+    def mission(st: dict) -> dict:
         req = AgentRunRequest(forecast_run_id=run["run_id"], forecast=spec, threshold=r.get("threshold"), scope=r.get("scope", "corridor"),
-                              applied=applied, locale=r.get("locale", "en"), priority=r.get("priority", "balanced"))
+                              applied=st["applied"], locale=r.get("locale", "en"), priority=st.get("priority") or r.get("priority", "balanced"),
+                              constraints=st.get("constraints") or {}, checkpoints=r.get("checkpoints") or [], answers=st.get("answers") or [])
         m = run_mission(run, req, run_simulation)
         with _LOCK:
             _PLANS[m["plan"]["plan_id"]] = m["plan"]
@@ -417,7 +448,11 @@ def _chain_deps(state: dict):
 
     def log(fields: dict) -> dict:
         return decisions(DecisionRequest(**fields))
-    return Deps(run=run, simulate=run_simulation, mission=mission, message=message, log_decision=log)
+
+    def feedback(fields: dict) -> dict:
+        from .agents.loop import read_feedback
+        return read_feedback(FeedbackRequest(**fields))
+    return Deps(run=run, simulate=run_simulation, mission=mission, message=message, log_decision=log, feedback=feedback)
 
 
 def _chain_owner(request: Request) -> str | None:
@@ -457,7 +492,81 @@ def chain_decide(chain_id: str, req: ChainDecideRequest, request: Request):
         raise HTTPException(404, f"unknown chain {chain_id} (chains live in this server's store; see GET /chains)")
     since = len(state["events"])
     try:
-        state = ch.decide(state, _chain_deps(state), req.rank, req.decision, req.user)
+        reason = {"reason_codes": req.reason_codes, "reason": req.reason, "avoid": req.avoid, "protect": req.protect}
+        state = ch.decide(state, _chain_deps(state), req.rank, req.decision, req.user, reason)
+    except ch.ChainError as e:
+        raise HTTPException(409, str(e)) from e
+    store().put("chains", chain_id, ch.public(state), owner=_chain_owner(request))
+    from .ops import notify_chain
+    notify_chain(state, since)
+    _sync_event(state)
+    return ch.public(state)
+
+
+def _chain_or_404(chain_id: str) -> dict:
+    from .store import store
+    state = store().get("chains", chain_id)
+    if state is None:
+        raise HTTPException(404, f"unknown chain {chain_id} (chains live in this server's store; see GET /chains)")
+    return state
+
+
+@app.post("/chain/{chain_id}/answer", response_model=ChainState)
+def chain_answer(chain_id: str, req: ChainAnswerRequest, request: Request):
+    """The human's answer at a checkpoint (1.16.0, decision #144): published as `checkpoint.answered`, which triggers the
+    Supervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox."""
+    from .agents import chain as ch
+    from .auth import require_role
+    from .store import store
+    require_role(request, "planner")
+    state = _chain_or_404(chain_id)
+    since = len(state["events"])
+    try:
+        state = ch.answer(state, _chain_deps(state), req.answer.model_dump())
+    except ch.ChainError as e:
+        raise HTTPException(409, str(e)) from e
+    store().put("chains", chain_id, ch.public(state), owner=_chain_owner(request))
+    from .ops import notify_chain
+    notify_chain(state, since)
+    _sync_event(state)
+    return ch.public(state)
+
+
+@app.post("/chain/{chain_id}/change", response_model=ChainState)
+def chain_change(chain_id: str, req: ChainChangeRequest, request: Request):
+    """Conditions changed during the day (1.16.0): an incident (rain, heat, a train fault, a crowd surge) or a bigger or
+    smaller crowd. The forecast is rebuilt with it, `conditions.changed` triggers the Watcher, which re-checks the day
+    with the approved plan in place (`plan.checked`) and raises an alert where it no longer holds."""
+    from .agents import chain as ch
+    from .auth import require_role
+    from .store import store
+    require_role(request, "planner")
+    if req.incident is None and req.attendance_x is None:
+        raise HTTPException(422, "say what changed: incident and/or attendance_x")
+    state = _chain_or_404(chain_id)
+    spec = dict(state["request"]["forecast"])
+    what: dict = {}
+    if req.incident is not None:
+        spec["incident"] = req.incident.model_dump()
+        what["incident"] = spec["incident"]
+    if req.attendance_x is not None:
+        old = get_run(state["forecast_run_id"], ForecastRequest(**state["request"]["forecast"]))
+        base_att = (spec.get("custom_event") or {}).get("attendance") or old.get("attendance_used") or 0
+        if not base_att:
+            raise HTTPException(409, "this scenario has no event crowd to scale")
+        new_att = int(round(min(200_000, base_att * req.attendance_x)))
+        if spec.get("custom_event"):
+            spec["custom_event"] = {**spec["custom_event"], "attendance": new_att}
+        else:
+            spec["attendance"] = new_att
+        what.update(attendance_x=req.attendance_x, attendance=new_att)
+    run = build_run(ForecastRequest(**spec))
+    _remember(run)
+    state["request"]["forecast"] = ForecastRequest(**spec).model_dump(mode="json", exclude_none=True)
+    state["forecast_run_id"] = run["run_id"]
+    since = len(state["events"])
+    try:
+        state = ch.change(state, _chain_deps(state), {**what, "run_id": run["run_id"]})
     except ch.ChainError as e:
         raise HTTPException(409, str(e)) from e
     store().put("chains", chain_id, ch.public(state), owner=_chain_owner(request))
@@ -533,9 +642,9 @@ def events_registered(limit: int = 50):
 def inbox_list(request: Request, limit: int = 50):
     """Every chain waiting for a decision, newest first (the duty manager's phone view)."""
     from . import auth
-    from .ops import inbox
+    from .ops import inbox, questions
     auth.require_role(request, "viewer")
-    return {"items": inbox(limit), "auth": "on" if auth.enabled() else "off", "notifications": bool(os.environ.get("NOTIFY_WEBHOOK_URL", "").strip())}
+    return {"items": inbox(limit), "questions": questions(limit), "auth": "on" if auth.enabled() else "off", "notifications": bool(os.environ.get("NOTIFY_WEBHOOK_URL", "").strip())}
 
 
 @app.post("/chain/{chain_id}/publish", response_model=RiderNotice)

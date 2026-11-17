@@ -29,6 +29,18 @@ export type Mission = S["Mission"];
 export type AgentEvent = S["AgentEvent"];
 export type Roster = S["Roster"];
 export type Constraints = S["Constraints"];
+export type BriefResponse = S["BriefResponse"];
+export type BriefField = S["BriefField"];
+export type ConfirmedBrief = S["ConfirmedBrief"];
+export type CheckpointAnswer = S["CheckpointAnswer"];
+export type CheckpointPause = S["CheckpointPause"];
+export type FeedbackRequest = S["FeedbackRequest"];
+export type FeedbackResponse = S["FeedbackResponse"];
+export type MemoryResponse = S["MemoryResponse"];
+export type ReasonCode = S["FeedbackRequest"]["reason_codes"] extends (infer T)[] | undefined ? T : never;
+export type ChainAnswerRequest = S["ChainAnswerRequest"];
+export type ChainChangeRequest = S["ChainChangeRequest"];
+export type InboxQuestion = S["InboxQuestion"];
 export type Assessment = S["Assessment"];
 export type WatchRequest = S["WatchRequest"];
 export type WatchResponse = S["WatchResponse"];
@@ -193,6 +205,14 @@ export const api = {
   /** The same mission, streamed live (agents' events as they happen). */
   agentRunStream: runStream,
   agentRoster: () => call<Roster>("/agent/roster"),
+  /** The planner's brief (contract 1.16.0): plain words → a proposal to confirm. Never cached: the text is the planner's. */
+  brief: (text: string, locale: "en" | "ar") => call<BriefResponse>("/agent/brief", { text, locale }, { cache: false }),
+  /** The agentic loop (contract 1.16.0): a rejection's reason → constraints; what the decision log remembers; the chain's
+   *  checkpoint answers and changed conditions. Never cached: each depends on the human's latest answer. */
+  feedback: (req: FeedbackRequest) => call<FeedbackResponse>("/agent/feedback", req, { cache: false }),
+  memory: (user: string) => call<MemoryResponse>(`/memory?user=${encodeURIComponent(user)}`, undefined, { cache: false }),
+  chainAnswer: (id: string, req: ChainAnswerRequest) => call<ChainState>(`/chain/${encodeURIComponent(id)}/answer`, req, { cache: false }),
+  chainChange: (id: string, req: ChainChangeRequest) => call<ChainState>(`/chain/${encodeURIComponent(id)}/change`, req, { cache: false }),
   /** The event chain (contract 1.14.0): never cached, every call moves the chain on. */
   chainStart: (req: ChainStartRequest) => call<ChainState>("/chain/start", req, { cache: false }),
   chainDecide: (id: string, req: ChainDecideRequest) => call<ChainState>(`/chain/${encodeURIComponent(id)}/decide`, req, { cache: false }),

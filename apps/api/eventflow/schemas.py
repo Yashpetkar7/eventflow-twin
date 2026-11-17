@@ -4,13 +4,13 @@ bump CONTRACT_VERSION, regenerate fixtures + TS types, and note it in docs/09_DE
 """
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.15.0"   # 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.16.0"   # 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -342,6 +342,8 @@ class DecisionRequest(BaseModel):
     option_title: str | None = Field(None, max_length=200)
     forecast_run_id: str | None = Field(None, max_length=40)
     interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
+    reason_codes: list[str] = Field(default_factory=list, max_length=8, description="Why it was rejected (1.16.0): too_costly · not_enough · avoid:<measure> · protect:<station> · other")
+    reason: str | None = Field(None, max_length=300, description="The planner's own words (stored as data)")
 
 
 class DecisionResponse(BaseModel):
@@ -361,6 +363,8 @@ class DecisionRecord(BaseModel):
     option_title: str | None = None
     forecast_run_id: str | None = None
     interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
+    reason_codes: list[str] | None = Field(None, description="A rejection's reasons, when given (1.16.0)")
+    reason: str | None = Field(None, description="The planner's own words, when given (1.16.0)")
 
 
 class DecisionList(BaseModel):
@@ -382,9 +386,130 @@ class Constraints(BaseModel):
     cost_cap: float | None = Field(None, ge=0, le=1000, description="Largest added cost proxy an option may have (C6)")
 
 
+class BriefRequest(BaseModel):
+    """The planner's brief in plain words (1.16.0, decision #143). Untrusted text: read, screened, never followed."""
+    text: str = Field(min_length=3, max_length=1000)
+    locale: Literal["en", "ar"] = "en"
+
+
+class BriefEvent(BaseModel):
+    event_id: str | None = Field(None, description="A demo event from /events when the brief names one (its venue, date and times are used)")
+    name: str | None = None
+    near_station: str | None = Field(None, description="Corridor station id; null = not in the brief (the planner must choose)")
+    start: str | None = Field(None, description="HH:MM on the 30-minute grid")
+    end: str | None = None
+    weekend: bool | None = None
+    date: str | None = None
+    attendance: int | None = Field(None, description="null = not in the brief (the default is shown and labelled)")
+
+
+class BriefField(BaseModel):
+    field: Literal["event", "name", "station", "start", "end", "day", "date", "attendance", "weather", "threshold", "priority",
+                   "forbid", "protect", "cost_cap"]
+    value: Any
+    evidence: str = Field(description="The words of the brief this field was read from")
+    source: Literal["model", "rules"] = Field(description="Read by the Intake agent's model, or by the word rules in config/brief.yaml")
+
+
+class BriefResponse(BaseModel):
+    """A proposal: nothing is applied until the planner confirms it in the brief card."""
+    text: str
+    summary: str
+    event: BriefEvent
+    weather: Weather | None = None
+    threshold: float | None = None
+    priority: Literal["cost", "balanced", "impact"] | None = None
+    constraints: Constraints
+    fields: list[BriefField]
+    missing: list[str] = Field(description="Fields a build-your-own event needs that the brief leaves out")
+    notes: list[str] = Field(description="Adjustments the reader made (time grid, defaults), in plain words")
+    dropped: list[dict] = Field(default_factory=list, description="Model fields removed by the code checks (no quote from the brief, out of bounds)")
+    findings: list[dict] = Field(default_factory=list, description="Instruction-like text (logged, never followed)")
+    source: Literal["model", "recorded", "rules"]
+    model: str | None = None
+    note: str
+
+
+class ConfirmedBrief(BaseModel):
+    """What the planner confirmed in the brief card; the team logs it as the human's first message (1.16.0)."""
+    text: str = Field(max_length=1000)
+    summary: str = Field(max_length=300)
+    source: Literal["model", "recorded", "rules"] = "rules"
+    fields: list[str] = Field(default_factory=list, max_length=20, description="The fields kept, e.g. 'station', 'forbid'")
+    removed: list[str] = Field(default_factory=list, max_length=20, description="Fields the planner removed or changed")
+
+
+CheckpointId = Literal["hotspot", "partial"]
+CheckpointAction = Literal["confirm", "focus", "stop", "accept", "more", "allow", "raise_cap"]
+
+
+class CheckpointAnswer(BaseModel):
+    """The human's answer at a checkpoint (1.16.0, decision #144). Answers are replayed in order: a mission run again
+    with the same request and answers takes the same path to the same point, then continues."""
+    checkpoint: CheckpointId
+    action: CheckpointAction = Field(description="hotspot: confirm · focus (another over-threshold station) · stop. "
+                                                 "partial: accept (the best plan so far) · more (one more round, at most 2). "
+                                                 "allow / raise_cap change the constraints: the caller applies them and runs again")
+    station: str | None = Field(None, max_length=40, description="focus: the station to plan for")
+    measure: InterventionType | None = Field(None, description="allow: the measure the planner allows again")
+    cost_cap: float | None = Field(None, ge=0, le=1000, description="raise_cap: the new cost cap")
+
+
+class CheckpointPause(BaseModel):
+    """The team stopped and asks the human (Mission.status 'paused'). Every figure in `params` is the simulator's."""
+    checkpoint: CheckpointId
+    asked_by: str = Field(description="The agent that asks (supervisor)")
+    params: dict = Field(default_factory=dict, description="hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · "
+                                                           "partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap")
+    actions: list[CheckpointAction] = Field(description="The answers that apply here")
+
+
 class AgentRunRequest(AgentPlanRequest):
     forecast: ForecastRequest = Field(description="The forecast request (required: the stress test re-forecasts from it)")
     constraints: Constraints = Field(default_factory=Constraints)
+    brief: ConfirmedBrief | None = Field(None, description="The planner's confirmed brief (sent only when one was used)")
+    checkpoints: list[CheckpointId] = Field(default_factory=list, max_length=2, description="Where the team stops and asks the human (1.16.0)")
+    answers: list[CheckpointAnswer] = Field(default_factory=list, max_length=12, description="The human's answers so far, in order")
+
+
+ReasonCode = Literal["too_costly", "not_enough", "avoid_measure", "protect_station", "other"]
+
+
+class FeedbackRequest(BaseModel):
+    """Why the planner rejected an option (1.16.0, decision #144): read into constraints for the next round."""
+    reason_codes: list[ReasonCode] = Field(default_factory=list, max_length=5)
+    reason: str | None = Field(None, max_length=300, description="The planner's own words (untrusted: read, screened, never followed)")
+    interventions: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS, description="The rejected option's measures")
+    cost_proxy: float | None = Field(None, ge=0, description="The rejected option's added cost (cost_added, what the cost cap is checked against; for too_costly)")
+    avoid: list[InterventionType] = Field(default_factory=list, max_length=7, description="avoid_measure: which measures")
+    protect: list[str] = Field(default_factory=list, max_length=12, description="protect_station: which stations")
+    constraints: Constraints = Field(default_factory=Constraints, description="The constraints the rejected option was planned with")
+    priority: Literal["cost", "balanced", "impact"] = "balanced"
+    locale: Literal["en", "ar"] = "en"
+
+
+class FeedbackResponse(BaseModel):
+    constraints: Constraints = Field(description="The constraints for the next round (the old ones plus what the reason adds)")
+    priority: Literal["cost", "balanced", "impact"]
+    changes: list[dict] = Field(description="What changed and why: {field, value, via: 'reason' | 'words'}")
+    findings: list[dict] = Field(default_factory=list, description="Instruction-like text in the reason (logged, never followed)")
+    source: Literal["model", "recorded", "rules"] = "rules"
+    replan: bool = Field(description="True when the reason changed something the team can act on")
+
+
+class MemoryItem(BaseModel):
+    kind: Literal["avoid", "protect", "priority"]
+    value: str
+    count: int = Field(description="How many logged rejections gave this reason")
+    last: str = Field(description="Timestamp of the latest one")
+
+
+class MemoryResponse(BaseModel):
+    """What the decision log remembers about this planner's rejections (1.16.0). Shown as suggestions, never applied."""
+    user: str
+    items: list[MemoryItem]
+    decisions_read: int
+    note: str
 
 
 class AgentInfo(BaseModel):
@@ -524,7 +649,7 @@ class Recommendation(BaseModel):
 
 class Mission(BaseModel):
     mission_id: str
-    status: Literal["awaiting_human", "no_action"]
+    status: Literal["awaiting_human", "no_action", "paused"]
     engine: Literal["graph", "seq", "classic"]
     objective: Objective
     roster: list[AgentInfo]
@@ -540,6 +665,7 @@ class Mission(BaseModel):
     recommended_rank: int | None = Field(None, description="The option the critic's checks recommend (1.14.0)")
     recommendation: Recommendation | None = None
     spans: list[AgentSpan] | None = Field(None, description="One span per agent step, derived from the events (1.14.0, WP4)")
+    pause: CheckpointPause | None = Field(None, description="Status 'paused': the question the team asks the human (1.16.0)")
 
 
 class Roster(BaseModel):
@@ -679,17 +805,37 @@ class ChainStartRequest(BaseModel):
     priority: Literal["cost", "balanced", "impact"] = "balanced"
     locale: Literal["en", "ar"] = "en"
     horizon_h: int = Field(3, ge=1, le=6)
+    constraints: Constraints = Field(default_factory=Constraints, description="The planner's constraints; rejections with a reason add to them")
+    checkpoints: list[CheckpointId] = Field(default_factory=list, max_length=2, description="Where the team stops and asks during each plan (1.16.0)")
+    max_feedback_rounds: int = Field(3, ge=0, le=5, description="Replans after rejections with a reason, per alert, before the alert is set aside")
 
 
 class ChainDecideRequest(BaseModel):
     decision: Literal["approve", "reject"]
     rank: int | None = Field(None, ge=1, le=3, description="The option decided on; default: the critic's recommendation")
     user: str = Field("duty-manager", max_length=40, pattern=r"^[\w .\-]+$", description="Anonymous label only")
+    reason_codes: list[ReasonCode] = Field(default_factory=list, max_length=5, description="A rejection's reasons: the team replans with them (1.16.0)")
+    reason: str | None = Field(None, max_length=300)
+    avoid: list[InterventionType] = Field(default_factory=list, max_length=7)
+    protect: list[str] = Field(default_factory=list, max_length=12)
+
+
+class ChainAnswerRequest(BaseModel):
+    answer: CheckpointAnswer
+    user: str = Field("duty-manager", max_length=40, pattern=r"^[\w .\-]+$")
+
+
+class ChainChangeRequest(BaseModel):
+    """Conditions changed during the day (1.16.0): the Watcher re-checks the approved plan under them."""
+    incident: Incident | None = None
+    attendance_x: float | None = Field(None, ge=0.5, le=2.0, description="The crowd turns out this many times the forecast")
+    user: str = Field("duty-manager", max_length=40, pattern=r"^[\w .\-]+$")
 
 
 class ChainEvent(BaseModel):
     seq: int
-    topic: Literal["scenario.loaded", "alert.raised", "plan.ready", "decision.made", "drafts.ready", "day.ended"]
+    topic: Literal["scenario.loaded", "alert.raised", "plan.ready", "decision.made", "drafts.ready", "day.ended",
+                   "checkpoint.asked", "checkpoint.answered", "feedback.read", "conditions.changed", "plan.checked"]
     publisher: str = Field(description="The agent (or the human) that published the event")
     subscribers: list[str] = Field(description="The agents this event triggered, in the order they acted")
     at: str
@@ -709,7 +855,7 @@ class ChainState(BaseModel):
     """An event chain: agents triggered by each other's events until a human decision is needed."""
     chain_id: str
     status: Literal["running", "awaiting_human", "ended"]
-    ended_reason: str | None = Field(None, description="clear · residual · step_limit · no_option · event_limit")
+    ended_reason: str | None = Field(None, description="clear · residual · step_limit · no_option · event_limit · human_stop")
     request: ChainStartRequest
     forecast_run_id: str
     applied: list[dict]
@@ -720,6 +866,12 @@ class ChainState(BaseModel):
     drafts: list[dict] = Field(default_factory=list, description="The Messenger's drafts after each approval (never sent)")
     decisions: list[dict] = Field(default_factory=list)
     started: str
+    constraints: Constraints = Field(default_factory=Constraints, description="The constraints now in force (start + rejections with a reason)")
+    priority: Literal["cost", "balanced", "impact"] = Field("balanced", description="The priority now in force (start + rejections with a reason)")
+    answers: list[CheckpointAnswer] = Field(default_factory=list, description="The human's checkpoint answers for the plan being made")
+    feedback_rounds: int = Field(0, description="Replans after a rejection with a reason, for the current alert")
+    pause: CheckpointPause | None = Field(None, description="Status 'awaiting_human' at a checkpoint: the question")
+    loop: dict = Field(default_factory=dict, description="Loop counters: plans, checkpoints, feedback, changes, approvals, rejections")
 
 
 class LoginRequest(BaseModel):
@@ -792,8 +944,20 @@ class InboxItem(BaseModel):
     is_synthetic: bool
 
 
+class InboxQuestion(BaseModel):
+    """A chain stopped at a checkpoint (1.16.0): the team asks before it goes on."""
+    chain_id: str
+    updated: str
+    event: str | None = None
+    checkpoint: str
+    actions: list[str]
+    params: dict = Field(default_factory=dict)
+    is_synthetic: bool = True
+
+
 class Inbox(BaseModel):
     items: list[InboxItem]
+    questions: list[InboxQuestion] = Field(default_factory=list, description="Chains waiting at a checkpoint (1.16.0)")
     auth: Literal["on", "off"]
     notifications: bool = Field(description="True when NOTIFY_WEBHOOK_URL is configured")
 
