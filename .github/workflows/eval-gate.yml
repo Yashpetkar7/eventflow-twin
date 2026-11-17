@@ -62,7 +62,6 @@ jobs:
   ui:
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    continue-on-error: true      # make blocking after the first green run on GitHub (3D in software rendering is unproven there)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
