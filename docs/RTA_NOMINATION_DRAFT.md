@@ -60,7 +60,7 @@ rejects it; (7) the messenger drafts the rider notice in English and Arabic (nev
 **Headline scenario (simulated, synthetic demand):** GITEX 2025 Day 1, 40,000 assumed visitors: World Trade Centre
 peaks at 78 % of comfortable capacity and tips over at about 44,400 visitors. On a hot day it reaches 92 %; the plan
 the team recommends (spread venue exits over 45 more minutes and guide 10 % of riders to Emirates Towers on foot)
-brings it to 74 %, passing all seven checks.
+brings it to 74 %, passing every applicable check (6 of 6).
 
 **Pioneering features:** a multi-agent team that argues (briefs, proposals, objections, replans) rather than a single
 chatbot; agents that cannot invent numbers (every figure in every text is checked against the simulator: 132 of 132
