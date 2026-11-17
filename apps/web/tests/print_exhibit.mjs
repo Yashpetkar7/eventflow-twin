@@ -11,7 +11,7 @@ const base = process.argv[2] ?? "http://localhost:3000";
 const DIR = path.resolve(import.meta.dirname, "../../../exhibit/poster");
 fs.mkdirSync(path.join(DIR, "img"), { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true,
-  args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
+  args: [process.platform === "darwin" ? "--use-angle=metal" : "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
 
 // 1 · hero: the 3D view only (HUD hidden, OpenStreetMap attribution kept), golden hour, 2× pixel density
 const p = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
