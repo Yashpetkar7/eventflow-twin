@@ -525,10 +525,10 @@ export function Kiosk() {
           </ol>
         )}
         <div className="ktools" role="group" aria-label={T.bigText + " · " + T.contrast}>
-          {aiPhase && <button type="button" className="kpill kaibtn" aria-pressed={ai} onClick={() => setAi(!ai)} data-testid="kai-open">✦ {tA("kai.open")}</button>}
           <button type="button" className="kpill" aria-pressed={big} onClick={() => setBig(!big)} aria-label={T.bigText}><span className="kaa">A<small>A</small></span></button>
           <button type="button" className="kpill" aria-pressed={hc} onClick={() => setHc(!hc)} aria-label={T.contrast} data-testid="kiosk-contrast"><span className="khalf" aria-hidden /></button>
           <button type="button" className="kpill klang" onClick={() => setLocale(locale === "ar" ? "en" : "ar")} lang={locale === "ar" ? "en" : "ar"}>{locale === "ar" ? "English" : "عربي"}</button>
+          {aiPhase && <button type="button" className="kpill kaibtn" aria-pressed={ai} onClick={() => setAi(!ai)} data-testid="kai-open">✦ {tA("kai.open")}</button>}
           {phase !== "attract" && <button type="button" className="kpill khome" onClick={reset}>⌂ {T.home}</button>}
         </div>
       </header>
