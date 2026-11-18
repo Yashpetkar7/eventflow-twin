@@ -57,10 +57,10 @@ test("kiosk AI: tested suggestions, one tap makes one the scenario, typing on th
   await page.getByTestId("kai-type").click();
   await expect(page.getByTestId("kai-keys")).toHaveAttribute("data-layout", "en");
   await expect(page.getByTestId("kai-phrases").locator("button")).toHaveCount(5);
-  await tap(page, "hot day");
-  await expect(page.getByTestId("kai-input")).toHaveValue("hot day");
-  await page.getByTestId("kai-del").click();
-  await tap(page, "y");
+  await tap(page, "make it hox");
+  await page.getByTestId("kai-del").click();                                                 // a typo, deleted
+  await tap(page, "t");
+  await expect(page.getByTestId("kai-input")).toHaveValue("make it hot");
   const sizes = await page.locator(".kai button").evaluateAll((els) => els.filter((e) => (e as HTMLElement).offsetParent !== null).map((e) => { const r = e.getBoundingClientRect(); return [r.width, r.height]; }));
   expect(sizes.length).toBeGreaterThan(40);
   for (const [w, h] of sizes) { expect(h).toBeGreaterThanOrEqual(56); expect(w).toBeGreaterThanOrEqual(56); }
@@ -70,8 +70,8 @@ test("kiosk AI: tested suggestions, one tap makes one the scenario, typing on th
   expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true);
   await shot(page, "2_keyboard");
   await page.getByTestId("kai-send").click();
+  await page.waitForFunction(() => (window as unknown as W).__twin.getState().forecast?.weather === "hot", null, { timeout: 30_000 });
   await sheet(page, "applied");
-  await page.waitForFunction(() => (window as unknown as W).__twin.getState().forecast?.weather === "hot");
 
   await page.getByTestId("kai-type").click();                                                // the Arabic layout
   await page.getByTestId("kai-lang").click();
