@@ -1390,6 +1390,54 @@
         "p2": "When should I leave?",
         "p3": "Is it step-free?",
         "p4": "How do I get to Dubai Mall?"
+      },
+      "teamAnyway": "Ask the AI team anyway",
+      "lab": {
+        "crowd": "Crowd",
+        "rules": "Rules",
+        "line": "Comfort line",
+        "lineHint": "The load above which a station counts as too crowded.",
+        "exit": "How fast the venue empties",
+        "exits": {
+          "fast": "Quickly",
+          "normal": "As planned",
+          "slow": "Slowly"
+        },
+        "priority": "What the AI team should favour"
+      },
+      "edit": {
+        "open": "Edit",
+        "title": "Change the AI's plan",
+        "sub": "Turn a setting or drop a measure. The simulator tests your version before you can approve it.",
+        "less": "Less",
+        "more": "More",
+        "drop": "Remove",
+        "restore": "Put back",
+        "removed": "removed",
+        "fixed": "as planned",
+        "today": "Today",
+        "ai": "AI's plan",
+        "yours": "Your version",
+        "peak": "Peak load",
+        "over": "Riders over the line",
+        "same": "Change something to test your own version.",
+        "empty": "A plan needs at least one measure.",
+        "testing": "The simulator is testing your version…",
+        "refused": "The simulator does not allow that value. Try another.",
+        "worse": "Your version leaves {n} more riders over the line than the AI's plan.",
+        "better": "Your version takes {n} more riders under the line than the AI's plan.",
+        "equal": "Your version does as well as the AI's plan.",
+        "approve": "Approve my version",
+        "back": "Back to the plans",
+        "mine": "My version of: {title}",
+        "knob": {
+          "staggered_exit": "exit spread over {v} min",
+          "extra_trains": "a train every {v} min",
+          "wayfinding_redirect": "{v}% guided onwards",
+          "shuttle_bus": "{v} buses",
+          "robotaxi_staging": "{v} robotaxis",
+          "station_metering": "admit up to {v}% load"
+        }
       }
     }
   },

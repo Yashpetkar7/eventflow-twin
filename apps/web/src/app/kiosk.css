@@ -371,3 +371,48 @@
 .kcard .loop-ask .loop-acts { display: grid; gap: 10px; }
 .kcard .loop-ask .loop-acts .btn, .kcard .loop-ask .loop-acts .pill { min-height: 58px; font-size: 17px; border-radius: 14px; width: 100%; }
 .kcard .loop-ask .note { font-size: 13.5px; }
+
+/* ---- the AI sheet with its built-in keyboard, the plan editor and the stress test's rules (decision #155) ---- */
+.kaibtn { border-color: var(--navy) !important; color: var(--navy); font-weight: 650; }
+.kai { position: absolute; z-index: 9; zoom: var(--kz); inset-inline-start: 100px; inset-inline-end: 632px; inset-block-end: 72px; max-height: 880px; display: flex; flex-direction: column; gap: 10px;
+  padding: 18px 22px 16px; border-radius: 26px; background: rgba(255, 255, 255, .96); border: 1px solid rgba(20, 28, 45, .1); box-shadow: 0 24px 60px rgba(10, 20, 40, .28);
+  font-family: var(--kfont); color: var(--ink); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.kai > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; } .kai > header b { font-size: 24px; letter-spacing: -.01em; }
+.kai-body { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+.kai-hint { margin: 0; font-size: 18px; color: var(--ink-2); line-height: 1.4; }
+.kai-ans { display: grid; gap: 6px; } .kai-ans > p { margin: 0; font-size: 19px; line-height: 1.38; font-weight: 500; }
+.kai-ans > p.kai-doc { font-size: 14px; color: var(--ink-3); font-weight: 400; }
+.kai-opts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.kai-opts button, .kai-chips button, .kai-bar button, .kai-phrases button, .kai-prefs button, .kai-near button { min-height: 60px; padding: 8px 16px; border-radius: 16px; border: 1.5px solid rgba(20, 28, 45, .14);
+  background: var(--bg); font: inherit; font-size: 17.5px; font-weight: 600; color: var(--ink); text-align: start; line-height: 1.25; }
+.kai-opts button { border-color: var(--navy); background: var(--navy-soft); color: var(--navy); }
+.kai-opts button.go, .kai-bar button.go { background: var(--navy); border-color: var(--navy); color: #fff; text-align: center; }
+.kai-opts.two button { text-align: center; }
+.kai button:disabled { opacity: .5; }
+.kai-chips, .kai-phrases, .kai-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+.kai-chips button, .kai-phrases button { font-size: 16px; font-weight: 550; border-radius: 999px; min-height: 56px; }
+.kai-bar button { text-align: center; } .kai-bar button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--navy); }
+.kai-prefs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .kai-prefs span { font-size: 15px; color: var(--ink-3); margin-inline-end: 4px; }
+.kai-prefs button { min-height: 56px; border-radius: 999px; font-size: 16px; } .kai-prefs button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.kai-brief { display: grid; gap: 10px; } .kai-brief > p { margin: 0; font-size: 17px; color: var(--ink-2); }
+.kai-brief dl { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.kai-brief dl > div { background: var(--bg); border-radius: 14px; padding: 10px 14px; } .kai-brief dt { font-size: 13.5px; color: var(--ink-3); } .kai-brief dd { margin: 2px 0 0; font-size: 19px; font-weight: 650; }
+.kai-near { display: grid; gap: 6px; } .kai-near span { font-size: 17px; font-weight: 650; } .kai-near > div { display: flex; flex-wrap: wrap; gap: 8px; } .kai-near button { min-height: 56px; font-size: 16px; }
+.kai-keys { display: grid; gap: 6px; padding-top: 4px; }
+.kai-line { display: flex; gap: 8px; }
+.kai-in { flex: 1; min-width: 0; height: 64px; border-radius: 16px; border: 2px solid var(--navy); background: #fff; padding: 0 18px; font: inherit; font-size: 22px; font-weight: 550; color: var(--ink); outline: none; }
+.kai-send { min-width: 150px; height: 64px; border: 0; border-radius: 16px; background: var(--navy); color: #fff; font: inherit; font-size: 20px; font-weight: 650; }
+.kai-row { display: flex; gap: 6px; justify-content: center; }
+.kai-row button { flex: 1 1 0; max-width: 104px; height: 64px; border-radius: 12px; border: 1px solid rgba(20, 28, 45, .16); background: #fff; font: inherit; font-size: 24px; font-weight: 550; color: var(--ink);
+  box-shadow: 0 1px 0 rgba(20, 28, 45, .18); }
+.kai-row button:active { background: var(--navy-soft); transform: scale(.97); }
+.kai-row button.wide { flex: 0 0 150px; max-width: none; font-size: 22px; } .kai-row button.space { flex: 1 1 auto; max-width: 620px; font-size: 17px; color: var(--ink-3); }
+.khc .kai { background: #fff; border: 2px solid #000; backdrop-filter: none; -webkit-backdrop-filter: none; } .khc .kai button { border: 2px solid #000; background: #fff; color: #000; }
+.khc .kai button.go, .khc .kai-send, .khc .kai button[aria-pressed="true"] { background: #000; color: #fff; }
+.kopt-row { display: flex; gap: 8px; align-items: stretch; margin-top: 2px; } .kopt-row .kgo { margin-top: 0; flex: 1; } .kopt-row .kpill { font-size: 15.5px; border-color: var(--navy); color: var(--navy); white-space: nowrap; }
+.kedit { display: grid; gap: 14px; } .kedit ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.kedit li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 16px; background: var(--bg); } .kedit li.off { opacity: .55; }
+.kedit li > b { font-size: 19px; text-transform: capitalize; }
+.kstep { display: flex; align-items: center; gap: 10px; } .kstep i { font-style: normal; font-size: 17px; font-weight: 600; min-width: 190px; text-align: center; }
+.kstep button { width: 60px; height: 60px; border-radius: 50%; border: 1.5px solid var(--navy); background: #fff; color: var(--navy); font-size: 30px; font-weight: 600; line-height: 1; }
+.kedit .krow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

@@ -223,6 +223,9 @@ interface State {
   stopShift: () => void;
   patchBuild: (p: Partial<BuildState>) => void;
   approveMine: (title: string) => Promise<void>;
+  /** The kiosk's plan editor: the visitor changed an AI option and approves their own version. `simRunId` is the
+   *  simulation that tested exactly these measures, so the log names the run whose figures they saw. */
+  approveEdited: (title: string, ivs: Intervention[], simRunId: string) => Promise<boolean>;
   clearPlans: () => void;
   jumpTo: (id: string, hour: number) => void;
 }
@@ -661,6 +664,23 @@ export const useTwin = create<State>((set, get) => {
       } finally { set({ deciding: false }); }
     },
     patchBuild: (p) => { set({ build: { ...get().build, ...p } }); schedulePreview(); },
+    approveEdited: async (title, ivs, simRunId) => {
+      const s = get();
+      if (!ivs.length || !s.forecast || s.deciding) return false;
+      set({ deciding: true });
+      try {
+        try {
+          const r = await api.decide({ plan_id: `edited_plan_${simRunId}`, option_rank: 1, decision: "approve", user: "visitor",
+            option_title: title, forecast_run_id: s.forecast.run_id, interventions: ivs });
+          set({ log: [{ ts: r.timestamp, kind: "approve" as const, title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
+        } catch (e) {
+          set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
+          return false;
+        }
+        await applyPlan(title, ivs);
+        return true;
+      } finally { set({ deciding: false }); }
+    },
     approveMine: async (title) => {
       const s = get();
       const ivs = buildInterventions(s.build, s.cur, corridorIds(s));

@@ -1688,11 +1688,11 @@ export interface components {
             } | null;
             /**
              * Audience
-             * @description 'kiosk' = visitor answers only: no plans, no scenario changes, no internals
+             * @description 'kiosk' = visitor answers only: no plans, no scenario changes, no internals. 'sandbox' (1.18.0) = the kiosk's planning game: scenario changes and what-ifs, no plan tables or internals
              * @default planner
              * @enum {string}
              */
-            audience: "planner" | "kiosk";
+            audience: "planner" | "kiosk" | "sandbox";
             /**
              * Locale
              * @default en
@@ -1734,7 +1734,7 @@ export interface components {
              * Audience
              * @enum {string}
              */
-            audience: "planner" | "kiosk";
+            audience: "planner" | "kiosk" | "sandbox";
             /** Intent */
             intent: string | null;
             /**
