@@ -48,6 +48,10 @@ def template_rationale(title: str, s: dict, base: dict) -> str:
 
 
 def main_() -> None:
+    import tempfile
+
+    from apps.api.eventflow.agents import planner as _planner
+    _planner.CACHE_WRITE = Path(tempfile.mkdtemp())            # the fixtures' scenarios are examples: their plans must not land in data/demo_cache
     FIX.mkdir(parents=True, exist_ok=True)
     c = TestClient(main.app)
     (OUT / "openapi.json").write_text(json.dumps(main.app.openapi(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -105,10 +109,6 @@ def main_() -> None:
                                     "plan_known": True})
     dump("evidence.json", c.get("/evidence").json())
     # the assistant (1.17.0): one planner turn, one scenario change and one kiosk turn, for the web app to build against
-    import tempfile
-
-    from apps.api.eventflow.agents import planner as _planner
-    _planner.CACHE_WRITE = Path(tempfile.mkdtemp())            # these scenarios are examples: their plans must not land in data/demo_cache
     hot = {"event_id": "gitex2025_d1", "weather": "hot"}
     hf = c.post("/forecast", json=hot).json()
     cref = {"forecast_run_id": hf["run_id"], "forecast": hot, "threshold": 0.85, "scope": "corridor"}

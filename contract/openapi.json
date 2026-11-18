@@ -2014,13 +2014,14 @@
               "type": "string",
               "enum": [
                 "hotspot",
-                "partial"
+                "partial",
+                "calm"
               ]
             },
             "type": "array",
-            "maxItems": 2,
+            "maxItems": 3,
             "title": "Checkpoints",
-            "description": "Where the team stops and asks the human (1.16.0)"
+            "description": "Where the team stops and asks the human (1.16.0; 'calm' since 1.18.0)"
           },
           "answers": {
             "items": {
@@ -3298,7 +3299,8 @@
               "type": "string",
               "enum": [
                 "hotspot",
-                "partial"
+                "partial",
+                "calm"
               ]
             },
             "type": "array",
@@ -4046,7 +4048,8 @@
             "type": "string",
             "enum": [
               "hotspot",
-              "partial"
+              "partial",
+              "calm"
             ],
             "title": "Checkpoint"
           },
@@ -4059,10 +4062,13 @@
               "accept",
               "more",
               "allow",
-              "raise_cap"
+              "raise_cap",
+              "try_crowd",
+              "try_hot",
+              "try_line"
             ],
             "title": "Action",
-            "description": "hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again"
+            "description": "hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again. calm (1.18.0): accept (no plan needed). try_crowd / try_hot / try_line are offered in `pause.actions` with their values in `pause.params.probes`; they change the SCENARIO, so the caller applies that probe and runs the team again, and never sends them here"
           },
           "station": {
             "anyOf": [
@@ -4127,7 +4133,8 @@
             "type": "string",
             "enum": [
               "hotspot",
-              "partial"
+              "partial",
+              "calm"
             ],
             "title": "Checkpoint"
           },
@@ -4140,7 +4147,7 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Params",
-            "description": "hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap"
+            "description": "hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap · calm (1.18.0): station, hour, peak_pct, threshold_pct, probes[{id, action, peak_lf, overcap_station_hours, stations_over, crosses, run_id, attendance | weather | threshold}]"
           },
           "actions": {
             "items": {
@@ -4152,7 +4159,10 @@
                 "accept",
                 "more",
                 "allow",
-                "raise_cap"
+                "raise_cap",
+                "try_crowd",
+                "try_hot",
+                "try_line"
               ]
             },
             "type": "array",

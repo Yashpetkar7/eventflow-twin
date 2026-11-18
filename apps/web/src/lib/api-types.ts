@@ -1039,9 +1039,9 @@ export interface components {
             brief?: components["schemas"]["ConfirmedBrief"] | null;
             /**
              * Checkpoints
-             * @description Where the team stops and asks the human (1.16.0)
+             * @description Where the team stops and asks the human (1.16.0; 'calm' since 1.18.0)
              */
-            checkpoints?: ("hotspot" | "partial")[];
+            checkpoints?: ("hotspot" | "partial" | "calm")[];
             /**
              * Answers
              * @description The human's answers so far, in order
@@ -1505,7 +1505,7 @@ export interface components {
              * Checkpoints
              * @description Where the team stops and asks during each plan (1.16.0)
              */
-            checkpoints?: ("hotspot" | "partial")[];
+            checkpoints?: ("hotspot" | "partial" | "calm")[];
             /**
              * Max Feedback Rounds
              * @description Replans after rejections with a reason, per alert, before the alert is set aside
@@ -1808,13 +1808,13 @@ export interface components {
              * Checkpoint
              * @enum {string}
              */
-            checkpoint: "hotspot" | "partial";
+            checkpoint: "hotspot" | "partial" | "calm";
             /**
              * Action
-             * @description hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again
+             * @description hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again. calm (1.18.0): accept (no plan needed). try_crowd / try_hot / try_line are offered in `pause.actions` with their values in `pause.params.probes`; they change the SCENARIO, so the caller applies that probe and runs the team again, and never sends them here
              * @enum {string}
              */
-            action: "confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap";
+            action: "confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap" | "try_crowd" | "try_hot" | "try_line";
             /**
              * Station
              * @description focus: the station to plan for
@@ -1840,7 +1840,7 @@ export interface components {
              * Checkpoint
              * @enum {string}
              */
-            checkpoint: "hotspot" | "partial";
+            checkpoint: "hotspot" | "partial" | "calm";
             /**
              * Asked By
              * @description The agent that asks (supervisor)
@@ -1848,7 +1848,7 @@ export interface components {
             asked_by: string;
             /**
              * Params
-             * @description hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap
+             * @description hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap · calm (1.18.0): station, hour, peak_pct, threshold_pct, probes[{id, action, peak_lf, overcap_station_hours, stations_over, crosses, run_id, attendance | weather | threshold}]
              */
             params?: {
                 [key: string]: unknown;
@@ -1857,7 +1857,7 @@ export interface components {
              * Actions
              * @description The answers that apply here
              */
-            actions: ("confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap")[];
+            actions: ("confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap" | "try_crowd" | "try_hot" | "try_line")[];
         };
         /** CompareRow */
         CompareRow: {

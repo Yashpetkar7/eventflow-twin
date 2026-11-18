@@ -210,6 +210,66 @@ def stress_test(ctx: MissionCtx, options: list[dict]) -> dict[int, dict]:
     return out
 
 
+def calm_probes(ctx: MissionCtx) -> list[dict]:
+    """Nothing is over the line: the stress agent tests the scenario harder by itself (decision #153), so the supervisor
+    has something to ask the human about. Each probe is one forecast and one simulation, with its run id:
+
+        crowd   the crowd at which the corridor first crosses the line (the exact break point, rounded up to 1,000)
+        hot     the same event on a hot day (more visitors take the metro)
+        line    a stricter comfort line: the next 5-point step under today's peak
+
+    A probe that still leaves every station under the line is reported as holding and is not offered as a next step."""
+    import math
+
+    from ..breakpoint import break_points
+    req, run, p = ctx.req, ctx.run, ctx.p
+    spec = getattr(req, "forecast", None)
+    if spec is None:
+        return []
+    base_spec = spec.model_dump() if hasattr(spec, "model_dump") else dict(spec)
+    report = [s["id"] for s in corridor()["stations"] if s.get("in_corridor")] if req.scope == "corridor" else None
+    applied = [i.model_dump() for i in validate_interventions(list(p.applied))]
+    floor = float(ctx.cfg.get("calm", {}).get("line_min", 0.70))
+
+    def test(fc: dict, thr: float | None, what: dict) -> dict:
+        res = simulate(fc["demand"], applied, weekday=fc["weekday"], threshold=thr, report=report, service=fc.get("service"))
+        ctx.stress_sims += 1
+        w = max(res.hourly, key=lambda r: (r["peak_lf"], -r["hour"]))
+        return {**what, "peak_lf": round(w["peak_lf"], 4), "station": w["station_id"], "hour": w["hour"],
+                "overcap_station_hours": res.summary["overcap_station_hours"], "excess_pax": round(res.summary["excess_pax"], 1),
+                "stations_over": len({r["station_id"] for r in res.hourly if r["overcap_bins"]}), "crosses": res.summary["overcap_station_hours"] > 0,
+                "run_id": make_run_id("stress", {"fc": fc["run_id"], "iv": applied, "thr": thr, "scope": req.scope, "probe": what["id"]})}
+
+    out: list[dict] = []
+    now = run.get("attendance_used")
+    if run.get("event") and now:
+        try:
+            ids = [s["id"] for s in corridor()["stations"] if s.get("in_corridor")]
+            brk = break_points(run, req.threshold, ids)["corridor_break_attendance"]
+        except Exception:
+            brk = None
+        if brk and brk > now:
+            att = min(200_000, int(math.ceil((brk + 1) / 1000) * 1000))
+            over = {"custom_event": {**base_spec["custom_event"], "attendance": att}} if base_spec.get("custom_event") else {"attendance": att}
+            try:
+                out.append(test(build_from_spec({**base_spec, **over}), req.threshold,
+                                {"id": "crowd", "action": "try_crowd", "attendance": att, "break_attendance": brk, "attendance_now": now}))
+            except (KeyError, ValueError):
+                pass
+        if (run.get("weather") or "normal") != "hot":
+            try:
+                out.append(test(build_from_spec({**base_spec, "weather": "hot", "metro_share": None}), req.threshold,
+                                {"id": "hot", "action": "try_hot", "weather": "hot"}))
+            except (KeyError, ValueError):
+                pass
+    peak = p.base["summary"]["peak_lf"]
+    line = math.floor(peak * 20 - 1e-9) / 20                       # the next 5-point step strictly under the peak
+    if floor <= line < p.thr:
+        out.append(test({"demand": run["demand"], "weekday": run["weekday"], "service": run.get("service"), "run_id": run["run_id"]}, line,
+                        {"id": "line", "action": "try_line", "threshold": round(line, 2), "threshold_now": p.thr}))
+    return out
+
+
 # ---------- the critic's named criteria, per option
 def _bins_by_station(hourly: list[dict]) -> dict[str, int]:
     out: dict[str, int] = {}
