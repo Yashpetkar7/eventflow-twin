@@ -77,7 +77,8 @@ test("kiosk: attract → event → quiz → AI plan → approve → before/after
     const box = (await b.boundingBox())!;
     expect(box.y + box.height, await b.innerText()).toBeLessThanOrEqual(1080 - 72);
   }
-  await expect(page.locator(".kqr")).toContainText("Link coming soon");
+  await expect(page.locator(".kqr")).toContainText("Take it with you");                 // a real QR code of the rider page (decision #156)
+  expect(await page.getByTestId("kiosk-qr-small").getAttribute("data-url")).toContain("/travel?event=gitex2025_d1&station=");
   await expect(page.locator(".kcred")).toContainText("OpenStreetMap");      // map licence credit always on screen
   await page.waitForTimeout(2500);
   await shot(page, "6_result");
