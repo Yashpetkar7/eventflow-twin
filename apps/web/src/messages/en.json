@@ -1438,6 +1438,22 @@
           "robotaxi_staging": "{v} robotaxis",
           "station_metering": "admit up to {v}% load"
         }
+      },
+      "qr": {
+        "open": "Continue on my phone",
+        "title": "Take it with you",
+        "tap": "Tap to enlarge, then scan",
+        "own": "Your own event exists on this screen only",
+        "how": "Point your phone's camera at the code. It opens the rider page for this event, station and time.",
+        "note": "The link holds the event, the station and the hour, nothing about you. Your phone uses its own connection and asks the public site's simulator: the same model, without a plan approved on this screen."
+      },
+      "voice": {
+        "start": "Speak",
+        "stop": "Stop listening",
+        "listening": "Listening… speak now, then check the words and tap Send.",
+        "device": "Speech is turned into text on this device.",
+        "online": "Speech is turned into text by this browser's online speech service.",
+        "error": "I could not hear that. Please try again or type."
       }
     }
   },

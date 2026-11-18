@@ -27,6 +27,8 @@ import { KioskAsk } from "../assistant/KioskAsk";
 import { CheckpointCard } from "../mission/Loop";
 import { KioskAI } from "./KioskAI";
 import { PlanEditor } from "./KioskEdit";
+import { Qr } from "./Qr";
+import { travelLink } from "@/lib/site";
 import { bump, busiest, closure, faultHour, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -153,7 +155,7 @@ export function Kiosk() {
   // The store clears the plan once it is applied: keep what the later screens need (all from API answers).
   const [picked, setPicked] = useState<{ title: string; before: Summary; road: number | null } | null>(null);
   const [kept, setKept] = useState<AgentPlanResponse | null>(null);
-  const [modal, setModal] = useState<"how" | "pb" | "stats" | null>(null);
+  const [modal, setModal] = useState<"how" | "pb" | "stats" | "qr" | null>(null);
   const [ai, setAi] = useState(false);                        // the AI sheet (type or tap; decision #155)
   const [edit, setEdit] = useState<number | null>(null);      // the option being edited (its rank)
   const [labTab, setLabTab] = useState<"crowd" | "rules">("crowd");
@@ -382,6 +384,10 @@ export function Kiosk() {
     void st.getState().runAgents(locale);
   };
   const openHow = () => { bump("how"); setModal("how"); };
+  // ---- continue on a phone (decision #156): the rider page for this event; nothing about the visitor is in the link
+  const qrAt = phase === "rider" && advice ? { st: advice.tip.id, h: advice.tip.t } : peak ? { st: peak.id, h: peak.time } : null;
+  const phoneUrl = scenario.eventId && scenario.eventId !== "custom" && qrAt ? travelLink(scenario.eventId, qrAt.st, qrAt.h, locale) : null;
+  const openQr = () => { bump("qr"); setModal("qr"); };
   // ---- the AI sheet and the plan editor (decision #155)
   const aiPhase = phase === "event" || phase === "crowd" || phase === "rider" || (phase === "plan" && (idea === undefined || planStatus === "ready"));
   const aiApplied = () => {                                    // the assistant changed the scenario: show the new situation before any plan
@@ -807,10 +813,17 @@ export function Kiosk() {
                 <button type="button" className="kpill" onClick={asRider}>{T.toRider}</button>
               </div>
               <div className="kside">
-                <div className="kqr">
-                  <div className="kqr-box" aria-hidden><span /><span /><span /><span /></div>
-                  <div><b>{T.qrTitle}</b><small>{T.qrSoon}</small></div>
-                </div>
+                {phoneUrl ? (
+                  <button type="button" className="kqr" onClick={openQr} data-testid="kiosk-qr-open">
+                    <Qr url={phoneUrl} size={84} label={tA("kai.qr.title")} testid="kiosk-qr-small" />
+                    <div><b>{tA("kai.qr.title")}</b><small>{tA("kai.qr.tap")}</small></div>
+                  </button>
+                ) : (
+                  <div className="kqr" data-testid="kiosk-qr-none">
+                    <div className="kqr-box" aria-hidden><span /><span /><span /><span /></div>
+                    <div><b>{T.qrTitle}</b><small>{tA("kai.qr.own")}</small></div>
+                  </div>
+                )}
                 <button type="button" className="kgo ghost" onClick={() => { setFault(false); setPhase("duty"); }} data-testid="kiosk-duty-ask">{T.dAsk}</button>
               </div>
               <div className="krow">
@@ -910,7 +923,10 @@ export function Kiosk() {
                     <span><N>{wait(advice.tip.wait)} · <span className={lfClass(advice.tip.lf)}>{T.rFull(f.pct(advice.tip.lf))}</span></N></span></div>
                 </div>
               )}
-              <KioskAsk station={advice?.worst.id} hour={advice ? Math.floor(advice.worst.t) : undefined} />
+              <div className="kside">
+                <KioskAsk station={advice?.worst.id} hour={advice ? Math.floor(advice.worst.t) : undefined} />
+                <button type="button" className="kgo ghost" disabled={!phoneUrl} onClick={openQr} data-testid="kiosk-qr-open">{tA("kai.qr.open")}</button>
+              </div>
               <p className="knote">{T.rNote}</p>
               <div className="krow">
                 <button type="button" className="kgo" onClick={finish}>{T.finish}</button>
@@ -976,6 +992,18 @@ export function Kiosk() {
               )}
             </>
           )}
+        </Modal>
+      )}
+      {modal === "qr" && phoneUrl && (
+        <Modal title={tA("kai.qr.title")} close={() => setModal(null)} closeLabel={T.close}>
+          <div className="kqr-big" data-testid="kiosk-qr-sheet">
+            <Qr url={phoneUrl} size={380} label={tA("kai.qr.title")} />
+            <div>
+              <p>{tA("kai.qr.how")}</p>
+              <p className="kqr-url" dir="ltr">{phoneUrl.replace(/^https?:\/\//, "")}</p>
+              <p className="knote">{tA("kai.qr.note")}</p>
+            </div>
+          </div>
         </Modal>
       )}
       {modal === "pb" && (

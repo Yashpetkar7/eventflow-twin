@@ -418,3 +418,13 @@
 .kedit .krow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .kai.typing .kai-opts, .kai.typing .kai-chips, .kai.typing .kai-prefs, .kai.typing .kai-hint { display: none; }   /* the keyboard is open: the answer stays, the buttons wait */
 .kai.typing .kai-ans > p:nth-child(n+3) { display: none; }
+
+/* ---- continue on a phone: a real QR code (decision #156) ---- */
+button.kqr { font: inherit; color: inherit; text-align: start; cursor: pointer; min-height: 56px; }
+.kqr-code { display: block; border-radius: 8px; flex: none; background: #fff; }
+.kqr-big { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: center; } .kqr-big p { margin: 0 0 12px; font-size: 20px; line-height: 1.4; }
+.kqr-big .kqr-url { font-size: 15px; color: var(--ink-3); word-break: break-all; font-family: ui-monospace, monospace; }
+.kai-mic { min-width: 120px; height: 64px; border-radius: 16px; border: 2px solid var(--navy); background: #fff; color: var(--navy); font: inherit; font-size: 18px; font-weight: 650; }
+.kai-mic[aria-pressed="true"] { background: #b3261e; border-color: #b3261e; color: #fff; }
+.kai-voice { margin: 0; font-size: 14.5px; color: var(--ink-3); } .kai-voice.on { color: #b3261e; font-weight: 600; font-size: 16px; }
+button.kqr { background: transparent; }

@@ -80,12 +80,12 @@ ROUTES_PLANNER: list[tuple[str, str, dict]] = [
     ("evidence", r"evidence|what supports|based on what|where (does|do|did) .{0,30}come from|which data|data source|provenance|"
                  r"الدليل|الأدلة|ما مصدر|مصدر البيانات", {}),
     ("why_risk", r"\bwhy\b|what makes|reason|cause|at risk|لماذا|ما سبب|السبب", {}),
-    ("break_point", r"break ?point|tip over|how many (visitors|people) (can|before|until)|at what crowd|نقطة الانكسار|كم زائر", {}),
+    ("break_point", r"break ?point|tip over|how many (visitors|people) (can|before|until)|at what crowd|نقطة الانكسار|كم زائر|عند أي حضور|يتجاوز الخط", {}),
     ("road", r"\broads?\b|traffic|\bcars\b|taxi|الطرق|السيارات|المرور", {}),
     ("best_plan", r"most effective|best (plan|option|measure|intervention)|which (intervention|plan|measure|option)|what should (we|i) do|"
                   r"recommend|\bplan\b|what do you suggest|ماذا نفعل|أفضل خطة|أفضل إجراء|توصي|التوصية|خطة", {}),
     ("overcrowded", r"overcrowd|over ?capacity|over the line|which stations?|worst|busiest station|most crowded|become crowded|"
-                    r"أي محطة|أكثر محطة|مزدحمة|الأكثر ازدحام", {}),
+                    r"أي محطة|أكثر محطة|أكثر المحطات|مزدحمة|الأكثر ازدحام", {}),
     ("peak", r"\bwhen\b|what time|peak|busiest (time|moment|hour)|متى|الذروة|أي ساعة", {}),
     ("station_status", r"how (busy|crowded|full)|status of|load at|كم الازدحام|ما حال", {}),
     ("suggest", r"suggest|what should i (try|test)|ideas?\b|what else|surprise me|اقترح|اقتراح|أفكار", {}),
@@ -93,7 +93,7 @@ ROUTES_PLANNER: list[tuple[str, str, dict]] = [
 ]
 ROUTES_KIOSK: list[tuple[str, str, dict]] = [
     ("accessible", r"accessib|wheelchair|step[- ]?free|\blifts?\b|elevator|disab|determination|stroller|pram|pushchair|"
-                   r"كرسي متحرك|الكرسي المتحرك|مصعد|مصاعد|أصحاب الهمم|عربة أطفال", {}),
+                   r"كرسي متحرك|الكرسي المتحرك|مصعد|مصاعد|أصحاب الهمم|عربة أطفال|بلا درج|بدون درج|دون درج", {}),
     ("reach", r"how (can|do|would) i (reach|get)|get to|\breach\b|directions?|route to|way to|كيف أصل|الوصول إلى|الطريق إلى", {}),
     ("when_leave", r"when should i|what time|best time|when (to|do i) (leave|go|depart)|\bdepart|متى أغادر|متى أذهب|أي وقت|أفضل وقت", {}),
     ("quieter_station", r"less crowded|quieter|alternative|nearby|another station|avoid the crowd|أهدأ|أقل ازدحام|بديل|قريبة", {}),

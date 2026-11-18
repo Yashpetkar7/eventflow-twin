@@ -13,6 +13,7 @@ import { N, useFmt, useLocale } from "@/lib/i18n";
 import { api, type BriefResponse, type ChatContext, type ChatResponse } from "@/lib/api";
 import { applyPatch, useAssistant } from "@/lib/assistant";
 import { chatBody } from "@/lib/requests";
+import { useVoice } from "@/lib/voice";
 import { mergeInterventions, useTwin, type Priority, type Weather } from "@/lib/store";
 import { chipKey, useSay } from "../assistant/say";
 
@@ -30,9 +31,20 @@ function Keys({ value, onChange, onSend, placeholder, busy }: { value: string; o
   const { locale } = useLocale();
   const [lay, setLay] = useState<"en" | "ar">(locale);
   const put = (ch: string) => { if (value.length < MAX) onChange(value + ch); };
+  const voice = useVoice(lay, (s) => onChange(s.slice(0, MAX)));      // spoken words land in the field; the visitor checks and sends them
   return (
-    <div className="kai-keys" data-testid="kai-keys" data-layout={lay}>
+    <div className="kai-keys" data-testid="kai-keys" data-layout={lay} data-voice={voice.mode}>
+      {voice.mode !== "off" && (
+        <p className={`kai-voice${voice.listening ? " on" : ""}`} data-testid="kai-voice-note" aria-live="polite">
+          {voice.listening ? t("kai.voice.listening") : voice.failed ? t("kai.voice.error") : t(`kai.voice.${voice.mode}`)}
+        </p>
+      )}
       <div className="kai-line">
+        {voice.mode !== "off" && (
+          <button type="button" className="kai-mic" aria-pressed={voice.listening} onClick={() => (voice.listening ? voice.stop() : voice.start())} data-testid="kai-mic">
+            {voice.listening ? `■ ${t("kai.voice.stop")}` : `🎤 ${t("kai.voice.start")}`}
+          </button>
+        )}
         <input className="kai-in" value={value} placeholder={placeholder} inputMode="none" maxLength={MAX} dir="auto" aria-label={placeholder} data-testid="kai-input"
           onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onSend(); }} />
         <button type="button" className="kai-send" disabled={busy || value.trim().length < 2} onClick={onSend} data-testid="kai-send">{t("kai.send")}</button>
