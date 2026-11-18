@@ -51,12 +51,21 @@ def forecast_part(run: dict, base: dict) -> dict:
     level = "unknown" if band is None else "high" if band <= cfg["band_high"] else "medium" if band <= cfg["band_medium"] else "low"
     bt = latest_eval("forecast")
     m = (bt or {}).get("metrics", {})
-    return {"level": level, "station": hot["station_id"], "hour": hot["hour"], "band": band,
+    # The backtest of the model that is actually served (profile_*, decision #146) when the result file has it;
+    # otherwise the offline LightGBM forecaster's, labelled as such.
+    served = m.get("profile_mase") is not None
+    key = "profile" if served else "lgbm"
+    cov = m.get(f"{key}_coverage80")
+    narrow = bool(served and cov is not None and cov < cfg["coverage_min"])
+    if narrow:
+        level = "low"                                 # a tight band that misses too many actuals is not a confident forecast
+    return {"level": level, "station": hot["station_id"], "hour": hot["hour"], "band": band, "band_too_narrow": narrow,
             "p10": row and round(row["entries_p10"]), "p50": row and round(row["entries_p50"]), "p90": row and round(row["entries_p90"]),
             "band_from": "synthetic days" if run["is_synthetic"] else "observed days",
-            "backtest": bt and {"file": bt["file"], "mase": m.get("lgbm_mase"), "naive_mase": m.get("naive_mase"),
-                                "coverage80": m.get("lgbm_coverage80"), "n": bt["n"], "data": "synthetic" if run["is_synthetic"] else "real",
-                                "note": "backtest of the offline LightGBM forecaster; the forecast on screen is a weekday profile plus an event model"},
+            "backtest": bt and {"file": bt["file"], "model": "served_profile" if served else "offline_lgbm", "mase": m.get(f"{key}_mase"),
+                                "naive_mase": m.get("naive_mase"), "coverage80": cov, "n": bt["n"], "data": "synthetic" if run["is_synthetic"] else "real",
+                                "note": "backtest of the weekday profile the twin serves" if served else
+                                        "backtest of the offline LightGBM forecaster; the forecast on screen is a weekday profile plus an event model"},
             "run_id": run["run_id"]}
 
 

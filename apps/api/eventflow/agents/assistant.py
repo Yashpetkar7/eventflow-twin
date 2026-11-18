@@ -613,9 +613,11 @@ def a_evidence(t: Turn, a: dict) -> dict:
               {"key": "chat.evidenceBand", "params": {"station_st": f["station"], "hour_t": f"{f['hour']:02d}:00", "p10_n": f["p10"] or 0, "p50_n": f["p50"] or 0,
                                                       "p90_n": f["p90"] or 0}}]
     if bt.get("mase") is not None:
-        blocks.append({"key": "chat.evidenceBacktest", "params": {"mase_x": round(bt["mase"], 2), "naive_x": round(bt["naive_mase"], 2),
+        blocks.append({"key": "chat.evidenceBacktestServed" if bt.get("model") == "served_profile" else "chat.evidenceBacktest", "params": {"mase_x": round(bt["mase"], 2), "naive_x": round(bt["naive_mase"], 2),
                                                                   "coverage_pct": _pct(bt["coverage80"]), "rows_n": bt["n"]}})
         t.evidence.append({"kind": "eval", "id": bt["file"], "tool": "backtest", "run_id": None})
+        if f.get("band_too_narrow"):
+            blocks.append({"key": "chat.evidenceNarrow", "params": {"coverage_pct": _pct(bt["coverage80"])}})
     for pid in ("model.forecast", "model.data", "data.gtfs"):
         hit = knowledge.by_id(pid)
         if hit:

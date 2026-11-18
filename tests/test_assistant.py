@@ -259,6 +259,22 @@ def test_confidence_is_graded_and_synthetic_demand_caps_it(c):
     assert confidence.weakest(["high", "unknown", "medium"]) == "medium" and confidence.weakest(["unknown"]) == "unknown"
 
 
+def test_the_served_forecasts_own_backtest_is_used_when_present_and_a_narrow_band_is_said(c, monkeypatch):
+    real = confidence.latest_eval
+
+    def fake(suite):
+        if suite != "forecast":
+            return real(suite)
+        return {"file": "forecast_fake.json", "n": 100, "split": "test", "is_synthetic": True, "dataset_version": "x", "models": {},
+                "metrics": {"naive_mase": 0.97, "lgbm_mase": 0.78, "lgbm_coverage80": 0.79, "profile_mase": 0.77, "profile_coverage80": 0.63}}
+    monkeypatch.setattr(confidence, "latest_eval", fake)
+    d = ask(c, ref(c), "What evidence supports this prediction?")
+    keys = [b["key"] for b in d["blocks"]]
+    assert "chat.evidenceBacktestServed" in keys and "chat.evidenceNarrow" in keys and "chat.evidenceBacktest" not in keys
+    f = d["confidence"]["forecast"]
+    assert f["backtest"]["model"] == "served_profile" and f["backtest"]["coverage80"] == 0.63 and f["band_too_narrow"] and f["level"] == "low"
+
+
 def test_evidence_names_the_data_the_backtest_and_the_documents(c):
     d = ask(c, ref(c), "What evidence supports this prediction?")
     keys = [b["key"] for b in d["blocks"]]

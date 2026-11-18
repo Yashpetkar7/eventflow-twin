@@ -40,6 +40,7 @@ lenses:
 confidence:
   band_high: 0.10                    # (p90 − p10) ÷ p50 of demand at the hotspot hour: at most this → narrow
   band_medium: 0.25
+  coverage_min: 0.70                 # the served forecast's p10–p90 range should hold 80 % of actuals; under this in the backtest, the range is too narrow to trust
   stress_high: 0.70                  # share of stress cases an option still holds in
   stress_medium: 0.40
 

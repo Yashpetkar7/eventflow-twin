@@ -1181,6 +1181,8 @@
         "evidenceReal": "The forecast uses observed demand ({dataset_s}).",
         "evidenceBand": "At {station_st} at {hour_t} the forecast expects {p50_n} riders, between {p10_n} and {p90_n} on most days.",
         "evidenceBacktest": "In its last backtest the offline forecaster scored {mase_x} against {naive_x} for a simple seasonal guess (lower is better), with {coverage_pct}% of {rows_n} held-out hours inside its range. That test was on synthetic data too.",
+        "evidenceBacktestServed": "In its last backtest the forecast shown on screen scored {mase_x} against {naive_x} for a simple seasonal guess (lower is better), with {coverage_pct}% of {rows_n} held-out hours inside its range. That test was on synthetic data too.",
+        "evidenceNarrow": "That range is meant to hold four hours in five and held only {coverage_pct}%, so it is too narrow. Treat the forecast's spread as low confidence.",
         "noChange": "I have no earlier scenario in this conversation to compare with. Change a setting, then ask again.",
         "changed": "{field_s}: {from_s} → {to_s}.",
         "changedEffect": "Before any plan, that moved the peak load {peak_b_pct}% → {peak_a_pct}% and the station-hours over the line {over_b_x} → {over_a_x} (worst at {worst_st}).",
