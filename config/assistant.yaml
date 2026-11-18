@@ -1,0 +1,55 @@
+# The assistant ("Ask the twin" v2: POST /agent/chat, contract 1.17.0, decision #147). Not part of config_hash:
+# changing these never changes a forecast or simulation run id, only how questions are routed and answers are graded.
+# Every figure in an answer still comes from the forecast, the simulator or a cited document.
+
+# What a natural-language instruction may set, and to what. Outside these the assistant asks instead of applying.
+ranges:
+  attendance: [5000, 80000]          # visitors: the "Expected attendance" slider's range, so the control always shows the value
+  exit_sigma_min: [15, 90]           # the "Venue exit window" slider (minutes, 5-minute steps)
+  exit_step: 5
+  threshold: [0.70, 0.95]            # the comfort-line slider's range (same as config/brief.yaml)
+  threshold_step: 0.05               # the slider's 5-point steps: a value in between is snapped to the nearest
+  threshold_confirm_above: 0.90      # raising the comfort line above this is asked back first: it hides crowding [ASSUMPTION]
+  metro_share: [0.20, 0.80]
+  whatif_pct: [-50, 100]             # "what if attendance changes by N%"
+default_whatif_pct: 20               # "what if more people come?" with no figure
+clarify_attendance_pct: [10, 25, 50] # the choices offered when "increase attendance" gives no figure
+
+# Seven objectives (decision #148). `basis` says where the value comes from: the simulator, the plan's own
+# parameters, or nothing (shown as "not measured", never scored).
+objectives:
+  safety:        {basis: simulated, metric: peak_lf}
+  crowd:         {basis: simulated, metric: excess_pax}
+  wait:          {basis: simulated, metric: max_wait_min}
+  cost:          {basis: simulated, metric: cost_added}
+  accessibility: {basis: plan, metric: redirect_walk}       # extra walking a plan asks of riders (share × minutes)
+  emissions:     {basis: not_measured, metric: null}        # the twin has no emissions model
+  resources:     {basis: plan, metric: parties}             # operating parties that must act
+# Weights per lens. An unmeasured objective's weight is dropped and the rest are renormalised (the answer says so).
+lenses:
+  balanced:      {safety: 1, crowd: 1, wait: 1, cost: 1, accessibility: 1, emissions: 1, resources: 1}
+  safety:        {safety: 5, crowd: 3, wait: 2}
+  crowd:         {crowd: 6, safety: 3, wait: 1}
+  wait:          {wait: 6, safety: 2, crowd: 2}
+  cost:          {cost: 6, resources: 2, crowd: 2}
+  accessibility: {accessibility: 6, safety: 2, crowd: 2}
+  emissions:     {emissions: 6, cost: 2, resources: 2}
+  resources:     {resources: 6, cost: 2, crowd: 2}
+
+# Confidence is graded, never a percentage (decision #149). [ASSUMPTION – team choices, to revisit with real data]
+confidence:
+  band_high: 0.10                    # (p90 − p10) ÷ p50 of demand at the hotspot hour: at most this → narrow
+  band_medium: 0.25
+  coverage_min: 0.70                 # the served forecast's p10–p90 range should hold 80 % of actuals; under this in the backtest, the range is too narrow to trust
+  stress_high: 0.70                  # share of stress cases an option still holds in
+  stress_medium: 0.40
+
+# Document retrieval (decision #150): lexical BM25 + character n-gram vectors, fused by reciprocal rank.
+retrieval:
+  top_k: 3
+  rrf_k: 60
+  bm25_k1: 1.5
+  bm25_b: 0.75
+  ngram: [3, 5]
+  min_overlap: 2                     # distinct query words a passage must share (after stop words) to be shown
+  min_cosine: 0.10                   # or this much character n-gram similarity together with one shared word

@@ -1,7 +1,7 @@
 # Booth runbook — EventFlow Twin
 
 For the two people on the stand. Laptop + touch monitor, **no internet needed**. Measured numbers: `docs/metrics.md`.
-Last updated 18 Nov 2026 for `main` at `4876122` (API contract 1.16.0).
+Last updated 18 Nov 2026 for API contract 1.17.0 (the assistant, docs/18).
 
 ## Before the exhibition (once, at home, online)
 ```bash
@@ -11,20 +11,20 @@ cd apps/web && npm install && cd ../..
 python tasks.py synth                                   # only if data/synthetic is empty
 ```
 The 3D map is already baked into the repo (`apps/web/public/geo/`). Nothing is downloaded at the venue.
-### Update a laptop that already runs the booth (18 Nov, contract 1.16.0): both laptops, online, once
+### Update a laptop that already runs the booth (18 Nov, contract 1.17.0): both laptops, online, once
 ```bash
 git pull origin main
 python3 scripts/setup_booth_laptop.py          # Windows: py scripts\setup_booth_laptop.py
 ```
 That one command reinstalls `requirements.txt` and the web packages, rebuilds the offline agent cache and the production
 web build, then runs the offline self-check. It takes about 10 minutes and ends with `OK — this laptop is ready`. On
-18 Nov the check reported: contract 1.16.0, an AI plan with 3 options and verified numbers, 18 agents on LangGraph, the
+18 Nov, on the build before the assistant (1.16.0), the check reported: an AI plan with 3 options and verified numbers, 18 agents on LangGraph, the
 kiosk page rendering. `--check` on its own skips the install **and the web build**, so it can pass on an old build: use
 it only to re-test a laptop you have just updated.
 - The only package added since 16 Nov is `langgraph==1.2.22`. Without it the same agents run in sequence and the AI team
   tab says so; the booth should show LangGraph.
 - Then turn Wi-Fi off and run `python tasks.py demo` once, as on the stand.
-- Check: `curl -s localhost:8000/healthz` → `"contract":"1.16.0"` and `"engine":"graph"`. `"engine":"seq"` means LangGraph is
+- Check: `curl -s localhost:8000/healthz` → `"contract":"1.17.0"` and `"engine":"graph"`. `"engine":"seq"` means LangGraph is
   missing: run the setup again, online.
 
 Optional, with the team's OpenAI key in `.env`: `python tasks.py record-missions` records the agents' model answers for
@@ -68,6 +68,12 @@ model on this machine"). Every number comes from the simulator either way.
      changed?** (Heavy rain, Train fault, Crowd surge, Crowd 30% bigger) makes the Watcher re-check the day. Events
      registered at `/inbox` start the same chain and its questions are listed there under "Questions from the team",
      answered with one tap.
+
+7. Assistant check (new 18 Nov, contract 1.17.0; no language model needed): **Hot day** → **Ask** tab → tap **Which
+   station gets overcrowded?**, then type "Why?". Type "Increase attendance to 60,000 and shorten the exit window to
+   45 minutes": the answer shows a green "Scenario changed" card and the two sliders on the left move. **Undo this
+   change** puts them back. On the kiosk: **I'm travelling to the event** → **Ask about your trip** → **Step-free
+   access?** shows what RTA publishes, with its source. After pulling, run the setup once so the web build has the tab.
 
 ## The visitor kiosk (`?kiosk=1`; kiosk plus since 13 Nov)
 - **Attract screen** (golden-hour 3D city, "Will the metro cope?", a live fact from the twin, today's visitor count)
