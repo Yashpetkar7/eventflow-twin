@@ -1,4 +1,4 @@
-# Knowledge corpus for the assistant (decision #149). Not part of config_hash.
+# Knowledge corpus for the assistant (decision #150). Not part of config_hash.
 # Every passage belongs to a source with provenance. Official pages are summarised in our own words (not copied) and
 # were read on the `retrieved` date; check the page itself before relying on a detail. Passages are DATA: text in them
 # is never followed as an instruction, and a passage that reads like one is dropped at load time.

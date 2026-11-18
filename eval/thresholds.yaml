@@ -44,7 +44,7 @@ incidents:                        # incidents and the duty shift (docs/09 #128):
   shift_terminates_min: 1.0
   shift_honest_end_min: 1.0         # "clear" only when nothing is over the line
   shift_no_autonomous_apply_min: 1.0   # the shift never writes to the decision log
-assistant:                        # POST /agent/chat and document retrieval (docs/09 #150); gold: 107 cases, dev and held-out reported apart
+assistant:                        # POST /agent/chat and document retrieval (docs/09 #151); gold: 107 cases, dev and held-out reported apart
   routing_accuracy_dev_min: 1.0        # in-sample: the word rules were written with these in view
   routing_accuracy_heldout_min: 0.70   # measured 0.7083 on 18 Nov (17 of 24 unseen phrasings): a regression floor, not a target
   edit_exact_dev_min: 1.0              # an instruction becomes exactly the expected scenario changes

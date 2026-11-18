@@ -1,4 +1,4 @@
-// The Ask tab and the kiosk's visitor questions (contract 1.17.0, docs/18_ASSISTANT.md, decisions #146–#150).
+// The Ask tab and the kiosk's visitor questions (contract 1.17.0, docs/18_ASSISTANT.md, decisions #147–#151).
 // What is checked in a real browser: answers carry the simulator run behind them; a follow-up keeps its subject; an
 // instruction in plain words changes the REAL scenario (the controls move, the version goes up, the run on screen is
 // the run the answer named) and can be undone; plans are compared under a lens with what is not measured said so;

@@ -33,7 +33,7 @@ flowchart TB
 | Store | SQLite offline, Postgres with `DATABASE_URL` | the booth needs no database server |
 | Live updates | server-sent events (`POST /agent/run/stream`) | one-way stream is enough; no WebSocket server to run |
 | Web | Next.js App Router, react-three-fiber, zustand, next-intl | 3D twin, RTL Arabic, offline snapshot |
-| Document retrieval (since 18 Nov, #149) | BM25 + character n-gram vectors in plain Python, reciprocal rank fusion | a 21-passage cited corpus; offline, no new package; explanations and published facts only, never figures |
+| Document retrieval (since 18 Nov, #150) | BM25 + character n-gram vectors in plain Python, reciprocal rank fusion | a 21-passage cited corpus; offline, no new package; explanations and published facts only, never figures |
 | Not used, on purpose | a vector database, neural embeddings, Redis | the corpus is small and the booth is offline; state is small and fits the store |
 
 ## 3. Data sources

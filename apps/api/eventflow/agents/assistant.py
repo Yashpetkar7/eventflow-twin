@@ -1,4 +1,4 @@
-"""The assistant: one conversation engine behind POST /agent/chat for the command centre and the kiosk (decision #146).
+"""The assistant: one conversation engine behind POST /agent/chat for the command centre and the kiosk (decision #147).
 
     question ─► screen ─► route (chip → follow-up → word rules → model, if one is recorded or live → documents)
              ─► ONE tool path for that intent ─► structured answer with the run or document behind every statement

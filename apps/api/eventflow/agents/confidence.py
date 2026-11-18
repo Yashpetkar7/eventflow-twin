@@ -1,4 +1,4 @@
-"""Confidence and evidence, graded in separate parts (decision #148). No language model writes any of it and there is
+"""Confidence and evidence, graded in separate parts (decision #149). No language model writes any of it and there is
 no single percentage: each part is computed from the forecast, the checks or the evaluation files, and the overall
 grade is the weakest part.
 

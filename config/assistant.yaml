@@ -1,4 +1,4 @@
-# The assistant ("Ask the twin" v2: POST /agent/chat, contract 1.17.0, decision #146). Not part of config_hash:
+# The assistant ("Ask the twin" v2: POST /agent/chat, contract 1.17.0, decision #147). Not part of config_hash:
 # changing these never changes a forecast or simulation run id, only how questions are routed and answers are graded.
 # Every figure in an answer still comes from the forecast, the simulator or a cited document.
 
@@ -15,7 +15,7 @@ ranges:
 default_whatif_pct: 20               # "what if more people come?" with no figure
 clarify_attendance_pct: [10, 25, 50] # the choices offered when "increase attendance" gives no figure
 
-# Seven objectives (decision #147). `basis` says where the value comes from: the simulator, the plan's own
+# Seven objectives (decision #148). `basis` says where the value comes from: the simulator, the plan's own
 # parameters, or nothing (shown as "not measured", never scored).
 objectives:
   safety:        {basis: simulated, metric: peak_lf}
@@ -36,14 +36,14 @@ lenses:
   emissions:     {emissions: 6, cost: 2, resources: 2}
   resources:     {resources: 6, cost: 2, crowd: 2}
 
-# Confidence is graded, never a percentage (decision #148). [ASSUMPTION – team choices, to revisit with real data]
+# Confidence is graded, never a percentage (decision #149). [ASSUMPTION – team choices, to revisit with real data]
 confidence:
   band_high: 0.10                    # (p90 − p10) ÷ p50 of demand at the hotspot hour: at most this → narrow
   band_medium: 0.25
   stress_high: 0.70                  # share of stress cases an option still holds in
   stress_medium: 0.40
 
-# Document retrieval (decision #149): lexical BM25 + character n-gram vectors, fused by reciprocal rank.
+# Document retrieval (decision #150): lexical BM25 + character n-gram vectors, fused by reciprocal rank.
 retrieval:
   top_k: 3
   rrf_k: 60

@@ -1,6 +1,6 @@
 # 18. The assistant: conversation, scenario changes in plain words, cited knowledge, graded confidence
 
-Contract **1.17.0** · decisions **#146–#150** · built 18 Nov 2026 · owner of this stream: Krishna.
+Contract **1.17.0** · decisions **#147–#151** · built 18 Nov 2026 · owner of this stream: Krishna.
 
 This is the first slice of the "agentic decision-support" brief of 18 Nov. It adds one conversation engine behind
 `POST /agent/chat`, used by the command centre (a new **Ask** tab) and by the kiosk (visitor questions on the rider

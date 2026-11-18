@@ -37,7 +37,7 @@ RULES = {  # threshold key -> (suite, metric, comparison)
     "incidents.shift_terminates_min": ("incidents", "shift_terminates", "min"),
     "incidents.shift_honest_end_min": ("incidents", "shift_honest_end", "min"),
     "incidents.shift_no_autonomous_apply_min": ("incidents", "shift_no_autonomous_apply", "min"),
-    # the assistant: chat routing, scenario edits, kiosk limits, document retrieval (decision #150)
+    # the assistant: chat routing, scenario edits, kiosk limits, document retrieval (decision #151)
     "assistant.routing_accuracy_dev_min": ("assistant", "routing_accuracy_dev", "min"),
     "assistant.routing_accuracy_heldout_min": ("assistant", "routing_accuracy_heldout", "min"),
     "assistant.edit_exact_dev_min": ("assistant", "edit_exact_dev", "min"),

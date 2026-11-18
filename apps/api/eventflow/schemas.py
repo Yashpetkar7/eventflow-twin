@@ -1021,7 +1021,7 @@ class TravelAdvice(BaseModel):
     source: dict
 
 
-# ---------- the assistant (contract 1.17.0, docs/18_ASSISTANT.md, decisions #146–#149) ----------
+# ---------- the assistant (contract 1.17.0, docs/18_ASSISTANT.md, decisions #147–#151) ----------
 ChatAudience = Literal["planner", "kiosk"]
 ChatStatus = Literal["answered", "applied", "clarify", "refused", "insufficient_evidence"]
 PlanLifecycle = Literal["suggested", "simulated", "validated", "approved", "executed"]

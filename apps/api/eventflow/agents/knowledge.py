@@ -1,4 +1,4 @@
-"""Document knowledge for the assistant (decision #149): a small corpus with provenance, hybrid retrieval, and a
+"""Document knowledge for the assistant (decision #150): a small corpus with provenance, hybrid retrieval, and a
 knowledge graph of the corridor built from the configuration.
 
 Kept apart from the operational numbers on purpose: a passage can explain a method or quote what an authority

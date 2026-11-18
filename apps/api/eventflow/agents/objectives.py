@@ -1,4 +1,4 @@
-"""Seven objectives over the plans a mission simulated (decision #147).
+"""Seven objectives over the plans a mission simulated (decision #148).
 
 A read-only view: it never changes the team's recommendation or the ranking that produced it. Given the plans the
 mission tested (the options it offered and the ones it rejected), it

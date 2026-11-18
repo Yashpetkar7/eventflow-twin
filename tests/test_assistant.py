@@ -1,4 +1,4 @@
-"""The assistant (docs/18, decisions #146–#149): POST /agent/chat for the command centre and the kiosk.
+"""The assistant (docs/18, decisions #147–#151): POST /agent/chat for the command centre and the kiosk.
 
 What must hold: one tool path per question, figures only from runs, multi-turn context carried by the client,
 natural-language instructions that really change the scenario (as a validated, versioned patch), the kiosk never
