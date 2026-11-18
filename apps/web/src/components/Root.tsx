@@ -54,7 +54,8 @@ function Workspace() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    useTwin.setState({ kiosk: q.get("kiosk") === "1" || q.get("kiosk") === "classic", reducedMotion: mq.matches });
+    useTwin.setState({ kiosk: q.get("kiosk") === "1" || q.get("kiosk") === "classic", reducedMotion: mq.matches,
+      ...(q.get("ask") === "0" ? { askMe: false } : {}) });      // "Ask me during planning" is on by default; ?ask=0 starts with it off
     const onMq = () => useTwin.setState({ reducedMotion: mq.matches });
     mq.addEventListener("change", onMq);
     void useTwin.getState().init();

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.17.0"   # 1.17.0: the assistant — POST /agent/chat (multi-turn, planner and kiosk audiences, natural-language scenario changes returned as a typed patch, plan comparison under seven objectives, graded confidence, cited documents), GET /knowledge/sources, GET /knowledge/graph · 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.18.0"   # 1.18.0: the "calm" checkpoint (nothing over the line: the team stress-tests by itself and asks; pause actions try_crowd/try_hot/try_line with their values in pause.params.probes) · POST /scenario/compare (two scenarios side by side: settings that differ, the effect before any plan, each one's recommendation; for the run history) · 1.17.0: the assistant — POST /agent/chat (multi-turn, planner and kiosk audiences, natural-language scenario changes returned as a typed patch, plan comparison under seven objectives, graded confidence, cited documents), GET /knowledge/sources, GET /knowledge/graph · 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -439,8 +439,8 @@ class ConfirmedBrief(BaseModel):
     removed: list[str] = Field(default_factory=list, max_length=20, description="Fields the planner removed or changed")
 
 
-CheckpointId = Literal["hotspot", "partial"]
-CheckpointAction = Literal["confirm", "focus", "stop", "accept", "more", "allow", "raise_cap"]
+CheckpointId = Literal["hotspot", "partial", "calm"]
+CheckpointAction = Literal["confirm", "focus", "stop", "accept", "more", "allow", "raise_cap", "try_crowd", "try_hot", "try_line"]
 
 
 class CheckpointAnswer(BaseModel):
@@ -449,7 +449,10 @@ class CheckpointAnswer(BaseModel):
     checkpoint: CheckpointId
     action: CheckpointAction = Field(description="hotspot: confirm · focus (another over-threshold station) · stop. "
                                                  "partial: accept (the best plan so far) · more (one more round, at most 2). "
-                                                 "allow / raise_cap change the constraints: the caller applies them and runs again")
+                                                 "allow / raise_cap change the constraints: the caller applies them and runs again. "
+                                                 "calm (1.18.0): accept (no plan needed). try_crowd / try_hot / try_line are offered in "
+                                                 "`pause.actions` with their values in `pause.params.probes`; they change the SCENARIO, so "
+                                                 "the caller applies that probe and runs the team again, and never sends them here")
     station: str | None = Field(None, max_length=40, description="focus: the station to plan for")
     measure: InterventionType | None = Field(None, description="allow: the measure the planner allows again")
     cost_cap: float | None = Field(None, ge=0, le=1000, description="raise_cap: the new cost cap")
@@ -460,7 +463,9 @@ class CheckpointPause(BaseModel):
     checkpoint: CheckpointId
     asked_by: str = Field(description="The agent that asks (supervisor)")
     params: dict = Field(default_factory=dict, description="hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · "
-                                                           "partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap")
+                                                           "partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap · "
+                                                           "calm (1.18.0): station, hour, peak_pct, threshold_pct, probes[{id, action, peak_lf, "
+                                                           "overcap_station_hours, stations_over, crosses, run_id, attendance | weather | threshold}]")
     actions: list[CheckpointAction] = Field(description="The answers that apply here")
 
 
@@ -468,7 +473,7 @@ class AgentRunRequest(AgentPlanRequest):
     forecast: ForecastRequest = Field(description="The forecast request (required: the stress test re-forecasts from it)")
     constraints: Constraints = Field(default_factory=Constraints)
     brief: ConfirmedBrief | None = Field(None, description="The planner's confirmed brief (sent only when one was used)")
-    checkpoints: list[CheckpointId] = Field(default_factory=list, max_length=2, description="Where the team stops and asks the human (1.16.0)")
+    checkpoints: list[CheckpointId] = Field(default_factory=list, max_length=3, description="Where the team stops and asks the human (1.16.0; 'calm' since 1.18.0)")
     answers: list[CheckpointAnswer] = Field(default_factory=list, max_length=12, description="The human's answers so far, in order")
 
 
@@ -1022,7 +1027,7 @@ class TravelAdvice(BaseModel):
 
 
 # ---------- the assistant (contract 1.17.0, docs/18_ASSISTANT.md, decisions #147–#151) ----------
-ChatAudience = Literal["planner", "kiosk"]
+ChatAudience = Literal["planner", "kiosk", "sandbox"]
 ChatStatus = Literal["answered", "applied", "clarify", "refused", "insufficient_evidence"]
 PlanLifecycle = Literal["suggested", "simulated", "validated", "approved", "executed"]
 
@@ -1061,7 +1066,8 @@ class ChatRequest(_ScenarioRef):
     message: str | None = Field(None, max_length=500, description="The question or instruction (untrusted: read, screened, never followed)")
     intent: str | None = Field(None, max_length=40, description="A chip or button: the intent to run, no routing needed (e.g. 'compare', 'lens:safety')")
     args: dict | None = Field(None, description="Arguments of a chip or button (e.g. {'attendance': 60000})")
-    audience: ChatAudience = Field("planner", description="'kiosk' = visitor answers only: no plans, no scenario changes, no internals")
+    audience: ChatAudience = Field("planner", description="'kiosk' = visitor answers only: no plans, no scenario changes, no internals. "
+                                                           "'sandbox' (1.18.0) = the kiosk's planning game: scenario changes and what-ifs, no plan tables or internals")
     locale: Literal["en", "ar"] = "en"
     priority: Literal["cost", "balanced", "impact"] = "balanced"
     constraints: Constraints = Field(default_factory=Constraints)
@@ -1199,4 +1205,42 @@ class KnowledgeSources(BaseModel):
     dropped: list[str]
     method: str
     sources: list[dict]
+
+
+# ---------- scenario comparison for the run history (contract 1.18.0, decision #153) ----------
+class ScenarioCompareRequest(BaseModel):
+    a: ChatSettings = Field(description="The earlier scenario (e.g. the one a past run was for)")
+    b: ChatSettings = Field(description="The later scenario (e.g. the one on screen)")
+    scope: Scope = "corridor"
+    applied: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
+    locale: Literal["en", "ar"] = "en"
+
+
+class SettingChange(BaseModel):
+    field: str
+    was: Any = None
+    to: Any = None
+
+
+class ScenarioSide(BaseModel):
+    settings: dict
+    forecast_run_id: str
+    simulation_run_id: str
+    mission_id: str
+    headline: dict = Field(description="Before any plan: worst_station, peak_lf, overcap_station_hours, stations_over")
+    options: int
+    stop_reason: str | None = None
+    recommended: dict | None = Field(None, description="The team's recommended option, or null when no plan is needed")
+    is_synthetic: bool
+
+
+class ScenarioCompareResponse(BaseModel):
+    a: ScenarioSide
+    b: ScenarioSide
+    changes: list[SettingChange]
+    identical: bool
+    same_recommendation: bool
+    delta: dict
+    is_synthetic: bool
+    note: str
 

@@ -48,6 +48,10 @@ def template_rationale(title: str, s: dict, base: dict) -> str:
 
 
 def main_() -> None:
+    import tempfile
+
+    from apps.api.eventflow.agents import planner as _planner
+    _planner.CACHE_WRITE = Path(tempfile.mkdtemp())            # the fixtures' scenarios are examples: their plans must not land in data/demo_cache
     FIX.mkdir(parents=True, exist_ok=True)
     c = TestClient(main.app)
     (OUT / "openapi.json").write_text(json.dumps(main.app.openapi(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -117,6 +121,8 @@ def main_() -> None:
     dump("chat_planner_edit.json", chat({"message": "Increase attendance to 60,000 and shorten the exit window to 45 minutes"}))
     dump("chat_kiosk_accessible.json", chat({"message": "Which accessible route can I use?", "audience": "kiosk"}))
     dump("knowledge_sources.json", c.get("/knowledge/sources").json())
+    st = {"threshold": 0.85, "priority": "balanced", "constraints": {"forbid_types": [], "protect_stations": [], "cost_cap": None}}
+    dump("scenario_compare.json", c.post("/scenario/compare", json={"a": {"forecast": hot, **st}, "b": {"forecast": {**hot, "attendance": 60000}, **st}}).json())
     (OUT / "VERSION").write_text(CONTRACT_VERSION + "\n", encoding="utf-8")
     print(f"contract {CONTRACT_VERSION}: openapi.json + {len(list(FIX.glob('*.json')))} fixtures in {OUT}")
 

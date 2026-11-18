@@ -12,7 +12,7 @@ const st = (page: Page) => page.evaluate(() => (window as unknown as W).__twin.g
 
 async function open(page: Page, lang: "en" | "ar" = "en") {
   await page.addInitScript((l) => { try { sessionStorage.setItem("eft_welcome", "1"); localStorage.setItem("eventflow.locale", l); } catch { /* ignore */ } }, lang);
-  await page.goto("/");
+  await page.goto("/?ask=0");   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await page.evaluate(() => (window as unknown as W).__twin.getState().selectEvent("downtown_night"));
   await page.waitForFunction(() => !(window as unknown as W).__twin.getState().loading);

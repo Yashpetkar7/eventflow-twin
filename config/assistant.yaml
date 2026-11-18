@@ -15,6 +15,11 @@ ranges:
 default_whatif_pct: 20               # "what if more people come?" with no figure
 clarify_attendance_pct: [10, 25, 50] # the choices offered when "increase attendance" gives no figure
 
+# Rider preferences on the kiosk (session only; decision #155). [ASSUMPTION – team choices]
+prefs:
+  short_walk_min: 10                 # "I can't walk far": only stations within this walk are suggested
+  quiet_gap: 0.10                    # "I'd rather have room": a station this much less loaded counts as the better choice
+
 # Seven objectives (decision #148). `basis` says where the value comes from: the simulator, the plan's own
 # parameters, or nothing (shown as "not measured", never scored).
 objectives:

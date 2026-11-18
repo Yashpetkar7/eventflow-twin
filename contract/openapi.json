@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.17.0"
+    "version": "1.18.0"
   },
   "paths": {
     "/healthz": {
@@ -621,6 +621,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scenario/compare": {
+      "post": {
+        "summary": "Scenario Compare Ep",
+        "description": "Two scenarios side by side (run history: \"compare with now\"): the settings that differ, peak load and\nover-threshold time before any plan, and the team's recommendation for each, all computed here with their run ids.",
+        "operationId": "scenario_compare_ep_scenario_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioCompareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioCompareResponse"
                 }
               }
             }
@@ -1975,13 +2014,14 @@
               "type": "string",
               "enum": [
                 "hotspot",
-                "partial"
+                "partial",
+                "calm"
               ]
             },
             "type": "array",
-            "maxItems": 2,
+            "maxItems": 3,
             "title": "Checkpoints",
-            "description": "Where the team stops and asks the human (1.16.0)"
+            "description": "Where the team stops and asks the human (1.16.0; 'calm' since 1.18.0)"
           },
           "answers": {
             "items": {
@@ -3259,7 +3299,8 @@
               "type": "string",
               "enum": [
                 "hotspot",
-                "partial"
+                "partial",
+                "calm"
               ]
             },
             "type": "array",
@@ -3711,10 +3752,11 @@
             "type": "string",
             "enum": [
               "planner",
-              "kiosk"
+              "kiosk",
+              "sandbox"
             ],
             "title": "Audience",
-            "description": "'kiosk' = visitor answers only: no plans, no scenario changes, no internals",
+            "description": "'kiosk' = visitor answers only: no plans, no scenario changes, no internals. 'sandbox' (1.18.0) = the kiosk's planning game: scenario changes and what-ifs, no plan tables or internals",
             "default": "planner"
           },
           "locale": {
@@ -3806,7 +3848,8 @@
             "type": "string",
             "enum": [
               "planner",
-              "kiosk"
+              "kiosk",
+              "sandbox"
             ],
             "title": "Audience"
           },
@@ -4007,7 +4050,8 @@
             "type": "string",
             "enum": [
               "hotspot",
-              "partial"
+              "partial",
+              "calm"
             ],
             "title": "Checkpoint"
           },
@@ -4020,10 +4064,13 @@
               "accept",
               "more",
               "allow",
-              "raise_cap"
+              "raise_cap",
+              "try_crowd",
+              "try_hot",
+              "try_line"
             ],
             "title": "Action",
-            "description": "hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again"
+            "description": "hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again. calm (1.18.0): accept (no plan needed). try_crowd / try_hot / try_line are offered in `pause.actions` with their values in `pause.params.probes`; they change the SCENARIO, so the caller applies that probe and runs the team again, and never sends them here"
           },
           "station": {
             "anyOf": [
@@ -4088,7 +4135,8 @@
             "type": "string",
             "enum": [
               "hotspot",
-              "partial"
+              "partial",
+              "calm"
             ],
             "title": "Checkpoint"
           },
@@ -4101,7 +4149,7 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Params",
-            "description": "hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap"
+            "description": "hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap · calm (1.18.0): station, hour, peak_pct, threshold_pct, probes[{id, action, peak_lf, overcap_station_hours, stations_over, crosses, run_id, attendance | weather | threshold}]"
           },
           "actions": {
             "items": {
@@ -4113,7 +4161,10 @@
                 "accept",
                 "more",
                 "allow",
-                "raise_cap"
+                "raise_cap",
+                "try_crowd",
+                "try_hot",
+                "try_line"
               ]
             },
             "type": "array",
@@ -7941,6 +7992,134 @@
         ],
         "title": "ScenarioChange"
       },
+      "ScenarioCompareRequest": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/ChatSettings",
+            "description": "The earlier scenario (e.g. the one a past run was for)"
+          },
+          "b": {
+            "$ref": "#/components/schemas/ChatSettings",
+            "description": "The later scenario (e.g. the one on screen)"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "ScenarioCompareRequest"
+      },
+      "ScenarioCompareResponse": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/ScenarioSide"
+          },
+          "b": {
+            "$ref": "#/components/schemas/ScenarioSide"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/SettingChange"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "identical": {
+            "type": "boolean",
+            "title": "Identical"
+          },
+          "same_recommendation": {
+            "type": "boolean",
+            "title": "Same Recommendation"
+          },
+          "delta": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Delta"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "a",
+          "b",
+          "changes",
+          "identical",
+          "same_recommendation",
+          "delta",
+          "is_synthetic",
+          "note"
+        ],
+        "title": "ScenarioCompareResponse"
+      },
       "ScenarioPatch": {
         "properties": {
           "version": {
@@ -8008,6 +8187,95 @@
         ],
         "title": "ScenarioPatch",
         "description": "A change to the shared scenario. The API has already forecast and simulated it (`recalculated`); the client makes\nit the state on screen, which runs the same deterministic requests and so arrives at the same run ids."
+      },
+      "ScenarioSide": {
+        "properties": {
+          "settings": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Settings"
+          },
+          "forecast_run_id": {
+            "type": "string",
+            "title": "Forecast Run Id"
+          },
+          "simulation_run_id": {
+            "type": "string",
+            "title": "Simulation Run Id"
+          },
+          "mission_id": {
+            "type": "string",
+            "title": "Mission Id"
+          },
+          "headline": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Headline",
+            "description": "Before any plan: worst_station, peak_lf, overcap_station_hours, stations_over"
+          },
+          "options": {
+            "type": "integer",
+            "title": "Options"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Reason"
+          },
+          "recommended": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended",
+            "description": "The team's recommended option, or null when no plan is needed"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "settings",
+          "forecast_run_id",
+          "simulation_run_id",
+          "mission_id",
+          "headline",
+          "options",
+          "is_synthetic"
+        ],
+        "title": "ScenarioSide"
+      },
+      "SettingChange": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "was": {
+            "title": "Was"
+          },
+          "to": {
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field"
+        ],
+        "title": "SettingChange"
       },
       "ShiftAlert": {
         "properties": {

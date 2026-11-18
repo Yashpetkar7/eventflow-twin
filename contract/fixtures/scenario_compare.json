@@ -1,0 +1,88 @@
+{
+  "a": {
+    "settings": {
+      "event": "gitex2025_d1",
+      "attendance": 40000,
+      "exit_sigma_min": 75,
+      "weather": "hot",
+      "metro_share": 0.55,
+      "threshold": 0.85,
+      "priority": "balanced",
+      "forbid": [],
+      "protect": [],
+      "cost_cap": null
+    },
+    "forecast_run_id": "fc_4887d109317c",
+    "simulation_run_id": "sim_0794c74737d4",
+    "mission_id": "mission_70abd545e957",
+    "headline": {
+      "worst_station": "WTC",
+      "peak_lf": 0.924,
+      "overcap_station_hours": 0.5,
+      "stations_over": 1
+    },
+    "options": 3,
+    "stop_reason": "goal_met",
+    "recommended": {
+      "rank": 3,
+      "title": "Staggered exit + wayfinding",
+      "peak_lf": 0.735,
+      "excess_pax": 0.0,
+      "cost_added": 2.5,
+      "run_id": "sim_33998dce1027",
+      "signature": "[\"{\\\"params\\\": {\\\"from_station\\\": \\\"WTC\\\", \\\"hours\\\": [15], \\\"share\\\": 0.1, \\\"to_station\\\": \\\"EMT\\\"}, \\\"type\\\": \\\"wayfinding_redirect\\\"}\", \"{\\\"params\\\": {\\\"spread_minutes\\\": 45}, \\\"type\\\": \\\"staggered_exit\\\"}\"]"
+    },
+    "is_synthetic": true
+  },
+  "b": {
+    "settings": {
+      "event": "gitex2025_d1",
+      "attendance": 60000,
+      "exit_sigma_min": 75,
+      "weather": "hot",
+      "metro_share": 0.55,
+      "threshold": 0.85,
+      "priority": "balanced",
+      "forbid": [],
+      "protect": [],
+      "cost_cap": null
+    },
+    "forecast_run_id": "fc_0d681cdfc948",
+    "simulation_run_id": "sim_df158368052d",
+    "mission_id": "mission_50b28f938e74",
+    "headline": {
+      "worst_station": "WTC",
+      "peak_lf": 1.327,
+      "overcap_station_hours": 2.5,
+      "stations_over": 2
+    },
+    "options": 3,
+    "stop_reason": "goal_met",
+    "recommended": {
+      "rank": 1,
+      "title": "Staggered exit + wayfinding",
+      "peak_lf": 0.764,
+      "excess_pax": 0.0,
+      "cost_added": 3.5,
+      "run_id": "sim_508a6ec02430",
+      "signature": "[\"{\\\"params\\\": {\\\"from_station\\\": \\\"WTC\\\", \\\"hours\\\": [14, 15, 16], \\\"share\\\": 0.2, \\\"to_station\\\": \\\"EMT\\\"}, \\\"type\\\": \\\"wayfinding_redirect\\\"}\", \"{\\\"params\\\": {\\\"spread_minutes\\\": 90}, \\\"type\\\": \\\"staggered_exit\\\"}\"]"
+    },
+    "is_synthetic": true
+  },
+  "changes": [
+    {
+      "field": "attendance",
+      "was": 40000,
+      "to": 60000
+    }
+  ],
+  "identical": false,
+  "same_recommendation": false,
+  "delta": {
+    "peak_lf": 0.403,
+    "overcap_station_hours": 2.0,
+    "stations_over": 1
+  },
+  "is_synthetic": true,
+  "note": "Both scenarios were forecast, simulated and planned for this answer. Runs are deterministic: the same settings always give the same run ids."
+}

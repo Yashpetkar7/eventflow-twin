@@ -1,7 +1,7 @@
 # Booth runbook — EventFlow Twin
 
 For the two people on the stand. Laptop + touch monitor, **no internet needed**. Measured numbers: `docs/metrics.md`.
-Last updated 18 Nov 2026 for API contract 1.17.0 (the assistant, docs/18).
+Last updated 18 Nov 2026 for API contract 1.18.0 (the assistant and runs, docs/18).
 
 ## Before the exhibition (once, at home, online)
 ```bash
@@ -11,7 +11,7 @@ cd apps/web && npm install && cd ../..
 python tasks.py synth                                   # only if data/synthetic is empty
 ```
 The 3D map is already baked into the repo (`apps/web/public/geo/`). Nothing is downloaded at the venue.
-### Update a laptop that already runs the booth (18 Nov, contract 1.17.0): both laptops, online, once
+### Update a laptop that already runs the booth (18 Nov, contract 1.18.0): both laptops, online, once
 ```bash
 git pull origin main
 python3 scripts/setup_booth_laptop.py          # Windows: py scripts\setup_booth_laptop.py
@@ -24,7 +24,7 @@ it only to re-test a laptop you have just updated.
 - The only package added since 16 Nov is `langgraph==1.2.22`. Without it the same agents run in sequence and the AI team
   tab says so; the booth should show LangGraph.
 - Then turn Wi-Fi off and run `python tasks.py demo` once, as on the stand.
-- Check: `curl -s localhost:8000/healthz` → `"contract":"1.17.0"` and `"engine":"graph"`. `"engine":"seq"` means LangGraph is
+- Check: `curl -s localhost:8000/healthz` → `"contract":"1.18.0"` and `"engine":"graph"`. `"engine":"seq"` means LangGraph is
   missing: run the setup again, online.
 
 Optional, with the team's OpenAI key in `.env`: `python tasks.py record-missions` records the agents' model answers for
@@ -60,7 +60,9 @@ model on this machine"). Every number comes from the simulator either way.
 6. Loop check (new 17–18 Nov; nothing here needs a language model):
    - **AI plan** → **Brief the team**: tap an example brief → **Read my brief**. It shows "Here is what I understood" and
      "Read by word rules: no AI model on this machine". **Confirm and plan** starts the mission.
-   - Tick **Ask me during planning** first to see the team stop and ask: "Plan for it?" (**Yes, plan for …**) and, if no
+   - **Ask me during planning** is ticked by default (1.18.0): the team stops and asks. On a calm day it asks which harder
+     case to plan for (a bigger crowd, a hot day, a stricter line). Untick it, or open with `?ask=0`, for one-tap planning.
+   - With it ticked you see the team stop and ask: "Plan for it?" (**Yes, plan for …**) and, if no
      plan clears the line, **Show me the best plans** / **Try one more round**.
    - On an option card, **Reject** asks why (**Too expensive** / **Not enough relief**, or your own words) → **Reject and
      replan** → "Round 2: the team replanned with your feedback".
@@ -69,10 +71,11 @@ model on this machine"). Every number comes from the simulator either way.
      registered at `/inbox` start the same chain and its questions are listed there under "Questions from the team",
      answered with one tap.
 
-7. Assistant check (new 18 Nov, contract 1.17.0; no language model needed): **Hot day** → **Ask** tab → tap **Which
+7. Assistant check (new 18 Nov, contract 1.17.0 and 1.18.0; no language model needed): **Hot day** → **Ask** tab → tap **Which
    station gets overcrowded?**, then type "Why?". Type "Increase attendance to 60,000 and shorten the exit window to
    45 minutes": the answer shows a green "Scenario changed" card and the two sliders on the left move. **Undo this
-   change** puts them back. On the kiosk: **I'm travelling to the event** → **Ask about your trip** → **Step-free
+   change** puts them back. **AI plan** now shows the run's status, an **Auto-run** switch, **Compare these plans on seven
+   objectives** and the **Run history** (contract 1.18.0). On the kiosk: **I'm travelling to the event** → **Ask about your trip** → **Step-free
    access?** shows what RTA publishes, with its source. After pulling, run the setup once so the web build has the tab.
 
 ## The visitor kiosk (`?kiosk=1`; kiosk plus since 13 Nov)
@@ -219,3 +222,13 @@ checkpoints): repeat `node tests/kiosk_fps.mjs` on the final build.
     PR #16: a charging status used to be written down as battery).
 - The real touch monitor (touch mapping, pinch zoom) and its native resolution.
 - A full exhibition day on battery/mains with the lid angle and brightness you will use.
+
+## Kiosk: typing and the AI sheet (1.18.0)
+
+- **✦ Ask the AI** in the kiosk's top bar opens a sheet with a built-in keyboard (English and Arabic). No physical keyboard is needed.
+- Planner screens: tap a suggested scenario, type a change ("make it 60,000 people"), or **Describe a new event**. Nothing changes without a tap or a typed instruction.
+- On a plan card, **✎ Edit** lets a visitor change the AI's plan; it is simulated before **Approve my version** is enabled.
+- **Start again** resets the comfort line, priority and weather for the next visitor.
+- **Continue on my phone** shows a QR code of the public rider page. The visitor's phone needs mobile data; the booth laptop does not.
+- **Speak** appears on the kiosk keyboard only when the browser can recognise speech (on the device, or online when the laptop has a connection). The first tap asks for microphone permission: allow it once before opening, or open the kiosk with `?voice=0` to hide the button in a noisy hall.
+

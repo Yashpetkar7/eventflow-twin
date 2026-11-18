@@ -20,7 +20,7 @@ type W = Window & { __twin: { getState: () => S } };
 async function open(page: Page, url = "/?scene=v1") {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.addInitScript(() => { try { sessionStorage.setItem("eft_welcome", "1"); localStorage.clear(); } catch { /* ignore */ } });
-  await page.goto(url);
+  await page.goto(`${url}${url.includes("?") ? "&" : "?"}ask=0`);   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
 }
 const idle = (page: Page) => page.waitForFunction(() => !(window as unknown as W).__twin.getState().loading);
@@ -169,7 +169,7 @@ test("kiosk: visitor questions by touch, RTA's page cited, and no planner functi
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.addInitScript(() => { try { localStorage.clear(); } catch { /* ignore */ } });
-  await page.goto("/?kiosk=1&idle=600");
+  await page.goto("/?kiosk=1&idle=600&ask=0");
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await page.getByTestId("kiosk-start").click();
   await page.getByTestId("kiosk-rider").click();

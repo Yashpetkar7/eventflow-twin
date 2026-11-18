@@ -101,9 +101,10 @@ export function useEventText(stations: Station[]) {
         : p.verdict === "residual" ? t("ev.residual", { excess: n("excess"), station: name(p.station) }) : t("ev.noRelief");
       case "critic.no_action": return t("ev.noAction");
       case "supervisor.replan": return t("ev.replan", { round: String(p.next_round ?? "") });
-      case "checkpoint.ask": return td("ev.cpAsk", { what: p.checkpoint === "hotspot" ? td("ev.cpHotspot", { station: name(p.station) })
+      case "checkpoint.ask": return td("ev.cpAsk", { what: p.checkpoint === "calm" ? td("ev.cpCalm") : p.checkpoint === "hotspot" ? td("ev.cpHotspot", { station: name(p.station) })
         : td("ev.cpPartial", { station: name(p.station), excess: n("excess") }) });
-      case "checkpoint.answer": return td("ev.cpAnswer", { what: td(`ev.cpA.${String(p.action)}`, { station: name(p.station) }) });
+      case "stress.probe": return td("ev.probe", { what: td(`ev.probeCase.${String(p.case)}`), peak: pct("peak_pct"), over: String(p.over ?? 0) });
+      case "checkpoint.answer": return td("ev.cpAnswer", { what: td(p.checkpoint === "calm" ? "ev.cpA.leave" : `ev.cpA.${String(p.action)}`, { station: name(p.station) }) });
       case "diagnosis.focus": return td("ev.focus", { station: name(p.worst) });
       case "supervisor.rank": return td(`ev.stop.${["goal_met", "max_rounds", "budget", "no_relief"].includes(String(p.reason)) ? String(p.reason) : "other"}`);
       case "ranker.kept": return t("ev.kept", { k: n("kept"), n: n("tested") });

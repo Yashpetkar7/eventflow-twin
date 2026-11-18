@@ -11,6 +11,10 @@ import { CORRIDOR_ORDER, useTwin, type RejectReason } from "@/lib/store";
 type T = (k: string, v?: Record<string, string | number>) => string;
 
 /** The team stopped and asks: one button per answer that applies here. */
+/** One harder scenario the team tested by itself at the "calm" checkpoint (every figure is the simulator's). */
+interface Probe { id: "crowd" | "hot" | "line"; action: string; crosses: boolean; peak_lf: number; station: string; overcap_station_hours: number; run_id: string;
+  attendance?: number; break_attendance?: number; attendance_now?: number; threshold?: number }
+
 export function CheckpointCard({ pause, busy, onAnswer, testid = "checkpoint" }: {
   pause: CheckpointPause; busy?: boolean; onAnswer: (a: CheckpointAnswer) => void; testid?: string;
 }) {
@@ -32,7 +36,30 @@ export function CheckpointCard({ pause, busy, onAnswer, testid = "checkpoint" }:
   return (
     <div ref={ref} className="card loop-ask" data-testid={testid} data-checkpoint={pause.checkpoint} role="group" aria-label={t("askTitle")}>
       <div className="loop-ask-head"><span className="loop-dot" aria-hidden="true" /> <b>{t("askTitle")}</b> <small>{t("askBy", { who: tm(`agent.${pause.asked_by}`) })}</small></div>
-      {pause.checkpoint === "hotspot" ? (
+      {pause.checkpoint === "calm" ? (
+        <>
+          <p className="loop-q"><bdi><N>{t("qCalm", { thr: f.int(Number(p.threshold_pct ?? 0)), station: name(p.station), hour: `${p.hour}:00`, peak: f.int(Number(p.peak_pct ?? 0)) })}</N></bdi></p>
+          <ul className="loop-probes" data-testid="cp-probes">
+            {((p.probes as Probe[]) ?? []).map((q) => (
+              <li key={q.id} data-probe={q.id} data-crosses={q.crosses}>
+                <bdi><N>{q.crosses
+                  ? t(`probe.${q.id}`, { att: f.int(q.attendance ?? 0), brk: f.int(q.break_attendance ?? 0), now: f.int(q.attendance_now ?? 0), peak: f.int(Math.round(q.peak_lf * 100)),
+                    station: name(q.station), over: f.num(q.overcap_station_hours), line: f.int(Math.round((q.threshold ?? 0) * 100)) })
+                  : t("probe.holds", { peak: f.int(Math.round(q.peak_lf * 100)) })}</N></bdi>
+                <code>{q.run_id}</code>
+              </li>
+            ))}
+          </ul>
+          <div className="loop-acts">
+            {((p.probes as Probe[]) ?? []).filter((q) => acts.has(q.action as CheckpointAnswer["action"])).map((q, i) => (
+              <button key={q.id} type="button" className={i === 0 ? "btn red" : "pill"} disabled={busy} onClick={() => ans({ action: q.action as CheckpointAnswer["action"] })}
+                data-testid="cp-try" data-probe={q.id}><N>{t(`aTry.${q.action}`, { att: f.int(q.attendance ?? 0), line: f.int(Math.round((q.threshold ?? 0) * 100)) })}</N></button>
+            ))}
+            <button type="button" className="pill" disabled={busy} onClick={() => ans({ action: "accept" })} data-testid="cp-calm-accept">{t("aCalmAccept")}</button>
+          </div>
+          <p className="note" style={{ margin: 0 }}>{t("calmNote")}</p>
+        </>
+      ) : pause.checkpoint === "hotspot" ? (
         <>
           <p className="loop-q"><bdi><N>{t("qHotspot", { station: name(p.station), hours, gap: f.int(Number(p.gap ?? 0)) })}</N></bdi></p>
           <div className="loop-acts">

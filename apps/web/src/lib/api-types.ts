@@ -368,6 +368,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/scenario/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scenario Compare Ep
+         * @description Two scenarios side by side (run history: "compare with now"): the settings that differ, peak load and
+         *     over-threshold time before any plan, and the team's recommendation for each, all computed here with their run ids.
+         */
+        post: operations["scenario_compare_ep_scenario_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/knowledge/sources": {
         parameters: {
             query?: never;
@@ -1018,9 +1039,9 @@ export interface components {
             brief?: components["schemas"]["ConfirmedBrief"] | null;
             /**
              * Checkpoints
-             * @description Where the team stops and asks the human (1.16.0)
+             * @description Where the team stops and asks the human (1.16.0; 'calm' since 1.18.0)
              */
-            checkpoints?: ("hotspot" | "partial")[];
+            checkpoints?: ("hotspot" | "partial" | "calm")[];
             /**
              * Answers
              * @description The human's answers so far, in order
@@ -1484,7 +1505,7 @@ export interface components {
              * Checkpoints
              * @description Where the team stops and asks during each plan (1.16.0)
              */
-            checkpoints?: ("hotspot" | "partial")[];
+            checkpoints?: ("hotspot" | "partial" | "calm")[];
             /**
              * Max Feedback Rounds
              * @description Replans after rejections with a reason, per alert, before the alert is set aside
@@ -1667,11 +1688,11 @@ export interface components {
             } | null;
             /**
              * Audience
-             * @description 'kiosk' = visitor answers only: no plans, no scenario changes, no internals
+             * @description 'kiosk' = visitor answers only: no plans, no scenario changes, no internals. 'sandbox' (1.18.0) = the kiosk's planning game: scenario changes and what-ifs, no plan tables or internals
              * @default planner
              * @enum {string}
              */
-            audience: "planner" | "kiosk";
+            audience: "planner" | "kiosk" | "sandbox";
             /**
              * Locale
              * @default en
@@ -1713,7 +1734,7 @@ export interface components {
              * Audience
              * @enum {string}
              */
-            audience: "planner" | "kiosk";
+            audience: "planner" | "kiosk" | "sandbox";
             /** Intent */
             intent: string | null;
             /**
@@ -1787,13 +1808,13 @@ export interface components {
              * Checkpoint
              * @enum {string}
              */
-            checkpoint: "hotspot" | "partial";
+            checkpoint: "hotspot" | "partial" | "calm";
             /**
              * Action
-             * @description hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again
+             * @description hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again. calm (1.18.0): accept (no plan needed). try_crowd / try_hot / try_line are offered in `pause.actions` with their values in `pause.params.probes`; they change the SCENARIO, so the caller applies that probe and runs the team again, and never sends them here
              * @enum {string}
              */
-            action: "confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap";
+            action: "confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap" | "try_crowd" | "try_hot" | "try_line";
             /**
              * Station
              * @description focus: the station to plan for
@@ -1819,7 +1840,7 @@ export interface components {
              * Checkpoint
              * @enum {string}
              */
-            checkpoint: "hotspot" | "partial";
+            checkpoint: "hotspot" | "partial" | "calm";
             /**
              * Asked By
              * @description The agent that asks (supervisor)
@@ -1827,7 +1848,7 @@ export interface components {
             asked_by: string;
             /**
              * Params
-             * @description hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap
+             * @description hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap · calm (1.18.0): station, hour, peak_pct, threshold_pct, probes[{id, action, peak_lf, overcap_station_hours, stations_over, crosses, run_id, attendance | weather | threshold}]
              */
             params?: {
                 [key: string]: unknown;
@@ -1836,7 +1857,7 @@ export interface components {
              * Actions
              * @description The answers that apply here
              */
-            actions: ("confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap")[];
+            actions: ("confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap" | "try_crowd" | "try_hot" | "try_line")[];
         };
         /** CompareRow */
         CompareRow: {
@@ -3263,6 +3284,46 @@ export interface components {
             /** To */
             to?: unknown;
         };
+        /** ScenarioCompareRequest */
+        ScenarioCompareRequest: {
+            /** @description The earlier scenario (e.g. the one a past run was for) */
+            a: components["schemas"]["ChatSettings"];
+            /** @description The later scenario (e.g. the one on screen) */
+            b: components["schemas"]["ChatSettings"];
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+        };
+        /** ScenarioCompareResponse */
+        ScenarioCompareResponse: {
+            a: components["schemas"]["ScenarioSide"];
+            b: components["schemas"]["ScenarioSide"];
+            /** Changes */
+            changes: components["schemas"]["SettingChange"][];
+            /** Identical */
+            identical: boolean;
+            /** Same Recommendation */
+            same_recommendation: boolean;
+            /** Delta */
+            delta: {
+                [key: string]: unknown;
+            };
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /** Note */
+            note: string;
+        };
         /**
          * ScenarioPatch
          * @description A change to the shared scenario. The API has already forecast and simulated it (`recalculated`); the client makes
@@ -3288,6 +3349,48 @@ export interface components {
             }[];
             /** Cleared */
             cleared: string[];
+        };
+        /** ScenarioSide */
+        ScenarioSide: {
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** Simulation Run Id */
+            simulation_run_id: string;
+            /** Mission Id */
+            mission_id: string;
+            /**
+             * Headline
+             * @description Before any plan: worst_station, peak_lf, overcap_station_hours, stations_over
+             */
+            headline: {
+                [key: string]: unknown;
+            };
+            /** Options */
+            options: number;
+            /** Stop Reason */
+            stop_reason?: string | null;
+            /**
+             * Recommended
+             * @description The team's recommended option, or null when no plan is needed
+             */
+            recommended?: {
+                [key: string]: unknown;
+            } | null;
+            /** Is Synthetic */
+            is_synthetic: boolean;
+        };
+        /** SettingChange */
+        SettingChange: {
+            /** Field */
+            field: string;
+            /** Was */
+            was?: unknown;
+            /** To */
+            to?: unknown;
         };
         /** ShiftAlert */
         ShiftAlert: {
@@ -4444,6 +4547,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scenario_compare_ep_scenario_compare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioCompareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioCompareResponse"];
                 };
             };
             /** @description Validation Error */

@@ -76,6 +76,8 @@ export type ScenarioPatch = S["ScenarioPatch"];
 export type CompareTable = S["CompareTable"];
 export type CompareRow = S["CompareRow"];
 export type ConfidenceReport = S["ConfidenceReport"];
+export type ScenarioCompareRequest = S["ScenarioCompareRequest"];
+export type ScenarioCompareResponse = S["ScenarioCompareResponse"];
 
 /** True when the page is served from this machine (laptop, booth). */
 export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
@@ -245,6 +247,8 @@ export const api = {
   ask: (req: AskRequest) => call<AskResponse>("/agent/ask", req),
   /** The assistant (contract 1.17.0): one turn of a conversation. Never cached: each turn depends on the context sent with it. */
   chat: (req: ChatRequest) => call<ChatResponse>("/agent/chat", req, { cache: false }),
+  /** Two scenarios side by side (contract 1.18.0): for the run history's "compare with now". */
+  scenarioCompare: (req: ScenarioCompareRequest) => call<ScenarioCompareResponse>("/scenario/compare", req, { cache: false }),
   /** The duty shift, one step (contract 1.13.0): never cached, each step depends on the decisions before it. */
   shiftNext: (req: ShiftRequest) => call<ShiftStep>("/shift/next", req, { cache: false }),
   breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),

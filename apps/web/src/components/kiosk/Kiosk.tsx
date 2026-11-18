@@ -24,6 +24,11 @@ import { SceneProgress } from "../SceneProgress";
 import { KioskTeam } from "../mission/KioskTeam";
 import { KioskMessage } from "../mission/Standing";
 import { KioskAsk } from "../assistant/KioskAsk";
+import { CheckpointCard } from "../mission/Loop";
+import { KioskAI } from "./KioskAI";
+import { PlanEditor } from "./KioskEdit";
+import { Qr } from "./Qr";
+import { travelLink } from "@/lib/site";
 import { bump, busiest, closure, faultHour, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -36,6 +41,9 @@ const STEP: Record<Phase, number> = { attract: -1, choose: -1, rider: -1, event:
 // "duty-shift" is the visitor's second approval in the train-fault step: counted once, through the first one
 const AUTOMATIC = new Set(["guided-demo", "soak", "test", "playwright", "smoke", "duty-shift"]);
 const WEATHERS = ["normal", "hot", "rain"] as const;
+const LINES = [0.75, 0.8, 0.85, 0.9];                               // comfort lines a visitor can set (5-point steps, as the workspace slider)
+const EXITS: [string, number | null][] = [["fast", 15], ["normal", null], ["slow", 60]];   // venue exit window in minutes; null = the event's own
+const PRIORITIES = ["cost", "balanced", "impact"] as const;
 const METRO_SHARES = [0.35, 0.45, 0.55, 0.65];                      // what-if request values (pricing nudge)
 const OWN_TIMES: Record<string, { start: string; end: string }> = { afternoon: { start: "13:00", end: "17:00" }, evening: { start: "18:00", end: "21:00" }, night: { start: "20:00", end: "23:00" } };
 const ATTRACT_CAMS = ["orbit", "fly", "orbit", "overview"] as const;
@@ -116,6 +124,7 @@ export function Kiosk() {
   const error = useTwin((s) => s.error);
   const plan = useTwin((s) => s.plan);
   const planStatus = useTwin((s) => s.planStatus);
+  const pause = useTwin((s) => s.pause);                         // the team's question to the visitor ("Ask me during planning" is on by default)
   const planStep = useTwin((s) => s.planStep);
   const threshold = useTwin((s) => s.threshold);
   const time = useTwin((s) => s.time);
@@ -125,6 +134,8 @@ export function Kiosk() {
   const decisionError = useTwin((s) => s.decisionError);
   const tDuty = useTranslations("mission.duty") as unknown as (k: string, v?: Record<string, string | number>) => string;
   const tWatch = useTranslations("mission.watch");
+  const tA = useTranslations("assistant") as unknown as (k: string, v?: Record<string, string | number>) => string;
+  const priority = useTwin((s) => s.priority);
 
   // The attract map is 3D: mount it only where WebGL exists (checked on the client; the kiosk falls back to its own screens).
   const glOk = useWebgl();
@@ -144,7 +155,10 @@ export function Kiosk() {
   // The store clears the plan once it is applied: keep what the later screens need (all from API answers).
   const [picked, setPicked] = useState<{ title: string; before: Summary; road: number | null } | null>(null);
   const [kept, setKept] = useState<AgentPlanResponse | null>(null);
-  const [modal, setModal] = useState<"how" | "pb" | "stats" | null>(null);
+  const [modal, setModal] = useState<"how" | "pb" | "stats" | "qr" | null>(null);
+  const [ai, setAi] = useState(false);                        // the AI sheet (type or tap; decision #155)
+  const [edit, setEdit] = useState<number | null>(null);      // the option being edited (its rank)
+  const [labTab, setLabTab] = useState<"crowd" | "rules">("crowd");
   const [pb, setPb] = useState<Summary | "fail" | null>(null);            // reported NYE measures, simulated
   const [quiet, setQuiet] = useState(false);                  // rider advice: quieter trains instead of the fastest
   const [visitors, setVisitors] = useState<Visitors | null>(null);
@@ -217,14 +231,15 @@ export function Kiosk() {
 
   // ---- inactivity: "Still there?" then reset for the next visitor
   const clearRun = () => { setFault(false); faultStarted.current = false; setGuess(null); setRevealed(false); revealedRef.current = false; setLab(false); setClosed(null); setOwn(false); setIdea(undefined); setMine(null);
-    setChosen(null); setPicked(null); setKept(null); setModal(null); setPb(null); setCalls(false); };
+    setChosen(null); setPicked(null); setKept(null); setModal(null); setPb(null); setCalls(false); setAi(false); setEdit(null); setLabTab("crowd"); };
   const reset = useCallback(() => {
     if (anim.current) cancelAnimationFrame(anim.current);
     if (show.current) show.current.cancel = true;
     const s = st.getState();
     s.stopShift();                                             // the next visitor starts with no shift and no incident
     s.clearPlans();
-    useTwin.setState({ applied: [], scenario: { ...s.scenario, weather: "normal", metroShare: null, demandLevel: null, incident: null } });
+    useTwin.setState({ applied: [], threshold: 0.85, priority: "balanced", planBrief: null,          // the next visitor starts from the defaults
+      scenario: { ...s.scenario, weather: "normal", metroShare: null, demandLevel: null, incident: null } });
     if (s.events[0]) s.selectEvent(s.events[0].id);
     clearRun(); setStill(null); setBig(false); setHc(false); setReach(false); setQuiet(false); setCap(null);
     setPhase("attract");
@@ -369,6 +384,32 @@ export function Kiosk() {
     void st.getState().runAgents(locale);
   };
   const openHow = () => { bump("how"); setModal("how"); };
+  // ---- continue on a phone (decision #156): the rider page for this event; nothing about the visitor is in the link
+  const qrAt = phase === "rider" && advice ? { st: advice.tip.id, h: advice.tip.t } : peak ? { st: peak.id, h: peak.time } : null;
+  const phoneUrl = scenario.eventId && scenario.eventId !== "custom" && qrAt ? travelLink(scenario.eventId, qrAt.st, qrAt.h, locale) : null;
+  const openQr = () => { bump("qr"); setModal("qr"); };
+  // ---- the AI sheet and the plan editor (decision #155)
+  const aiPhase = phase === "event" || phase === "crowd" || phase === "rider" || (phase === "plan" && (idea === undefined || planStatus === "ready"));
+  const aiApplied = () => {                                    // the assistant changed the scenario: show the new situation before any plan
+    revealedFor.current = null;
+    if (phase !== "plan") return;
+    setChosen(null); setMine(null); setIdea(undefined); setLab(false); setRevealed(false); revealedRef.current = false;
+    setGuess((g) => g ?? busiest(st.getState().cur, ids)?.id ?? ids[0] ?? null);
+    setPhase("crowd");
+  };
+  const aiBrief = () => { bump("own"); setAi(false); setOwn(false); setClosed(null); setLab(false); setIdea(null); setMine(null); setChosen(null); setPhase("plan"); };   // the store runs the team
+  const teamAnyway = () => { setIdea(null); setMine(null); setChosen(null); setPhase("plan"); void st.getState().runAgents(locale); };
+  const openEdit = (rank: number) => { bump("edit"); setKept(st.getState().plan); setEdit(rank); };
+  const editApproved = (title: string) => {
+    const p = kept;
+    if (!p || edit === null) return;
+    bump("approve"); setChosen(edit);
+    setPicked({ title, before: p.baseline_summary, road: p.baseline_road?.peak_veh_per_hour ?? null });
+    setEdit(null);
+    const pk = busiest(st.getState().base, ids);
+    if (pk) { st.getState().select(pk.id); st.getState().setCam("close"); }
+    setPhase("decide");
+  };
   const openPb = async () => {
     bump("playbook"); setModal("pb");
     const s = st.getState();
@@ -403,7 +444,7 @@ export function Kiosk() {
       const p = busiest(S().cur, ids);
       if (p && !tok.cancel) { revealedFor.current = S().forecast?.run_id ?? null; reveal(p.id); await until(() => revealedRef.current); await pause(4500); }
       if (tok.cancel) return;
-      setCap(T.jury[2]); setIdea(null); setMine(null); setChosen(null); setPhase("plan"); void S().runAgents(locale);
+      setCap(T.jury[2]); setIdea(null); setMine(null); setChosen(null); setPhase("plan"); void S().runAgents(locale, { ask: false });
       await until(() => S().planStatus === "ready" || S().planStatus === "error"); await pause(5500);
       if (tok.cancel || S().planStatus !== "ready" || !S().plan?.options.length) return;
       setCap(T.jury[3]); await pause(2500);
@@ -493,6 +534,7 @@ export function Kiosk() {
           <button type="button" className="kpill" aria-pressed={big} onClick={() => setBig(!big)} aria-label={T.bigText}><span className="kaa">A<small>A</small></span></button>
           <button type="button" className="kpill" aria-pressed={hc} onClick={() => setHc(!hc)} aria-label={T.contrast} data-testid="kiosk-contrast"><span className="khalf" aria-hidden /></button>
           <button type="button" className="kpill klang" onClick={() => setLocale(locale === "ar" ? "en" : "ar")} lang={locale === "ar" ? "en" : "ar"}>{locale === "ar" ? "English" : "عربي"}</button>
+          {aiPhase && <button type="button" className="kpill kaibtn" aria-pressed={ai} onClick={() => setAi(!ai)} data-testid="kai-open">✦ {tA("kai.open")}</button>}
           {phase !== "attract" && <button type="button" className="kpill khome" onClick={reset}>⌂ {T.home}</button>}
         </div>
       </header>
@@ -601,6 +643,7 @@ export function Kiosk() {
                 <div className="kstack">
                   <button type="button" className="kgo ghost" onClick={openLab} data-testid="kiosk-lab">{T.lab}</button>
                   {hot && <button type="button" className="kgo" onClick={goPlan}>{T.next2} →</button>}
+                  {!hot && <button type="button" className="kgo" disabled={loading} onClick={teamAnyway} data-testid="kiosk-team-anyway">{tA("kai.teamAnyway")} →</button>}
                 </div>
               )}
             </>
@@ -614,12 +657,46 @@ export function Kiosk() {
                   onClick={() => st.getState().patchScenario({ demandLevel: level === "real_totals" ? null : "real_totals" })}>{T.labLevels.real_totals}</button>
               </div>
               {level === "real_totals" && <small className="kroad" data-testid="kiosk-level-hint">{T.labLevelHint}</small>}
+              <div className="kseg" role="group" data-testid="kiosk-lab-tabs">
+                <button type="button" aria-pressed={labTab === "crowd"} onClick={() => setLabTab("crowd")}>{tA("kai.lab.crowd")}</button>
+                <button type="button" aria-pressed={labTab === "rules"} onClick={() => setLabTab("rules")} data-testid="kiosk-lab-rules">{tA("kai.lab.rules")}</button>
+              </div>
               {peak && (
                 <div className="klive" data-testid="kiosk-live">
                   <b className={lfClass(peak.lf)}><N>{f.pct(peak.lf)}</N></b>
                   <span>{T.labNow(name(peak.id))} · <N>{hhmm(peak.time)}</N>{loading && <i className="kspin sm" />}</span>
                 </div>
               )}
+              {labTab === "rules" && (
+                <>
+                  <div className="kfield">
+                    <span>{T.weather}</span>
+                    <div className="kseg" data-testid="kiosk-weather" role="group" aria-label={T.weather}>
+                      {WEATHERS.map((w) => <button key={w} type="button" aria-pressed={scenario.weather === w} onClick={() => st.getState().patchScenario({ weather: w, metroShare: null })}>{T.weathers[w]}</button>)}
+                    </div>
+                  </div>
+                  <div className="kfield">
+                    <span>{tA("kai.lab.line")}</span>
+                    <div className="kseg" data-testid="kiosk-line" role="group" aria-label={tA("kai.lab.line")}>
+                      {LINES.map((v) => <button key={v} type="button" aria-pressed={Math.abs(threshold - v) < 0.005} onClick={() => st.getState().setThreshold(v)}><N>{f.pct(v)}</N></button>)}
+                    </div>
+                    <small>{tA("kai.lab.lineHint")}</small>
+                  </div>
+                  <div className="kfield">
+                    <span>{tA("kai.lab.exit")}</span>
+                    <div className="kseg" data-testid="kiosk-exit" role="group" aria-label={tA("kai.lab.exit")}>
+                      {EXITS.map(([k, v]) => <button key={k} type="button" aria-pressed={scenario.exitSigma === v} onClick={() => st.getState().patchScenario({ exitSigma: v })}>{tA(`kai.lab.exits.${k}`)}</button>)}
+                    </div>
+                  </div>
+                  <div className="kfield">
+                    <span>{tA("kai.lab.priority")}</span>
+                    <div className="kseg" data-testid="kiosk-priority" role="group" aria-label={tA("kai.lab.priority")}>
+                      {PRIORITIES.map((p) => <button key={p} type="button" aria-pressed={priority === p} onClick={() => st.getState().setPriority(p)}>{tA(`prio.${p}`)}</button>)}
+                    </div>
+                  </div>
+                </>
+              )}
+              {labTab === "crowd" && (<>
               <div className="kfield">
                 <span>{T.labCrowd}: <b><N>{f.int(attNow)}</N></b></span>
                 <input type="range" className="kslider" aria-label={T.labCrowd} min={attMin} max={attMax} step={1000} value={attNow} data-testid="kiosk-crowd"
@@ -643,6 +720,7 @@ export function Kiosk() {
                 {closed && closedTo && !error && <small>{T.labCloseHint(name(closedTo))}</small>}
                 {closed && error && <small className="risk">{T.pbFail}</small>}
               </div>
+              </>)}
               <button type="button" className="kgo" onClick={closeLab}>{T.labBack}</button>
             </>
           )}
@@ -661,7 +739,10 @@ export function Kiosk() {
           {phase === "plan" && idea !== undefined && (
             <>
               <h1>{planStatus === "ready" ? T.s3Pick : T.s3Title}</h1>
-              {planStatus !== "ready" && planStatus !== "error" && (
+              {planStatus === "paused" && pause && (
+                <CheckpointCard pause={pause} testid="kiosk-checkpoint" onAnswer={(a) => void st.getState().answerCheckpoint(a, locale)} />
+              )}
+              {planStatus !== "ready" && planStatus !== "error" && planStatus !== "paused" && (
                 <>
                   <p className="ksub">{T.s3Sub}</p>
                   <div className="kplanrun">
@@ -693,7 +774,10 @@ export function Kiosk() {
                           <div><small>{T.peakLoad}</small><b><N>{f.pct(before.peak_lf)} → <span className={over(o.summary.peak_lf) ? "risk" : "okc"}>{f.pct(o.summary.peak_lf)}</span></N></b></div>
                           <div><small>{T.ridersOver}</small><b><N>{f.int(before.excess_pax)} → <span className={o.summary.excess_pax > 0 ? "risk" : "okc"}>{f.int(o.summary.excess_pax)}</span></N></b></div>
                         </div>
-                        <button type="button" className="kgo" disabled={chosen !== null} onClick={() => void choose(o.rank)}>{T.choose}</button>
+                        <div className="kopt-row">
+                          <button type="button" className="kgo" disabled={chosen !== null} onClick={() => void choose(o.rank)}>{T.choose}</button>
+                          <button type="button" className="kpill" disabled={chosen !== null} onClick={() => openEdit(o.rank)} data-testid="kiosk-edit">✎ {tA("kai.edit.open")}</button>
+                        </div>
                       </article>
                     ))}
                   </div>
@@ -729,10 +813,17 @@ export function Kiosk() {
                 <button type="button" className="kpill" onClick={asRider}>{T.toRider}</button>
               </div>
               <div className="kside">
-                <div className="kqr">
-                  <div className="kqr-box" aria-hidden><span /><span /><span /><span /></div>
-                  <div><b>{T.qrTitle}</b><small>{T.qrSoon}</small></div>
-                </div>
+                {phoneUrl ? (
+                  <button type="button" className="kqr" onClick={openQr} data-testid="kiosk-qr-open">
+                    <Qr url={phoneUrl} size={84} label={tA("kai.qr.title")} testid="kiosk-qr-small" />
+                    <div><b>{tA("kai.qr.title")}</b><small>{tA("kai.qr.tap")}</small></div>
+                  </button>
+                ) : (
+                  <div className="kqr" data-testid="kiosk-qr-none">
+                    <div className="kqr-box" aria-hidden><span /><span /><span /><span /></div>
+                    <div><b>{T.qrTitle}</b><small>{tA("kai.qr.own")}</small></div>
+                  </div>
+                )}
                 <button type="button" className="kgo ghost" onClick={() => { setFault(false); setPhase("duty"); }} data-testid="kiosk-duty-ask">{T.dAsk}</button>
               </div>
               <div className="krow">
@@ -832,7 +923,10 @@ export function Kiosk() {
                     <span><N>{wait(advice.tip.wait)} · <span className={lfClass(advice.tip.lf)}>{T.rFull(f.pct(advice.tip.lf))}</span></N></span></div>
                 </div>
               )}
-              <KioskAsk station={advice?.worst.id} hour={advice ? Math.floor(advice.worst.t) : undefined} />
+              <div className="kside">
+                <KioskAsk station={advice?.worst.id} hour={advice ? Math.floor(advice.worst.t) : undefined} />
+                <button type="button" className="kgo ghost" disabled={!phoneUrl} onClick={openQr} data-testid="kiosk-qr-open">{tA("kai.qr.open")}</button>
+              </div>
               <p className="knote">{T.rNote}</p>
               <div className="krow">
                 <button type="button" className="kgo" onClick={finish}>{T.finish}</button>
@@ -853,6 +947,15 @@ export function Kiosk() {
       )}
       {phase !== "attract" && phase !== "choose" && ev && (
         <div className="kchip"><N>{hhmm(time)}</N> · {f.event(ev)}</div>
+      )}
+      {ai && aiPhase && (
+        <KioskAI key={phase === "rider" ? "ride" : "plan"} mode={phase === "rider" ? "ride" : "plan"} onClose={() => setAi(false)} onApplied={aiApplied} onBrief={aiBrief}
+          station={phase === "rider" ? advice?.worst.id : undefined} hour={phase === "rider" && advice ? Math.floor(advice.worst.t) : undefined} />
+      )}
+      {edit !== null && kept && kept.options.some((o) => o.rank === edit) && (
+        <Modal title={tA("kai.edit.title")} close={() => setEdit(null)} closeLabel={T.close}>
+          <PlanEditor option={kept.options.find((o) => o.rank === edit)!} before={kept.baseline_summary} onApproved={editApproved} onClose={() => setEdit(null)} />
+        </Modal>
       )}
       <button type="button" className="kreachbtn" aria-pressed={reach} aria-label={T.reach} title={T.reach} onClick={(e) => { e.stopPropagation(); setReach(!reach); }} data-testid="kiosk-reach">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 4v13" /><path d="m6 12 6 6 6-6" /><path d="M5 21h14" /></svg>
@@ -889,6 +992,18 @@ export function Kiosk() {
               )}
             </>
           )}
+        </Modal>
+      )}
+      {modal === "qr" && phoneUrl && (
+        <Modal title={tA("kai.qr.title")} close={() => setModal(null)} closeLabel={T.close}>
+          <div className="kqr-big" data-testid="kiosk-qr-sheet">
+            <Qr url={phoneUrl} size={380} label={tA("kai.qr.title")} />
+            <div>
+              <p>{tA("kai.qr.how")}</p>
+              <p className="kqr-url" dir="ltr">{phoneUrl.replace(/^https?:\/\//, "")}</p>
+              <p className="knote">{tA("kai.qr.note")}</p>
+            </div>
+          </div>
         </Modal>
       )}
       {modal === "pb" && (

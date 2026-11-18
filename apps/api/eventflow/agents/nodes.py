@@ -77,6 +77,8 @@ def diagnosis(state: State) -> dict:
     hot = p.diagnose()
     if hot is None:
         ctx.event("diagnosis", "decision", "diagnosis.none", rnd=1, threshold_pct=_pct(p.thr))
+        if "calm" in ctx.checkpoints and _calm_gate(ctx):
+            return {}                                    # paused: the team tested the scenario harder and asks what to plan for
         ctx.event("critic", "decision", "critic.no_action", rnd=1)
         return {}
     bins: dict[str, dict] = {}
@@ -104,6 +106,34 @@ def diagnosis(state: State) -> dict:
         ctx.event("diagnosis", "tool", "diagnosis.road", rnd=1, run_id=p.base["run_id"], peak_veh=round(road["peak_veh_per_hour"]),
                   pressure_pct=_pct(road["pressure"]), hour=road["peak_hour"])
     return {}
+
+
+def _calm_gate(ctx: MissionCtx) -> bool:
+    """Checkpoint 0 (1.18.0, decision #154): no station is over the line. Instead of ending in silence, the stress agent
+    tests the scenario harder by itself (mission.calm_probes) and the supervisor asks the human which of those harder
+    scenarios to plan for, or to leave it. A harder scenario is a change of scenario: the caller applies it and runs the
+    team again (as with `allow` and `raise_cap`). True when the mission stops here to ask."""
+    p = ctx.p
+    ans = ctx.next_answer("calm")
+    if ans is not None:
+        ctx.event("human", "message", "checkpoint.answer", rnd=1, to=["supervisor"], checkpoint="calm", action=ans["action"])
+        return False                                     # "accept": nothing needs a plan; the mission ends as before
+    from .mission import calm_probes
+    probes = calm_probes(ctx)
+    for q in probes:
+        ctx.event("stress", "tool", "stress.probe", rnd=1, to=["supervisor"], run_id=q["run_id"], case=q["id"], peak_pct=_pct(q["peak_lf"]),
+                  over=q["overcap_station_hours"], station=q["station"], crosses=q["crosses"], attendance=q.get("attendance"),
+                  threshold_pct=_pct(q.get("threshold")))
+    offered = [q for q in probes if q["crosses"]]
+    if not offered:
+        return False                                     # nothing the team could test breaks it: say so and end
+    w = max(p.base["hourly"], key=lambda r: (r["peak_lf"], -r["hour"]))
+    ctx.pause = {"checkpoint": "calm", "asked_by": "supervisor", "actions": [q["action"] for q in offered] + ["accept"],
+                 "params": {"station": w["station_id"], "hour": w["hour"], "peak_pct": _pct(w["peak_lf"]), "threshold_pct": _pct(p.thr),
+                            "probes": probes, "run_id": p.base["run_id"]}}
+    ctx.event("supervisor", "message", "checkpoint.ask", rnd=1, to=["human"], run_id=p.base["run_id"], checkpoint="calm",
+              station=w["station_id"], peak_pct=_pct(w["peak_lf"]), probes=len(offered))
+    return True
 
 
 def _hotspot_gate(ctx: MissionCtx, bins: dict) -> bool:
