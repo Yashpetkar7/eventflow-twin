@@ -25,7 +25,8 @@ is **synthetic** in every suite except the ridership check.
 | Evaluation agent | critic precision and recall against an independent check | 1.0 / 1.0 over 1,007 plans | `critic_20261116-204831.json` |
 | Plan quality vs a baseline | goal met where an exhaustive grid meets it; relief gap to the grid's best | 22 of 22; 0.0 | `optimality_20261116-204831.json` |
 | Tool execution | simulator property checks; rider conservation error | 139 pass (1.0); 0 | `simulator_20261116-204519.json` |
-| Forecast | MASE, LightGBM vs seasonal naive; 80 % interval coverage | 0.78 vs 0.97; 0.81 (n = 8,904) | `forecast_20261116-2045.json` |
+| Forecast (backtest only) | MASE, LightGBM vs seasonal naive; 80 % interval coverage | 0.78 vs 0.97; 0.79 (n = 8,904) | `forecast_20261118-1057.json` |
+| Forecast (the model on screen) | MASE of the weekday profile on non-event rows; WAPE; coverage of its p10–p90 band | 0.77; 7.0 %; **63 %, not 80 %: the band is too narrow** | same |
 | Multi-step autonomy | duty shifts that end honestly; never apply without a human | 15 of 15; 1.0 | `incidents_20261116-204848.json` |
 | Invalid and hostile input | prompt-injection cases that changed a plan | **0 of 53** (EN, AR, mixed; 10 OWASP categories) | `redteam_20261116-204631.json` |
 | | injection detection recall; false positives | 0.93; 0.0 | same |
