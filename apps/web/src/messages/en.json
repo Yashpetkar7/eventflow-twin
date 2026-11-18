@@ -221,7 +221,31 @@
     "print": "Print / save as PDF",
     "chain": "Decision log",
     "chainOk": "verified · {n} records",
-    "chainBad": "broken at record {line}"
+    "chainBad": "broken at record {line}",
+    "snapNo": "The snapshot needs the 3D view on screen.",
+    "snapFail": "The snapshot could not be made. Try again once the 3D view has loaded.",
+    "md": {
+      "title": "EventFlow Twin – event brief",
+      "scenario": "Scenario",
+      "background": "background day",
+      "attendance": "Attendance (assumption)",
+      "conditions": "Conditions",
+      "metroShare": "metro share of event trips, assumption",
+      "threshold": "Comfort threshold",
+      "data": "Demand data",
+      "measure": "Measure",
+      "noPlans": "No plans",
+      "withPlans": "With approved plans",
+      "rowOver": "Station-hours over threshold",
+      "rowExcess": "Riders above threshold",
+      "rowPeak": "Peak station load factor",
+      "rowWait": "Longest extra wait (min)",
+      "rowCost": "Cost proxy (relative)",
+      "approved": "Approved plans",
+      "none": "none",
+      "sources": "Sources: forecast run {fc}; simulator runs {base} (no plans) and {cur} (with approved plans).",
+      "disclaimer": "Research prototype. Synthetic baseline demand and assumption-based scenario. Not an RTA system and not endorsed by RTA."
+    }
   },
   "tableH": {
     "station": "Station",
@@ -704,7 +728,9 @@
         "checkedBroken": "Your approved plan no longer holds: {over} station-hours over",
         "rejectedReplan": "You rejected option {rank} with a reason: the team replans"
       },
-      "loopOn": "Ask me at the checkpoints"
+      "loopOn": "Ask me at the checkpoints",
+      "onTwin": "The measures approved in this chain are shown on the twin.",
+      "offTwin": "This chain now runs on different conditions from your scenario settings, so its measures are not shown on the twin."
     },
     "live": "live",
     "recommend": {
@@ -718,7 +744,8 @@
       "sub": "{n} agent steps on the mission's own clock ({ms} ms in all). Parallel agents overlap. Hover a bar for its events.",
       "round": "round {r}",
       "meta": "{ms} ms · {runs, plural, =0 {no tool run} one {# tool run} other {# tool runs}}"
-    }
+    },
+    "ledeNoCount": "Agents in five layers; some of them can call a language model. Code simulates, checks and ranks every plan; you decide."
   },
   "outsideCorridor": "Outside the modelled corridor",
   "ops": {
@@ -765,7 +792,8 @@
     "csv": "Upload a CSV of events",
     "csvHelp": "Columns: name, near_station, date, start, end, attendance (optional: venue, organiser). Up to 100 rows.",
     "imported": "{n, plural, one {# event registered} other {# events registered}}{bad, plural, =0 {} one {; # row not imported:} other {; # rows not imported:}}",
-    "footer": "Research prototype designed for RTA's priorities; not an RTA system and not endorsed by RTA. Demand is synthetic."
+    "footer": "Research prototype designed for RTA's priorities; not an RTA system and not endorsed by RTA. Demand is synthetic.",
+    "signOut": "Sign out"
   },
   "travel": {
     "title": "Before you travel",
@@ -913,5 +941,15 @@
     },
     "questions": "Questions from the team",
     "noQuestions": "No questions waiting."
-  }
+  },
+  "logging": "Logging…",
+  "cancelRun": "Stop planning",
+  "runCancelled": "Planning stopped. Nothing was logged or applied.",
+  "clearAsk": "{n, plural, =0 {Clear the plan on screen?} one {Clear # approved plan?} other {Clear # approved plans?}} The twin goes back to the day without plans. Every decision stays in the audit log.",
+  "clearYes": "Clear plans",
+  "clearNo": "Keep them",
+  "clearNone": "There are no approved plans to clear",
+  "serviceError": "The service did not answer: {msg}",
+  "retry": "Try again",
+  "tabsLabel": "Panels"
 }

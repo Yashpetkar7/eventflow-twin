@@ -6,7 +6,7 @@ import { create } from "zustand";
 import {
   api, ApiError, setFallbackListener, type AgentPlanResponse, type BreakpointResponse, type Constraints, type EventInfo, type ForecastRequest, type ForecastResponse,
   type Intervention, type MessageResponse, type Mission, type ShiftStep, type SimulateResponse, type Station,
-  type AgentEvent, type CheckpointAnswer, type CheckpointPause, type FeedbackResponse, type MemoryResponse, type ReasonCode,
+  type AgentEvent, type ChainState, type CheckpointAnswer, type CheckpointPause, type FeedbackResponse, type MemoryResponse, type ReasonCode,
 } from "./api";
 import { paceFor, stationOf, stepOf } from "./mission";
 import { LANDMARK_STATION, type LandmarkKey } from "./landmarks";
@@ -138,7 +138,8 @@ export interface ShiftItem { hour: number; stations: string[]; title: string | n
 export interface ShiftState { status: "idle" | "running" | "awaiting" | "done" | "error"; step: ShiftStep | null; handled: string[];
   hour: number; items: ShiftItem[]; error: string | null }
 export const SHIFT0: ShiftState = { status: "idle", step: null, handled: [], hour: 5, items: [], error: null };
-export interface Applied { title: string; ivs: Intervention[] }
+/** An approved plan in force. `chain` = approved in the event chain with that id (its measures, kept in step with the chain). */
+export interface Applied { title: string; ivs: Intervention[]; chain?: string }
 /** What the brief card hands the store once the planner confirms (every field already edited or removed by them). */
 /** A rejection's reason, as the reason form collects it. */
 export interface RejectReason { codes: ReasonCode[]; words: string; avoid: string[]; protect: string[] }
@@ -171,6 +172,10 @@ interface State {
   shift: ShiftState;                  // the duty shift on autopilot (POST /shift/next); its state lives here, the API keeps none
   brief: boolean;                     // the operations brief is open (a printable page over the app)
   decisions: Record<number, Decision>; decisionError: string | null;
+  runCancelled: boolean;              // the last plan was stopped with Cancel (cleared by the next run or scenario)
+  deciding: boolean;                  // a decision is being logged: Approve / Reject are disabled so one click logs once
+  chain: ChainState | null;           // the event chain on screen (kept here so it survives a tab switch)
+  chainSynced: boolean | null;        // its approved measures are shown on the twin (false: it runs on other conditions than the rail's)
   build: BuildState; preview: SimView | null; previewError: string | null;
   log: LogEntry[];
   time: number; playing: boolean; speed: number;
@@ -195,6 +200,10 @@ interface State {
   recentre: () => void;
   focusLandmark: (key: string) => void;
   runAgents: (locale: "en" | "ar", opts?: { loop?: boolean }) => Promise<void>;
+  /** Stop the plan being made: the stream is aborted and nothing it would still send is shown. */
+  cancelRun: () => void;
+  /** The event chain's latest state from the API; its approved measures are applied to the twin when it runs on the rail's scenario. */
+  setChain: (c: ChainState | null, title?: string) => void;
   /** The language was switched: ask again, in the new language, for the plan or duty-shift step on screen. */
   relocalise: (locale: "en" | "ar") => Promise<void>;
   setConstraints: (c: Partial<Constraints>) => void;
@@ -223,6 +232,8 @@ let runSeq = 0;                                   // which runAgents call is cur
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let reqId = 0, refreshTimer: ReturnType<typeof setTimeout> | null = null, previewTimer: ReturnType<typeof setTimeout> | null = null;
 let abort: AbortController | null = null, previewAbort: AbortController | null = null;
+let runAbort: AbortController | null = null;      // the agent team's live stream (aborted by Cancel, a newer run or a new scenario)
+let applySeq = 0;                                 // which re-simulation of the approved plans is current
 let shiftLocale: "en" | "ar" = "en";          // the language the running duty shift was started in (its next missions use it)
 let lastPlan: { runId: string; applied: unknown[]; threshold: number; priority: Priority; req: ForecastRequest; constraints: Constraints; brief: PlanBrief | null } | null = null;   // what the plan on screen was asked with (asked again if the language changes)
 
@@ -234,6 +245,7 @@ export const useTwin = create<State>((set, get) => {
     abort = new AbortController();
     const { signal } = abort;
     set({ loading: true, error: null });
+    applySeq++;                                    // this refresh re-simulates the approved plans itself
     try {
       const s = get();
       const spec = opts.forecast || !s.forecast || !s.forecastReq ? forecastBody(s.scenario) : s.forecastReq;
@@ -251,12 +263,13 @@ export const useTwin = create<State>((set, get) => {
         const f = (flows[r.station_id] ??= { out: Array(24).fill(0), in: Array(24).fill(0) });
         f.out[r.hour] = r.event_entries_p50; f.in[r.hour] = r.event_exits_p50 ?? 0;
       }
-      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, planError: null,
+      const patch: Partial<State> = { forecast: fc, forecastReq: spec, base, cur, breaks, flows, loading: false, ready: true, runCancelled: false, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, planError: null,
         ...(opts.forecast ? { shift: SHIFT0 } : {}) };          // a new scenario ends the duty shift that was running on the old one
       if (opts.jump) {
         const pk = peakOf(base, corridorIds(get()));
         Object.assign(patch, { time: Math.min(T_MAX, pk.time), selected: pk.id, camNonce: get().camNonce + 1 });
       }
+      if (get().planStatus === "running") { runSeq++; runAbort?.abort(); runAbort = null; }   // the plan being made was for the old scenario
       set(patch);
       schedulePreview();
     } catch (e) {
@@ -286,16 +299,24 @@ export const useTwin = create<State>((set, get) => {
       }
     }, 250);
   }
+  /** Re-simulate with `applied` in force. An answer that a newer scenario, refresh or plan has overtaken is dropped;
+   *  on failure the approved plans go back to `prev` and the error is shown. */
+  async function resimulate(applied: Applied[], prev: Applied[]) {
+    const s = get(), fc = s.forecast, fr = s.forecastReq, mine = ++applySeq;
+    if (!fc || !fr) return;
+    const current = () => mine === applySeq && get().forecast === fc;
+    try {
+      const r = await api.simulate(simulateBody(fc.run_id, mergeInterventions(applied.map((a) => a.ivs)), s.threshold, fr));
+      if (current()) set({ cur: buildView(r) });
+    } catch (e) {
+      if (current()) set({ applied: prev, decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
+    }
+  }
   async function applyPlan(title: string, ivs: Intervention[]) {
     const s = get();
     const applied = [...s.applied, { title, ivs }];
     set({ applied, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: { ...s.build, headway: 0, wayShare: 0, buses: 0, rt: 0, stag: 0, meterLoad: 0, ext: 0 }, preview: null });
-    try {
-      const r = await api.simulate(simulateBody(s.forecast!.run_id, mergeInterventions(applied.map((a) => a.ivs)), s.threshold, s.forecastReq!));
-      set({ cur: buildView(r) });
-    } catch (e) {
-      set({ applied: s.applied, decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
-    }
+    await resimulate(applied, s.applied);
   }
 
   /** The next step of the duty shift: the clock runs to the Watcher's next alert and the team's option waits for a
@@ -324,6 +345,7 @@ export const useTwin = create<State>((set, get) => {
     threshold: 0.85, priority: "balanced",
     forecast: null, forecastReq: null, base: null, cur: null, breaks: null, flows: {},
     applied: [], plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, planStatus: "idle", planStep: -1, planError: null, decisions: {}, decisionError: null,
+    runCancelled: false, deciding: false, chain: null, chainSynced: null,
     shift: SHIFT0, brief: false,
     build: BUILD0, preview: null, previewError: null, log: [],
     time: 15.5, playing: false, speed: 1,
@@ -348,13 +370,13 @@ export const useTwin = create<State>((set, get) => {
     },
     selectEvent: (id) => {
       const s = get();
-      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null, incident: null }, planBrief: null, applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
+      set({ scenario: { ...s.scenario, eventId: id, attendance: null, exitSigma: null, metroShare: null, demandLevel: null, incident: null }, planBrief: null, applied: [], chain: null, chainSynced: null, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null });
       schedule({ forecast: true, jump: true }, 0);
     },
     patchScenario: (p) => { set({ scenario: { ...get().scenario, ...p }, planBrief: null }); schedule({ forecast: true }); },
     patchCustom: (p) => {
       const s = get().scenario;
-      set({ scenario: { ...s, custom: { ...s.custom, ...p } }, planBrief: null, applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle" });
+      set({ scenario: { ...s, custom: { ...s.custom, ...p } }, planBrief: null, applied: [], chain: null, chainSynced: null, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle" });
       schedule({ forecast: true, jump: true });
     },
     setThreshold: (v) => { set({ threshold: v }); schedule({ forecast: false }); },
@@ -373,7 +395,9 @@ export const useTwin = create<State>((set, get) => {
       if (!opts?.loop) set({ answers: [], feedback: null });                  // a new plan: no answers or feedback carried over
       const s = get();
       if (s.planStatus === "running" || !s.forecast || !s.forecastReq) return;
-      set({ planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, missionSkip: false, planError: null, decisions: {}, pause: null, loopError: null });
+      runAbort?.abort();
+      const ctl = (runAbort = new AbortController());
+      set({ runCancelled: false, planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, missionSkip: false, planError: null, decisions: {}, pause: null, loopError: null });
       const ask: LoopAsk | null = s.kiosk ? null : { checkpoints: s.askMe ? ["hotspot", "partial"] : [], answers: s.answers };
       const mySeq = ++runSeq;
       const applied = mergeInterventions(s.applied.map((a) => a.ivs));
@@ -386,7 +410,7 @@ export const useTwin = create<State>((set, get) => {
         const live: AgentEvent[] = [];
         let done = false, failed = false, shown = 0, step = 0;
         const p = api.agentRunStream(missionBody(s.forecast.run_id, applied, s.threshold, s.priority, locale, s.forecastReq, s.constraints, s.planBrief, ask),
-          (e) => { live.push(e); if (runSeq === mySeq) set({ missionLive: live.slice() }); })
+          (e) => { live.push(e); if (runSeq === mySeq) set({ missionLive: live.slice() }); }, ctl.signal)
           .then((m) => { mission = m; }).catch(() => { failed = true; }).finally(() => { done = true; });
         while (!done || shown < live.length) {
           if (runSeq !== mySeq || get().planStatus !== "running") return;          // replaced by a new run or scenario
@@ -418,6 +442,7 @@ export const useTwin = create<State>((set, get) => {
           plan = await api.agentPlan(planBody(s.forecast.run_id, applied, s.threshold, s.priority, locale, s.forecastReq));
         } catch (e) { err = e instanceof ApiError ? e.detail : String(e); }
       }
+      if (runSeq !== mySeq) return;                                                // cancelled, or replaced by a newer run or scenario
       if (!plan) { set({ planStatus: "error", planError: err, planStep: -1 }); return; }
       if (mission) {
         set({ mission });
@@ -432,11 +457,41 @@ export const useTwin = create<State>((set, get) => {
           if (!get().missionSkip) await sleep(paceFor(g.kiosk, g.reducedMotion));
         }
       } else {
-        for (let i = 0; i < 8; i++) { set({ planStep: i }); await sleep(get().reducedMotion ? 40 : 230); }
+        for (let i = 0; i < 8; i++) { if (runSeq !== mySeq) return; set({ planStep: i }); await sleep(get().reducedMotion ? 40 : 230); }
       }
-      if (get().planStatus !== "running") return;
+      if (runSeq !== mySeq || get().planStatus !== "running") return;
       if (mission?.status === "paused") { set({ plan, planStatus: "paused", pause: mission.pause ?? null }); return; }
       set({ plan, planStatus: "ready", planStep: 8 });
+    },
+    cancelRun: () => {
+      if (get().planStatus !== "running") return;
+      runSeq++;
+      runAbort?.abort();
+      runAbort = null;
+      set({ planStatus: "idle", planStep: -1, plan: null, mission: null, missionShown: 0, missionLive: null, planError: null, pause: null, runCancelled: true });
+    },
+    setChain: (c, title) => {
+      const s = get();
+      if (!c) { set({ chain: null, chainSynced: null }); return; }
+      const prevChain = s.chain?.chain_id === c.chain_id ? s.chain : null;
+      // the chain's decisions join the on-screen log (the server already logged them, user "duty-manager")
+      const fresh = (c.decisions ?? []).slice(prevChain?.decisions?.length ?? 0) as { decision?: string; title?: string }[];
+      const now = new Date().toISOString();
+      const log = [...fresh.filter((d) => d.decision === "approve" || d.decision === "reject").reverse()
+        .map((d) => ({ ts: now, kind: d.decision as Decision, title: d.title })), ...s.log].slice(0, LOG_MAX);
+      // the chain runs on its own copy of the scenario: its measures go on the twin only while that copy is the rail's
+      // (same forecast run, same comfort line). Changed conditions in the chain rebuild its run, and then they don't.
+      const same = !!s.forecast && c.forecast_run_id === s.forecast.run_id && (c.request.threshold ?? s.threshold) === s.threshold;
+      if (!same) { set({ chain: c, chainSynced: false, log }); return; }
+      const ivs = (c.applied ?? []) as Intervention[];
+      const before = s.applied.find((a) => a.chain === c.chain_id);
+      const stale = s.applied.some((a) => a.chain && a.chain !== c.chain_id);   // a restarted chain starts the day again: one chain at a time
+      if (!stale && JSON.stringify(before?.ivs ?? []) === JSON.stringify(ivs)) { set({ chain: c, chainSynced: true, log }); return; }
+      const others = s.applied.filter((a) => !a.chain);
+      const lastApproved = [...(c.decisions ?? [])].reverse().find((d) => (d as { decision?: string }).decision === "approve") as { title?: string } | undefined;
+      const applied = ivs.length ? [...others, { title: title ?? lastApproved?.title ?? before?.title ?? "", ivs, chain: c.chain_id }] : others;
+      set({ chain: c, chainSynced: true, log, applied, preview: null });
+      void resimulate(applied, s.applied);
     },
     relocalise: async (locale) => {
       const s = get();
@@ -463,7 +518,7 @@ export const useTwin = create<State>((set, get) => {
       set({ scenario: { ...s.scenario, eventId: b.eventId ?? "custom", attendance: b.attendance, exitSigma: null, weather: b.weather, metroShare: null,
               demandLevel: null, incident: null, custom: b.custom ?? s.scenario.custom },
             threshold: b.threshold ?? s.threshold, priority: b.priority ?? s.priority, constraints: b.constraints, planBrief: b.brief,
-            applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null, tab: "ai" });
+            applied: [], chain: null, chainSynced: null, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, build: BUILD0, preview: null, tab: "ai" });
       await refresh({ forecast: true, jump: true });
       const g = get();
       if (g.error || !g.forecast || g.planBrief !== b.brief) return;           // the forecast failed, or the scenario changed meanwhile
@@ -488,6 +543,8 @@ export const useTwin = create<State>((set, get) => {
       if (!s.plan || !opt || !s.forecast) return;
       const codes = [...r.codes.filter((c) => c === "too_costly" || c === "not_enough" || c === "other"),
         ...(r.codes.includes("avoid_measure") ? r.avoid.map((t) => `avoid:${t}`) : []), ...(r.codes.includes("protect_station") ? r.protect.map((x) => `protect:${x}`) : [])];
+      if (s.deciding) return;
+      set({ deciding: true });
       try {
         const d = await api.decide({ plan_id: s.plan.plan_id, option_rank: rank, decision: "reject", user: "visitor", option_title: opt.title.slice(0, 200),
           forecast_run_id: s.forecast.run_id, interventions: opt.interventions, reason_codes: codes.slice(0, 8), reason: r.words.trim().slice(0, 300) || null });
@@ -496,7 +553,7 @@ export const useTwin = create<State>((set, get) => {
       } catch (e) {
         set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
         return;                                    // a rejection that was not logged is not acted on
-      }
+      } finally { set({ deciding: false }); }
       void get().loadMemory();
       let fb: FeedbackResponse;
       try {
@@ -519,7 +576,7 @@ export const useTwin = create<State>((set, get) => {
     setIncident: (i) => {
       const s = get();
       // an incident changes the scenario day: plans approved for the day before it are cleared, like a new event
-      set({ scenario: { ...s.scenario, incident: i ?? null }, applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, preview: null });
+      set({ scenario: { ...s.scenario, incident: i ?? null }, applied: [], chain: null, chainSynced: null, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, preview: null });
       schedule({ forecast: true, jump: true }, 0);
     },
     startShift: async (locale) => {
@@ -565,43 +622,50 @@ export const useTwin = create<State>((set, get) => {
       // while a duty shift waits on this very plan, a decision made on the plan's own card is the shift's decision
       if (s.shift.status === "awaiting" && s.plan && s.shift.step?.mission?.plan.plan_id === s.plan.plan_id) { await get().shiftDecide(d === "approve" ? "approve" : "reject", shiftLocale, rank); return; }
       const opt = s.plan?.options.find((o) => o.rank === rank);
-      if (!s.plan || !opt || !s.forecast) return;
+      if (!s.plan || !opt || !s.forecast || s.deciding) return;      // one click logs one decision
+      set({ deciding: true });
       try {
-        const r = await api.decide({ plan_id: s.plan.plan_id, option_rank: rank, decision: d, user, option_title: opt.title.slice(0, 200),
-          forecast_run_id: s.forecast.run_id, interventions: opt.interventions });
-        set({ log: [{ ts: r.timestamp, kind: d, title: opt.title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
-      } catch (e) {
-        set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
-        return;                                    // never show "applied" for a decision that was not logged
-      }
-      if (d === "approve") {
-        // the messenger drafts the passenger notice for the approved option (figures re-simulated by the API; never sent)
-        const fr = s.forecastReq;
-        if (fr) void api.message(messageBody(s.forecast.run_id, s.threshold, fr, mergeInterventions(s.applied.map((a) => a.ivs)), opt.interventions))
-          .then((m) => set({ drafts: m }), () => set({ drafts: null }));
-        await applyPlan(opt.title, opt.interventions);
-      }
-      else set({ decisions: { ...get().decisions, [rank]: d } });
+        try {
+          const r = await api.decide({ plan_id: s.plan.plan_id, option_rank: rank, decision: d, user, option_title: opt.title.slice(0, 200),
+            forecast_run_id: s.forecast.run_id, interventions: opt.interventions });
+          set({ log: [{ ts: r.timestamp, kind: d, title: opt.title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
+        } catch (e) {
+          set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
+          return;                                  // never show "applied" for a decision that was not logged
+        }
+        if (d === "approve") {
+          // the messenger drafts the passenger notice for the approved option (figures re-simulated by the API; never sent)
+          const fr = s.forecastReq;
+          if (fr) void api.message(messageBody(s.forecast.run_id, s.threshold, fr, mergeInterventions(s.applied.map((a) => a.ivs)), opt.interventions))
+            .then((m) => set({ drafts: m }), () => set({ drafts: null }));
+          await applyPlan(opt.title, opt.interventions);
+        }
+        else set({ decisions: { ...get().decisions, [rank]: d } });
+      } finally { set({ deciding: false }); }
     },
     patchBuild: (p) => { set({ build: { ...get().build, ...p } }); schedulePreview(); },
     approveMine: async (title) => {
       const s = get();
       const ivs = buildInterventions(s.build, s.cur, corridorIds(s));
-      if (!ivs.length || !s.preview || !s.forecast) return;
+      if (!ivs.length || !s.preview || !s.forecast || s.deciding) return;
+      set({ deciding: true });
       try {
-        const r = await api.decide({ plan_id: `my_plan_${s.preview.resp.run_id}`, option_rank: 1, decision: "approve", user: "visitor",
-          option_title: title, forecast_run_id: s.forecast.run_id, interventions: ivs });
-        set({ log: [{ ts: r.timestamp, kind: "approve" as const, title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
-      } catch (e) {
-        set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
-        return;
-      }
-      await applyPlan(title, ivs);
+        try {
+          const r = await api.decide({ plan_id: `my_plan_${s.preview.resp.run_id}`, option_rank: 1, decision: "approve", user: "visitor",
+            option_title: title, forecast_run_id: s.forecast.run_id, interventions: ivs });
+          set({ log: [{ ts: r.timestamp, kind: "approve" as const, title }, ...get().log].slice(0, LOG_MAX), decisionError: null });
+        } catch (e) {
+          set({ decisionError: e instanceof ApiError ? e.detail : (e as Error).message });
+          return;
+        }
+        await applyPlan(title, ivs);
+      } finally { set({ deciding: false }); }
     },
     clearPlans: () => {
       const s = get();
-      if (!s.applied.length && !s.plan) return;
-      set({ applied: [], plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, cur: s.base, preview: null, shift: SHIFT0,
+      if (!s.applied.length && !s.plan && !s.chain) return;
+      applySeq++;                                  // a re-simulation still in flight must not bring the cleared plans back
+      set({ applied: [], chain: null, chainSynced: null, plan: null, mission: null, missionShown: 0, drafts: null, planStatus: "idle", decisions: {}, cur: s.base, preview: null, shift: SHIFT0,
         log: [{ ts: new Date().toISOString(), kind: "reset" as const }, ...s.log].slice(0, LOG_MAX) });
       schedulePreview();
     },

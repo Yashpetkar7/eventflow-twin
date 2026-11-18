@@ -38,14 +38,24 @@ export function OpsInbox() {
     return () => clearInterval(id);
   }, [refresh]);
 
+  const [signing, setSigning] = useState(false);
   const signIn = async () => {
+    setSigning(true);
     try {
       const r = await api.authLogin(cred.username, cred.password);
       setAuthToken(r.token);
       setCred({ username: "", password: "" });
       setMe({ auth: "on", user: { username: r.username, role: r.role } });
+      setErr(null);
       await refresh();
-    } catch (e) { fail(e); }
+    } catch (e) { fail(e); } finally { setSigning(false); }
+  };
+  /** Ends the session on the server too; the token was only ever held in memory. */
+  const signOut = async () => {
+    try { await api.authLogout(); } catch { /* the token is dropped here either way */ }
+    setAuthToken(null);
+    setInbox(null);
+    setMe({ auth: "on", user: null });
   };
   const register = async () => {
     setMsg(null);
@@ -102,16 +112,20 @@ export function OpsInbox() {
       {msg && <div className="verify" role="status" data-testid="ops-msg"><N>{msg}</N></div>}
 
       {needSignIn && (
-        <section className="card" data-testid="ops-signin">
+        <form className="card" data-testid="ops-signin" onSubmit={(e) => { e.preventDefault(); void signIn(); }}>
           <h2>{t("signIn")}</h2>
           <div className="ops-grid">
-            <label>{t("username")}<input id="ops-user" autoComplete="username" value={cred.username} onChange={(e) => setCred({ ...cred, username: e.target.value })} /></label>
-            <label>{t("password")}<input id="ops-pass" type="password" autoComplete="current-password" value={cred.password} onChange={(e) => setCred({ ...cred, password: e.target.value })} /></label>
+            <label>{t("username")}<input id="ops-user" autoComplete="username" required value={cred.username} onChange={(e) => setCred({ ...cred, username: e.target.value })} /></label>
+            <label>{t("password")}<input id="ops-pass" type="password" autoComplete="current-password" required value={cred.password} onChange={(e) => setCred({ ...cred, password: e.target.value })} /></label>
           </div>
-          <button type="button" className="btn navy" onClick={() => void signIn()}>{t("signInBtn")}</button>
-        </section>
+          <button type="submit" className="btn navy" disabled={signing}>{t("signInBtn")}</button>
+        </form>
       )}
-      {me && <p className="note" data-testid="ops-auth">{me.auth === "off" ? t("authOff") : me.user ? td("signedIn", { u: me.user.username, r: me.user.role }) : ""}{inbox ? " · " + (inbox.notifications ? t("notifyOn") : t("notifyOff")) : ""}</p>}
+      {me && (
+        <p className="note" data-testid="ops-auth">{me.auth === "off" ? t("authOff") : me.user ? td("signedIn", { u: me.user.username, r: me.user.role }) : ""}{inbox ? " · " + (inbox.notifications ? t("notifyOn") : t("notifyOff")) : ""}
+          {me.auth === "on" && me.user && <> <button type="button" className="pill" onClick={() => void signOut()} data-testid="ops-signout">{t("signOut")}</button></>}
+        </p>
+      )}
 
       {(inbox?.questions?.length ?? 0) > 0 && (
         <section className="card" data-testid="ops-questions">
