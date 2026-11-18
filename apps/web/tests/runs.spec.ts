@@ -41,7 +41,7 @@ test("AI plan: a run is recorded with what it found, the plans compare on seven 
   await expect(page.getByTestId("run-status")).toContainText("No analysis has run");
   await plan(page).click();
   await expect(page.getByTestId("run-status")).toContainText("Running");
-  await expect(page.getByTestId("run-cancel")).toBeVisible();
+  await expect(page.getByTestId("plan-cancel")).toBeVisible();                                 // one Stop button while running: the Plan card's (from #60)
   await status(page, "ready");
   await expect(page.getByTestId("run-status")).toContainText("Completed");
   const first = rows(page).first();
@@ -106,7 +106,7 @@ test("a scenario change during a run supersedes it, and Cancel drops the answer"
 
   await plan(page).click();
   await status(page, "running");
-  await page.getByTestId("run-cancel").click();
+  await page.getByTestId("plan-cancel").click();
   await expect(rows(page).first()).toHaveAttribute("data-status", "cancelled");
   await page.waitForTimeout(4000);                                                            // the API's answer arrives after the cancel…
   expect(await twin(page, (s) => [s.planStatus, s.plan])).toEqual(["idle", null]);            // …and is not shown
