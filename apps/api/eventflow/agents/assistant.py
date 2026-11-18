@@ -126,6 +126,22 @@ def _run_ref(tool: str, run_id: str | None) -> dict:
     return {"kind": "run", "id": run_id, "tool": tool, "run_id": run_id}
 
 
+def mission_for(deps: Deps, run: dict, settings: dict, applied: list[dict], scope: str, locale: str) -> dict:
+    """The agent team's mission for one scenario. Deterministic, so it is reused while the scenario is the same."""
+    key = json.dumps([run["run_id"], applied, settings["threshold"], scope, settings["priority"], settings["constraints"], locale], sort_keys=True)
+    with _LOCK:
+        m = _MISSIONS.get(key)
+    if m is None:
+        areq = deps.make_request(forecast_run_id=run["run_id"], forecast=run["_spec"], locale=locale, threshold=settings["threshold"],
+                                 scope=scope, priority=settings["priority"], applied=applied, constraints=settings["constraints"])
+        m = deps.mission(run, areq)
+        with _LOCK:
+            _MISSIONS[key] = m
+            while len(_MISSIONS) > 24:
+                _MISSIONS.popitem(last=False)
+    return m
+
+
 class Turn:
     """One turn's working state: the request, the tools it has called, and what it will answer."""
 
@@ -173,17 +189,7 @@ class Turn:
     def mission(self, run: dict | None = None, settings: dict | None = None) -> dict:
         run = run or self.run
         s = settings or {"threshold": self.req.threshold, "priority": self.req.priority, "constraints": _dump(self.req.constraints)}
-        key = json.dumps([run["run_id"], self.applied, s["threshold"], self.req.scope, s["priority"], s["constraints"], self.locale], sort_keys=True)
-        with _LOCK:
-            m = _MISSIONS.get(key)
-        if m is None:
-            areq = self.deps.make_request(forecast_run_id=run["run_id"], forecast=run["_spec"], locale=self.locale, threshold=s["threshold"],
-                                          scope=self.req.scope, priority=s["priority"], applied=self.applied, constraints=s["constraints"])
-            m = self.deps.mission(run, areq)
-            with _LOCK:
-                _MISSIONS[key] = m
-                while len(_MISSIONS) > 24:
-                    _MISSIONS.popitem(last=False)
+        m = mission_for(self.deps, run, s, self.applied, self.req.scope, self.locale)
         self.note("agent_team", m["mission_id"])
         return m
 
@@ -893,6 +899,38 @@ HANDLERS: dict[str, Callable] = {
 }
 TAKES_TEXT = {"whatif_attendance", "whatif_threshold", "edit", "knowledge", "reach", "accessible"}
 EXEMPT_SCREEN = ("threshold (to|is|=)",)             # a planner may set the comfort line in words; the value is range-checked instead
+
+
+def scenario_compare(a: dict, b: dict, applied: list[dict], scope: str, locale: str, deps: Deps) -> dict:
+    """Two scenarios side by side (decision #152): what differs in their settings, what that does before any plan, and
+    what the team recommends for each. Both sides are forecast, simulated and planned here; nothing is taken on trust
+    from the caller except the settings themselves. Used by the run history ("compare with now")."""
+    default = corridor()["capacity"]["overcap_threshold"]
+
+    def side(s: dict) -> dict:
+        run = deps.run_for(s["forecast"])
+        thr = s["threshold"] if s["threshold"] is not None else default
+        sim = deps.simulate(run["run_id"], applied, False, thr, scope)
+        m = mission_for(deps, run, s, applied, scope, locale)
+        o = _option(m, m.get("recommended_rank"))
+        h = _headline(sim)
+        return {"settings": _flat(s, run), "forecast_run_id": run["run_id"], "simulation_run_id": sim["run_id"], "mission_id": m["mission_id"],
+                "headline": {"worst_station": h["worst"], "peak_lf": round(h["peak"], 4), "overcap_station_hours": h["over"], "stations_over": h["stations_over"]},
+                "options": len(m["plan"]["options"]), "stop_reason": m.get("stop_reason"),
+                "recommended": o and {"rank": o["rank"], "title": o["title"], "peak_lf": round(o["summary"]["peak_lf"], 4),
+                                      "excess_pax": round(o["summary"]["excess_pax"], 1), "cost_added": o["cost_added"],
+                                      "run_id": o["sources"][0]["run_id"], "signature": planner._sig(o["interventions"])},
+                "is_synthetic": run["is_synthetic"]}
+    x, y = side(a), side(b)
+    changes = [{"field": k, "was": x["settings"][k], "to": y["settings"][k]} for k in y["settings"] if x["settings"].get(k) != y["settings"][k]]
+    rx, ry = x["recommended"], y["recommended"]
+    return {"a": x, "b": y, "changes": changes, "identical": not changes,
+            "same_recommendation": (rx is None and ry is None) or bool(rx and ry and rx["signature"] == ry["signature"]),
+            "delta": {"peak_lf": round(y["headline"]["peak_lf"] - x["headline"]["peak_lf"], 4),
+                      "overcap_station_hours": round(y["headline"]["overcap_station_hours"] - x["headline"]["overcap_station_hours"], 3),
+                      "stations_over": y["headline"]["stations_over"] - x["headline"]["stations_over"]},
+            "is_synthetic": x["is_synthetic"] or y["is_synthetic"],
+            "note": "Both scenarios were forecast, simulated and planned for this answer. Runs are deterministic: the same settings always give the same run ids."}
 
 
 def clean_args(a: dict) -> dict:

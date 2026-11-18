@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.17.0"   # 1.17.0: the assistant — POST /agent/chat (multi-turn, planner and kiosk audiences, natural-language scenario changes returned as a typed patch, plan comparison under seven objectives, graded confidence, cited documents), GET /knowledge/sources, GET /knowledge/graph · 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.18.0"   # 1.18.0: POST /scenario/compare (two scenarios side by side: settings that differ, the effect before any plan, each one's recommendation; for the run history) · 1.17.0: the assistant — POST /agent/chat (multi-turn, planner and kiosk audiences, natural-language scenario changes returned as a typed patch, plan comparison under seven objectives, graded confidence, cited documents), GET /knowledge/sources, GET /knowledge/graph · 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -1199,4 +1199,42 @@ class KnowledgeSources(BaseModel):
     dropped: list[str]
     method: str
     sources: list[dict]
+
+
+# ---------- scenario comparison for the run history (contract 1.18.0, decision #152) ----------
+class ScenarioCompareRequest(BaseModel):
+    a: ChatSettings = Field(description="The earlier scenario (e.g. the one a past run was for)")
+    b: ChatSettings = Field(description="The later scenario (e.g. the one on screen)")
+    scope: Scope = "corridor"
+    applied: list[Intervention] = Field(default_factory=list, max_length=MAX_INTERVENTIONS)
+    locale: Literal["en", "ar"] = "en"
+
+
+class SettingChange(BaseModel):
+    field: str
+    was: Any = None
+    to: Any = None
+
+
+class ScenarioSide(BaseModel):
+    settings: dict
+    forecast_run_id: str
+    simulation_run_id: str
+    mission_id: str
+    headline: dict = Field(description="Before any plan: worst_station, peak_lf, overcap_station_hours, stations_over")
+    options: int
+    stop_reason: str | None = None
+    recommended: dict | None = Field(None, description="The team's recommended option, or null when no plan is needed")
+    is_synthetic: bool
+
+
+class ScenarioCompareResponse(BaseModel):
+    a: ScenarioSide
+    b: ScenarioSide
+    changes: list[SettingChange]
+    identical: bool
+    same_recommendation: bool
+    delta: dict
+    is_synthetic: bool
+    note: str
 

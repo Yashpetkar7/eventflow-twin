@@ -30,24 +30,39 @@ interface AssistantState {
 let seq = 0;
 let applying = false;                  // a patch is being applied: its several store updates are one version, not three
 
-/** Make a patch the scenario on screen. The API has already forecast and simulated it; the store now asks for the same
- *  deterministic runs, so the rail, the 3D twin and every panel move to exactly the figures the answer showed. */
-export function applyPatch(p: ScenarioPatch): void {
-  const st = useTwin.getState();
-  const f = p.forecast;
+export interface Settings { forecast: ScenarioPatch["forecast"]; threshold: number | null | undefined; priority: ScenarioPatch["priority"]; constraints: ScenarioPatch["constraints"] }
+
+/** Several store updates that are ONE change to the scenario: one new version (or the version a patch names). */
+export function asOneChange(fn: () => void, version?: number): void {
   applying = true;
-  try {
+  try { fn(); } finally { applying = false; }
+  useAssistant.setState((a) => ({ version: version ?? a.version + 1 }));
+}
+
+/** Make these settings the scenario on screen (a patch from the assistant, or a past run's scenario restored). The
+ *  store then asks for its usual deterministic runs, so the rail, the 3D twin and every panel show exactly the figures
+ *  those settings give. An incident is left as it is: it belongs to the duty view. */
+export function applySettings(x: Settings, version?: number): void {
+  const st = useTwin.getState();
+  const f = x.forecast;
+  asOneChange(() => {
     const custom = f.custom_event ?? null;
+    const event = custom ? "custom" : f.event_id ?? st.scenario.eventId;
+    if (event !== st.scenario.eventId) st.selectEvent(event);
+    if (custom) st.patchCustom({ near: custom.near_station, start: custom.start, end: custom.end, weekend: !!custom.weekend });
     st.patchScenario({ attendance: custom ? custom.attendance : f.attendance ?? null, exitSigma: f.exit_sigma_min ?? null,
-      weather: (f.weather ?? "normal") as Weather, metroShare: f.metro_share ?? null });
-    if (p.threshold != null && p.threshold !== st.threshold) st.setThreshold(p.threshold);
-    if (p.priority !== st.priority) st.setPriority(p.priority);
-    const c = p.constraints, now = st.constraints;
-    if (JSON.stringify(c) !== JSON.stringify(now)) st.setConstraints({ forbid_types: c.forbid_types ?? [], protect_stations: c.protect_stations ?? [], cost_cap: c.cost_cap ?? null });
-  } finally {
-    applying = false;
-  }
-  useAssistant.setState({ version: p.version });
+      weather: (f.weather ?? "normal") as Weather, metroShare: f.metro_share ?? null, demandLevel: f.demand_level === "real_totals" ? "real_totals" : null });
+    const now = useTwin.getState();
+    if (x.threshold != null && x.threshold !== now.threshold) now.setThreshold(x.threshold);
+    if (x.priority !== now.priority) now.setPriority(x.priority);
+    const c = x.constraints;
+    if (JSON.stringify(c) !== JSON.stringify(now.constraints)) now.setConstraints({ forbid_types: c.forbid_types ?? [], protect_stations: c.protect_stations ?? [], cost_cap: c.cost_cap ?? null });
+  }, version);
+}
+
+/** A patch from the assistant. The API has already forecast and simulated it. */
+export function applyPatch(p: ScenarioPatch): void {
+  applySettings({ forecast: p.forecast, threshold: p.threshold, priority: p.priority, constraints: p.constraints }, p.version);
 }
 
 export const useAssistant = create<AssistantState>((set, get) => ({

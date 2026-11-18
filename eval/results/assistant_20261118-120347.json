@@ -1,7 +1,7 @@
 {
   "suite": "assistant",
-  "git_sha": "7968d96-dirty",
-  "timestamp": "2026-11-18T11:35:39",
+  "git_sha": "ee01cd1-dirty",
+  "timestamp": "2026-11-18T12:03:47",
   "models": {
     "router": "chip,followup,retrieval,rules",
     "retrieval": "bm25+char-ngram, reciprocal rank fusion (no neural embeddings)",

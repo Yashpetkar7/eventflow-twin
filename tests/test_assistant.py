@@ -371,3 +371,34 @@ def test_parse_edit_units():
     assert assistant.parse_edit(assistant.clean("set attendance to 40,000"), cur, rng) == []                 # already so: no change
     x = assistant.parse_edit(assistant.clean("exit window 47 minutes"), cur, rng)[0]
     assert x["to"] == 45                                                                                     # snapped to the slider's 5-minute step
+
+
+# ---------------------------------------------------------------- scenario comparison (run history)
+def _settings(spec, **kw):
+    return {"forecast": spec, "threshold": 0.85, "priority": "balanced", "constraints": {"forbid_types": [], "protect_stations": [], "cost_cap": None}, **kw}
+
+
+def test_two_scenarios_side_by_side_match_their_own_runs(c):
+    big = {**HOT, "attendance": 60000}
+    d = c.post("/scenario/compare", json={"a": _settings(HOT), "b": _settings(big, priority="impact")}).json()
+    assert {x["field"]: (x["was"], x["to"]) for x in d["changes"]} == {"attendance": (40000, 60000), "priority": ("balanced", "impact")}
+    for side, spec, prio in ((d["a"], HOT, "balanced"), (d["b"], big, "impact")):
+        fc = c.post("/forecast", json=spec).json()
+        sim = c.post("/simulate", json={"forecast_run_id": fc["run_id"], "forecast": spec, "interventions": [], "threshold": 0.85, "scope": "corridor"}).json()
+        m = c.post("/agent/run", json={"forecast_run_id": fc["run_id"], "forecast": spec, "threshold": 0.85, "scope": "corridor", "priority": prio}).json()
+        rec = next(o for o in m["plan"]["options"] if o["rank"] == m["recommended_rank"])
+        assert (side["forecast_run_id"], side["simulation_run_id"], side["mission_id"]) == (fc["run_id"], sim["run_id"], m["mission_id"])
+        assert side["headline"]["peak_lf"] == round(sim["summary"]["peak_lf"], 4) and side["headline"]["overcap_station_hours"] == sim["summary"]["overcap_station_hours"]
+        assert side["recommended"]["title"] == rec["title"] and side["recommended"]["run_id"] == rec["sources"][0]["run_id"]
+    assert d["delta"]["peak_lf"] == round(d["b"]["headline"]["peak_lf"] - d["a"]["headline"]["peak_lf"], 4) and d["delta"]["peak_lf"] > 0
+    assert d["identical"] is False and d["is_synthetic"] is True
+
+
+def test_comparing_a_scenario_with_itself_and_with_one_that_needs_no_plan(c):
+    same = c.post("/scenario/compare", json={"a": _settings(HOT), "b": _settings(HOT)}).json()
+    assert same["identical"] and same["changes"] == [] and same["same_recommendation"] and same["delta"] == {"peak_lf": 0.0, "overcap_station_hours": 0.0, "stations_over": 0}
+    calm = c.post("/scenario/compare", json={"a": _settings(HOT), "b": _settings(NORMAL)}).json()
+    assert calm["b"]["recommended"] is None and calm["b"]["options"] == 0 and calm["a"]["recommended"] and not calm["same_recommendation"]
+    assert [x["field"] for x in calm["changes"]] == ["weather", "metro_share"] or "weather" in [x["field"] for x in calm["changes"]]
+    assert c.post("/scenario/compare", json={"a": _settings(HOT), "b": _settings({**HOT, "attendance": 999999})}).status_code == 422
+

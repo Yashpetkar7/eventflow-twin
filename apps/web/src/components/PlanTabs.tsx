@@ -4,6 +4,7 @@ import { N, useFmt, useLocale } from "@/lib/i18n";
 import type { AgentPlanResponse, PlanOption, SimSummary } from "@/lib/api";
 import { hotHours, overStations, useTwin } from "@/lib/store";
 import { BriefCard } from "./mission/Brief";
+import { CompareCard, RunBar, RunHistory } from "./runs/Runs";
 import { CheckpointCard, FeedbackBanner, ReasonForm } from "./mission/Loop";
 import { useState } from "react";
 
@@ -157,6 +158,7 @@ export function AiTab() {
   const pause = useTwin((s) => s.pause);
   const feedback = useTwin((s) => s.feedback);
   const loopError = useTwin((s) => s.loopError);
+  const noAnswers = useTwin((s) => s.answers.length === 0);          // the comparison is for the plain scenario, not one steered by checkpoint answers
   const tl = useTranslations("loop");
   return (
     <>
@@ -184,6 +186,7 @@ export function AiTab() {
         {plan && plan.planner === "deterministic-template" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planMode")}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
         {plan && plan.mode === "live" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planLive", { model: modelName(plan.planner) })}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
       </div>
+      <RunBar />
       {status === "paused" && pause && <CheckpointCard pause={pause} onAnswer={(a) => void useTwin.getState().answerCheckpoint(a, locale)} />}
       {feedback && status !== "running" && <FeedbackBanner round={feedback.round} changes={feedback.changes} />}
       {loopError && <div className="warnbox" role="status" data-testid="loop-error">{loopError === "nothing" ? tl("nothing") : loopError}</div>}
@@ -192,7 +195,9 @@ export function AiTab() {
       {status === "ready" && plan && plan.options.length === 0 && <div className="card empty">{t("noHot")}</div>}
       {status === "ready" && plan && <Trace plan={plan} />}
       {status === "ready" && plan && plan.options.map((o) => <OptionCard key={o.rank} o={o} base={plan.baseline_summary} verified={plan.verify.all_matched} baseRoad={plan.baseline_road?.peak_veh_per_hour ?? null} />)}
+      {status === "ready" && plan && plan.options.length > 0 && noAnswers && <CompareCard key={plan.plan_id} />}
       {status === "idle" && applied > 0 && <div className="card empty">{t("replan")}</div>}
+      <RunHistory />
     </>
   );
 }

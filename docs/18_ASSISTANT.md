@@ -1,6 +1,6 @@
 # 18. The assistant: conversation, scenario changes in plain words, cited knowledge, graded confidence
 
-Contract **1.17.0** · decisions **#147–#151** · built 18 Nov 2026 · owner of this stream: Krishna.
+Contract **1.18.0** (assistant 1.17.0, runs 1.18.0) · decisions **#147–#152** · built 18 Nov 2026 · owner of this stream: Krishna.
 
 This is the first slice of the "agentic decision-support" brief of 18 Nov. It adds one conversation engine behind
 `POST /agent/chat`, used by the command centre (a new **Ask** tab) and by the kiosk (visitor questions on the rider
@@ -170,6 +170,7 @@ thresholds are team assumptions in `config/assistant.yaml`.
 | Ask tab, plans | A card per plan with six measured values and "Emissions: not measured"; badges for the team's recommendation, offered / tested only, Pareto; "Order by" lens chips |
 | Ask tab, recommendation | "Confidence, in parts": five graded rows and the overall grade with what holds it back |
 | Kiosk, "I'm travelling" | **Ask about your trip**: five questions by touch (which station, when to leave, step-free access, other stations nearby, how to reach a station); RTA's page quoted with its source; no keyboard |
+| AI plan tab | Run bar (status, scenario version, Cancel, Run again, stale-scenario warning), **Auto-run** switch, **Compare these plans on seven objectives**, **Run history** with Compare with now and Restore this scenario (§13) |
 | Both | English and Arabic (drafts for the native reviewer, issue #43) |
 
 ## 9. Measured (18 Nov 2026, word rules only, no model)
@@ -193,8 +194,8 @@ thresholds are team assumptions in `config/assistant.yaml`.
    (`personas.ask_route_model`) and its test exist.
 2. **Model-written explanations** over the same evidence, with the verifier checking every number.
 3. **Neural embeddings and a reranker** for retrieval, measured against today's baseline on the same gold set.
-4. **Run registry**: queued / running / cancelled / superseded as API statuses, run history, auto-run on a new
-   scenario version. Today the client drops stale answers; the API has no run list.
+4. ~~Run registry, run history, auto-run~~: built the same day, see §13. Still open there: history that survives a
+   reload, and a server-side cancel for long model runs.
 5. **Objectives inside the ranking** (today they are a view), and an emissions model.
 6. **Station-level accessibility data** (lift status). The twin has none; RTA's page is network-level.
 7. **Typed graph state and a checkpointer** for the mission, replacing replay-based pauses.
@@ -219,3 +220,48 @@ C = Yash (front end). This slice follows the 18 Nov brief. Files touched outside
 - Conformal prediction for demand: [StatsForecast tutorial](https://nixtlaverse.nixtla.io/statsforecast/docs/tutorials/conformalprediction.html), [traffic demand intervals](https://arxiv.org/pdf/2504.13961)
 - Kiosk conversation design: [suggestion chips](https://developers.google.com/assistant/conversation-design/suggestions), [never a dead end](https://developers.google.com/business-communications/business-messages/guides/how-to/design/happy-path)
 - Accessibility facts: [RTA, People of Determination](https://www.rta.ae/wps/portal/rta/ae/home/people-of-determination), [RTA, 82 % of facilities retrofitted](https://rta.ae/wps/portal/rta/ae/home/news-and-media/all-news/NewsDetails/82-percent-of-facilities-retrofitted-for-people-of-determination)
+
+## 13. Runs: status, auto-run, cancel, history, scenario comparison (contract 1.18.0, decision #152)
+
+**On screen (AI plan tab).**
+- **Run bar** under the Plan button: what the latest run is doing, for which scenario version and who started it;
+  **Cancel this run**; **Run again**; a warning when the scenario has changed since the last analysis.
+- **Auto-run** switch: the team runs by itself whenever the scenario changes, by hand, through the assistant or by
+  restoring a past run. Several quick changes are one run, for the latest scenario. Off by default. Nothing is applied
+  without an approval, as before.
+- **Compare these plans on seven objectives**, under the options: the same table the Ask tab gives.
+- **Run history**: this session's runs, newest first, each with its status, scenario version, trigger, time taken,
+  what it recommended and its mission id; **Compare with now** and **Restore this scenario**.
+
+**Statuses** (`apps/web/src/lib/runs.ts`):
+
+| Status | Meaning |
+|---|---|
+| queued | an automatic run waits for the scenario's forecast and simulation |
+| running | the team is working |
+| paused | the team asked the planner a question (a checkpoint) |
+| completed | a plan, or "no plan needed", is on screen |
+| failed | the planning service did not answer |
+| cancelled | the planner stopped it; its answer is dropped if it still arrives |
+| superseded | the scenario changed while it ran; its answer is for an old scenario and is dropped |
+
+**Why the ledger is in the page and not in the API.** The API is stateless (any instance serves any request, the
+hosted store is per instance) and a mission without a model takes under two seconds, so there is nothing for a server
+to queue or cancel. The page follows the store's plan status and records what happened. What makes this safe is
+already in the store: an answer whose run is no longer current is dropped. Runs are deterministic, so running the same
+scenario twice gives the same run ids; asking twice is harmless (the browser test checks the mission id is the same).
+When recorded or live model runs make a mission long, a server-side run with a cancel is the next step.
+
+**`POST /scenario/compare`.** Two scenarios (`a`, `b`: forecast request, comfort line, priority, constraints) →
+the settings that differ, peak load and over-threshold time before any plan for each, the team's recommendation for
+each (or none), whether it is the same plan, and every run id. Both sides are forecast, simulated and planned in the
+call. Fixture: `contract/fixtures/scenario_compare.json`.
+
+**Restore** makes a past run's scenario the scenario on screen through the same path as an assistant patch
+(`lib/assistant.ts: applySettings`), as a new version. An incident is left as it is: it belongs to the duty view.
+
+**Checked** (`apps/web/tests/runs.spec.ts`, `tests/test_assistant.py`): the status shown is what happened; auto-run
+starts by itself and only for the latest scenario; a superseded or cancelled run's answer never reaches the screen;
+the plan on screen is always for the forecast on screen; compare matches each side's own runs; restore moves the real
+controls.
+

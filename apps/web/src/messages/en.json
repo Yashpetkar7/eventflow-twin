@@ -1266,5 +1266,47 @@
       "done": "Back to my trip"
       }
     }
+  },
+  "runs": {
+    "none": "No analysis has run for this scenario yet.",
+    "now": "{status} · scenario v{v} · {trigger}",
+    "version": "Scenario v{v}",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "paused": "Waiting for your answer",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "superseded": "Superseded"
+    },
+    "trigger": {
+      "manual": "started by you",
+      "auto": "auto-run",
+      "rerun": "run again"
+    },
+    "queuedNote": "Waiting for the scenario's forecast and simulation, then the team runs.",
+    "supersededNote": "The scenario changed while the team was working, so that answer was dropped. Run the team again.",
+    "stale": "The scenario changed after the last analysis (v{was} → v{now}). Run the team again, or switch on auto-run.",
+    "auto": "Auto-run",
+    "autoNote": "Run the team by itself whenever the scenario changes. Nothing is applied without your approval.",
+    "cancel": "Cancel this run",
+    "again": "Run again",
+    "history": "Run history",
+    "historyNote": "This session's runs, newest first. Kept in this page only.",
+    "rowMeta": "scenario v{v} · {trigger} · {at}",
+    "took": "{s} s",
+    "result": "Recommended: {rec}. Peak load {a} → {b}.",
+    "noPlan": "No plan needed",
+    "compareNow": "Compare with now",
+    "restore": "Restore this scenario",
+    "same": "Same scenario as now.",
+    "effect": "With no plan: peak load {pa} → {pb}, station-hours over the line {oa} → {ob} (worst now at {st}).",
+    "recSame": "The recommendation is the same: {rec}.",
+    "recChanged": "The recommendation changed: {a} → {b}.",
+    "diffRuns": "Simulator runs:",
+    "compare": "Compare these plans on seven objectives",
+    "compareNote": "Safety, crowd, waiting, cost, accessibility, emissions and resources, with what is not measured said so.",
+    "compareError": "The comparison could not be loaded."
   }
 }

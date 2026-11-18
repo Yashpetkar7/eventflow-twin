@@ -105,6 +105,10 @@ def main_() -> None:
                                     "plan_known": True})
     dump("evidence.json", c.get("/evidence").json())
     # the assistant (1.17.0): one planner turn, one scenario change and one kiosk turn, for the web app to build against
+    import tempfile
+
+    from apps.api.eventflow.agents import planner as _planner
+    _planner.CACHE_WRITE = Path(tempfile.mkdtemp())            # these scenarios are examples: their plans must not land in data/demo_cache
     hot = {"event_id": "gitex2025_d1", "weather": "hot"}
     hf = c.post("/forecast", json=hot).json()
     cref = {"forecast_run_id": hf["run_id"], "forecast": hot, "threshold": 0.85, "scope": "corridor"}
@@ -117,6 +121,8 @@ def main_() -> None:
     dump("chat_planner_edit.json", chat({"message": "Increase attendance to 60,000 and shorten the exit window to 45 minutes"}))
     dump("chat_kiosk_accessible.json", chat({"message": "Which accessible route can I use?", "audience": "kiosk"}))
     dump("knowledge_sources.json", c.get("/knowledge/sources").json())
+    st = {"threshold": 0.85, "priority": "balanced", "constraints": {"forbid_types": [], "protect_stations": [], "cost_cap": None}}
+    dump("scenario_compare.json", c.post("/scenario/compare", json={"a": {"forecast": hot, **st}, "b": {"forecast": {**hot, "attendance": 60000}, **st}}).json())
     (OUT / "VERSION").write_text(CONTRACT_VERSION + "\n", encoding="utf-8")
     print(f"contract {CONTRACT_VERSION}: openapi.json + {len(list(FIX.glob('*.json')))} fixtures in {OUT}")
 

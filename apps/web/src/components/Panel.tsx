@@ -7,6 +7,7 @@ import { BreakCard } from "./BreakCard";
 import { ReportTab } from "./ReportTab";
 import { TeamTab } from "./mission/TeamTab";
 import { Assistant } from "./assistant/Assistant";
+import { RunController } from "./runs/Runs";
 import { ChainCard } from "./mission/Chain";
 import { DutyCard } from "./mission/Duty";
 import { WatcherCard } from "./mission/Standing";
@@ -120,6 +121,7 @@ export function Panel() {
   const nAlerts = useTwin((s) => alertsOf(s.cur, s.stations.map((x) => x.id)).length);
   return (
     <aside className="panel">
+      <RunController />
       <div className="tabs" role="tablist">
         {TABS.map((k) => (
           <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={tab === k} aria-controls="tabpanel" onClick={() => useTwin.setState({ tab: k })}>

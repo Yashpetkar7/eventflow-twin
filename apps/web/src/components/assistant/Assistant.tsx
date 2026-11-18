@@ -88,7 +88,7 @@ function Confidence({ c }: { c: ConfidenceReport }) {
   );
 }
 
-function Plans({ table, onLens, busy }: { table: CompareTable; onLens: (lens: string) => void; busy: boolean }) {
+export function Plans({ table, onLens, busy }: { table: CompareTable; onLens: (lens: string) => void; busy: boolean }) {
   const { t, sep } = useSay();
   const f = useFmt();
   const weights = Object.entries(table.weights).map(([k, v]) => `${t(`obj.${k}`)} ${f.int(Math.round(v * 100))}%`).join(sep);

@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_from_spec, config_hash, load_panel, mak
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, ChatRequest, ChatResponse, KnowledgeSources, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, BriefRequest, BriefResponse, ChainAnswerRequest, ChainChangeRequest, FeedbackRequest, FeedbackResponse, MemoryResponse, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, ChatRequest, ChatResponse, KnowledgeSources, ScenarioCompareRequest, ScenarioCompareResponse, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, BriefRequest, BriefResponse, ChainAnswerRequest, ChainChangeRequest, FeedbackRequest, FeedbackResponse, MemoryResponse, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, ShiftRequest, ShiftStep, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -352,6 +352,17 @@ def agent_chat(req: ChatRequest, request: Request = None):  # type: ignore[assig
     deps = assistant.Deps(run_for=_chat_run, simulate=run_simulation, mission=lambda r, a: run_mission(r, a, run_simulation),
                           make_request=lambda **k: AgentRunRequest(**k), route_model=ask_route_model)
     return assistant.chat(req, run, deps)
+
+
+@app.post("/scenario/compare", response_model=ScenarioCompareResponse)
+def scenario_compare_ep(req: ScenarioCompareRequest):
+    """Two scenarios side by side (run history: "compare with now"): the settings that differ, peak load and
+    over-threshold time before any plan, and the team's recommendation for each, all computed here with their run ids."""
+    from .agents import assistant
+    from .agents.engine import run_mission
+    deps = assistant.Deps(run_for=_chat_run, simulate=run_simulation, mission=lambda r, a: run_mission(r, a, run_simulation),
+                          make_request=lambda **k: AgentRunRequest(**k), route_model=None)
+    return assistant.scenario_compare(req.a.model_dump(), req.b.model_dump(), [i.model_dump() for i in req.applied], req.scope, req.locale, deps)
 
 
 @app.get("/knowledge/sources", response_model=KnowledgeSources)

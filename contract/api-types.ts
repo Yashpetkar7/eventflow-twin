@@ -368,6 +368,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/scenario/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scenario Compare Ep
+         * @description Two scenarios side by side (run history: "compare with now"): the settings that differ, peak load and
+         *     over-threshold time before any plan, and the team's recommendation for each, all computed here with their run ids.
+         */
+        post: operations["scenario_compare_ep_scenario_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/knowledge/sources": {
         parameters: {
             query?: never;
@@ -3263,6 +3284,46 @@ export interface components {
             /** To */
             to?: unknown;
         };
+        /** ScenarioCompareRequest */
+        ScenarioCompareRequest: {
+            /** @description The earlier scenario (e.g. the one a past run was for) */
+            a: components["schemas"]["ChatSettings"];
+            /** @description The later scenario (e.g. the one on screen) */
+            b: components["schemas"]["ChatSettings"];
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+        };
+        /** ScenarioCompareResponse */
+        ScenarioCompareResponse: {
+            a: components["schemas"]["ScenarioSide"];
+            b: components["schemas"]["ScenarioSide"];
+            /** Changes */
+            changes: components["schemas"]["SettingChange"][];
+            /** Identical */
+            identical: boolean;
+            /** Same Recommendation */
+            same_recommendation: boolean;
+            /** Delta */
+            delta: {
+                [key: string]: unknown;
+            };
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /** Note */
+            note: string;
+        };
         /**
          * ScenarioPatch
          * @description A change to the shared scenario. The API has already forecast and simulated it (`recalculated`); the client makes
@@ -3288,6 +3349,48 @@ export interface components {
             }[];
             /** Cleared */
             cleared: string[];
+        };
+        /** ScenarioSide */
+        ScenarioSide: {
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** Simulation Run Id */
+            simulation_run_id: string;
+            /** Mission Id */
+            mission_id: string;
+            /**
+             * Headline
+             * @description Before any plan: worst_station, peak_lf, overcap_station_hours, stations_over
+             */
+            headline: {
+                [key: string]: unknown;
+            };
+            /** Options */
+            options: number;
+            /** Stop Reason */
+            stop_reason?: string | null;
+            /**
+             * Recommended
+             * @description The team's recommended option, or null when no plan is needed
+             */
+            recommended?: {
+                [key: string]: unknown;
+            } | null;
+            /** Is Synthetic */
+            is_synthetic: boolean;
+        };
+        /** SettingChange */
+        SettingChange: {
+            /** Field */
+            field: string;
+            /** Was */
+            was?: unknown;
+            /** To */
+            to?: unknown;
         };
         /** ShiftAlert */
         ShiftAlert: {
@@ -4444,6 +4547,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scenario_compare_ep_scenario_compare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioCompareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioCompareResponse"];
                 };
             };
             /** @description Validation Error */
