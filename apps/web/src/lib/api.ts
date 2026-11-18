@@ -66,6 +66,16 @@ export type InboxItem = S["InboxItem"];
 export type RiderNotice = S["RiderNotice"];
 export type TravelRequest = S["TravelRequest"];
 export type TravelAdvice = S["TravelAdvice"];
+export type ChatRequest = S["ChatRequest"];
+export type ChatResponse = S["ChatResponse"];
+export type ChatContext = S["ChatContext"];
+export type ChatBlock = S["ChatBlock"];
+export type ChatOption = S["ChatOption"];
+export type EvidenceRef = S["EvidenceRef"];
+export type ScenarioPatch = S["ScenarioPatch"];
+export type CompareTable = S["CompareTable"];
+export type CompareRow = S["CompareRow"];
+export type ConfidenceReport = S["ConfidenceReport"];
 
 /** True when the page is served from this machine (laptop, booth). */
 export const isLocalHost = () => typeof window === "undefined" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
@@ -230,6 +240,8 @@ export const api = {
   watch: (req: WatchRequest) => call<WatchResponse>("/watch/scan", req),
   message: (req: MessageRequest) => call<MessageResponse>("/agent/message", req),
   ask: (req: AskRequest) => call<AskResponse>("/agent/ask", req),
+  /** The assistant (contract 1.17.0): one turn of a conversation. Never cached: each turn depends on the context sent with it. */
+  chat: (req: ChatRequest) => call<ChatResponse>("/agent/chat", req, { cache: false }),
   /** The duty shift, one step (contract 1.13.0): never cached, each step depends on the decisions before it. */
   shiftNext: (req: ShiftRequest) => call<ShiftStep>("/shift/next", req, { cache: false }),
   breakpoint: (req: BreakpointRequest, signal?: AbortSignal) => call<BreakpointResponse>("/breakpoint", req, { signal }),

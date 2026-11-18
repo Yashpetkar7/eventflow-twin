@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .interventions import Intervention
 
-CONTRACT_VERSION = "1.16.0"   # 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
+CONTRACT_VERSION = "1.17.0"   # 1.17.0: the assistant — POST /agent/chat (multi-turn, planner and kiosk audiences, natural-language scenario changes returned as a typed patch, plan comparison under seven objectives, graded confidence, cited documents), GET /knowledge/sources, GET /knowledge/graph · 1.16.0: the agentic loop with the human in it — POST /agent/brief (plain words → a proposal to confirm), AgentRunRequest.brief; checkpoints (AgentRunRequest.checkpoints/answers, Mission.pause, status "paused"); reject with a reason (POST /agent/feedback, DecisionRequest.reason_codes/reason); the chain loop (POST /chain/{id}/answer, /chain/{id}/change; topics checkpoint.asked, feedback.read, conditions.changed, plan.checked); GET /memory · 1.15.0: operations and riders — POST /events/register, /events/import, GET /inbox, POST /chain/{id}/publish, GET /notices, POST /travel/advice · 1.14.0: agent messages — AgentEvent.to and kind "message" (supervisor brief, critic objections, specialists revisions); specialists size their measures (planner rev 5) · 1.13.0: incidents (ForecastRequest.incident, ForecastResponse.incident) and the duty shift — POST /shift/next · 1.12.0: standing agents — POST /watch/scan, /agent/message, /agent/ask · 1.11.0: agent team — POST /agent/run (Mission with events, objective, rejected plans, C1–C7 checks, stress tests, budget), GET /agent/roster · 1.10.0: agent plan `trace`, `critic`, option `goal_met`/`round` (critic + replan loop); road-pressure proxy (`road`, `baseline_road`); ForecastRequest.demand_level · 1.9.0: ForecastRequest.metro_share (what-if share of event trips by metro) · 1.8.0: station_metering + extended_hours interventions, request size limits (MAX_INTERVENTIONS, id lengths) · 1.7.0: POST /breakpoint · 1.6.0: stateless runs — SimulateRequest.forecast / AgentPlanRequest.forecast rebuild a run on any instance · 1.5.0: exhibit what-ifs (weather, exit window, custom event, comfort threshold, corridor scope), trains_per_hour, /agent/plan live (steps, risk, new_hotspots) · 1.1.0: SimSummary.no_service_pax · 1.2.0: Event.profile/sources/note · 1.3.0: Event.*_ar · 1.4.0: whole network (Station.lines/in_corridor), SimulateRequest.detail, GET /decisions
 HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
 MAX_INTERVENTIONS = 24          # per request: bounds simulator work on the public demo (one visitor cannot ask for thousands)
 
@@ -1019,3 +1019,184 @@ class TravelAdvice(BaseModel):
     is_synthetic: bool
     assumptions: dict
     source: dict
+
+
+# ---------- the assistant (contract 1.17.0, docs/18_ASSISTANT.md, decisions #147–#151) ----------
+ChatAudience = Literal["planner", "kiosk"]
+ChatStatus = Literal["answered", "applied", "clarify", "refused", "insufficient_evidence"]
+PlanLifecycle = Literal["suggested", "simulated", "validated", "approved", "executed"]
+
+
+def _small(v: dict | None) -> dict | None:
+    if v is not None and (len(v) > 16 or len(str(v)) > 4000):
+        raise ValueError("too large")
+    return v
+
+
+class ChatSettings(BaseModel):
+    """The scenario as the planner set it: what a question was asked about, and what an undo returns to."""
+    forecast: ForecastRequest
+    threshold: float | None = Field(None, ge=0.5, le=1.0)
+    priority: Literal["cost", "balanced", "impact"] = "balanced"
+    constraints: Constraints = Field(default_factory=Constraints)
+
+
+class ChatContext(BaseModel):
+    """The conversation's memory. The client holds it and sends it back; the API keeps nothing, so sessions cannot mix."""
+    session_id: str | None = Field(None, max_length=40)
+    turn: int = Field(0, ge=0, le=100_000)
+    focus_station: str | None = Field(None, max_length=40, description="The station the conversation is about (follow-ups such as 'why?')")
+    focus_hour: int | None = Field(None, ge=0, le=23)
+    last_intent: str | None = Field(None, max_length=40)
+    last_args: dict = Field(default_factory=dict)
+    settings: ChatSettings | None = Field(None, description="The scenario at the last turn")
+    previous: ChatSettings | None = Field(None, description="The scenario before it last changed ('why did it change?')")
+    undo: ChatSettings | None = Field(None, description="The scenario before the assistant's last change")
+    prefs: dict[str, bool] = Field(default_factory=dict, description="Session-only preferences, e.g. step_free; never stored")
+
+    _v = field_validator("last_args", "prefs")(_small)
+
+
+class ChatRequest(_ScenarioRef):
+    message: str | None = Field(None, max_length=500, description="The question or instruction (untrusted: read, screened, never followed)")
+    intent: str | None = Field(None, max_length=40, description="A chip or button: the intent to run, no routing needed (e.g. 'compare', 'lens:safety')")
+    args: dict | None = Field(None, description="Arguments of a chip or button (e.g. {'attendance': 60000})")
+    audience: ChatAudience = Field("planner", description="'kiosk' = visitor answers only: no plans, no scenario changes, no internals")
+    locale: Literal["en", "ar"] = "en"
+    priority: Literal["cost", "balanced", "impact"] = "balanced"
+    constraints: Constraints = Field(default_factory=Constraints)
+    station: str | None = Field(None, max_length=40, description="The station selected on screen, if any")
+    hour: int | None = Field(None, ge=0, le=23, description="The hour on the time bar, if any")
+    scenario_version: int = Field(1, ge=1, le=10_000_000, description="The client's scenario version; a patch answers with the next one")
+    context: ChatContext | None = None
+
+    _v = field_validator("args")(_small)
+
+
+class ChatBlock(BaseModel):
+    key: str = Field(description="Text key; the client words it from `params` (EN/AR). Param suffixes: _st station id, _pct percent, _n count, _x decimal, _t time, _s text, _list station ids")
+    params: dict
+
+
+class EvidenceRef(BaseModel):
+    """What stands behind an answer: a tool run, an evaluation file, or a document with its provenance."""
+    kind: Literal["run", "eval", "document", "config"]
+    id: str | None = None
+    tool: str | None = None
+    run_id: str | None = None
+    title: str | None = None
+    authority: str | None = None
+    url: str | None = None
+    published: str | None = None
+    retrieved: str | None = None
+    version: str | None = None
+    licence: str | None = None
+    section: str | None = None
+    excerpt: str | None = None
+    excerpt_locale: Literal["en", "ar"] | None = None
+    source_kind: Literal["official", "project"] | None = None
+
+
+class ChatOption(BaseModel):
+    label_key: str
+    params: dict = Field(default_factory=dict)
+    intent: str
+    args: dict = Field(default_factory=dict)
+
+
+class ScenarioChange(BaseModel):
+    field: Literal["attendance", "exit_sigma_min", "threshold", "metro_share", "weather", "priority", "forbid", "protect", "cost_cap"]
+    was: Any = None
+    to: Any = None
+
+
+class ScenarioPatch(BaseModel):
+    """A change to the shared scenario. The API has already forecast and simulated it (`recalculated`); the client makes
+    it the state on screen, which runs the same deterministic requests and so arrives at the same run ids."""
+    version: int
+    changes: list[ScenarioChange]
+    forecast: ForecastRequest
+    threshold: float | None = None
+    priority: Literal["cost", "balanced", "impact"]
+    constraints: Constraints
+    recalculated: list[dict]
+    cleared: list[str]
+
+
+class CompareRow(BaseModel):
+    id: str
+    rank: int | None = None
+    title: str
+    offered: bool
+    eligible: bool = Field(description="False when a hard constraint is broken: no weighting can rank it")
+    blocked_by: list[str]
+    goal_met: bool
+    pareto: bool
+    score: float | None = None
+    values: dict[str, float | None] = Field(description="Objective → value; lower is better; null = not measured")
+    parts: dict[str, float]
+    lifecycle: PlanLifecycle
+    run_id: str | None = None
+    parties: list[str]
+    quantities: dict[str, int]
+    holds: int | None = None
+    stress_total: int | None = None
+    failed_checks: list[str]
+
+
+class CompareTable(BaseModel):
+    lens: str
+    weights: dict[str, float]
+    ignored: list[str] = Field(description="Objectives asked for but not measured by the twin (never scored)")
+    objectives: list[dict]
+    considered: int
+    blocked: int
+    recommended_rank: int | None = None
+    note: str
+    rows: list[CompareRow]
+
+
+class ConfidenceReport(BaseModel):
+    """Graded parts, never one percentage. `overall` is the weakest part that could be graded."""
+    overall: Literal["unknown", "low", "medium", "high"]
+    limiting: list[str]
+    levels: dict[str, str]
+    forecast: dict
+    evidence: dict
+    robustness: dict
+    validation: dict
+    execution: dict
+    note: str
+
+
+class ChatResponse(BaseModel):
+    session_id: str
+    turn: int
+    audience: ChatAudience
+    intent: str | None
+    status: ChatStatus
+    blocks: list[ChatBlock]
+    table: CompareTable | None = None
+    evidence: list[EvidenceRef]
+    passages: bool = Field(False, description="True when the document excerpts in `evidence` are the answer itself")
+    confidence: ConfidenceReport | None = None
+    patch: ScenarioPatch | None = None
+    options: list[ChatOption]
+    suggestions: list[str]
+    routed_by: Literal["chip", "followup", "rules", "model", "recorded", "retrieval"]
+    tools: list[dict]
+    findings: list[dict]
+    scenario_version: int
+    context: ChatContext
+    is_synthetic: bool
+    source: dict
+
+
+class KnowledgeSources(BaseModel):
+    version: str | None
+    corpus_hash: str
+    passages: int
+    dropped: list[str]
+    method: str
+    sources: list[dict]
+

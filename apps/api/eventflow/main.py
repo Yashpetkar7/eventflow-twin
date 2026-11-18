@@ -26,7 +26,7 @@ from .forecast import NoDataError, build_from_spec, config_hash, load_panel, mak
 from .interventions import InterventionError, validate_interventions
 from .ratelimit import RateLimit
 from .road import road_pressure
-from .schemas import (CONTRACT_VERSION, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, BriefRequest, BriefResponse, ChainAnswerRequest, ChainChangeRequest, FeedbackRequest, FeedbackResponse, MemoryResponse, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
+from .schemas import (CONTRACT_VERSION, ChatRequest, ChatResponse, KnowledgeSources, EventImport, EventImportResult, EventRegistration, Inbox, RegisteredEvent, RiderNotice, TravelAdvice, TravelRequest, ChainDecideRequest, ChainStartRequest, ChainState, LoginRequest, RegisterRequest, AgentPlanRequest, AgentPlanResponse, AgentRunRequest, BriefRequest, BriefResponse, ChainAnswerRequest, ChainChangeRequest, FeedbackRequest, FeedbackResponse, MemoryResponse, AskRequest, AskResponse, MessageRequest, MessageResponse, Mission, Roster, WatchRequest, WatchResponse, BreakpointRequest, BreakpointResponse, DecisionList, DecisionRequest, DecisionResponse,
                       Event, ForecastRequest, ForecastResponse, ShiftRequest, ShiftStep, SimulateRequest, SimulateResponse, Station)
 from .simulate import simulate
 
@@ -325,6 +325,47 @@ def agent_ask(req: AskRequest):
     tool with its run id. Anything outside the corridor's crowding is refused."""
     from .agents.agents_util import ask_for
     return ask_for(req, get_run(req.forecast_run_id, req.forecast), run_simulation)
+
+
+def _chat_run(spec: dict) -> dict:
+    """A forecast run for the assistant, with the request that rebuilds it attached (never stored on the cached run)."""
+    m = ForecastRequest(**spec)
+    return {**get_run(forecast(m)["run_id"], m), "_spec": m.model_dump()}
+
+
+@app.post("/agent/chat", response_model=ChatResponse)
+def agent_chat(req: ChatRequest, request: Request = None):  # type: ignore[assignment]
+    """The assistant (docs/18_ASSISTANT.md): one turn of a conversation about the scenario on screen.
+
+    A question is routed to ONE tool path (a simulation, the agent team, the documents); the answer is keys and
+    parameters with the run or the document behind every statement. `audience: "kiosk"` gets visitor answers only.
+    A planner's instruction ("attendance to 60,000, exit window 45 minutes") comes back as `patch`: the new scenario,
+    already forecast and simulated here, for the client to make the state on screen. The API keeps no conversation:
+    send `context` back on the next turn. With EVENTFLOW_AUTH=on the planner audience needs a signed-in user."""
+    from .agents import assistant
+    from .agents.engine import run_mission
+    from .agents.personas import ask_route_model
+    if req.audience == "planner" and request is not None:
+        from .auth import require_role
+        require_role(request, "viewer")
+    run = {**get_run(req.forecast_run_id, req.forecast), "_spec": req.forecast.model_dump()}
+    deps = assistant.Deps(run_for=_chat_run, simulate=run_simulation, mission=lambda r, a: run_mission(r, a, run_simulation),
+                          make_request=lambda **k: AgentRunRequest(**k), route_model=ask_route_model)
+    return assistant.chat(req, run, deps)
+
+
+@app.get("/knowledge/sources", response_model=KnowledgeSources)
+def knowledge_sources():
+    """The documents the assistant may cite: title, issuing authority, URL, dates, licence, and how they are searched."""
+    from .agents import knowledge
+    return knowledge.sources_view()
+
+
+@app.get("/knowledge/graph")
+def knowledge_graph():
+    """The corridor as a graph (stations, lines, events, measures, agents, operating parties): counts and edge types."""
+    from .agents import knowledge
+    return knowledge.graph_view()
 
 
 GENESIS = "0" * 64

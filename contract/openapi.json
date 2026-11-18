@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.16.0"
+    "version": "1.17.0"
   },
   "paths": {
     "/healthz": {
@@ -593,6 +593,81 @@
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/chat": {
+      "post": {
+        "summary": "Agent Chat",
+        "description": "The assistant (docs/18_ASSISTANT.md): one turn of a conversation about the scenario on screen.\n\nA question is routed to ONE tool path (a simulation, the agent team, the documents); the answer is keys and\nparameters with the run or the document behind every statement. `audience: \"kiosk\"` gets visitor answers only.\nA planner's instruction (\"attendance to 60,000, exit window 45 minutes\") comes back as `patch`: the new scenario,\nalready forecast and simulated here, for the client to make the state on screen. The API keeps no conversation:\nsend `context` back on the next turn. With EVENTFLOW_AUTH=on the planner audience needs a signed-in user.",
+        "operationId": "agent_chat_agent_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge/sources": {
+      "get": {
+        "summary": "Knowledge Sources",
+        "description": "The documents the assistant may cite: title, issuing authority, URL, dates, licence, and how they are searched.",
+        "operationId": "knowledge_sources_knowledge_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeSources"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge/graph": {
+      "get": {
+        "summary": "Knowledge Graph",
+        "description": "The corridor as a graph (stations, lines, events, measures, agents, operating parties): counts and edge types.",
+        "operationId": "knowledge_graph_knowledge_graph_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           }
@@ -3360,6 +3435,572 @@
         "title": "ChainState",
         "description": "An event chain: agents triggered by each other's events until a human decision is needed."
       },
+      "ChatBlock": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "Text key; the client words it from `params` (EN/AR). Param suffixes: _st station id, _pct percent, _n count, _x decimal, _t time, _s text, _list station ids"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "params"
+        ],
+        "title": "ChatBlock"
+      },
+      "ChatContext": {
+        "properties": {
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "turn": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Turn",
+            "default": 0
+          },
+          "focus_station": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Focus Station",
+            "description": "The station the conversation is about (follow-ups such as 'why?')"
+          },
+          "focus_hour": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 23.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Focus Hour"
+          },
+          "last_intent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Intent"
+          },
+          "last_args": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Last Args"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The scenario at the last turn"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The scenario before it last changed ('why did it change?')"
+          },
+          "undo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The scenario before the assistant's last change"
+          },
+          "prefs": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Prefs",
+            "description": "Session-only preferences, e.g. step_free; never stored"
+          }
+        },
+        "type": "object",
+        "title": "ChatContext",
+        "description": "The conversation's memory. The client holds it and sends it back; the API keeps nothing, so sessions cannot mix."
+      },
+      "ChatOption": {
+        "properties": {
+          "label_key": {
+            "type": "string",
+            "title": "Label Key"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          },
+          "intent": {
+            "type": "string",
+            "title": "Intent"
+          },
+          "args": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Args"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label_key",
+          "intent"
+        ],
+        "title": "ChatOption"
+      },
+      "ChatRequest": {
+        "properties": {
+          "forecast_run_id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Forecast Run Id"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest",
+            "description": "The forecast request (lets any instance rebuild the run)"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "network",
+              "corridor"
+            ],
+            "title": "Scope",
+            "default": "corridor"
+          },
+          "applied": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Applied"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message",
+            "description": "The question or instruction (untrusted: read, screened, never followed)"
+          },
+          "intent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent",
+            "description": "A chip or button: the intent to run, no routing needed (e.g. 'compare', 'lens:safety')"
+          },
+          "args": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Args",
+            "description": "Arguments of a chip or button (e.g. {'attendance': 60000})"
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "planner",
+              "kiosk"
+            ],
+            "title": "Audience",
+            "description": "'kiosk' = visitor answers only: no plans, no scenario changes, no internals",
+            "default": "planner"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "default": "balanced"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints"
+          },
+          "station": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station",
+            "description": "The station selected on screen, if any"
+          },
+          "hour": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 23.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hour",
+            "description": "The hour on the time bar, if any"
+          },
+          "scenario_version": {
+            "type": "integer",
+            "maximum": 10000000.0,
+            "minimum": 1.0,
+            "title": "Scenario Version",
+            "description": "The client's scenario version; a patch answers with the next one",
+            "default": 1
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_run_id",
+          "forecast"
+        ],
+        "title": "ChatRequest"
+      },
+      "ChatResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "turn": {
+            "type": "integer",
+            "title": "Turn"
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "planner",
+              "kiosk"
+            ],
+            "title": "Audience"
+          },
+          "intent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "answered",
+              "applied",
+              "clarify",
+              "refused",
+              "insufficient_evidence"
+            ],
+            "title": "Status"
+          },
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/ChatBlock"
+            },
+            "type": "array",
+            "title": "Blocks"
+          },
+          "table": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompareTable"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRef"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "passages": {
+            "type": "boolean",
+            "title": "Passages",
+            "description": "True when the document excerpts in `evidence` are the answer itself",
+            "default": false
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfidenceReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "patch": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScenarioPatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ChatOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          },
+          "routed_by": {
+            "type": "string",
+            "enum": [
+              "chip",
+              "followup",
+              "rules",
+              "model",
+              "recorded",
+              "retrieval"
+            ],
+            "title": "Routed By"
+          },
+          "tools": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Tools"
+          },
+          "findings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "scenario_version": {
+            "type": "integer",
+            "title": "Scenario Version"
+          },
+          "context": {
+            "$ref": "#/components/schemas/ChatContext"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic"
+          },
+          "source": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "turn",
+          "audience",
+          "intent",
+          "status",
+          "blocks",
+          "evidence",
+          "options",
+          "suggestions",
+          "routed_by",
+          "tools",
+          "findings",
+          "scenario_version",
+          "context",
+          "is_synthetic",
+          "source"
+        ],
+        "title": "ChatResponse"
+      },
+      "ChatSettings": {
+        "properties": {
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "default": "balanced"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast"
+        ],
+        "title": "ChatSettings",
+        "description": "The scenario as the planner set it: what a question was asked about, and what an undo returns to."
+      },
       "CheckpointAnswer": {
         "properties": {
           "checkpoint": {
@@ -3488,6 +4129,312 @@
         ],
         "title": "CheckpointPause",
         "description": "The team stopped and asks the human (Mission.status 'paused'). Every figure in `params` is the simulator's."
+      },
+      "CompareRow": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "offered": {
+            "type": "boolean",
+            "title": "Offered"
+          },
+          "eligible": {
+            "type": "boolean",
+            "title": "Eligible",
+            "description": "False when a hard constraint is broken: no weighting can rank it"
+          },
+          "blocked_by": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blocked By"
+          },
+          "goal_met": {
+            "type": "boolean",
+            "title": "Goal Met"
+          },
+          "pareto": {
+            "type": "boolean",
+            "title": "Pareto"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values",
+            "description": "Objective → value; lower is better; null = not measured"
+          },
+          "parts": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Parts"
+          },
+          "lifecycle": {
+            "type": "string",
+            "enum": [
+              "suggested",
+              "simulated",
+              "validated",
+              "approved",
+              "executed"
+            ],
+            "title": "Lifecycle"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "parties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Parties"
+          },
+          "quantities": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Quantities"
+          },
+          "holds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holds"
+          },
+          "stress_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stress Total"
+          },
+          "failed_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failed Checks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "offered",
+          "eligible",
+          "blocked_by",
+          "goal_met",
+          "pareto",
+          "values",
+          "parts",
+          "lifecycle",
+          "parties",
+          "quantities",
+          "failed_checks"
+        ],
+        "title": "CompareRow"
+      },
+      "CompareTable": {
+        "properties": {
+          "lens": {
+            "type": "string",
+            "title": "Lens"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Weights"
+          },
+          "ignored": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ignored",
+            "description": "Objectives asked for but not measured by the twin (never scored)"
+          },
+          "objectives": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Objectives"
+          },
+          "considered": {
+            "type": "integer",
+            "title": "Considered"
+          },
+          "blocked": {
+            "type": "integer",
+            "title": "Blocked"
+          },
+          "recommended_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Rank"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CompareRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lens",
+          "weights",
+          "ignored",
+          "objectives",
+          "considered",
+          "blocked",
+          "note",
+          "rows"
+        ],
+        "title": "CompareTable"
+      },
+      "ConfidenceReport": {
+        "properties": {
+          "overall": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Overall"
+          },
+          "limiting": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limiting"
+          },
+          "levels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Levels"
+          },
+          "forecast": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Forecast"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          },
+          "robustness": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Robustness"
+          },
+          "validation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Validation"
+          },
+          "execution": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Execution"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overall",
+          "limiting",
+          "levels",
+          "forecast",
+          "evidence",
+          "robustness",
+          "validation",
+          "execution",
+          "note"
+        ],
+        "title": "ConfidenceReport",
+        "description": "Graded parts, never one percentage. `overall` is the weakest part that could be graded."
       },
       "ConfirmedBrief": {
         "properties": {
@@ -4317,6 +5264,188 @@
         ],
         "title": "EventRegistration",
         "description": "An organiser's or duty manager's event. It becomes a build-your-own event at its station (an assumption)."
+      },
+      "EvidenceRef": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "run",
+              "eval",
+              "document",
+              "config"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "authority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authority"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published"
+          },
+          "retrieved": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "licence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "excerpt_locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "ar"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt Locale"
+          },
+          "source_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "official",
+                  "project"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "EvidenceRef",
+        "description": "What stands behind an answer: a tool run, an evaluation file, or a document with its provenance."
       },
       "ExtendedHours": {
         "properties": {
@@ -5346,6 +6475,58 @@
         ],
         "title": "IncidentInfo",
         "description": "The incident as resolved by the server, with the assumption behind each figure."
+      },
+      "KnowledgeSources": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "corpus_hash": {
+            "type": "string",
+            "title": "Corpus Hash"
+          },
+          "passages": {
+            "type": "integer",
+            "title": "Passages"
+          },
+          "dropped": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dropped"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "corpus_hash",
+          "passages",
+          "dropped",
+          "method",
+          "sources"
+        ],
+        "title": "KnowledgeSources"
       },
       "LayerInfo": {
         "properties": {
@@ -6729,6 +7910,104 @@
           "graph_mermaid"
         ],
         "title": "Roster"
+      },
+      "ScenarioChange": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "attendance",
+              "exit_sigma_min",
+              "threshold",
+              "metro_share",
+              "weather",
+              "priority",
+              "forbid",
+              "protect",
+              "cost_cap"
+            ],
+            "title": "Field"
+          },
+          "was": {
+            "title": "Was"
+          },
+          "to": {
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field"
+        ],
+        "title": "ScenarioChange"
+      },
+      "ScenarioPatch": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioChange"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints"
+          },
+          "recalculated": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Recalculated"
+          },
+          "cleared": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cleared"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "changes",
+          "forecast",
+          "priority",
+          "constraints",
+          "recalculated",
+          "cleared"
+        ],
+        "title": "ScenarioPatch",
+        "description": "A change to the shared scenario. The API has already forecast and simulated it (`recalculated`); the client makes\nit the state on screen, which runs the same deterministic requests and so arrives at the same run ids."
       },
       "ShiftAlert": {
         "properties": {

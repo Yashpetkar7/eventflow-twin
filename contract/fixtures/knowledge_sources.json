@@ -1,0 +1,124 @@
+{
+  "version": "2026-11-18",
+  "corpus_hash": "51c9b9d2d24b",
+  "passages": 21,
+  "dropped": [],
+  "method": "bm25+char-ngram, reciprocal rank fusion (no neural embeddings)",
+  "sources": [
+    {
+      "id": "rta_pod",
+      "kind": "official",
+      "title": "People of Determination",
+      "authority": "Roads and Transport Authority (RTA), Dubai",
+      "url": "https://www.rta.ae/wps/portal/rta/ae/home/people-of-determination",
+      "published": null,
+      "retrieved": "2026-11-18",
+      "licence": "Official public web page; summarised in our own words",
+      "audiences": [
+        "kiosk",
+        "planner"
+      ],
+      "passages": 3
+    },
+    {
+      "id": "rta_retrofit_2023",
+      "kind": "official",
+      "title": "82% of RTA's facilities retrofitted for People of Determination",
+      "authority": "Roads and Transport Authority (RTA), Dubai",
+      "url": "https://rta.ae/wps/portal/rta/ae/home/news-and-media/all-news/NewsDetails/82-percent-of-facilities-retrofitted-for-people-of-determination",
+      "published": "2023-04-24",
+      "retrieved": "2026-11-18",
+      "licence": "Official news release; summarised in our own words",
+      "audiences": [
+        "kiosk",
+        "planner"
+      ],
+      "passages": 1
+    },
+    {
+      "id": "rta_gtfs",
+      "kind": "official",
+      "title": "RTA GTFS timetable (dataset rta_gtfs-open, Mobility Database mirror mdb-904)",
+      "authority": "Roads and Transport Authority (RTA), Dubai",
+      "url": "https://mobilitydatabase.org/feeds/gtfs/mdb-904",
+      "published": "2021-09-09",
+      "retrieved": "2026-11-11",
+      "licence": "Dubai Pulse / RTA open data terms; credit: RTA open data",
+      "audiences": [
+        "planner"
+      ],
+      "passages": 1
+    },
+    {
+      "id": "dubai_ridership",
+      "kind": "official",
+      "title": "Dubai Metro Ridership (open dataset)",
+      "authority": "Roads and Transport Authority (RTA), via the Data.Dubai portal",
+      "url": "https://data.dubai/en/l/466403",
+      "published": "2026-11-09",
+      "retrieved": "2026-11-12",
+      "licence": "Dubai Open Data Licence",
+      "audiences": [
+        "planner"
+      ],
+      "passages": 1
+    },
+    {
+      "id": "osm",
+      "kind": "official",
+      "title": "OpenStreetMap",
+      "authority": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/copyright",
+      "published": null,
+      "retrieved": "2026-11-12",
+      "licence": "Open Database Licence (ODbL) 1.0",
+      "audiences": [
+        "planner"
+      ],
+      "passages": 1
+    },
+    {
+      "id": "project_model",
+      "kind": "project",
+      "title": "EventFlow Twin: modelling notes",
+      "authority": "EventFlow Twin project team (student research prototype)",
+      "url": "docs/05_MODELING_SPEC.md",
+      "published": "2026-11-18",
+      "retrieved": "2026-11-18",
+      "licence": "Project documentation",
+      "audiences": [
+        "planner"
+      ],
+      "passages": 7
+    },
+    {
+      "id": "project_agents",
+      "kind": "project",
+      "title": "EventFlow Twin: the agent team and its checks",
+      "authority": "EventFlow Twin project team (student research prototype)",
+      "url": "docs/15_AGENT_ARCHITECTURE.md",
+      "published": "2026-11-18",
+      "retrieved": "2026-11-18",
+      "licence": "Project documentation",
+      "audiences": [
+        "planner"
+      ],
+      "passages": 4
+    },
+    {
+      "id": "project_limits",
+      "kind": "project",
+      "title": "EventFlow Twin: limits and honesty rules",
+      "authority": "EventFlow Twin project team (student research prototype)",
+      "url": "docs/10_RISKS_AND_INTEGRITY.md",
+      "published": "2026-11-18",
+      "retrieved": "2026-11-18",
+      "licence": "Project documentation",
+      "audiences": [
+        "kiosk",
+        "planner"
+      ],
+      "passages": 3
+    }
+  ]
+}

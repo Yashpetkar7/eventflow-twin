@@ -1,0 +1,256 @@
+{
+  "session_id": "fixture0000000000",
+  "turn": 1,
+  "audience": "planner",
+  "intent": "edit",
+  "status": "applied",
+  "blocks": [
+    {
+      "key": "chat.applied",
+      "params": {
+        "changes_n": 2,
+        "version_n": 2
+      }
+    },
+    {
+      "key": "chat.set.attendance",
+      "params": {
+        "from_s": "40000",
+        "to_s": "60000"
+      }
+    },
+    {
+      "key": "chat.set.exit_sigma_min",
+      "params": {
+        "from_s": "75",
+        "to_s": "45"
+      }
+    },
+    {
+      "key": "chat.effect",
+      "params": {
+        "peak_b_pct": 92,
+        "peak_a_pct": 198,
+        "over_b_x": 0.5,
+        "over_a_x": 2.75,
+        "worst_st": "WTC"
+      }
+    },
+    {
+      "key": "chat.plansCleared",
+      "params": {}
+    }
+  ],
+  "table": null,
+  "evidence": [
+    {
+      "kind": "run",
+      "id": "sim_0794c74737d4",
+      "tool": "simulate",
+      "run_id": "sim_0794c74737d4",
+      "title": null,
+      "authority": null,
+      "url": null,
+      "published": null,
+      "retrieved": null,
+      "version": null,
+      "licence": null,
+      "section": null,
+      "excerpt": null,
+      "excerpt_locale": null,
+      "source_kind": null
+    },
+    {
+      "kind": "run",
+      "id": "fc_6e2bfbd77ec6",
+      "tool": "forecast",
+      "run_id": "fc_6e2bfbd77ec6",
+      "title": null,
+      "authority": null,
+      "url": null,
+      "published": null,
+      "retrieved": null,
+      "version": null,
+      "licence": null,
+      "section": null,
+      "excerpt": null,
+      "excerpt_locale": null,
+      "source_kind": null
+    },
+    {
+      "kind": "run",
+      "id": "sim_98b2cc6f4e7f",
+      "tool": "simulate",
+      "run_id": "sim_98b2cc6f4e7f",
+      "title": null,
+      "authority": null,
+      "url": null,
+      "published": null,
+      "retrieved": null,
+      "version": null,
+      "licence": null,
+      "section": null,
+      "excerpt": null,
+      "excerpt_locale": null,
+      "source_kind": null
+    },
+    {
+      "kind": "run",
+      "id": "brk_45c463a96dd1",
+      "tool": "breakpoint",
+      "run_id": "brk_45c463a96dd1",
+      "title": null,
+      "authority": null,
+      "url": null,
+      "published": null,
+      "retrieved": null,
+      "version": null,
+      "licence": null,
+      "section": null,
+      "excerpt": null,
+      "excerpt_locale": null,
+      "source_kind": null
+    }
+  ],
+  "passages": false,
+  "confidence": null,
+  "patch": {
+    "version": 2,
+    "changes": [
+      {
+        "field": "attendance",
+        "was": 40000,
+        "to": 60000
+      },
+      {
+        "field": "exit_sigma_min",
+        "was": 75,
+        "to": 45
+      }
+    ],
+    "forecast": {
+      "event_id": "gitex2025_d1",
+      "date": null,
+      "weekday": null,
+      "attendance": 60000,
+      "end_time": null,
+      "weather": "hot",
+      "exit_sigma_min": 45.0,
+      "metro_share": null,
+      "demand_level": "synthetic",
+      "custom_event": null,
+      "incident": null
+    },
+    "threshold": 0.85,
+    "priority": "balanced",
+    "constraints": {
+      "forbid_types": [],
+      "protect_stations": [],
+      "cost_cap": null
+    },
+    "recalculated": [
+      {
+        "what": "forecast",
+        "run_id": "fc_6e2bfbd77ec6"
+      },
+      {
+        "what": "simulation",
+        "run_id": "sim_98b2cc6f4e7f"
+      },
+      {
+        "what": "break_point",
+        "run_id": "brk_45c463a96dd1"
+      }
+    ],
+    "cleared": [
+      "plan",
+      "mission"
+    ]
+  },
+  "options": [],
+  "suggestions": [
+    "best_plan",
+    "why_changed",
+    "undo"
+  ],
+  "routed_by": "rules",
+  "tools": [
+    {
+      "tool": "simulate",
+      "run_id": "sim_0794c74737d4"
+    },
+    {
+      "tool": "forecast",
+      "run_id": "fc_6e2bfbd77ec6"
+    },
+    {
+      "tool": "simulate",
+      "run_id": "sim_98b2cc6f4e7f"
+    },
+    {
+      "tool": "breakpoint",
+      "run_id": "brk_45c463a96dd1"
+    }
+  ],
+  "findings": [],
+  "scenario_version": 1,
+  "context": {
+    "session_id": "fixture0000000000",
+    "turn": 1,
+    "focus_station": null,
+    "focus_hour": null,
+    "last_intent": "edit",
+    "last_args": {},
+    "settings": {
+      "forecast": {
+        "event_id": "gitex2025_d1",
+        "date": null,
+        "weekday": null,
+        "attendance": null,
+        "end_time": null,
+        "weather": "hot",
+        "exit_sigma_min": null,
+        "metro_share": null,
+        "demand_level": "synthetic",
+        "custom_event": null,
+        "incident": null
+      },
+      "threshold": 0.85,
+      "priority": "balanced",
+      "constraints": {
+        "forbid_types": [],
+        "protect_stations": [],
+        "cost_cap": null
+      }
+    },
+    "previous": null,
+    "undo": {
+      "forecast": {
+        "event_id": "gitex2025_d1",
+        "date": null,
+        "weekday": null,
+        "attendance": null,
+        "end_time": null,
+        "weather": "hot",
+        "exit_sigma_min": null,
+        "metro_share": null,
+        "demand_level": "synthetic",
+        "custom_event": null,
+        "incident": null
+      },
+      "threshold": 0.85,
+      "priority": "balanced",
+      "constraints": {
+        "forbid_types": [],
+        "protect_stations": [],
+        "cost_cap": null
+      }
+    },
+    "prefs": {}
+  },
+  "is_synthetic": true,
+  "source": {
+    "tool": "simulate",
+    "run_id": "sim_0794c74737d4"
+  }
+}

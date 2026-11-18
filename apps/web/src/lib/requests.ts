@@ -74,6 +74,12 @@ export function watchBody(runId: string, threshold: number, forecast: S["Forecas
 export function messageBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], interventions: unknown[]): S["MessageRequest"] {
   return { ...scenarioRef(runId, threshold, forecast, applied), interventions } as S["MessageRequest"];
 }
+/** One turn for the assistant (contract 1.17.0): the scenario on screen, who is asking, and the conversation's context. */
+export function chatBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], locale: "en" | "ar",
+  x: Pick<S["ChatRequest"], "message" | "intent" | "args" | "audience" | "priority" | "constraints" | "station" | "hour" | "scenario_version" | "context">): S["ChatRequest"] {
+  return { ...scenarioRef(runId, threshold, forecast, applied), locale, ...x } as S["ChatRequest"];
+}
+
 export function askBody(runId: string, threshold: number, forecast: S["ForecastRequest"], applied: unknown[], locale: "en" | "ar",
   q: { intent?: S["AskRequest"]["intent"]; question?: string }): S["AskRequest"] {
   return { ...scenarioRef(runId, threshold, forecast, applied), locale, ...q } as S["AskRequest"];
