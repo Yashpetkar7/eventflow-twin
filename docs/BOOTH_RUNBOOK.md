@@ -60,7 +60,9 @@ model on this machine"). Every number comes from the simulator either way.
 6. Loop check (new 17–18 Nov; nothing here needs a language model):
    - **AI plan** → **Brief the team**: tap an example brief → **Read my brief**. It shows "Here is what I understood" and
      "Read by word rules: no AI model on this machine". **Confirm and plan** starts the mission.
-   - Tick **Ask me during planning** first to see the team stop and ask: "Plan for it?" (**Yes, plan for …**) and, if no
+   - **Ask me during planning** is ticked by default (1.18.0): the team stops and asks. On a calm day it asks which harder
+     case to plan for (a bigger crowd, a hot day, a stricter line). Untick it, or open with `?ask=0`, for one-tap planning.
+   - With it ticked you see the team stop and ask: "Plan for it?" (**Yes, plan for …**) and, if no
      plan clears the line, **Show me the best plans** / **Try one more round**.
    - On an option card, **Reject** asks why (**Too expensive** / **Not enough relief**, or your own words) → **Reject and
      replan** → "Round 2: the team replanned with your feedback".
@@ -220,3 +222,10 @@ checkpoints): repeat `node tests/kiosk_fps.mjs` on the final build.
     PR #16: a charging status used to be written down as battery).
 - The real touch monitor (touch mapping, pinch zoom) and its native resolution.
 - A full exhibition day on battery/mains with the lid angle and brightness you will use.
+
+## Kiosk: typing and the AI sheet (1.18.0)
+
+- **✦ Ask the AI** in the kiosk's top bar opens a sheet with a built-in keyboard (English and Arabic). No physical keyboard is needed.
+- Planner screens: tap a suggested scenario, type a change ("make it 60,000 people"), or **Describe a new event**. Nothing changes without a tap or a typed instruction.
+- On a plan card, **✎ Edit** lets a visitor change the AI's plan; it is simulated before **Approve my version** is enabled.
+- **Start again** resets the comfort line, priority and weather for the next visitor.

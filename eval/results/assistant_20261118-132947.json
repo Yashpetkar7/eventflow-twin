@@ -1,0 +1,1203 @@
+{
+  "suite": "assistant",
+  "git_sha": "9d0c8e7",
+  "timestamp": "2026-11-18T13:29:47",
+  "models": {
+    "router": "chip,followup,retrieval,rules",
+    "retrieval": "bm25+char-ngram, reciprocal rank fusion (no neural embeddings)",
+    "llm_model": null
+  },
+  "dataset_version": "synthetic:2026-07-06..2026-09-27:106848rows",
+  "is_synthetic": true,
+  "metrics": {
+    "routing_accuracy_dev": 1.0,
+    "routing_accuracy_heldout": 0.7083,
+    "edit_exact_dev": 1.0,
+    "edit_exact_heldout": 0.75,
+    "edit_state_consistent": 1.0,
+    "clarify_rate": 0.8333,
+    "injection_applied_rate": 0.0,
+    "refusal_rate": 1.0,
+    "kiosk_leak_rate": 0.0,
+    "kiosk_refused": 1.0,
+    "retrieval_recall3_dev": 1.0,
+    "retrieval_recall3_heldout": 1.0,
+    "out_of_corpus_answered": 0.0,
+    "answers_grounded": 1.0,
+    "citations_complete": 1.0,
+    "confidence_graded": 1.0,
+    "hard_constraints_first": 1.0,
+    "deterministic": 1.0,
+    "multi_turn": 1.0,
+    "cases": 107,
+    "cases_heldout": 45
+  },
+  "n": 107,
+  "split": "dev + heldout (reported apart)",
+  "rows": [
+    {
+      "id": "rd01",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "overcrowded",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "overcrowded"
+    },
+    {
+      "id": "rd02",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "why_risk",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "why_risk"
+    },
+    {
+      "id": "rd03",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "peak",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "peak"
+    },
+    {
+      "id": "rd04",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "best_plan",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "best_plan"
+    },
+    {
+      "id": "rd05",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "lens",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "lens"
+    },
+    {
+      "id": "rd06",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "compare",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "compare"
+    },
+    {
+      "id": "rd07",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "whatif_attendance",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "whatif_attendance"
+    },
+    {
+      "id": "rd08",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "whatif_threshold",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": "whatif_threshold"
+    },
+    {
+      "id": "rd09",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "lens",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "lens"
+    },
+    {
+      "id": "rd10",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "confidence",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "confidence"
+    },
+    {
+      "id": "rd11",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "evidence",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "evidence"
+    },
+    {
+      "id": "rd12",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "why_changed",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "why_changed"
+    },
+    {
+      "id": "rd13",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "break_point",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "break_point"
+    },
+    {
+      "id": "rd14",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "road",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "road"
+    },
+    {
+      "id": "rd15",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "if_rain",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "if_rain"
+    },
+    {
+      "id": "rd16",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "if_hot",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "if_hot"
+    },
+    {
+      "id": "rd17",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "overcrowded",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "overcrowded"
+    },
+    {
+      "id": "rd18",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "best_plan",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "best_plan"
+    },
+    {
+      "id": "rd19",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "confidence",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "confidence"
+    },
+    {
+      "id": "rd20",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "compare",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "compare"
+    },
+    {
+      "id": "rd21",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "which_station",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "which_station"
+    },
+    {
+      "id": "rd22",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "reach",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": "reach"
+    },
+    {
+      "id": "rd23",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "quieter_station",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "quieter_station"
+    },
+    {
+      "id": "rd24",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "when_leave",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "when_leave"
+    },
+    {
+      "id": "rd25",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "accessible",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "accessible"
+    },
+    {
+      "id": "rd26",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "travel_options",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "travel_options"
+    },
+    {
+      "id": "rd27",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "when_leave",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "when_leave"
+    },
+    {
+      "id": "rd28",
+      "split": "dev",
+      "kind": "route",
+      "ok": true,
+      "intent": "accessible",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "accessible"
+    },
+    {
+      "id": "rh01",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "overcrowded",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "overcrowded"
+    },
+    {
+      "id": "rh02",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": "station_status",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "why_risk"
+    },
+    {
+      "id": "rh03",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": "peak"
+    },
+    {
+      "id": "rh04",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "best_plan",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "best_plan"
+    },
+    {
+      "id": "rh05",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": "compare"
+    },
+    {
+      "id": "rh06",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "lens",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "lens"
+    },
+    {
+      "id": "rh07",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": "best_plan",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "lens"
+    },
+    {
+      "id": "rh08",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "confidence",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "confidence"
+    },
+    {
+      "id": "rh09",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": "evidence"
+    },
+    {
+      "id": "rh10",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "whatif_attendance",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "whatif_attendance"
+    },
+    {
+      "id": "rh11",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "whatif_threshold",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "whatif_threshold"
+    },
+    {
+      "id": "rh12",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "break_point",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "break_point"
+    },
+    {
+      "id": "rh13",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "road",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "road"
+    },
+    {
+      "id": "rh14",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "lens",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "lens"
+    },
+    {
+      "id": "rh15",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "why_risk",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "why_risk"
+    },
+    {
+      "id": "rh16",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "whatif_attendance",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "whatif_attendance"
+    },
+    {
+      "id": "rh17",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "accessible",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "accessible"
+    },
+    {
+      "id": "rh18",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "when_leave",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "when_leave"
+    },
+    {
+      "id": "rh19",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": "quieter_station"
+    },
+    {
+      "id": "rh20",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "reach",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "reach"
+    },
+    {
+      "id": "rh21",
+      "split": "heldout",
+      "kind": "route",
+      "ok": false,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": "which_station"
+    },
+    {
+      "id": "rh22",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "which_station",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "which_station"
+    },
+    {
+      "id": "rh23",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "travel_options",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "travel_options"
+    },
+    {
+      "id": "rh24",
+      "split": "heldout",
+      "kind": "route",
+      "ok": true,
+      "intent": "busiest",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": "busiest"
+    },
+    {
+      "id": "ed01",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "attendance": 60000,
+        "exit_sigma_min": 45,
+        "priority": "impact"
+      }
+    },
+    {
+      "id": "ed02",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "threshold": 0.8
+      }
+    },
+    {
+      "id": "ed03",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "weather": "rain"
+      }
+    },
+    {
+      "id": "ed04",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "attendance": 30000
+      }
+    },
+    {
+      "id": "ed05",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "attendance": 80000
+      }
+    },
+    {
+      "id": "ed06",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "metro_share": 0.6
+      }
+    },
+    {
+      "id": "ed07",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "attendance": 25000,
+        "priority": "cost"
+      }
+    },
+    {
+      "id": "ed08",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "attendance": 60000,
+        "priority": "impact"
+      }
+    },
+    {
+      "id": "ed09",
+      "split": "dev",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "exit_sigma_min": 30,
+        "forbid": [
+          "shuttle_bus"
+        ]
+      }
+    },
+    {
+      "id": "eh01",
+      "split": "heldout",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "attendance": 55000
+      }
+    },
+    {
+      "id": "eh02",
+      "split": "heldout",
+      "kind": "edit",
+      "ok": false,
+      "intent": "if_rain",
+      "status": "answered",
+      "routed_by": "followup",
+      "expected": {
+        "attendance": 70000,
+        "weather": "rain"
+      }
+    },
+    {
+      "id": "eh03",
+      "split": "heldout",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "threshold": 0.75
+      }
+    },
+    {
+      "id": "eh04",
+      "split": "heldout",
+      "kind": "edit",
+      "ok": true,
+      "intent": "edit",
+      "status": "applied",
+      "routed_by": "rules",
+      "expected": {
+        "priority": "cost"
+      }
+    },
+    {
+      "id": "cl01",
+      "split": "dev",
+      "kind": "clarify",
+      "ok": true,
+      "intent": "edit",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "cl02",
+      "split": "dev",
+      "kind": "clarify",
+      "ok": true,
+      "intent": "edit",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "cl03",
+      "split": "dev",
+      "kind": "clarify",
+      "ok": true,
+      "intent": "edit",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "cl04",
+      "split": "dev",
+      "kind": "clarify",
+      "ok": true,
+      "intent": "edit",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "cl05",
+      "split": "dev",
+      "kind": "clarify",
+      "ok": true,
+      "intent": "edit",
+      "status": "clarify",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "ch01",
+      "split": "heldout",
+      "kind": "clarify",
+      "ok": false,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "in01",
+      "split": "dev",
+      "kind": "injection",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "in02",
+      "split": "dev",
+      "kind": "injection",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "in03",
+      "split": "dev",
+      "kind": "injection",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "in04",
+      "split": "heldout",
+      "kind": "injection",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "rules",
+      "expected": null
+    },
+    {
+      "id": "rf01",
+      "split": "dev",
+      "kind": "refuse",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "rf02",
+      "split": "dev",
+      "kind": "refuse",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "chip",
+      "expected": null
+    },
+    {
+      "id": "rf03",
+      "split": "dev",
+      "kind": "refuse",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "rf04",
+      "split": "heldout",
+      "kind": "refuse",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "rf05",
+      "split": "heldout",
+      "kind": "refuse",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "kb01",
+      "split": "dev",
+      "kind": "kiosk_block",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "kb02",
+      "split": "dev",
+      "kind": "kiosk_block",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "kb03",
+      "split": "dev",
+      "kind": "kiosk_block",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "kb04",
+      "split": "heldout",
+      "kind": "kiosk_block",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "kb05",
+      "split": "heldout",
+      "kind": "kiosk_block",
+      "ok": true,
+      "intent": null,
+      "status": "refused",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "kn01",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "model.capacity"
+      ]
+    },
+    {
+      "id": "kn02",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "agents.critic"
+      ]
+    },
+    {
+      "id": "kn03",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "model.data"
+      ]
+    },
+    {
+      "id": "kn04",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "agents.stress"
+      ]
+    },
+    {
+      "id": "kn05",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "agents.cost"
+      ]
+    },
+    {
+      "id": "kn06",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "rta_pod.fares"
+      ]
+    },
+    {
+      "id": "kn07",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "rta_pod.metro"
+      ]
+    },
+    {
+      "id": "kn08",
+      "split": "dev",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "limits.human"
+      ]
+    },
+    {
+      "id": "kh01",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "model.capacity"
+      ]
+    },
+    {
+      "id": "kh02",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "data.gtfs"
+      ]
+    },
+    {
+      "id": "kh03",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "model.forecast"
+      ]
+    },
+    {
+      "id": "kh04",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "data.ridership"
+      ]
+    },
+    {
+      "id": "kh05",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "accessible",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": [
+        "rta_pod.fares"
+      ]
+    },
+    {
+      "id": "kh06",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "accessible",
+      "status": "answered",
+      "routed_by": "rules",
+      "expected": [
+        "rta_pod.parking"
+      ]
+    },
+    {
+      "id": "kh07",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "answered",
+      "routed_by": "retrieval",
+      "expected": [
+        "data.osm"
+      ]
+    },
+    {
+      "id": "kh08",
+      "split": "heldout",
+      "kind": "knowledge",
+      "ok": true,
+      "intent": "lens",
+      "status": "insufficient_evidence",
+      "routed_by": "rules",
+      "expected": [
+        "model.road"
+      ]
+    },
+    {
+      "id": "oc01",
+      "split": "dev",
+      "kind": "out_of_corpus",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "oc02",
+      "split": "dev",
+      "kind": "out_of_corpus",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "oc03",
+      "split": "heldout",
+      "kind": "out_of_corpus",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "oc04",
+      "split": "dev",
+      "kind": "out_of_corpus",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "oc05",
+      "split": "heldout",
+      "kind": "out_of_corpus",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": null
+    },
+    {
+      "id": "oc06",
+      "split": "heldout",
+      "kind": "out_of_corpus",
+      "ok": true,
+      "intent": "knowledge",
+      "status": "insufficient_evidence",
+      "routed_by": "retrieval",
+      "expected": null
+    }
+  ],
+  "counts": {
+    "routing_accuracy_dev": 28,
+    "answers_grounded": 75,
+    "citations_complete": 49,
+    "confidence_graded": 8,
+    "hard_constraints_first": 7,
+    "kiosk_leak_rate": 36,
+    "routing_accuracy_heldout": 24,
+    "edit_exact_dev": 9,
+    "edit_state_consistent": 12,
+    "edit_exact_heldout": 4,
+    "clarify_rate": 6,
+    "injection_applied_rate": 4,
+    "refusal_rate": 5,
+    "kiosk_refused": 5,
+    "retrieval_recall3_dev": 8,
+    "retrieval_recall3_heldout": 8,
+    "out_of_corpus_answered": 6,
+    "deterministic": 6,
+    "multi_turn": 1
+  },
+  "corpus": {
+    "version": "2026-11-18",
+    "hash": "51c9b9d2d24b",
+    "passages": 21,
+    "sources": 8
+  },
+  "gold_file": "eval/gold/assistant.jsonl"
+}
