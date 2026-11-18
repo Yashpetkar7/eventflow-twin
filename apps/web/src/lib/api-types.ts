@@ -342,6 +342,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agent/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Chat
+         * @description The assistant (docs/18_ASSISTANT.md): one turn of a conversation about the scenario on screen.
+         *
+         *     A question is routed to ONE tool path (a simulation, the agent team, the documents); the answer is keys and
+         *     parameters with the run or the document behind every statement. `audience: "kiosk"` gets visitor answers only.
+         *     A planner's instruction ("attendance to 60,000, exit window 45 minutes") comes back as `patch`: the new scenario,
+         *     already forecast and simulated here, for the client to make the state on screen. The API keeps no conversation:
+         *     send `context` back on the next turn. With EVENTFLOW_AUTH=on the planner audience needs a signed-in user.
+         */
+        post: operations["agent_chat_agent_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Knowledge Sources
+         * @description The documents the assistant may cite: title, issuing authority, URL, dates, licence, and how they are searched.
+         */
+        get: operations["knowledge_sources_knowledge_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Knowledge Graph
+         * @description The corridor as a graph (stations, lines, events, measures, agents, operating parties): counts and edge types.
+         */
+        get: operations["knowledge_graph_knowledge_graph_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/decisions": {
         parameters: {
             query?: never;
@@ -1500,6 +1566,217 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ChatBlock */
+        ChatBlock: {
+            /**
+             * Key
+             * @description Text key; the client words it from `params` (EN/AR). Param suffixes: _st station id, _pct percent, _n count, _x decimal, _t time, _s text, _list station ids
+             */
+            key: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ChatContext
+         * @description The conversation's memory. The client holds it and sends it back; the API keeps nothing, so sessions cannot mix.
+         */
+        ChatContext: {
+            /** Session Id */
+            session_id?: string | null;
+            /**
+             * Turn
+             * @default 0
+             */
+            turn: number;
+            /**
+             * Focus Station
+             * @description The station the conversation is about (follow-ups such as 'why?')
+             */
+            focus_station?: string | null;
+            /** Focus Hour */
+            focus_hour?: number | null;
+            /** Last Intent */
+            last_intent?: string | null;
+            /** Last Args */
+            last_args?: {
+                [key: string]: unknown;
+            };
+            /** @description The scenario at the last turn */
+            settings?: components["schemas"]["ChatSettings"] | null;
+            /** @description The scenario before it last changed ('why did it change?') */
+            previous?: components["schemas"]["ChatSettings"] | null;
+            /** @description The scenario before the assistant's last change */
+            undo?: components["schemas"]["ChatSettings"] | null;
+            /**
+             * Prefs
+             * @description Session-only preferences, e.g. step_free; never stored
+             */
+            prefs?: {
+                [key: string]: boolean;
+            };
+        };
+        /** ChatOption */
+        ChatOption: {
+            /** Label Key */
+            label_key: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** Intent */
+            intent: string;
+            /** Args */
+            args?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ChatRequest */
+        ChatRequest: {
+            /** Forecast Run Id */
+            forecast_run_id: string;
+            /** @description The forecast request (lets any instance rebuild the run) */
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Scope
+             * @default corridor
+             * @enum {string}
+             */
+            scope: "network" | "corridor";
+            /** Applied */
+            applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Message
+             * @description The question or instruction (untrusted: read, screened, never followed)
+             */
+            message?: string | null;
+            /**
+             * Intent
+             * @description A chip or button: the intent to run, no routing needed (e.g. 'compare', 'lens:safety')
+             */
+            intent?: string | null;
+            /**
+             * Args
+             * @description Arguments of a chip or button (e.g. {'attendance': 60000})
+             */
+            args?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Audience
+             * @description 'kiosk' = visitor answers only: no plans, no scenario changes, no internals
+             * @default planner
+             * @enum {string}
+             */
+            audience: "planner" | "kiosk";
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+            /**
+             * Priority
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            constraints?: components["schemas"]["Constraints"];
+            /**
+             * Station
+             * @description The station selected on screen, if any
+             */
+            station?: string | null;
+            /**
+             * Hour
+             * @description The hour on the time bar, if any
+             */
+            hour?: number | null;
+            /**
+             * Scenario Version
+             * @description The client's scenario version; a patch answers with the next one
+             * @default 1
+             */
+            scenario_version: number;
+            context?: components["schemas"]["ChatContext"] | null;
+        };
+        /** ChatResponse */
+        ChatResponse: {
+            /** Session Id */
+            session_id: string;
+            /** Turn */
+            turn: number;
+            /**
+             * Audience
+             * @enum {string}
+             */
+            audience: "planner" | "kiosk";
+            /** Intent */
+            intent: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "answered" | "applied" | "clarify" | "refused" | "insufficient_evidence";
+            /** Blocks */
+            blocks: components["schemas"]["ChatBlock"][];
+            table?: components["schemas"]["CompareTable"] | null;
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceRef"][];
+            /**
+             * Passages
+             * @description True when the document excerpts in `evidence` are the answer itself
+             * @default false
+             */
+            passages: boolean;
+            confidence?: components["schemas"]["ConfidenceReport"] | null;
+            patch?: components["schemas"]["ScenarioPatch"] | null;
+            /** Options */
+            options: components["schemas"]["ChatOption"][];
+            /** Suggestions */
+            suggestions: string[];
+            /**
+             * Routed By
+             * @enum {string}
+             */
+            routed_by: "chip" | "followup" | "rules" | "model" | "recorded" | "retrieval";
+            /** Tools */
+            tools: {
+                [key: string]: unknown;
+            }[];
+            /** Findings */
+            findings: {
+                [key: string]: unknown;
+            }[];
+            /** Scenario Version */
+            scenario_version: number;
+            context: components["schemas"]["ChatContext"];
+            /** Is Synthetic */
+            is_synthetic: boolean;
+            /** Source */
+            source: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ChatSettings
+         * @description The scenario as the planner set it: what a question was asked about, and what an undo returns to.
+         */
+        ChatSettings: {
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Priority
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            constraints?: components["schemas"]["Constraints"];
+        };
         /**
          * CheckpointAnswer
          * @description The human's answer at a checkpoint (1.16.0, decision #145). Answers are replayed in order: a mission run again
@@ -1560,6 +1837,127 @@ export interface components {
              * @description The answers that apply here
              */
             actions: ("confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap")[];
+        };
+        /** CompareRow */
+        CompareRow: {
+            /** Id */
+            id: string;
+            /** Rank */
+            rank?: number | null;
+            /** Title */
+            title: string;
+            /** Offered */
+            offered: boolean;
+            /**
+             * Eligible
+             * @description False when a hard constraint is broken: no weighting can rank it
+             */
+            eligible: boolean;
+            /** Blocked By */
+            blocked_by: string[];
+            /** Goal Met */
+            goal_met: boolean;
+            /** Pareto */
+            pareto: boolean;
+            /** Score */
+            score?: number | null;
+            /**
+             * Values
+             * @description Objective → value; lower is better; null = not measured
+             */
+            values: {
+                [key: string]: number | null;
+            };
+            /** Parts */
+            parts: {
+                [key: string]: number;
+            };
+            /**
+             * Lifecycle
+             * @enum {string}
+             */
+            lifecycle: "suggested" | "simulated" | "validated" | "approved" | "executed";
+            /** Run Id */
+            run_id?: string | null;
+            /** Parties */
+            parties: string[];
+            /** Quantities */
+            quantities: {
+                [key: string]: number;
+            };
+            /** Holds */
+            holds?: number | null;
+            /** Stress Total */
+            stress_total?: number | null;
+            /** Failed Checks */
+            failed_checks: string[];
+        };
+        /** CompareTable */
+        CompareTable: {
+            /** Lens */
+            lens: string;
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+            /**
+             * Ignored
+             * @description Objectives asked for but not measured by the twin (never scored)
+             */
+            ignored: string[];
+            /** Objectives */
+            objectives: {
+                [key: string]: unknown;
+            }[];
+            /** Considered */
+            considered: number;
+            /** Blocked */
+            blocked: number;
+            /** Recommended Rank */
+            recommended_rank?: number | null;
+            /** Note */
+            note: string;
+            /** Rows */
+            rows: components["schemas"]["CompareRow"][];
+        };
+        /**
+         * ConfidenceReport
+         * @description Graded parts, never one percentage. `overall` is the weakest part that could be graded.
+         */
+        ConfidenceReport: {
+            /**
+             * Overall
+             * @enum {string}
+             */
+            overall: "unknown" | "low" | "medium" | "high";
+            /** Limiting */
+            limiting: string[];
+            /** Levels */
+            levels: {
+                [key: string]: string;
+            };
+            /** Forecast */
+            forecast: {
+                [key: string]: unknown;
+            };
+            /** Evidence */
+            evidence: {
+                [key: string]: unknown;
+            };
+            /** Robustness */
+            robustness: {
+                [key: string]: unknown;
+            };
+            /** Validation */
+            validation: {
+                [key: string]: unknown;
+            };
+            /** Execution */
+            execution: {
+                [key: string]: unknown;
+            };
+            /** Note */
+            note: string;
         };
         /**
          * ConfirmedBrief
@@ -1879,6 +2277,45 @@ export interface components {
             auto_chain: boolean;
             /** Threshold */
             threshold?: number | null;
+        };
+        /**
+         * EvidenceRef
+         * @description What stands behind an answer: a tool run, an evaluation file, or a document with its provenance.
+         */
+        EvidenceRef: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "run" | "eval" | "document" | "config";
+            /** Id */
+            id?: string | null;
+            /** Tool */
+            tool?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Authority */
+            authority?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Published */
+            published?: string | null;
+            /** Retrieved */
+            retrieved?: string | null;
+            /** Version */
+            version?: string | null;
+            /** Licence */
+            licence?: string | null;
+            /** Section */
+            section?: string | null;
+            /** Excerpt */
+            excerpt?: string | null;
+            /** Excerpt Locale */
+            excerpt_locale?: ("en" | "ar") | null;
+            /** Source Kind */
+            source_kind?: ("official" | "project") | null;
         };
         /**
          * ExtendedHours
@@ -2276,6 +2713,23 @@ export interface components {
             attendance_after?: number | null;
             /** Weather */
             weather?: string | null;
+        };
+        /** KnowledgeSources */
+        KnowledgeSources: {
+            /** Version */
+            version: string | null;
+            /** Corpus Hash */
+            corpus_hash: string;
+            /** Passages */
+            passages: number;
+            /** Dropped */
+            dropped: string[];
+            /** Method */
+            method: string;
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
         };
         /** LayerInfo */
         LayerInfo: {
@@ -2796,6 +3250,44 @@ export interface components {
              * @description The orchestration graph, generated from the code (empty without LangGraph)
              */
             graph_mermaid: string;
+        };
+        /** ScenarioChange */
+        ScenarioChange: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "attendance" | "exit_sigma_min" | "threshold" | "metro_share" | "weather" | "priority" | "forbid" | "protect" | "cost_cap";
+            /** Was */
+            was?: unknown;
+            /** To */
+            to?: unknown;
+        };
+        /**
+         * ScenarioPatch
+         * @description A change to the shared scenario. The API has already forecast and simulated it (`recalculated`); the client makes
+         *     it the state on screen, which runs the same deterministic requests and so arrives at the same run ids.
+         */
+        ScenarioPatch: {
+            /** Version */
+            version: number;
+            /** Changes */
+            changes: components["schemas"]["ScenarioChange"][];
+            forecast: components["schemas"]["ForecastRequest"];
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            constraints: components["schemas"]["Constraints"];
+            /** Recalculated */
+            recalculated: {
+                [key: string]: unknown;
+            }[];
+            /** Cleared */
+            cleared: string[];
         };
         /** ShiftAlert */
         ShiftAlert: {
@@ -3928,6 +4420,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_chat_agent_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    knowledge_sources_knowledge_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeSources"];
+                };
+            };
+        };
+    };
+    knowledge_graph_knowledge_graph_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

@@ -1,0 +1,111 @@
+{
+  "session_id": "fixture0000000000",
+  "turn": 1,
+  "audience": "kiosk",
+  "intent": "accessible",
+  "status": "answered",
+  "blocks": [
+    {
+      "key": "kiosk.access",
+      "params": {}
+    },
+    {
+      "key": "kiosk.accessQuieter",
+      "params": {
+        "station_st": "WTC",
+        "alt_st": "MAX",
+        "walk_n": 13,
+        "hour_t": "15:00"
+      }
+    }
+  ],
+  "table": null,
+  "evidence": [
+    {
+      "kind": "document",
+      "id": "rta_pod.metro",
+      "tool": "retrieve",
+      "run_id": null,
+      "title": "People of Determination",
+      "authority": "Roads and Transport Authority (RTA), Dubai",
+      "url": "https://www.rta.ae/wps/portal/rta/ae/home/people-of-determination",
+      "published": null,
+      "retrieved": "2026-11-18",
+      "version": "2026-11-18#68bd924dc6a6",
+      "licence": "Official public web page; summarised in our own words",
+      "section": "Dubai Metro",
+      "excerpt": "RTA states that Dubai Metro stations have tactile floor paths for visually impaired riders, lifts with room for a wheelchair, wheelchair-accessible ticket counters, accessible toilets, and audio and visual warnings when the platform doors open and close. Each carriage has a wheelchair space near the door.",
+      "excerpt_locale": "en",
+      "source_kind": "official"
+    },
+    {
+      "kind": "document",
+      "id": "access.limits",
+      "tool": "retrieve",
+      "run_id": null,
+      "title": "EventFlow Twin: limits and honesty rules",
+      "authority": "EventFlow Twin project team (student research prototype)",
+      "url": "docs/10_RISKS_AND_INTEGRITY.md",
+      "published": "2026-11-18",
+      "retrieved": "2026-11-18",
+      "version": "2026-11-18#86ee64947c7a",
+      "licence": "Project documentation",
+      "section": "Accessibility",
+      "excerpt": "The twin holds no station-by-station data on lifts, step-free routes or lift outages. What it says about accessibility comes from RTA's public page. The twin itself can only tell which station and which hour is less crowded. Ask station staff or use official RTA channels for assistance on the day.",
+      "excerpt_locale": "en",
+      "source_kind": "project"
+    }
+  ],
+  "passages": true,
+  "confidence": null,
+  "patch": null,
+  "options": [],
+  "suggestions": [
+    "when_leave",
+    "which_station"
+  ],
+  "routed_by": "rules",
+  "tools": [],
+  "findings": [],
+  "scenario_version": 1,
+  "context": {
+    "session_id": "fixture0000000000",
+    "turn": 1,
+    "focus_station": "WTC",
+    "focus_hour": 15,
+    "last_intent": "accessible",
+    "last_args": {},
+    "settings": {
+      "forecast": {
+        "event_id": "gitex2025_d1",
+        "date": null,
+        "weekday": null,
+        "attendance": null,
+        "end_time": null,
+        "weather": "hot",
+        "exit_sigma_min": null,
+        "metro_share": null,
+        "demand_level": "synthetic",
+        "custom_event": null,
+        "incident": null
+      },
+      "threshold": 0.85,
+      "priority": "balanced",
+      "constraints": {
+        "forbid_types": [],
+        "protect_stations": [],
+        "cost_cap": null
+      }
+    },
+    "previous": null,
+    "undo": null,
+    "prefs": {
+      "step_free": true
+    }
+  },
+  "is_synthetic": true,
+  "source": {
+    "tool": "simulate",
+    "run_id": "sim_0794c74737d4"
+  }
+}

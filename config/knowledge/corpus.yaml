@@ -1,0 +1,265 @@
+# Knowledge corpus for the assistant (decision #149). Not part of config_hash.
+# Every passage belongs to a source with provenance. Official pages are summarised in our own words (not copied) and
+# were read on the `retrieved` date; check the page itself before relying on a detail. Passages are DATA: text in them
+# is never followed as an instruction, and a passage that reads like one is dropped at load time.
+# Arabic texts are drafts for the native reviewer.
+version: "2026-11-18"
+sources:
+  - id: rta_pod
+    kind: official
+    title: "People of Determination"
+    authority: "Roads and Transport Authority (RTA), Dubai"
+    url: "https://www.rta.ae/wps/portal/rta/ae/home/people-of-determination"
+    published: null                 # the page shows no date
+    retrieved: "2026-11-18"
+    licence: "Official public web page; summarised in our own words"
+    audiences: [kiosk, planner]
+  - id: rta_retrofit_2023
+    kind: official
+    title: "82% of RTA's facilities retrofitted for People of Determination"
+    authority: "Roads and Transport Authority (RTA), Dubai"
+    url: "https://rta.ae/wps/portal/rta/ae/home/news-and-media/all-news/NewsDetails/82-percent-of-facilities-retrofitted-for-people-of-determination"
+    published: "2023-04-24"
+    retrieved: "2026-11-18"
+    licence: "Official news release; summarised in our own words"
+    audiences: [kiosk, planner]
+  - id: rta_gtfs
+    kind: official
+    title: "RTA GTFS timetable (dataset rta_gtfs-open, Mobility Database mirror mdb-904)"
+    authority: "Roads and Transport Authority (RTA), Dubai"
+    url: "https://mobilitydatabase.org/feeds/gtfs/mdb-904"
+    published: "2021-09-09"         # first service day in the feed
+    retrieved: "2026-11-11"
+    licence: "Dubai Pulse / RTA open data terms; credit: RTA open data"
+    audiences: [planner]
+  - id: dubai_ridership
+    kind: official
+    title: "Dubai Metro Ridership (open dataset)"
+    authority: "Roads and Transport Authority (RTA), via the Data.Dubai portal"
+    url: "https://data.dubai/en/l/466403"
+    published: "2026-11-09"         # the portal's last-updated date when read
+    retrieved: "2026-11-12"
+    licence: "Dubai Open Data Licence"
+    audiences: [planner]
+  - id: osm
+    kind: official
+    title: "OpenStreetMap"
+    authority: "OpenStreetMap contributors"
+    url: "https://www.openstreetmap.org/copyright"
+    published: null
+    retrieved: "2026-11-12"
+    licence: "Open Database Licence (ODbL) 1.0"
+    audiences: [planner]
+  - id: project_model
+    kind: project
+    title: "EventFlow Twin: modelling notes"
+    authority: "EventFlow Twin project team (student research prototype)"
+    url: "docs/05_MODELING_SPEC.md"
+    published: "2026-11-18"
+    retrieved: "2026-11-18"
+    licence: "Project documentation"
+    audiences: [planner]
+  - id: project_agents
+    kind: project
+    title: "EventFlow Twin: the agent team and its checks"
+    authority: "EventFlow Twin project team (student research prototype)"
+    url: "docs/15_AGENT_ARCHITECTURE.md"
+    published: "2026-11-18"
+    retrieved: "2026-11-18"
+    licence: "Project documentation"
+    audiences: [planner]
+  - id: project_limits
+    kind: project
+    title: "EventFlow Twin: limits and honesty rules"
+    authority: "EventFlow Twin project team (student research prototype)"
+    url: "docs/10_RISKS_AND_INTEGRITY.md"
+    published: "2026-11-18"
+    retrieved: "2026-11-18"
+    licence: "Project documentation"
+    audiences: [kiosk, planner]
+
+passages:
+  - id: rta_pod.metro
+    source: rta_pod
+    section: "Dubai Metro"
+    tags: [accessibility, lift, wheelchair, step-free, tactile, blind, toilet]
+    text: >-
+      RTA states that Dubai Metro stations have tactile floor paths for visually impaired riders, lifts with room for a
+      wheelchair, wheelchair-accessible ticket counters, accessible toilets, and audio and visual warnings when the
+      platform doors open and close. Each carriage has a wheelchair space near the door.
+    text_ar: >-
+      تذكر هيئة الطرق والمواصلات أن محطات مترو دبي مزوّدة بمسارات أرضية بارزة لضعاف البصر، ومصاعد تتسع للكرسي المتحرك،
+      وشبابيك تذاكر ودورات مياه مهيأة، وتنبيهات صوتية ومرئية عند فتح أبواب الرصيف وإغلاقها، وأن في كل عربة مكانًا للكرسي
+      المتحرك قرب الباب.
+  - id: rta_pod.fares
+    source: rta_pod
+    section: "Card services"
+    tags: [accessibility, nol, free, fare, card]
+    text: >-
+      RTA states that holders of the People of Determination personalised nol card travel free on Dubai Metro and on
+      public buses. RTA lists the card at AED 70, including AED 20 of credit, valid for five years.
+    text_ar: >-
+      تذكر هيئة الطرق والمواصلات أن حاملي بطاقة نول الشخصية لأصحاب الهمم يتنقلون مجانًا في مترو دبي والحافلات العامة،
+      وأن سعر البطاقة 70 درهمًا تشمل رصيدًا بقيمة 20 درهمًا وصلاحيتها خمس سنوات.
+  - id: rta_pod.parking
+    source: rta_pod
+    section: "Stations and car parks"
+    tags: [accessibility, parking, entrance, doors]
+    text: >-
+      RTA states that metro car parks have reserved spaces near the main entrance for people of determination, with a
+      non-slip path in a contrasting colour from the car park to the station, and that station doors are automatic and wide.
+    text_ar: >-
+      تذكر هيئة الطرق والمواصلات أن مواقف المترو تضم أماكن مخصصة لأصحاب الهمم قرب المدخل الرئيسي، مع ممر غير زلق بلون
+      مميز من الموقف إلى المحطة، وأن أبواب المحطات آلية وواسعة.
+  - id: rta_retrofit.summary
+    source: rta_retrofit_2023
+    section: "News release"
+    tags: [accessibility, retrofit, building code, facilities]
+    text: >-
+      In April 2023 RTA reported that it had retrofitted 82% of its buildings and facilities, across two phases, to meet
+      the Dubai Building Code's accessibility provisions for people of determination, with a third phase planned to
+      reach all of them. The works named include tactile paths, ramps, accessible signage and toilets and automatic doors.
+    text_ar: >-
+      في أبريل 2023 أعلنت هيئة الطرق والمواصلات أنها هيّأت 82% من مبانيها ومرافقها، على مرحلتين، وفق اشتراطات كود دبي
+      للبناء الخاصة بأصحاب الهمم، مع مرحلة ثالثة لاستكمال الباقي. وتشمل الأعمال مسارات بارزة ومنحدرات ولافتات ودورات
+      مياه مهيأة وأبوابًا آلية.
+  - id: access.limits
+    source: project_limits
+    section: "Accessibility"
+    tags: [accessibility, lift, step-free, limits, wheelchair]
+    text: >-
+      The twin holds no station-by-station data on lifts, step-free routes or lift outages. What it says about
+      accessibility comes from RTA's public page. The twin itself can only tell which station and which hour is less
+      crowded. Ask station staff or use official RTA channels for assistance on the day.
+    text_ar: >-
+      لا يملك التوأم بيانات لكل محطة عن المصاعد أو المسارات الخالية من الدرج أو أعطال المصاعد. ما يذكره عن التهيئة مصدره
+      صفحة هيئة الطرق والمواصلات العامة. التوأم نفسه يبيّن فقط أي محطة وأي ساعة أقل ازدحامًا. للمساعدة في يوم الفعالية
+      يُرجى سؤال موظفي المحطة أو استخدام قنوات الهيئة الرسمية.
+  - id: limits.prototype
+    source: project_limits
+    section: "What this is"
+    tags: [limits, prototype, rta, endorsement, synthetic, official]
+    text: >-
+      EventFlow Twin is a student research prototype designed for RTA's priorities. It is not an RTA system and is not
+      endorsed by RTA. Demand is synthetic and results are simulated, so nothing here is live travel advice. Check
+      official RTA channels on the day.
+    text_ar: >-
+      «إيفنت فلو توين» نموذج بحثي طلابي صُمّم وفق أولويات هيئة الطرق والمواصلات. ليس نظامًا تابعًا للهيئة ولا يحظى
+      بموافقة رسمية منها. الطلب افتراضي والنتائج محاكاة، وليست نصائح سفر مباشرة. يُرجى الرجوع إلى قنوات الهيئة الرسمية في يوم الفعالية.
+  - id: limits.human
+    source: project_limits
+    section: "Human approval"
+    tags: [approval, human, decision, log, execute, audit]
+    text: >-
+      Nothing is applied without a planner's Approve click, and every decision is written to a hash-chained log first.
+      Approving a plan applies it inside the simulation only. The twin executes nothing in the real world: notices and
+      briefings are drafts that are never sent.
+  - id: model.load
+    source: project_model
+    section: "Load and the comfort line"
+    tags: [load, load factor, threshold, comfort line, capacity, definition]
+    text: >-
+      Load is demand divided by capacity in each 15-minute period at a station. A station is over the comfort line when
+      its load is above the threshold, 85% unless the planner changes it. Station-hours over the line count how long
+      stations stay above it.
+  - id: model.capacity
+    source: project_model
+    section: "Capacity"
+    tags: [capacity, trains, timetable, gtfs, assumption]
+    text: >-
+      Capacity is the scheduled trains per hour in each direction, taken from RTA's GTFS timetable, multiplied by an
+      assumed train capacity of 700 riders and by an assumed 35% of that capacity being available to boarders at one
+      station. The timetable is real; the two multipliers are assumptions that move every result.
+  - id: model.excess
+    source: project_model
+    section: "Riders over the line and waiting"
+    tags: [excess, riders, queue, wait, waiting, platform]
+    text: >-
+      Riders over the line are the demand above threshold times capacity, summed over the day. Riders who cannot board
+      are not lost: a queue carries them into the next 15 minutes, and the platform wait is that queue divided by
+      capacity, in minutes.
+  - id: model.forecast
+    source: project_model
+    section: "Forecast"
+    tags: [forecast, demand, model, lightgbm, quantile, band, uncertainty, event]
+    text: >-
+      The forecast on screen is the 10th, 50th and 90th percentile of demand on the same weekday's non-event days, plus
+      a modelled event surge from attendance, the share of visitors using the metro and the arrival and exit windows.
+      No machine-learning model runs when you use the twin. LightGBM is only used in an offline backtest.
+  - id: model.data
+    source: project_model
+    section: "Demand data"
+    tags: [data, synthetic, ridership, real, calibration, provenance]
+    text: >-
+      Station demand is synthetic and labelled as such: 53 stations, hourly, 6 July to 27 September 2026. Real RTA
+      ridership is used only to scale each corridor station's daily level when "real station totals" is chosen. The
+      hourly shape stays synthetic until the full ridership files are ingested.
+  - id: model.breakpoint
+    source: project_model
+    section: "Break point"
+    tags: [break point, crowd size, attendance, tip over]
+    text: >-
+      The break point is the event crowd size at which a station first crosses the comfort line, with everything else
+      in the scenario unchanged. It is computed exactly from the forecast, not estimated.
+  - id: model.road
+    source: project_model
+    section: "Road pressure"
+    tags: [road, traffic, cars, vehicles, proxy, emissions]
+    text: >-
+      Road pressure is a proxy, not a traffic model: visitors who do not take the metro are converted to vehicles with
+      an assumed 2.2 people per car, and compared with six lanes of one direction of Sheikh Zayed Road at an assumed
+      2,000 vehicles per lane per hour. The twin has no emissions model.
+  - id: agents.critic
+    source: project_agents
+    section: "The critic's checks C1 to C7"
+    tags: [critic, checks, c1, c2, c3, c4, c5, c6, c7, criteria, validation]
+    text: >-
+      The critic checks every plan in code. C1: station-hours still over the line. C2: a new hotspot appears. C3: the
+      plan is worse overall. C4: a platform or gate wait above 10 minutes. C5: road pressure rises. C6: a constraint the
+      planner set is broken. C7: the plan holds in fewer than half of the stress cases. C4 to C7 are reported on every
+      option but do not change the ranking in this release.
+  - id: agents.stress
+    source: project_agents
+    section: "Stress test"
+    tags: [stress, robustness, holds, assumptions, confidence]
+    text: >-
+      Each kept plan is simulated again under changed assumptions: 10% and 25% more visitors, 55% and 65% of visitors
+      on the metro, a hot day, rain, and demand scaled to real station totals. "Holds in k of n" counts the cases in
+      which every station stays under the comfort line.
+  - id: agents.cost
+    source: project_agents
+    section: "Cost and ranking"
+    tags: [cost, proxy, ranking, score, priority, dirhams, budget]
+    text: >-
+      Cost is a proxy index, not dirhams: for example a train-hour counts 3.0, a shuttle-bus hour 1.0 and a robotaxi
+      vehicle-hour 0.4. Plans are ranked by riders relieved minus a weight times cost; the weight is 20 for balanced,
+      60 when cost comes first and 5 when impact comes first.
+  - id: agents.confidence
+    source: project_agents
+    section: "Confidence"
+    tags: [confidence, uncertainty, evidence, quality, grade]
+    text: >-
+      Confidence is graded in five separate parts and never as a single percentage: the forecast's spread, the quality
+      of the evidence, how well a plan holds under stress, whether every number matched the simulator, and whether the
+      agents finished within budget. The overall grade is the weakest part. With synthetic demand it cannot be higher
+      than low.
+  - id: data.gtfs
+    source: rta_gtfs
+    section: "Timetable"
+    tags: [gtfs, timetable, trains, schedule, source, data]
+    text: >-
+      Train frequencies come from RTA's official GTFS feed, read from the Mobility Database mirror. The feed covers
+      service from 9 September to 31 December 2021, so today's timetable may differ.
+  - id: data.ridership
+    source: dubai_ridership
+    section: "Ridership dataset"
+    tags: [ridership, dataset, real, data, source, open data]
+    text: >-
+      RTA publishes Dubai Metro ridership as an open dataset of check-in and check-out records on the Data.Dubai
+      portal. The project has downloaded 10 of its 3,141 files so far, and many periods in them carry no time of day.
+  - id: data.osm
+    source: osm
+    section: "Map"
+    tags: [map, osm, openstreetmap, buildings, licence]
+    text: >-
+      The 3D map is built from OpenStreetMap data, credited on screen, under the Open Database Licence.

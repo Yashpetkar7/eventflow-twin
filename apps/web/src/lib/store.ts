@@ -15,7 +15,7 @@ import { breakpointBody, forecastBody, messageBody, missionBody, planBody, shift
 
 export type { Priority, Scenario, Weather };
 export type CamMode = "overview" | "close" | "top" | "fly" | "orbit" | "landmark" | "free";
-export type Tab = "station" | "ai" | "team" | "build" | "alerts" | "report";
+export type Tab = "station" | "ai" | "team" | "ask" | "build" | "alerts" | "report";
 export type LayerKey = "buildings" | "landmarks" | "trains" | "traffic" | "flows" | "labels";
 export type Decision = "approve" | "reject";
 
