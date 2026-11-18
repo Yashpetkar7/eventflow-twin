@@ -1,6 +1,7 @@
 # Booth runbook — EventFlow Twin
 
 For the two people on the stand. Laptop + touch monitor, **no internet needed**. Measured numbers: `docs/metrics.md`.
+Last updated 18 Nov 2026 for `main` at `4876122` (API contract 1.16.0).
 
 ## Before the exhibition (once, at home, online)
 ```bash
@@ -10,13 +11,26 @@ cd apps/web && npm install && cd ../..
 python tasks.py synth                                   # only if data/synthetic is empty
 ```
 The 3D map is already baked into the repo (`apps/web/public/geo/`). Nothing is downloaded at the venue.
-**After pulling the 16 Nov agent team (#122–#125), run `pip install -r requirements.txt` again once, online** — it adds
-LangGraph. Without it the same agents still run in sequence (the AI team tab then says so), but the booth should show
-LangGraph. Check: `curl -s localhost:8000/healthz` → `"engine": "graph"`.
-Optional, with the team's OpenAI key in `.env`: `python tasks.py record-missions` records the agents' model answers
-for the demo scenarios (then commit `data/demo_cache/llm/`); without it the agents use their code rules and say so.
-Or all of it in one go, with an offline self-check at the end (use it for laptop B too):
-`python3 scripts/setup_booth_laptop.py` → prints `OK — this laptop is ready`.
+### Update a laptop that already runs the booth (18 Nov, contract 1.16.0): both laptops, online, once
+```bash
+git pull origin main
+python3 scripts/setup_booth_laptop.py          # Windows: py scripts\setup_booth_laptop.py
+```
+That one command reinstalls `requirements.txt` and the web packages, rebuilds the offline agent cache and the production
+web build, then runs the offline self-check. It takes about 10 minutes and ends with `OK — this laptop is ready`. On
+18 Nov the check reported: contract 1.16.0, an AI plan with 3 options and verified numbers, 18 agents on LangGraph, the
+kiosk page rendering. `--check` on its own skips the install **and the web build**, so it can pass on an old build: use
+it only to re-test a laptop you have just updated.
+- The only package added since 16 Nov is `langgraph==1.2.22`. Without it the same agents run in sequence and the AI team
+  tab says so; the booth should show LangGraph.
+- Then turn Wi-Fi off and run `python tasks.py demo` once, as on the stand.
+- Check: `curl -s localhost:8000/healthz` → `"contract":"1.16.0"` and `"engine":"graph"`. `"engine":"seq"` means LangGraph is
+  missing: run the setup again, online.
+
+Optional, with the team's OpenAI key in `.env`: `python tasks.py record-missions` records the agents' model answers for
+the demo scenarios (then commit `data/demo_cache/llm/`). **None are recorded yet** (there is no `data/demo_cache/llm/`), so
+no language model runs at the booth: the agents use their code rules and the screens say so ("Read by word rules: no AI
+model on this machine"). Every number comes from the simulator either way.
 
 ## Start (every morning, ~1 minute)
 1. Plug in power and the touch monitor (HDMI/USB-C for picture **and** USB for touch). Turn Wi-Fi off — it is not used.
@@ -28,7 +42,7 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
    It first runs the pre-flight (`python tasks.py doctor`: pinned packages, the LangGraph engine, data, scene, free
    ports) and stops with the fix if anything is wrong; then it builds the offline agent cache, starts the API, checks
    that the API reports the `graph` engine, builds the web app and prints the kiosk address. Leave this window open.
-   On Windows activate with `.venv\Scriptsctivate` instead of `source .venv/bin/activate`.
+   On Windows activate with `.venv\Scripts\activate` instead of `source .venv/bin/activate`.
    If UI tests or rehearsals registered test events (the duty inbox and rider page at `/inbox` and `/travel` keep
    them), run `python tasks.py clean-store` once before opening; it keeps the decision log.
 3. Open Chrome full screen on the touch monitor:
@@ -41,7 +55,19 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
    red **Recentre** button after dragging the map; switch to Arabic and back.
 5. Agent team check: **Hot day** → **AI team** tab → **Run the AI team**: the layers light up, the feed fills, the
    critic's table and stress tests appear. **Alerts** tab: the watcher shows World Trade Centre "crosses the line at
-   15:00". Approve option 1 in **AI plan**, then **AI team**: the messenger's drafts appear (marked DRAFT).
+   15:00". Approve the option marked **Recommended** in **AI plan** (the 90-second script does the same; option 1 is not
+   always the recommended one), then **AI team**: the messenger's drafts appear (marked DRAFT).
+6. Loop check (new 17–18 Nov; nothing here needs a language model):
+   - **AI plan** → **Brief the team**: tap an example brief → **Read my brief**. It shows "Here is what I understood" and
+     "Read by word rules: no AI model on this machine". **Confirm and plan** starts the mission.
+   - Tick **Ask me during planning** first to see the team stop and ask: "Plan for it?" (**Yes, plan for …**) and, if no
+     plan clears the line, **Show me the best plans** / **Try one more round**.
+   - On an option card, **Reject** asks why (**Too expensive** / **Not enough relief**, or your own words) → **Reject and
+     replan** → "Round 2: the team replanned with your feedback".
+   - **Alerts** → **Event chain · agents trigger each other** → **Start the chain**. After you approve, **Conditions
+     changed?** (Heavy rain, Train fault, Crowd surge, Crowd 30% bigger) makes the Watcher re-check the day. Events
+     registered at `/inbox` start the same chain and its questions are listed there under "Questions from the team",
+     answered with one tap.
 
 ## The visitor kiosk (`?kiosk=1`; kiosk plus since 13 Nov)
 - **Attract screen** (golden-hour 3D city, "Will the metro cope?", a live fact from the twin, today's visitor count)
@@ -69,7 +95,7 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
   quiz answers, approvals), with **Save as file**. Copy the numbers into the evening report.
 - The earlier kiosk (workspace with big targets + idle guided demo) is still at `?kiosk=classic` (used by the soak test).
 - Backup videos (git-ignored, in `exhibit/video/`, copy both to the USB stick): `eventflow_kiosk_show.mp4` (the visitor
-  kiosk, 60 s: `node apps/web/tests/backup_video_kiosk.mjs <url>`) and `eventflow_backup_demo.mp4` (the workspace's
+  kiosk, about 70 s: `node apps/web/tests/backup_video_kiosk.mjs <url>`) and `eventflow_backup_demo.mp4` (the workspace's
   guided demo: `node apps/web/tests/backup_video.mjs <url>`).
 
 **New on 13 Nov (later build, decisions #109–#113):**
@@ -78,6 +104,16 @@ Or all of it in one go, with an offline self-check at the end (use it for laptop
 - **"How did the AI decide?"** now ends with the critic's verdict and **Show all tool calls**. For a juror: downtown night → stress test → crowd to about 50,000 → ask the AI → the plans say "Found by replanning", and the tool calls show round 1 failing and round 2 clearing every station.
 - Plans that clear every station carry a green **Clears every station** badge.
 - **Landmarks (decision #116):** touch a landmark or its name (Burj Khalifa, Museum of the Future, Emirates Towers, …). The camera turns all the way round it and a panel names it. "Back to the corridor" returns; any drag stops the turn.
+
+**New on 16–18 Nov (decisions #129, #141, #142):**
+- After approving a plan, the result screen offers **What if a train breaks down now?**: a duty step with one **Approve**,
+  **Skip** and **Start again**. The fault is an assumption and the screen says so ("An assumption for this what-if, not an
+  RTA figure.").
+- Switching **عربي / English** in the middle of a journey now asks again for the plan on screen, so the option titles
+  follow the language (before 17 Nov they stayed in the language they were fetched in). Arabic strings are drafts until a
+  native speaker has reviewed them (#43).
+- A browser without WebGL no longer fails to load: the kiosk runs without the 3D map and the workspace shows its table
+  view.
 
 ## What visitors can do without help
 Pick an event · drag the time bar · tap a station or a landmark · **Plan with AI agents** → Approve / Reject · **My plan** ·
@@ -90,7 +126,7 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
 | Blank or frozen page | Press `Cmd+R` / `Ctrl+R` (attach a keyboard). Still blank → quit Chrome, run step 3 again. |
 | The view is lost somewhere over the desert | Tap **Recentre** (the round target button on the right edge; it turns red when the view has been moved) or press `Home`. |
 | The map is slow or stutters | Nothing to do: the twin lowers its own quality (no ambient occlusion → smaller shadows → no shadows) when it stays under 40 fps for 3 s, and raises it again later. Check the laptop is on mains power and not in low-power mode. |
-| "3D needs WebGL…" message with a table | The browser lost its graphics context. Quit Chrome completely and reopen it (step 3). The table shows the same numbers meanwhile. |
+| "3D needs WebGL…" message with a table | The browser has no graphics context. Nothing crashes: the workspace shows the table with the same numbers and the kiosk runs without the 3D map. To get the 3D back, quit Chrome completely and reopen it (step 3). |
 | Port already in use when starting | An old run is still alive: close the old terminal window, or `lsof -ti :3000 -ti :8000 | xargs kill` (macOS/Linux). |
 | Everything fails | Second laptop with the same build, or the recorded backup video on the USB stick. |
 
@@ -100,6 +136,14 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
 3. Touch works in other apps but not in the twin: press `Esc`, then `Cmd+R` / `Ctrl+R`.
 4. While you fix it, the stand still works: leave the guided demo looping (it needs no touch) and operate with the trackpad.
 5. Wipe the screen with a dry cloth; some panels ignore touches when wet or greasy.
+
+## Printed material and the USB stick (rebuilt 18 Nov from `main` at `d9838af`)
+- **Poster and handouts:** with the API and web app running, `python scripts/build_exhibit_print.py` (it captures the hero
+  image from the live twin) writes `exhibit/poster/EventFlow_Twin_A1_poster.pdf` and the English and Arabic A4 handouts.
+  PDFs are git-ignored, so **rebuild them after any change to the plans or figures**: a poster printed earlier shows the
+  old ones. Leave the QR out until Dr. Rachit has approved the public link, then add `--qr <url>`.
+- **Demo script:** `exhibit/DEMO_SCRIPT_90S.md` approves the option marked **Recommended**.
+- **Backup videos:** the two commands under the visitor kiosk section; copy both files to the USB stick.
 
 ## Shut down (every evening)
 1. `Cmd+Q` / `Alt+F4` to close Chrome.
@@ -111,7 +155,12 @@ language switch. After 60 s without a touch the guided demo plays by itself; any
 - Do not run `npm run dev` on the stand; `python tasks.py demo` runs the production build.
 - Do not say or show that RTA uses or endorses this. It is a student research prototype on synthetic baseline demand.
 
-## Not verified yet (do this before 18 Nov)
+## Not verified yet
+Status on 18 Nov, still open: the real touch monitor (touch mapping, pinch zoom, native resolution; #42), a full
+exhibition day, both booth laptops updated and run once with Wi-Fi off (#44), and the native Arabic review (#43). The
+Windows measurements below are from 13 and 15 Nov, before the 16–18 Nov changes (agent team, duty shift, brief and
+checkpoints): repeat `node tests/kiosk_fps.mjs` on the final build.
+
 - **Windows laptop on MAINS power, measured 15 Nov 2026** — same laptop as the battery run below, plugged in and charging,
   OneDrive stopped for the runs, no other 3D page open. Production build of `main` at `b9bfd2d` (includes the realism
   passes of 13 Nov, #114–#116). One warm-up run was discarded. Every number is from a file in `eval/results/ui/booth_windows/`
