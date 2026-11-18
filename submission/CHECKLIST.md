@@ -12,3 +12,4 @@ Checked against `submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf` (regener
 - [x] Synthetic data / assumptions clearly marked; confidential info marked (none)
 - [x] Sent to Dr. Rachit by Fri 13 Nov (NOT to RTA directly; template not shared) — v2 emailed by Krishna on 12 Nov 2026 (`EMAIL_V2_TO_DR_RACHIT.md`); waiting for his reply
 - [ ] **v3 (13 Nov 2026):** new screenshots (realism city) and updated test figures; file `EventFlow_Twin_RTA_Nomination_v3_DRAFT.pdf` (git-ignored). Krishna to send to Dr. Rachit with `exhibit/pitch/EventFlow_Twin_Script_for_Dr_Rachit.pdf`; not sent yet
+- [ ] **v4 (18 Nov 2026):** 18-agent team, the team's questions to the human, kiosk typing and plan editing, two new pictures, figures re-measured (sources in `docs/RTA_NOMINATION_DRAFT.md`). Email: `EMAIL_V4_TO_DR_RACHIT.md`. Krishna to send to Dr. Rachit; not sent yet

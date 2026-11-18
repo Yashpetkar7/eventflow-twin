@@ -1,5 +1,7 @@
 # Nomination content — copy into the RTA template (give to Dr. Rachit; he submits)
 
+> **Superseded (18 Nov 2026):** the current text is v4 in `docs/RTA_NOMINATION_DRAFT.md` and `submission/tools/fill_template.py`. This file is the v2 record.
+
 > **v2 draft (12 Nov 2026):** wording corrected to match what the build does and the four concept pictures replaced
 > by real screenshots (`submission/images/final/`). Regenerate:
 > `python submission/tools/fill_template.py <template-or-previous-draft.pdf> submission/EventFlow_Twin_RTA_Nomination_v2_DRAFT.pdf`
