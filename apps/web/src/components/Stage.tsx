@@ -6,7 +6,7 @@ import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { nightFactor } from "@/lib/daylight";
 import { LANDMARK_KEYS, LANDMARK_STATION, type LandmarkKey } from "@/lib/landmarks";
 import { loadManifest, type Manifest } from "@/lib/manifest";
-import { webglAvailable } from "@/lib/webgl";
+import { useWebgl } from "@/lib/webgl";
 import { HOURS, hourOf, lfAt, T_MAX, T_MIN, useTwin } from "@/lib/store";
 import { LabelLayer } from "./LabelLayer";
 import { SceneProgress } from "./SceneProgress";
@@ -225,12 +225,8 @@ export function Stage() {
   const glFailed = useTwin((s) => s.glFailed);
   const tier = useTwin((s) => s.tier);
   // Checked on the client before any 3D canvas mounts (null until then, so the server render has no canvas).
-  const [glOk, setGlOk] = useState<boolean | null>(null);
-  useEffect(() => {
-    const ok = webglAvailable();
-    setGlOk(ok);
-    if (!ok) useTwin.setState({ glFailed: true, view: "table" });
-  }, []);
+  const glOk = useWebgl();
+  useEffect(() => { if (glOk === false) useTwin.setState({ glFailed: true, view: "table" }); }, [glOk]);
   useEffect(() => {                                   // Home recentres the 3D view; Escape leaves the full-width map
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest?.("input, select, textarea")) return;
