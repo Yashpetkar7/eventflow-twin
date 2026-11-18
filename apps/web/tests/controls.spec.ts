@@ -7,6 +7,7 @@ type Layers = Record<"buildings" | "landmarks" | "trains" | "traffic" | "flows" 
 type S = { ready: boolean; sceneReady: boolean; glFailed: boolean; layers: Layers; time: number; playing: boolean; speed: number; selected: string; cam: string };
 type W = Window & { __twin: { getState: () => S }; __eft?: { triangles: number } };
 const state = <T,>(page: Page, fn: (s: S) => T) => page.evaluate(`(${fn.toString()})(window.__twin.getState())`) as Promise<T>;
+const GL = process.env.EFT_NO_GL !== "1";          // the CI runner has no GPU: the app shows its table fallback there, with no map labels or camera buttons
 const LAYERS: [keyof Layers, string][] = [["buildings", "Buildings"], ["landmarks", "Landmarks"], ["trains", "Metro trains"],
   ["traffic", "Road traffic"], ["flows", "Crowd flows"], ["labels", "Labels"]];
 
@@ -27,11 +28,11 @@ test("layers: each checkbox switches its own layer off and on again, and only it
     await expect(box).not.toBeChecked();
     const off = await state(page, (s) => s.layers);
     expect(Object.entries(off).filter(([, on]) => !on).map(([k]) => k)).toEqual([key]);
-    if (key === "labels") await expect(page.locator(".tag:visible")).toHaveCount(0);       // the station and landmark name tags
+    if (key === "labels" && GL) await expect(page.locator(".tag:visible")).toHaveCount(0);       // the station and landmark name tags
     await box.click();
     expect(await state(page, (s) => Object.values(s.layers).every(Boolean))).toBe(true);
   }
-  await expect(page.locator(".tag:visible").first()).toBeVisible();
+  if (GL) await expect(page.locator(".tag:visible").first()).toBeVisible();
 });
 
 test("layers: switching the buildings off removes their triangles from the frame", async ({ page }) => {
@@ -74,7 +75,7 @@ test("timeline: play runs the clock, speed changes its pace, pause holds it, the
 
 test("camera and station: each view button sets its camera; a station chip selects that station", async ({ page }) => {
   await open(page);
-  for (const [name, cam] of [["Station close-up", "close"], ["Top-down", "top"], ["Fly-through", "fly"], ["Auto-orbit", "orbit"], ["Overview", "overview"]]) {
+  for (const [name, cam] of !GL ? [] : [["Station close-up", "close"], ["Top-down", "top"], ["Fly-through", "fly"], ["Auto-orbit", "orbit"], ["Overview", "overview"]]) {
     await page.getByRole("button", { name, exact: true }).click();
     expect(await state(page, (s) => s.cam)).toBe(cam);
   }
