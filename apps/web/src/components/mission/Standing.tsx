@@ -1,9 +1,9 @@
 "use client";
 // Standing agents on screen (contract 1.12.0, docs/15): the Watcher's duty view, Ask the twin, and the Messenger's
 // drafts. Every figure comes from the API answer (tool + run id); text is chosen here, never numbers.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { api, type AskIntent, type AskResponse, type MessageResponse, type WatchResponse } from "@/lib/api";
+import { api, ApiError, type AskIntent, type AskResponse, type MessageResponse, type WatchResponse } from "@/lib/api";
 import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { askBody, watchBody } from "@/lib/requests";
 import { mergeInterventions, useTwin } from "@/lib/store";
@@ -22,6 +22,7 @@ function useStationName() {
 /** The Watcher: alerts raised three hours before a station crosses the line, following the scenario clock. */
 export function WatcherCard() {
   const t = useTranslations("mission.watch");
+  const tg = useTranslations();
   const name = useStationName();
   const { locale } = useLocale();
   const fc = useTwin((s) => s.forecast);
@@ -30,12 +31,25 @@ export function WatcherCard() {
   const applied = useTwin((s) => s.applied);
   const time = useTwin((s) => s.time);
   const [w, setW] = useState<WatchResponse | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!fc || !req) return;
     let live = true;
-    void api.watch(watchBody(fc.run_id, thr, req, mergeInterventions(applied.map((a) => a.ivs)))).then((r) => { if (live) setW(r); }, () => { if (live) setW(null); });
+    void api.watch(watchBody(fc.run_id, thr, req, mergeInterventions(applied.map((a) => a.ivs)))).then(
+      (r) => { if (live) { setW(r); setErr(null); } },
+      (e) => { if (live) { setW(null); setErr(e instanceof ApiError ? e.detail : String(e)); } });
     return () => { live = false; };
-  }, [fc, req, thr, applied]);
+  }, [fc, req, thr, applied, retry]);
+  if (err) {
+    return (
+      <div className="card" data-testid="watcher">
+        <h3 className="team-h">{t("title")}</h3>
+        <div className="warnbox" role="alert" data-testid="watch-error">{tg("serviceError", { msg: err })}</div>
+        <button type="button" className="pill" style={{ marginTop: 6 }} onClick={() => setRetry((n) => n + 1)} data-testid="watch-retry">{tg("retry")}</button>
+      </div>
+    );
+  }
   if (!w) return null;
   const h = Math.floor(time);
   const raised = w.alerts.filter((a) => a.raised_at <= h);
@@ -71,13 +85,21 @@ export function AskCard({ chipsOnly = false }: { chipsOnly?: boolean }) {
   const [a, setA] = useState<AskResponse | null>(null);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const last = useRef<{ intent?: AskIntent; question?: string } | null>(null);
+  const tg = useTranslations();
   const ask = async (body: { intent?: AskIntent; question?: string }) => {
     const s = useTwin.getState();
     if (!s.forecast || !s.forecastReq) return;
+    last.current = body;
     setBusy(true);
+    setErr(null);
     try {
       setA(await api.ask(askBody(s.forecast.run_id, s.threshold, s.forecastReq, mergeInterventions(s.applied.map((x) => x.ivs)), locale, body)));
-    } catch { setA(null); } finally { setBusy(false); }
+    } catch (e) {
+      setA(null);
+      setErr(e instanceof ApiError ? e.detail : String(e));          // say so: an empty card would look like "no answer"
+    } finally { setBusy(false); }
   };
   const p = (a?.params ?? {}) as Record<string, unknown>;
   const num = (k: string) => (p[k] == null ? "–" : f.int(Number(p[k])));
@@ -97,6 +119,12 @@ export function AskCard({ chipsOnly = false }: { chipsOnly?: boolean }) {
           <input className="ask-input" value={q} maxLength={300} onChange={(e) => setQ(e.target.value)} placeholder={t("placeholder")} aria-label={t("placeholder")} data-testid="ask-input" />
           <button type="submit" className="btn navy" disabled={busy || !q.trim()}>{t("send")}</button>
         </form>
+      )}
+      {err && (
+        <div className="warnbox" role="alert" style={{ marginTop: 8 }} data-testid="ask-error">
+          {tg("serviceError", { msg: err })}{" "}
+          <button type="button" className="pill" disabled={busy} onClick={() => last.current && void ask(last.current)} data-testid="ask-retry">{tg("retry")}</button>
+        </div>
       )}
       {a && (
         <div className={a.refused ? "warnbox" : "verify"} style={{ marginTop: 8 }} data-testid="ask-answer" aria-live="polite">

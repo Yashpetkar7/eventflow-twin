@@ -4,7 +4,7 @@
 // Every figure is read from the mission or from /evidence; nothing is computed here.
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { api, type Evidence, type Mission } from "@/lib/api";
+import { api, type Evidence, type Mission, type Roster } from "@/lib/api";
 import { N, useFmt, useLocale } from "@/lib/i18n";
 import { LAYER_AGENTS, useEventText } from "@/lib/mission";
 import { CORRIDOR_ORDER, useTwin } from "@/lib/store";
@@ -123,13 +123,18 @@ export function TeamTab() {
   const run = () => void useTwin.getState().runAgents(locale);
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const counts = mission?.counts;
+  // before any run, the team's size comes from the roster the API builds from the code (never a number written here)
+  const [roster, setRoster] = useState<Roster["counts"] | null>(null);
+  useEffect(() => { if (!counts) void api.agentRoster().then((r) => setRoster(r.counts), () => setRoster(null)); }, [counts]);
+  const teamCounts = counts ?? roster;
+  const tg = useTranslations();
   const rec = mission?.recording;
   const name = (id: string) => f.station(stations.find((s) => s.id === id));
   return (
     <>
       <div className="card">
         <h2 style={{ margin: 0 }}>{t("title")}</h2>
-        <p className="note"><N>{t("lede", { agents: counts?.agents ?? 18, model: counts?.model_capable ?? 8 })}</N></p>
+        <p className="note" data-testid="team-lede">{teamCounts ? <N>{t("lede", { agents: teamCounts.agents, model: teamCounts.model_capable })}</N> : t("ledeNoCount")}</p>
         {mission && (
           <div className="row" style={{ flexWrap: "wrap", gap: 6, marginTop: 4 }}>
             <span className="badge sm navy" data-testid="team-engine">{td(`engine.${mission.engine}`)}</span>
@@ -139,7 +144,12 @@ export function TeamTab() {
         <button type="button" className="btn red" style={{ width: "100%", marginTop: 10 }} disabled={status === "running" || !ready} onClick={run} data-testid="team-run">
           {mission ? t("rerun") : t("run")}
         </button>
-        {status === "running" && <button type="button" className="pill" style={{ marginTop: 6 }} onClick={() => useTwin.getState().skipMission()}>{t("skip")}</button>}
+        {status === "running" && (
+          <div className="row" style={{ gap: 6, marginTop: 6 }}>
+            <button type="button" className="pill" onClick={() => useTwin.getState().skipMission()}>{t("skip")}</button>
+            <button type="button" className="pill" onClick={() => useTwin.getState().cancelRun()} data-testid="team-cancel">{tg("cancelRun")}</button>
+          </div>
+        )}
         {!mission && status !== "running" && <p className="note" style={{ marginTop: 8 }}>{t("idle")}</p>}
       </div>
 

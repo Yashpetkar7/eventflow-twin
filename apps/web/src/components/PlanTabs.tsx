@@ -39,6 +39,7 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
   const { locale } = useLocale();
   const memory = useTwin((s) => s.memory);
   const running = useTwin((s) => s.planStatus === "running");
+  const deciding = useTwin((s) => s.deciding);
   return (
     <article className={`opt${o.rank === 1 ? " top" : ""}${isRec ? " rec" : ""}${decision === "reject" ? " rejected" : ""}`}>
       <div className="rank">{t("rankL", { n: f.int(o.rank) })}</div>
@@ -73,13 +74,13 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
       {verified ? <div className="verify">✓ {t("verified", { n: f.int(o.figures ?? 0) })}</div> : <div className="warnbox">{t("notVerified")}</div>}
       <div className="note">{t("sources", { run: o.sources[0]?.run_id ?? "—" })}</div>
       {decision === "reject" ? <div style={{ fontWeight: 600, fontSize: 13 }}>{t("rejected")}</div> : why ? (
-        <ReasonForm interventions={o.interventions} busy={running} memory={memory}
+        <ReasonForm interventions={o.interventions} busy={running || deciding} memory={memory}
           onSubmit={(r) => { setWhy(false); void useTwin.getState().rejectWithReason(o.rank, r, locale); }}
           onPlainReject={() => { setWhy(false); void decide(o.rank, "reject"); }} onCancel={() => setWhy(false)} />
       ) : (
         <div className="row">
-          <button type="button" className="btn navy" style={{ flex: 1 }} onClick={() => void decide(o.rank, "approve")}>{t("approve")}</button>
-          <button type="button" className="btn ghost" onClick={() => { setWhy(true); void useTwin.getState().loadMemory(); }} data-testid="opt-reject">{t("reject")}</button>
+          <button type="button" className="btn navy" style={{ flex: 1 }} disabled={deciding} aria-busy={deciding} onClick={() => void decide(o.rank, "approve")} data-testid="opt-approve">{deciding ? t("logging") : t("approve")}</button>
+          <button type="button" className="btn ghost" disabled={deciding} onClick={() => { setWhy(true); void useTwin.getState().loadMemory(); }} data-testid="opt-reject">{t("reject")}</button>
         </div>
       )}
     </article>
@@ -157,6 +158,7 @@ export function AiTab() {
   const pause = useTwin((s) => s.pause);
   const feedback = useTwin((s) => s.feedback);
   const loopError = useTwin((s) => s.loopError);
+  const cancelled = useTwin((s) => s.runCancelled);
   const tl = useTranslations("loop");
   return (
     <>
@@ -167,6 +169,10 @@ export function AiTab() {
           <span><b>{tl("askMe")}</b><small>{tl("askMeNote")}</small></span>
         </label>
         <button type="button" className="btn red" style={{ width: "100%" }} disabled={status === "running" || !ready} onClick={() => void run(locale)}>{t("plan")}</button>
+        {status === "running" && (
+          <button type="button" className="pill" style={{ marginTop: 8 }} onClick={() => useTwin.getState().cancelRun()} data-testid="plan-cancel">{t("cancelRun")}</button>
+        )}
+        {status === "idle" && cancelled && !plan && <div className="note" role="status" style={{ marginTop: 6 }} data-testid="plan-cancelled">{t("runCancelled")}</div>}
         {(status === "running" || status === "ready" || status === "paused") && (
           <ol className="agent-steps" aria-live="polite">
             {STEP_KEYS.map((i) => (
@@ -207,6 +213,7 @@ export function BuildTab() {
   const previewError = useTwin((s) => s.previewError);
   const patch = useTwin((s) => s.patchBuild);
   const approve = useTwin((s) => s.approveMine);
+  const deciding = useTwin((s) => s.deciding);
   const ids = stations.map((s) => s.id);
   const hrs = hotHours(cur, ids);
   const idx = (id: string) => ids.indexOf(id);
@@ -281,7 +288,7 @@ export function BuildTab() {
             {b.ext > 0 && <p className="note" style={{ margin: "4px 0" }}>{t("build.noService")}: <b><N>{f.int(cur.resp.summary.no_service_pax)} → {f.int(preview.resp.summary.no_service_pax)}</N></b></p>}
             {newHot.length > 0 && <div className="warnbox">{t("newHot", { stations: newHot.map((id) => f.station(stations.find((s) => s.id === id))).join(", ") })}</div>}
             <div className="note">{t("sources", { run: preview.resp.run_id })}</div>
-            <button type="button" className="btn navy" style={{ width: "100%", marginTop: 8 }} onClick={() => void approve(t("build.mine"))}>{t("build.approveMine")}</button>
+            <button type="button" className="btn navy" style={{ width: "100%", marginTop: 8 }} disabled={deciding} aria-busy={deciding} onClick={() => void approve(t("build.mine"))} data-testid="mine-approve">{deciding ? t("logging") : t("build.approveMine")}</button>
           </>
         ) : null}
       </div>

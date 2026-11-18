@@ -118,11 +118,23 @@ export function Panel() {
   const f = useFmt();
   const tab = useTwin((s) => s.tab);
   const nAlerts = useTwin((s) => alertsOf(s.cur, s.stations.map((x) => x.id)).length);
+  // WAI-ARIA tabs: one tab stop, arrow keys move between tabs (mirrored right to left), Home / End jump to the ends
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const rtl = document.documentElement.dir === "rtl";
+    const i = TABS.indexOf(tab);
+    const next = e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1
+      : e.key === (rtl ? "ArrowLeft" : "ArrowRight") ? (i + 1) % TABS.length
+      : e.key === (rtl ? "ArrowRight" : "ArrowLeft") ? (i - 1 + TABS.length) % TABS.length : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    useTwin.setState({ tab: TABS[next] });
+    document.getElementById(`tab-${TABS[next]}`)?.focus();
+  };
   return (
     <aside className="panel">
-      <div className="tabs" role="tablist">
+      <div className="tabs" role="tablist" aria-label={t("tabsLabel")} onKeyDown={onKey}>
         {TABS.map((k) => (
-          <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={tab === k} aria-controls="tabpanel" onClick={() => useTwin.setState({ tab: k })}>
+          <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={tab === k} tabIndex={tab === k ? 0 : -1} aria-controls="tabpanel" onClick={() => useTwin.setState({ tab: k })}>
             {t(`tabs.${k}`)}{k === "alerts" && nAlerts > 0 ? <span className="count"><N>{f.int(nAlerts)}</N></span> : null}
           </button>
         ))}
