@@ -19,7 +19,7 @@ Date: ______  Names on the stand: ______________________
 - [ ] Hold the logo 3 s → full workspace opens; **Touch kiosk** brings the visitor kiosk back
 - [ ] In the full workspace, tap **Guided demo** and let it finish
 - [ ] Tap **World Trade Centre** → Station tab shows the **Break point** card
-- [ ] **Hot day** → **AI plan** → **Plan with AI agents** → 3 options, "All … figures match" → **Approve** option 1
+- [ ] **Hot day** → **AI plan** → **Plan with AI agents** → 3 options, "All … figures match" → **Approve** the option marked **Recommended**
 - [ ] **Clear approved plans**; **Landmarks → Burj Khalifa**; drag the map, then **Recentre**
 - [ ] **عربي** and back to English
 - [ ] Touch: tap, drag and pinch work on the monitor; buttons are easy to hit
