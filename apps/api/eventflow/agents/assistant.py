@@ -902,7 +902,7 @@ EXEMPT_SCREEN = ("threshold (to|is|=)",)             # a planner may set the com
 
 
 def scenario_compare(a: dict, b: dict, applied: list[dict], scope: str, locale: str, deps: Deps) -> dict:
-    """Two scenarios side by side (decision #152): what differs in their settings, what that does before any plan, and
+    """Two scenarios side by side (decision #153): what differs in their settings, what that does before any plan, and
     what the team recommends for each. Both sides are forecast, simulated and planned here; nothing is taken on trust
     from the caller except the settings themselves. Used by the run history ("compare with now")."""
     default = corridor()["capacity"]["overcap_threshold"]

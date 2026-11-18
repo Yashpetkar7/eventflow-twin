@@ -1,6 +1,6 @@
 # 18. The assistant: conversation, scenario changes in plain words, cited knowledge, graded confidence
 
-Contract **1.18.0** (assistant 1.17.0, runs 1.18.0) · decisions **#147–#152** · built 18 Nov 2026 · owner of this stream: Krishna.
+Contract **1.18.0** (assistant 1.17.0, runs 1.18.0) · decisions **#147–#151, #153, #154** · built 18 Nov 2026 · owner of this stream: Krishna.
 
 This is the first slice of the "agentic decision-support" brief of 18 Nov. It adds one conversation engine behind
 `POST /agent/chat`, used by the command centre (a new **Ask** tab) and by the kiosk (visitor questions on the rider
@@ -221,7 +221,7 @@ C = Yash (front end). This slice follows the 18 Nov brief. Files touched outside
 - Kiosk conversation design: [suggestion chips](https://developers.google.com/assistant/conversation-design/suggestions), [never a dead end](https://developers.google.com/business-communications/business-messages/guides/how-to/design/happy-path)
 - Accessibility facts: [RTA, People of Determination](https://www.rta.ae/wps/portal/rta/ae/home/people-of-determination), [RTA, 82 % of facilities retrofitted](https://rta.ae/wps/portal/rta/ae/home/news-and-media/all-news/NewsDetails/82-percent-of-facilities-retrofitted-for-people-of-determination)
 
-## 13. Runs: status, auto-run, cancel, history, scenario comparison (contract 1.18.0, decision #152)
+## 13. Runs: status, auto-run, cancel, history, scenario comparison (contract 1.18.0, decision #153)
 
 **On screen (AI plan tab).**
 - **Run bar** under the Plan button: what the latest run is doing, for which scenario version and who started it;

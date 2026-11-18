@@ -1,4 +1,4 @@
-"""The "calm" checkpoint (contract 1.18.0, decision #153): with "Ask me during planning" on and no station over the
+"""The "calm" checkpoint (contract 1.18.0, decision #154): with "Ask me during planning" on and no station over the
 line, the team does not end in silence. The stress agent tests the scenario harder by itself and the supervisor asks
 the human which harder scenario to plan for. Every figure in the question is a real forecast and simulation."""
 from __future__ import annotations

@@ -4,7 +4,7 @@
 // who published it and which agents it triggered. The chain runs by itself until it needs the human — a question at a
 // checkpoint, a plan to approve, or the end of the day — and goes on when the human answers. A rejection with a reason
 // makes the team replan the same alert; changed conditions make the Watcher re-check the approved plan.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { api, ApiError, type ChainEvent, type ChainState, type CheckpointAnswer } from "@/lib/api";
 import { N, useFmt, useLocale } from "@/lib/i18n";
@@ -24,17 +24,29 @@ export function ChainCard() {
   const ready = useTwin((s) => !!s.forecast && !s.loading);
   const stations = useTwin((s) => s.stations);
   const memory = useTwin((s) => s.memory);
-  const [st, setSt] = useState<ChainState | null>(null);
+  // the chain lives in the store: it survives a tab switch, and its approved measures are shown on the twin
+  const st = useTwin((s) => s.chain);
+  const synced = useTwin((s) => s.chainSynced);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [askMe, setAskMe] = useState(true);
   const [why, setWhy] = useState(false);
   const name = (id: unknown) => (typeof id === "string" ? f.station(stations.find((s) => s.id === id)) : "");
+  // back on this tab: read the chain again from the server (it may have been answered from the duty inbox meanwhile)
+  const shownId = useRef(st?.chain_id ?? null);
+  useEffect(() => {
+    const id = shownId.current;
+    if (!id) return;
+    let live = true;
+    api.chainGet(id).then((c) => { if (live && useTwin.getState().chain?.chain_id === id) useTwin.getState().setChain(c); },
+      (e) => { if (live) setErr(e instanceof ApiError ? e.detail : String(e)); });
+    return () => { live = false; };
+  }, []);
 
-  const go = async (fn: () => Promise<ChainState>) => {
+  const go = async (fn: () => Promise<ChainState>, title?: string) => {
     setBusy(true);
     setErr(null);
-    try { setSt(await fn()); } catch (e) { setErr(e instanceof ApiError ? e.detail : String(e)); } finally { setBusy(false); }
+    try { useTwin.getState().setChain(await fn(), title); } catch (e) { setErr(e instanceof ApiError ? e.detail : String(e)); } finally { setBusy(false); }
   };
   const start = () => {
     const s = useTwin.getState();
@@ -45,8 +57,9 @@ export function ChainCard() {
   };
   const decide = async (d: "approve" | "reject", r?: RejectReason) => {
     if (!st) return;
+    const title = st.inbox?.mission.plan.options.find((o) => o.rank === st.inbox?.recommended_rank)?.title;
     await go(() => api.chainDecide(st.chain_id, { decision: d, user: "duty-manager", reason_codes: r?.codes ?? [], reason: r?.words.trim() || null,
-      avoid: (r?.avoid ?? []) as never[], protect: r?.protect ?? [] }));
+      avoid: (r?.avoid ?? []) as never[], protect: r?.protect ?? [] }), d === "approve" ? title : undefined);
     setWhy(false);
     void useTwin.getState().loadMemory("duty-manager");
   };
@@ -97,7 +110,9 @@ export function ChainCard() {
       <button type="button" className="btn red" style={{ width: "100%", marginTop: 8 }} disabled={!ready || busy} onClick={start} data-testid="chain-start">
         {st ? t("restart") : t("start")}
       </button>
-      {err && <div className="warnbox" style={{ marginTop: 8 }}>{err}</div>}
+      {err && <div className="warnbox" role="alert" style={{ marginTop: 8 }}>{err}</div>}
+      {st && synced === true && st.applied.length > 0 && <p className="note" data-testid="chain-synced">{t("onTwin")}</p>}
+      {st && synced === false && <div className="warnbox" role="status" data-testid="chain-unsynced">{t("offTwin")}</div>}
       {st && (
         <>
           <p className="note" data-testid="chain-loop"><N>{tl("loopRow", { plans: lp.plans ?? 0, asks: lp.checkpoints ?? 0, answers: lp.answers ?? 0, feedback: lp.feedback ?? 0, changes: lp.changes ?? 0 })}</N></p>

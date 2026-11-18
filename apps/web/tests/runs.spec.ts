@@ -1,4 +1,4 @@
-// Runs of the agent team (contract 1.18.0, decision #152): the run bar, auto-run, cancel, superseded runs, the run
+// Runs of the agent team (contract 1.18.0, decision #153): the run bar, auto-run, cancel, superseded runs, the run
 // history with "compare with now" and "restore this scenario", and the Compare card on the AI plan tab.
 // What is checked: a status on screen is what really happened; an automatic run starts by itself for the LATEST
 // scenario only; an answer for an old scenario or a cancelled run never reaches the screen; restoring a run's scenario

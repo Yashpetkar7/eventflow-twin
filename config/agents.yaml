@@ -14,7 +14,7 @@ critic:                        # C4–C7 are reported on every option; they do n
   stress_hold_min: 0.5         # C7: an option is fragile when it keeps every station under the threshold in fewer
                                #     than this share of the stress cases
 
-calm:                          # the "calm" checkpoint (decision #153): nothing over the line, so the team tests harder and asks
+calm:                          # the "calm" checkpoint (decision #154): nothing over the line, so the team tests harder and asks
   line_min: 0.70               # the comfort-line slider's lowest step: no stricter line than this is suggested
 stress:                        # C7: each kept option re-simulated under changed assumptions
   attendance: [1.10, 1.25]     # × the scenario's attendance

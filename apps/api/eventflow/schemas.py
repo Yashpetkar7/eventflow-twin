@@ -1206,7 +1206,7 @@ class KnowledgeSources(BaseModel):
     sources: list[dict]
 
 
-# ---------- scenario comparison for the run history (contract 1.18.0, decision #152) ----------
+# ---------- scenario comparison for the run history (contract 1.18.0, decision #153) ----------
 class ScenarioCompareRequest(BaseModel):
     a: ChatSettings = Field(description="The earlier scenario (e.g. the one a past run was for)")
     b: ChatSettings = Field(description="The later scenario (e.g. the one on screen)")

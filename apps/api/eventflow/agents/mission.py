@@ -211,7 +211,7 @@ def stress_test(ctx: MissionCtx, options: list[dict]) -> dict[int, dict]:
 
 
 def calm_probes(ctx: MissionCtx) -> list[dict]:
-    """Nothing is over the line: the stress agent tests the scenario harder by itself (decision #153), so the supervisor
+    """Nothing is over the line: the stress agent tests the scenario harder by itself (decision #154), so the supervisor
     has something to ask the human about. Each probe is one forecast and one simulation, with its run id:
 
         crowd   the crowd at which the corridor first crosses the line (the exact break point, rounded up to 1,000)

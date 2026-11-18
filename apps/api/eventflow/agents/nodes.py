@@ -109,7 +109,7 @@ def diagnosis(state: State) -> dict:
 
 
 def _calm_gate(ctx: MissionCtx) -> bool:
-    """Checkpoint 0 (1.18.0, decision #153): no station is over the line. Instead of ending in silence, the stress agent
+    """Checkpoint 0 (1.18.0, decision #154): no station is over the line. Instead of ending in silence, the stress agent
     tests the scenario harder by itself (mission.calm_probes) and the supervisor asks the human which of those harder
     scenarios to plan for, or to leave it. A harder scenario is a change of scenario: the caller applies it and runs the
     team again (as with `allow` and `raise_cap`). True when the mission stops here to ask."""

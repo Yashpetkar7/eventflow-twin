@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { hhmm, N, useFmt, useLocale } from "@/lib/i18n";
 import { nightFactor } from "@/lib/daylight";
@@ -79,11 +79,20 @@ function CameraBar() {
   const cam = useTwin((s) => s.cam);
   const focus = useTwin((s) => s.focus);
   const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {                                   // the landmarks menu closes on Escape or a click anywhere else
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); wrap.current?.querySelector("button")?.focus(); } };
+    const onDown = (e: PointerEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onDown);
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("pointerdown", onDown); };
+  }, [open]);
   return (
     <div className="camtools" data-overlay>
       {CAMS.map((k) => <button key={k} type="button" aria-pressed={cam === k} onClick={() => { setOpen(false); useTwin.setState({ view: "3d" }); useTwin.getState().setCam(k); }}>{t(`cam.${k}`)}</button>)}
-      <div className="lmwrap">
-        <button type="button" aria-expanded={open} aria-pressed={cam === "landmark"} onClick={() => setOpen(!open)}>{t("landmarks")} ▾</button>
+      <div className="lmwrap" ref={wrap}>
+        <button type="button" aria-expanded={open} data-testid="lm-toggle" aria-pressed={cam === "landmark"} onClick={() => setOpen(!open)}>{t("landmarks")} ▾</button>
         {open && (
           <div className="lmmenu">
             {LANDMARK_KEYS.map((k) => (
@@ -229,7 +238,7 @@ export function Stage() {
   useEffect(() => { if (glOk === false) useTwin.setState({ glFailed: true, view: "table" }); }, [glOk]);
   useEffect(() => {                                   // Home recentres the 3D view; Escape leaves the full-width map
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.closest?.("input, select, textarea")) return;
+      if ((e.target as HTMLElement)?.closest?.("input, select, textarea, [role=tablist]")) return;   // a tab list uses Home / End itself
       if (e.key === "Home") { e.preventDefault(); useTwin.getState().recentre(); }
       if (e.key === "Escape" && useTwin.getState().expanded) useTwin.setState({ expanded: false });
     };

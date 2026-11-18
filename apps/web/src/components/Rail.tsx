@@ -20,6 +20,9 @@ export function Rail() {
     layers: x.layers, view: x.view, selectEvent: x.selectEvent, patchScenario: x.patchScenario, patchCustom: x.patchCustom,
     setThreshold: x.setThreshold, setPriority: x.setPriority, clearPlans: x.clearPlans,
   })));
+  const [confirm, setConfirm] = useState(false);              // "Clear approved plans" asks first, on the page itself
+  const nApplied = useTwin((x) => x.applied.length);
+  const clearable = useTwin((x) => x.applied.length > 0 || !!x.plan || !!x.chain);
   const sc = s.scenario, custom = sc.eventId === "custom";
   const attendance = sc.attendance ?? s.forecast?.attendance_used ?? (custom ? CUSTOM_DEFAULT_ATTENDANCE : s.events.find((e) => e.id === sc.eventId)?.attendance ?? 0);
   const exitSigma = sc.exitSigma ?? s.forecast?.exit_sigma_used ?? 30;
@@ -114,7 +117,17 @@ export function Rail() {
           <button type="button" aria-pressed={s.view === "table"} onClick={() => useTwin.setState({ view: "table" })}>{t("vTable")}</button>
         </div>
       </section>
-      <button type="button" className="btn ghost" onClick={s.clearPlans}>{t("reset")}</button>
+      {confirm && clearable ? (
+        <div className="card" role="group" aria-labelledby="clear-ask" data-testid="clear-confirm">
+          <p id="clear-ask" style={{ margin: "0 0 8px" }}><N>{t("clearAsk", { n: nApplied })}</N></p>
+          <div className="row" style={{ gap: 6 }}>
+            <button type="button" className="btn navy" style={{ flex: 1 }} onClick={() => { s.clearPlans(); setConfirm(false); }} data-testid="clear-yes">{t("clearYes")}</button>
+            <button type="button" className="btn ghost" onClick={() => setConfirm(false)}>{t("clearNo")}</button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" className="btn ghost" disabled={!clearable} title={clearable ? undefined : t("clearNone")} onClick={() => setConfirm(true)} data-testid="clear-plans">{t("reset")}</button>
+      )}
     </aside>
   );
 }
