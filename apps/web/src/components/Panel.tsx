@@ -6,11 +6,12 @@ import { AiTab, BuildTab } from "./PlanTabs";
 import { BreakCard } from "./BreakCard";
 import { ReportTab } from "./ReportTab";
 import { TeamTab } from "./mission/TeamTab";
+import { Assistant } from "./assistant/Assistant";
 import { ChainCard } from "./mission/Chain";
 import { DutyCard } from "./mission/Duty";
 import { WatcherCard } from "./mission/Standing";
 
-const TABS: Tab[] = ["station", "ai", "team", "build", "alerts", "report"];
+const TABS: Tab[] = ["station", "ai", "team", "ask", "build", "alerts", "report"];
 
 /** Load through the day for one station: 15-minute load factors straight from the simulator. */
 function LoadChart({ id, cur, base, showBase, label }: { id: string; cur: SimView; base: SimView | null; showBase: boolean; label: string }) {
@@ -142,6 +143,7 @@ export function Panel() {
         {tab === "station" && <StationTab />}
         {tab === "ai" && <AiTab />}
         {tab === "team" && <TeamTab />}
+        {tab === "ask" && <Assistant />}
         {tab === "build" && <BuildTab />}
         {tab === "alerts" && <AlertsTab />}
         {tab === "report" && <ReportTab />}

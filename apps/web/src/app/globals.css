@@ -530,3 +530,58 @@ body.kiosk .railtabs { display: none; }
 .loop-fb ul { margin: 4px 0 0; padding-inline-start: 18px; }
 .loop-fb small { opacity: 0.7; }
 .loop-change { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+
+/* The Ask tab: a conversation with the twin (contract 1.17.0, docs/18_ASSISTANT.md) */
+.assistant { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; }
+.as-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.as-head .note { margin: 2px 0 0; }
+.as-meta { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex: none; }
+.as-thread { display: flex; flex-direction: column; gap: 10px; flex: 1 1 0; min-height: 160px; overflow-y: auto; padding-inline-end: 2px; }   /* the thread scrolls; the questions and the input stay in reach */
+.as-example { background: var(--muted); border-radius: 10px; padding: 9px 11px; margin: 0; }
+.as-you { align-self: flex-end; max-inline-size: 88%; background: var(--navy-soft); color: var(--navy); border-radius: 14px 14px 4px 14px; padding: 7px 11px; }
+[dir="rtl"] .as-you { border-radius: 14px 14px 14px 4px; }
+.as-you p { margin: 0; font-size: 13.5px; font-weight: 500; }
+.as-you .note { color: var(--navy); opacity: .7; font-size: 10.5px; }
+.as-answer { background: var(--surface); border: 1px solid var(--line); border-radius: 4px 14px 14px 14px; padding: 11px 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
+[dir="rtl"] .as-answer { border-radius: 14px 4px 14px 14px; }
+.as-answer > p { margin: 0; font-size: 13.5px; line-height: 1.45; }
+.as-answer > .badge { align-self: flex-start; }
+.as-answer.refused, .as-answer.insufficient_evidence { border-color: var(--amber-ink); background: var(--amber-soft); }
+.as-answer.clarify { border-color: var(--navy); }
+.as-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.as-evidence, .as-conf, .as-plans, .as-patch { border-block-start: 1px solid var(--line); padding-block-start: 8px; display: flex; flex-direction: column; gap: 6px; }
+.as-runs { display: flex; flex-wrap: wrap; gap: 5px; }
+.as-run { font-size: 11.5px; background: var(--muted); border-radius: 7px; padding: 3px 7px; }
+.as-run code, .as-plan code, .as-doc code { font-size: 10.5px; }
+.as-link { border: 0; background: transparent; color: var(--navy); font-size: 12.5px; font-weight: 600; padding: 4px 0; text-align: start; min-height: 32px; text-decoration: underline; }
+.as-doc { margin: 0; border-inline-start: 3px solid var(--navy); background: var(--muted); border-radius: 0 10px 10px 0; padding: 8px 10px; }
+[dir="rtl"] .as-doc { border-radius: 10px 0 0 10px; }
+.as-doc blockquote { margin: 0 0 6px; font-size: 13px; line-height: 1.45; }
+.as-doc figcaption { display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; }
+.as-doc figcaption .badge { align-self: flex-start; }
+.as-doc a { color: var(--navy); word-break: break-all; font-size: 11px; }
+.as-conf ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.as-conf li { display: grid; grid-template-columns: 84px 1fr; gap: 8px; align-items: start; font-size: 12.5px; }
+.as-conf small { color: var(--ink-3); }
+.as-level { border-radius: 7px; padding: 2px 6px; font-size: 11px; font-weight: 600; text-align: center; background: var(--muted); }
+.as-level.high { background: rgba(0, 135, 90, .14); color: #00603F; }
+.as-level.medium { background: var(--amber-soft); color: var(--amber-ink); }
+.as-level.low { background: rgba(200, 30, 45, .12); color: #9B1322; }
+.as-overall { margin: 0; font-size: 12.5px; }
+.as-plan { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; }
+.as-plan.blocked { opacity: .75; background: var(--muted); }
+.as-plan-h { display: flex; justify-content: space-between; gap: 6px; align-items: flex-start; font-size: 13px; }
+.as-tags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: flex-end; }
+.as-plan dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 8px; margin: 0; }
+.as-plan dt { font-size: 10.5px; color: var(--ink-3); }
+.as-plan dd { margin: 0; font-size: 13px; font-weight: 600; }
+.as-plan dd.as-none { font-weight: 400; color: var(--ink-3); font-size: 11.5px; }
+.as-plan .note, .as-patch .note { margin: 0; }
+.as-lenses, .as-chips, .as-options { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.as-patch ul { margin: 0; padding-inline-start: 16px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+.as-patch { background: rgba(0, 135, 90, .06); border-radius: 10px; padding: 8px 10px; border: 1px solid rgba(0, 135, 90, .25); }
+.as-foot { margin: 0; }
+.as-form { display: flex; gap: 6px; flex: none; }
+.as-chips, .as-head { flex: none; }
+.as-answer, .as-you { flex: none; }
+.as-chips .pill, .as-lenses .pill { font-size: 12.5px; padding: 6px 11px; }

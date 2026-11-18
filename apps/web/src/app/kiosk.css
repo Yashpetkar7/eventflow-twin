@@ -347,3 +347,18 @@
 .kmsg-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
 .kmsg-top em { font-style: normal; color: #FFD27A; }
 .kmsg p { margin: 6px 0 0; font-size: 17px; line-height: 1.4; }
+
+/* Visitor questions on the rider screen (contract 1.17.0): covers the card, touch only, big targets */
+.kask-open { width: 100%; }
+.kask { position: absolute; inset: 0; z-index: 3; background: var(--surface); border-radius: inherit; padding: inherit; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.kask-qs { display: grid; gap: 10px; }
+.kask-q { min-height: 62px; border-radius: 16px; border: 1.5px solid rgba(20, 28, 45, .14); background: var(--bg); font-size: 18px; font-weight: 600; text-align: start; padding: 10px 18px; }
+.kask-q:disabled { opacity: .55; }
+.kask-a { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; overflow: hidden; }
+.kask-a > p { margin: 0; font-size: 19px; line-height: 1.4; font-weight: 500; }
+.kask-doc { margin: 0; border-inline-start: 4px solid var(--navy); background: var(--bg); border-radius: 0 14px 14px 0; padding: 10px 14px; }
+[dir="rtl"] .kask-doc { border-radius: 14px 0 0 14px; }
+.kask-doc blockquote { margin: 0 0 6px; font-size: 15.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.kask-doc figcaption { font-size: 13px; color: var(--ink-3); }
+.kask .krow { margin-top: auto; }
+.kbig .kask-a > p { font-size: 21px; }

@@ -23,6 +23,7 @@ import { LabelLayer } from "../LabelLayer";
 import { SceneProgress } from "../SceneProgress";
 import { KioskTeam } from "../mission/KioskTeam";
 import { KioskMessage } from "../mission/Standing";
+import { KioskAsk } from "../assistant/KioskAsk";
 import { bump, busiest, closure, faultHour, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -831,6 +832,7 @@ export function Kiosk() {
                     <span><N>{wait(advice.tip.wait)} · <span className={lfClass(advice.tip.lf)}>{T.rFull(f.pct(advice.tip.lf))}</span></N></span></div>
                 </div>
               )}
+              <KioskAsk station={advice?.worst.id} hour={advice ? Math.floor(advice.worst.t) : undefined} />
               <p className="knote">{T.rNote}</p>
               <div className="krow">
                 <button type="button" className="kgo" onClick={finish}>{T.finish}</button>

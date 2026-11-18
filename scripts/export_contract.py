@@ -104,6 +104,19 @@ def main_() -> None:
     dump("decision_response.json", {"logged": True, "decision_id": "dec_fixture01", "timestamp": "2026-11-18T18:05:00+04:00",
                                     "plan_known": True})
     dump("evidence.json", c.get("/evidence").json())
+    # the assistant (1.17.0): one planner turn, one scenario change and one kiosk turn, for the web app to build against
+    hot = {"event_id": "gitex2025_d1", "weather": "hot"}
+    hf = c.post("/forecast", json=hot).json()
+    cref = {"forecast_run_id": hf["run_id"], "forecast": hot, "threshold": 0.85, "scope": "corridor"}
+
+    def chat(body: dict) -> dict:
+        d = c.post("/agent/chat", json={**cref, **body}).json()
+        d["session_id"] = d["context"]["session_id"] = "fixture0000000000"       # minted at random; fixtures must not vary
+        return d
+    dump("chat_planner_lens.json", chat({"message": "Which plan prioritises passenger safety?"}))
+    dump("chat_planner_edit.json", chat({"message": "Increase attendance to 60,000 and shorten the exit window to 45 minutes"}))
+    dump("chat_kiosk_accessible.json", chat({"message": "Which accessible route can I use?", "audience": "kiosk"}))
+    dump("knowledge_sources.json", c.get("/knowledge/sources").json())
     (OUT / "VERSION").write_text(CONTRACT_VERSION + "\n", encoding="utf-8")
     print(f"contract {CONTRACT_VERSION}: openapi.json + {len(list(FIX.glob('*.json')))} fixtures in {OUT}")
 

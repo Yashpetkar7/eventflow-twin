@@ -1,0 +1,391 @@
+{
+  "session_id": "fixture0000000000",
+  "turn": 1,
+  "audience": "planner",
+  "intent": "lens",
+  "status": "answered",
+  "blocks": [
+    {
+      "key": "chat.lensTop",
+      "params": {
+        "lens_s": "safety",
+        "title_s": "Extra trains + staggered exit",
+        "peak_pct": 59,
+        "excess_n": 0,
+        "wait_x": 0.0,
+        "cost_x": 97.57,
+        "parties_n": 2
+      }
+    },
+    {
+      "key": "chat.lensNotOffered",
+      "params": {
+        "rec_s": "Staggered exit + wayfinding"
+      }
+    }
+  ],
+  "table": {
+    "lens": "safety",
+    "weights": {
+      "safety": 0.5,
+      "crowd": 0.3,
+      "wait": 0.2
+    },
+    "ignored": [],
+    "objectives": [
+      {
+        "id": "safety",
+        "basis": "simulated",
+        "metric": "peak_lf"
+      },
+      {
+        "id": "crowd",
+        "basis": "simulated",
+        "metric": "excess_pax"
+      },
+      {
+        "id": "wait",
+        "basis": "simulated",
+        "metric": "max_wait_min"
+      },
+      {
+        "id": "cost",
+        "basis": "simulated",
+        "metric": "cost_added"
+      },
+      {
+        "id": "accessibility",
+        "basis": "plan",
+        "metric": "redirect_walk"
+      },
+      {
+        "id": "emissions",
+        "basis": "not_measured",
+        "metric": null
+      },
+      {
+        "id": "resources",
+        "basis": "plan",
+        "metric": "parties"
+      }
+    ],
+    "considered": 7,
+    "blocked": 0,
+    "recommended_rank": 3,
+    "note": "A view over plans the mission simulated. It does not change the team's recommendation. Executed is never set: the twin applies plans inside the simulation only.",
+    "rows": [
+      {
+        "id": "tested-3",
+        "rank": null,
+        "title": "Extra trains + staggered exit",
+        "offered": false,
+        "eligible": true,
+        "blocked_by": [],
+        "goal_met": true,
+        "pareto": true,
+        "score": 1.0,
+        "values": {
+          "safety": 0.593,
+          "crowd": 0.0,
+          "wait": 0.0,
+          "cost": 97.57,
+          "accessibility": 0.0,
+          "emissions": null,
+          "resources": 2.0
+        },
+        "parts": {
+          "safety": 1.0,
+          "crowd": 1.0,
+          "wait": 1.0,
+          "cost": 0.0,
+          "accessibility": 1.0,
+          "resources": 0.0
+        },
+        "lifecycle": "simulated",
+        "run_id": "sim_d8ba935574e2",
+        "parties": [
+          "rail_operations",
+          "venue"
+        ],
+        "quantities": {
+          "buses": 0,
+          "vehicles": 0,
+          "train_hours": 3,
+          "metered_station_hours": 0
+        },
+        "holds": null,
+        "stress_total": null,
+        "failed_checks": []
+      },
+      {
+        "id": "tested-1",
+        "rank": null,
+        "title": "Extra trains",
+        "offered": false,
+        "eligible": true,
+        "blocked_by": [],
+        "goal_met": true,
+        "pareto": true,
+        "score": 0.9884,
+        "values": {
+          "safety": 0.599,
+          "crowd": 0.0,
+          "wait": 0.0,
+          "cost": 95.57,
+          "accessibility": 0.0,
+          "emissions": null,
+          "resources": 1.0
+        },
+        "parts": {
+          "safety": 0.9767,
+          "crowd": 1.0,
+          "wait": 1.0,
+          "cost": 0.0206,
+          "accessibility": 1.0,
+          "resources": 1.0
+        },
+        "lifecycle": "simulated",
+        "run_id": "sim_3e4e97f6666b",
+        "parties": [
+          "rail_operations"
+        ],
+        "quantities": {
+          "buses": 0,
+          "vehicles": 0,
+          "train_hours": 3,
+          "metered_station_hours": 0
+        },
+        "holds": null,
+        "stress_total": null,
+        "failed_checks": []
+      },
+      {
+        "id": "tested-2",
+        "rank": null,
+        "title": "Extra trains + wayfinding",
+        "offered": false,
+        "eligible": true,
+        "blocked_by": [],
+        "goal_met": true,
+        "pareto": false,
+        "score": 0.9884,
+        "values": {
+          "safety": 0.599,
+          "crowd": 0.0,
+          "wait": 0.0,
+          "cost": 96.07,
+          "accessibility": 1.36,
+          "emissions": null,
+          "resources": 2.0
+        },
+        "parts": {
+          "safety": 0.9767,
+          "crowd": 1.0,
+          "wait": 1.0,
+          "cost": 0.0155,
+          "accessibility": 0.0,
+          "resources": 0.0
+        },
+        "lifecycle": "simulated",
+        "run_id": "sim_d4c47c7a5d7c",
+        "parties": [
+          "rail_operations",
+          "station_staff"
+        ],
+        "quantities": {
+          "buses": 0,
+          "vehicles": 0,
+          "train_hours": 3,
+          "metered_station_hours": 0
+        },
+        "holds": null,
+        "stress_total": null,
+        "failed_checks": []
+      },
+      {
+        "id": "tested-4",
+        "rank": null,
+        "title": "Extra trains + feeder shuttles",
+        "offered": false,
+        "eligible": true,
+        "blocked_by": [],
+        "goal_met": true,
+        "pareto": false,
+        "score": 0.9884,
+        "values": {
+          "safety": 0.599,
+          "crowd": 0.0,
+          "wait": 0.0,
+          "cost": 97.57,
+          "accessibility": 0.0,
+          "emissions": null,
+          "resources": 2.0
+        },
+        "parts": {
+          "safety": 0.9767,
+          "crowd": 1.0,
+          "wait": 1.0,
+          "cost": 0.0,
+          "accessibility": 1.0,
+          "resources": 0.0
+        },
+        "lifecycle": "simulated",
+        "run_id": "sim_0f0de0c7a13b",
+        "parties": [
+          "bus_operations",
+          "rail_operations"
+        ],
+        "quantities": {
+          "buses": 2,
+          "vehicles": 0,
+          "train_hours": 3,
+          "metered_station_hours": 0
+        },
+        "holds": null,
+        "stress_total": null,
+        "failed_checks": []
+      },
+      {
+        "id": "option-3",
+        "rank": 3,
+        "title": "Staggered exit + wayfinding",
+        "offered": true,
+        "eligible": true,
+        "blocked_by": [],
+        "goal_met": true,
+        "pareto": true,
+        "score": 0.7238,
+        "values": {
+          "safety": 0.735,
+          "crowd": 0.0,
+          "wait": 0.0,
+          "cost": 2.5,
+          "accessibility": 1.36,
+          "emissions": null,
+          "resources": 2.0
+        },
+        "parts": {
+          "safety": 0.4475,
+          "crowd": 1.0,
+          "wait": 1.0,
+          "cost": 0.9794,
+          "accessibility": 0.0,
+          "resources": 0.0
+        },
+        "lifecycle": "validated",
+        "run_id": "sim_33998dce1027",
+        "parties": [
+          "station_staff",
+          "venue"
+        ],
+        "quantities": {
+          "buses": 0,
+          "vehicles": 0,
+          "train_hours": 0,
+          "metered_station_hours": 0
+        },
+        "holds": 5,
+        "stress_total": 6,
+        "failed_checks": []
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "kind": "run",
+      "id": "mission_70abd545e957",
+      "tool": "agent_team",
+      "run_id": "mission_70abd545e957",
+      "title": null,
+      "authority": null,
+      "url": null,
+      "published": null,
+      "retrieved": null,
+      "version": null,
+      "licence": null,
+      "section": null,
+      "excerpt": null,
+      "excerpt_locale": null,
+      "source_kind": null
+    },
+    {
+      "kind": "run",
+      "id": "sim_d8ba935574e2",
+      "tool": "simulate",
+      "run_id": "sim_d8ba935574e2",
+      "title": null,
+      "authority": null,
+      "url": null,
+      "published": null,
+      "retrieved": null,
+      "version": null,
+      "licence": null,
+      "section": null,
+      "excerpt": null,
+      "excerpt_locale": null,
+      "source_kind": null
+    }
+  ],
+  "passages": false,
+  "confidence": null,
+  "patch": null,
+  "options": [],
+  "suggestions": [
+    "compare",
+    "confidence",
+    "best_plan"
+  ],
+  "routed_by": "rules",
+  "tools": [
+    {
+      "tool": "agent_team",
+      "run_id": "mission_70abd545e957"
+    },
+    {
+      "tool": "simulate",
+      "run_id": "sim_d8ba935574e2"
+    }
+  ],
+  "findings": [],
+  "scenario_version": 1,
+  "context": {
+    "session_id": "fixture0000000000",
+    "turn": 1,
+    "focus_station": null,
+    "focus_hour": null,
+    "last_intent": "lens",
+    "last_args": {
+      "lens": "safety"
+    },
+    "settings": {
+      "forecast": {
+        "event_id": "gitex2025_d1",
+        "date": null,
+        "weekday": null,
+        "attendance": null,
+        "end_time": null,
+        "weather": "hot",
+        "exit_sigma_min": null,
+        "metro_share": null,
+        "demand_level": "synthetic",
+        "custom_event": null,
+        "incident": null
+      },
+      "threshold": 0.85,
+      "priority": "balanced",
+      "constraints": {
+        "forbid_types": [],
+        "protect_stations": [],
+        "cost_cap": null
+      }
+    },
+    "previous": null,
+    "undo": null,
+    "prefs": {}
+  },
+  "is_synthetic": true,
+  "source": {
+    "tool": "simulate",
+    "run_id": null
+  }
+}

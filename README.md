@@ -24,6 +24,7 @@ Built as a candidate exhibit for the **RTA R&D & Innovation (RDI) Zone**:
 | `docs/05_MODELING_SPEC.md` | Forecasting + capacity/intervention simulator maths | Build |
 | `docs/06_AGENTS_SPEC.md` | Agents, graph, personas, guardrails, human-in-the-loop (as built, `apps/api/eventflow/agents/`) | Build |
 | `docs/15_AGENT_ARCHITECTURE.md` | **The agent team**: 18 agents in 5 layers on LangGraph, their logic, and the measured accuracy (answers the professor's review, 16 Nov) | Jury, pitch |
+| `docs/18_ASSISTANT.md` | **The assistant** (contract 1.17.0): conversation for the command centre and the kiosk, scenario changes in plain words, seven objectives, graded confidence, cited documents; the shared API contract and what is measured | Build, jury |
 | `docs/07_UI_SPEC.md` | Screens, design tokens, 3D, Arabic/RTL, booth mode, offline mode | Build |
 | `docs/08_EVAL_PLAN.md` | Metrics, gold sets, thresholds, CI gate | Build |
 | `docs/09_DECISIONS.md` | Decision log (ADR) | Ongoing |

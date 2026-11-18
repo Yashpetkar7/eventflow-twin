@@ -1,0 +1,1470 @@
+{
+  "suite": "forecast",
+  "git_sha": "d50fd5b",
+  "timestamp": "2026-11-18T10:57:12",
+  "models": {
+    "forecast": "lgbm",
+    "baseline": "seasonal_naive_168h"
+  },
+  "dataset_version": "synthetic:2026-08-03..2026-09-27",
+  "is_synthetic": true,
+  "horizon": "7-day-ahead hourly; features use only lags >= 168h (no within-horizon leakage)",
+  "features": [
+    "hour",
+    "dow",
+    "weekend",
+    "lag168",
+    "lag336",
+    "mean_samehour_4w",
+    "station_code",
+    "event_flag"
+  ],
+  "metrics": {
+    "naive_mase": 0.9707583955016034,
+    "naive_smape": 0.08867938631213816,
+    "naive_mae": 38.44586702605571,
+    "naive_rmse": 66.88293201399635,
+    "naive_wape": 0.0882153832277849,
+    "naive_bias": -1.3652291105121295,
+    "profile_mase": 0.7676410357169624,
+    "profile_coverage80": 0.6309523809523809,
+    "naive_mase_same_rows": 0.9707583955016034,
+    "profile_mae": 30.401617250673855,
+    "profile_rmse": 53.03897810631766,
+    "profile_wape": 0.06975757146262426,
+    "profile_bias": -1.4319407008086253,
+    "lgbm_mase": 0.7790055106784367,
+    "lgbm_smape": 0.07101860990639121,
+    "lgbm_coverage80": 0.7926774483378257,
+    "lgbm_mae": 30.851695349626603,
+    "lgbm_rmse": 54.130441191608924,
+    "lgbm_wape": 0.07079029136343028,
+    "lgbm_bias": -2.3672201550166343,
+    "lgbm_below_p10": 0.10388589398023361,
+    "lgbm_below_p50": 0.5041554357592093,
+    "lgbm_below_p90": 0.8965633423180593,
+    "lgbm_mase_non_event_days": 0.7790055106784367,
+    "lgbm_wape_non_event_days": 0.07079029136343028
+  },
+  "n": 8904,
+  "split": "test",
+  "served_model": "profile_* = same-weekday-hour quantiles of non-event days: the background model the twin serves (forecast.py); lgbm_* is a backtest only and serves no forecast",
+  "limits": [
+    "synthetic demand: these figures measure recovery of scripts/synth.py's pattern plus its noise, not skill on Dubai Metro",
+    "event days are generated with the event overlay the twin itself uses and event_flag is a feature, so event-day figures are optimistic",
+    "errors are in riders per station-hour of synthetic demand"
+  ],
+  "folds": [
+    {
+      "fold_start": "2026-08-31",
+      "split": "val",
+      "naive_mase": 1.0223300450545405,
+      "naive_smape": 0.09159901560227202,
+      "naive_mae": 40.169137466307276,
+      "naive_rmse": 80.34882396792035,
+      "naive_wape": 0.09198170889303622,
+      "naive_bias": -0.9833782569631626,
+      "profile_mase": 0.8311506355631936,
+      "profile_n": 7632,
+      "profile_coverage80": 0.5209643605870021,
+      "naive_mase_same_rows": 1.0414318363983044,
+      "profile_mae": 32.65736373165618,
+      "profile_rmse": 56.935709817397566,
+      "profile_wape": 0.07196936665247922,
+      "profile_bias": -1.1475366876310273,
+      "lgbm_mase": 0.8113093591151204,
+      "lgbm_smape": 0.07199144365217927,
+      "lgbm_coverage80": 0.7786388140161725,
+      "lgbm_mae": 31.87776523995076,
+      "lgbm_rmse": 70.27976297391862,
+      "lgbm_wape": 0.07299562568205806,
+      "lgbm_bias": -2.9453425948831824,
+      "lgbm_below_p10": 0.1096136567834681,
+      "lgbm_below_p50": 0.5015723270440252,
+      "lgbm_below_p90": 0.8882524707996406,
+      "lgbm_mase_event_days": 0.7662492782665513,
+      "lgbm_wape_event_days": 0.09004722573995087,
+      "n_event_days": 1272,
+      "lgbm_mase_non_event_days": 0.8188193725898819,
+      "lgbm_wape_non_event_days": 0.07090160210025331,
+      "n_non_event_days": 7632,
+      "by_station": {
+        "ABU_BAKER_AL_SIDDIQUE": {
+          "n": 168,
+          "naive_wape": 0.0856,
+          "lgbm_wape": 0.0655,
+          "lgbm_bias": -3.65
+        },
+        "ABU_HAIL": {
+          "n": 168,
+          "naive_wape": 0.0951,
+          "lgbm_wape": 0.0836,
+          "lgbm_bias": 5.69
+        },
+        "ADCB": {
+          "n": 168,
+          "naive_wape": 0.1006,
+          "lgbm_wape": 0.0724,
+          "lgbm_bias": 1.85
+        },
+        "AIRPORT_TERMINAL_1": {
+          "n": 168,
+          "naive_wape": 0.0884,
+          "lgbm_wape": 0.0726,
+          "lgbm_bias": -0.32
+        },
+        "AIRPORT_TERMINAL_3": {
+          "n": 168,
+          "naive_wape": 0.102,
+          "lgbm_wape": 0.0836,
+          "lgbm_bias": -0.53
+        },
+        "AL_FURJAN": {
+          "n": 168,
+          "naive_wape": 0.0938,
+          "lgbm_wape": 0.0679,
+          "lgbm_bias": 2.14
+        },
+        "AL_GHUBAIBA": {
+          "n": 168,
+          "naive_wape": 0.0942,
+          "lgbm_wape": 0.0708,
+          "lgbm_bias": -14.51
+        },
+        "AL_JADAF": {
+          "n": 168,
+          "naive_wape": 0.0877,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": -0.27
+        },
+        "AL_KHAIL": {
+          "n": 168,
+          "naive_wape": 0.0951,
+          "lgbm_wape": 0.0796,
+          "lgbm_bias": -1.47
+        },
+        "AL_NAHDA": {
+          "n": 168,
+          "naive_wape": 0.0994,
+          "lgbm_wape": 0.0755,
+          "lgbm_bias": 4.93
+        },
+        "AL_QIYADAH": {
+          "n": 168,
+          "naive_wape": 0.0765,
+          "lgbm_wape": 0.0735,
+          "lgbm_bias": -5.2
+        },
+        "AL_QUSAIS": {
+          "n": 168,
+          "naive_wape": 0.0811,
+          "lgbm_wape": 0.0694,
+          "lgbm_bias": -2.56
+        },
+        "AL_RAS": {
+          "n": 168,
+          "naive_wape": 0.0975,
+          "lgbm_wape": 0.0733,
+          "lgbm_bias": -8.37
+        },
+        "AL_RIGGA": {
+          "n": 168,
+          "naive_wape": 0.1026,
+          "lgbm_wape": 0.0742,
+          "lgbm_bias": 0.05
+        },
+        "AL_SAFA": {
+          "n": 168,
+          "naive_wape": 0.0967,
+          "lgbm_wape": 0.0755,
+          "lgbm_bias": -6.76
+        },
+        "BANIYAS_SQUARE": {
+          "n": 168,
+          "naive_wape": 0.0844,
+          "lgbm_wape": 0.0663,
+          "lgbm_bias": 4.13
+        },
+        "BBY": {
+          "n": 168,
+          "naive_wape": 0.0854,
+          "lgbm_wape": 0.0699,
+          "lgbm_bias": -1.08
+        },
+        "BKD": {
+          "n": 168,
+          "naive_wape": 0.0877,
+          "lgbm_wape": 0.0776,
+          "lgbm_bias": -12.04
+        },
+        "BURJUMAN": {
+          "n": 168,
+          "naive_wape": 0.0939,
+          "lgbm_wape": 0.0713,
+          "lgbm_bias": -10.18
+        },
+        "CENTREPOINT": {
+          "n": 168,
+          "naive_wape": 0.0991,
+          "lgbm_wape": 0.0682,
+          "lgbm_bias": -2.57
+        },
+        "CREEK": {
+          "n": 168,
+          "naive_wape": 0.0867,
+          "lgbm_wape": 0.0773,
+          "lgbm_bias": 0.71
+        },
+        "DANUBE": {
+          "n": 168,
+          "naive_wape": 0.0868,
+          "lgbm_wape": 0.0691,
+          "lgbm_bias": 1.0
+        },
+        "DEIRA_CITY_CENTRE": {
+          "n": 168,
+          "naive_wape": 0.0864,
+          "lgbm_wape": 0.0599,
+          "lgbm_bias": -4.5
+        },
+        "DISCOVERY_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0802,
+          "lgbm_wape": 0.0617,
+          "lgbm_bias": -2.83
+        },
+        "DMCC": {
+          "n": 168,
+          "naive_wape": 0.0853,
+          "lgbm_wape": 0.0665,
+          "lgbm_bias": -1.01
+        },
+        "DUBAI_AIRPORT_FREE_ZONE": {
+          "n": 168,
+          "naive_wape": 0.0916,
+          "lgbm_wape": 0.065,
+          "lgbm_bias": -4.2
+        },
+        "DUBAI_HEALTHCARE_CITY": {
+          "n": 168,
+          "naive_wape": 0.0929,
+          "lgbm_wape": 0.0721,
+          "lgbm_bias": -5.14
+        },
+        "DUBAI_INTERNET_CITY": {
+          "n": 168,
+          "naive_wape": 0.0875,
+          "lgbm_wape": 0.0747,
+          "lgbm_bias": 0.83
+        },
+        "DUBAI_INVESTMENT_PARK": {
+          "n": 168,
+          "naive_wape": 0.086,
+          "lgbm_wape": 0.0677,
+          "lgbm_bias": 0.48
+        },
+        "EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.1,
+          "lgbm_wape": 0.0781,
+          "lgbm_bias": -0.92
+        },
+        "EMT": {
+          "n": 168,
+          "naive_wape": 0.1335,
+          "lgbm_wape": 0.1157,
+          "lgbm_bias": -37.88
+        },
+        "ENERGY": {
+          "n": 168,
+          "naive_wape": 0.0797,
+          "lgbm_wape": 0.0656,
+          "lgbm_bias": -2.76
+        },
+        "ETISALAT": {
+          "n": 168,
+          "naive_wape": 0.0868,
+          "lgbm_wape": 0.0665,
+          "lgbm_bias": 0.46
+        },
+        "EXPO": {
+          "n": 168,
+          "naive_wape": 0.0928,
+          "lgbm_wape": 0.0736,
+          "lgbm_bias": 0.75
+        },
+        "FIC": {
+          "n": 168,
+          "naive_wape": 0.0941,
+          "lgbm_wape": 0.0746,
+          "lgbm_bias": -12.81
+        },
+        "GGICO": {
+          "n": 168,
+          "naive_wape": 0.0932,
+          "lgbm_wape": 0.069,
+          "lgbm_bias": -5.63
+        },
+        "GOLD_SOUQ": {
+          "n": 168,
+          "naive_wape": 0.0833,
+          "lgbm_wape": 0.0758,
+          "lgbm_bias": -0.42
+        },
+        "IBN_BATTUTA": {
+          "n": 168,
+          "naive_wape": 0.0794,
+          "lgbm_wape": 0.0638,
+          "lgbm_bias": 3.02
+        },
+        "JABAL_ALI": {
+          "n": 168,
+          "naive_wape": 0.0942,
+          "lgbm_wape": 0.0701,
+          "lgbm_bias": -9.42
+        },
+        "JUMEIRAH_GOLF_ESTATES": {
+          "n": 168,
+          "naive_wape": 0.1131,
+          "lgbm_wape": 0.0828,
+          "lgbm_bias": -5.01
+        },
+        "MALL_OF_THE_EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.1048,
+          "lgbm_wape": 0.0685,
+          "lgbm_bias": -3.26
+        },
+        "MASHREQ": {
+          "n": 168,
+          "naive_wape": 0.0771,
+          "lgbm_wape": 0.0618,
+          "lgbm_bias": -1.19
+        },
+        "MAX": {
+          "n": 168,
+          "naive_wape": 0.104,
+          "lgbm_wape": 0.0779,
+          "lgbm_bias": -0.31
+        },
+        "OUD_METHA": {
+          "n": 168,
+          "naive_wape": 0.0756,
+          "lgbm_wape": 0.0632,
+          "lgbm_bias": -5.35
+        },
+        "SALAH_AL_DIN": {
+          "n": 168,
+          "naive_wape": 0.1061,
+          "lgbm_wape": 0.075,
+          "lgbm_bias": -0.51
+        },
+        "SHARAF_DG": {
+          "n": 168,
+          "naive_wape": 0.0892,
+          "lgbm_wape": 0.0669,
+          "lgbm_bias": 0.98
+        },
+        "SOBHA_REALTY": {
+          "n": 168,
+          "naive_wape": 0.0879,
+          "lgbm_wape": 0.0745,
+          "lgbm_bias": 4.14
+        },
+        "STADIUM": {
+          "n": 168,
+          "naive_wape": 0.0888,
+          "lgbm_wape": 0.0631,
+          "lgbm_bias": -2.3
+        },
+        "THE_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0897,
+          "lgbm_wape": 0.0701,
+          "lgbm_bias": 1.66
+        },
+        "UAE_EXCHANGE": {
+          "n": 168,
+          "naive_wape": 0.0902,
+          "lgbm_wape": 0.0747,
+          "lgbm_bias": -1.1
+        },
+        "UMM_AL_SHEIF": {
+          "n": 168,
+          "naive_wape": 0.088,
+          "lgbm_wape": 0.0751,
+          "lgbm_bias": 1.38
+        },
+        "UNION": {
+          "n": 168,
+          "naive_wape": 0.0855,
+          "lgbm_wape": 0.0703,
+          "lgbm_bias": -9.31
+        },
+        "WTC": {
+          "n": 168,
+          "naive_wape": 0.0892,
+          "lgbm_wape": 0.0835,
+          "lgbm_bias": -4.98
+        }
+      },
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-07",
+      "split": "val",
+      "naive_mase": 1.0271581105253544,
+      "naive_smape": 0.09145262467766024,
+      "naive_mae": 40.539083557951486,
+      "naive_rmse": 82.28013939417075,
+      "naive_wape": 0.09295342671767225,
+      "naive_bias": 0.5853548966756514,
+      "profile_mase": 0.803986839536709,
+      "profile_n": 8904,
+      "profile_coverage80": 0.546832884097035,
+      "naive_mase_same_rows": 1.0271581105253544,
+      "profile_mae": 31.7311320754717,
+      "profile_rmse": 55.332909804720394,
+      "profile_wape": 0.0727573788349147,
+      "profile_bias": -1.4928122192273137,
+      "lgbm_mase": 0.7993006542995444,
+      "lgbm_smape": 0.07185513475355808,
+      "lgbm_coverage80": 0.7841419586702606,
+      "lgbm_mae": 31.546181333272635,
+      "lgbm_rmse": 56.50967591567241,
+      "lgbm_wape": 0.0723332990641719,
+      "lgbm_bias": -2.1015283910547673,
+      "lgbm_below_p10": 0.10545822102425877,
+      "lgbm_below_p50": 0.5043800539083558,
+      "lgbm_below_p90": 0.8896001796945193,
+      "lgbm_mase_non_event_days": 0.7993006542995444,
+      "lgbm_wape_non_event_days": 0.0723332990641719,
+      "n_non_event_days": 8904,
+      "by_station": {
+        "ABU_BAKER_AL_SIDDIQUE": {
+          "n": 168,
+          "naive_wape": 0.1019,
+          "lgbm_wape": 0.0792,
+          "lgbm_bias": -2.68
+        },
+        "ABU_HAIL": {
+          "n": 168,
+          "naive_wape": 0.103,
+          "lgbm_wape": 0.0759,
+          "lgbm_bias": 9.52
+        },
+        "ADCB": {
+          "n": 168,
+          "naive_wape": 0.0846,
+          "lgbm_wape": 0.0664,
+          "lgbm_bias": 0.31
+        },
+        "AIRPORT_TERMINAL_1": {
+          "n": 168,
+          "naive_wape": 0.092,
+          "lgbm_wape": 0.0738,
+          "lgbm_bias": 1.41
+        },
+        "AIRPORT_TERMINAL_3": {
+          "n": 168,
+          "naive_wape": 0.0864,
+          "lgbm_wape": 0.068,
+          "lgbm_bias": -3.13
+        },
+        "AL_FURJAN": {
+          "n": 168,
+          "naive_wape": 0.0867,
+          "lgbm_wape": 0.0651,
+          "lgbm_bias": -0.89
+        },
+        "AL_GHUBAIBA": {
+          "n": 168,
+          "naive_wape": 0.0865,
+          "lgbm_wape": 0.0679,
+          "lgbm_bias": 0.6
+        },
+        "AL_JADAF": {
+          "n": 168,
+          "naive_wape": 0.0993,
+          "lgbm_wape": 0.0747,
+          "lgbm_bias": -6.35
+        },
+        "AL_KHAIL": {
+          "n": 168,
+          "naive_wape": 0.0954,
+          "lgbm_wape": 0.0753,
+          "lgbm_bias": 0.03
+        },
+        "AL_NAHDA": {
+          "n": 168,
+          "naive_wape": 0.0954,
+          "lgbm_wape": 0.073,
+          "lgbm_bias": -2.69
+        },
+        "AL_QIYADAH": {
+          "n": 168,
+          "naive_wape": 0.0914,
+          "lgbm_wape": 0.0669,
+          "lgbm_bias": -3.33
+        },
+        "AL_QUSAIS": {
+          "n": 168,
+          "naive_wape": 0.0987,
+          "lgbm_wape": 0.08,
+          "lgbm_bias": 4.62
+        },
+        "AL_RAS": {
+          "n": 168,
+          "naive_wape": 0.1044,
+          "lgbm_wape": 0.0756,
+          "lgbm_bias": -3.53
+        },
+        "AL_RIGGA": {
+          "n": 168,
+          "naive_wape": 0.0898,
+          "lgbm_wape": 0.0672,
+          "lgbm_bias": -10.24
+        },
+        "AL_SAFA": {
+          "n": 168,
+          "naive_wape": 0.0893,
+          "lgbm_wape": 0.0705,
+          "lgbm_bias": -6.05
+        },
+        "BANIYAS_SQUARE": {
+          "n": 168,
+          "naive_wape": 0.0957,
+          "lgbm_wape": 0.0759,
+          "lgbm_bias": -6.81
+        },
+        "BBY": {
+          "n": 168,
+          "naive_wape": 0.0875,
+          "lgbm_wape": 0.0706,
+          "lgbm_bias": -4.38
+        },
+        "BKD": {
+          "n": 168,
+          "naive_wape": 0.0975,
+          "lgbm_wape": 0.0821,
+          "lgbm_bias": -0.82
+        },
+        "BURJUMAN": {
+          "n": 168,
+          "naive_wape": 0.0866,
+          "lgbm_wape": 0.0667,
+          "lgbm_bias": -10.4
+        },
+        "CENTREPOINT": {
+          "n": 168,
+          "naive_wape": 0.0919,
+          "lgbm_wape": 0.0739,
+          "lgbm_bias": -6.1
+        },
+        "CREEK": {
+          "n": 168,
+          "naive_wape": 0.0981,
+          "lgbm_wape": 0.0767,
+          "lgbm_bias": -4.08
+        },
+        "DANUBE": {
+          "n": 168,
+          "naive_wape": 0.0869,
+          "lgbm_wape": 0.0705,
+          "lgbm_bias": -2.67
+        },
+        "DEIRA_CITY_CENTRE": {
+          "n": 168,
+          "naive_wape": 0.0783,
+          "lgbm_wape": 0.0663,
+          "lgbm_bias": -1.88
+        },
+        "DISCOVERY_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0821,
+          "lgbm_wape": 0.0639,
+          "lgbm_bias": -0.08
+        },
+        "DMCC": {
+          "n": 168,
+          "naive_wape": 0.0937,
+          "lgbm_wape": 0.076,
+          "lgbm_bias": -2.61
+        },
+        "DUBAI_AIRPORT_FREE_ZONE": {
+          "n": 168,
+          "naive_wape": 0.0804,
+          "lgbm_wape": 0.0647,
+          "lgbm_bias": -4.62
+        },
+        "DUBAI_HEALTHCARE_CITY": {
+          "n": 168,
+          "naive_wape": 0.0889,
+          "lgbm_wape": 0.0716,
+          "lgbm_bias": -7.48
+        },
+        "DUBAI_INTERNET_CITY": {
+          "n": 168,
+          "naive_wape": 0.1087,
+          "lgbm_wape": 0.0752,
+          "lgbm_bias": -1.24
+        },
+        "DUBAI_INVESTMENT_PARK": {
+          "n": 168,
+          "naive_wape": 0.0859,
+          "lgbm_wape": 0.0699,
+          "lgbm_bias": -4.29
+        },
+        "EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.103,
+          "lgbm_wape": 0.0813,
+          "lgbm_bias": -8.65
+        },
+        "EMT": {
+          "n": 168,
+          "naive_wape": 0.1371,
+          "lgbm_wape": 0.077,
+          "lgbm_bias": 10.04
+        },
+        "ENERGY": {
+          "n": 168,
+          "naive_wape": 0.0923,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": -7.74
+        },
+        "ETISALAT": {
+          "n": 168,
+          "naive_wape": 0.0869,
+          "lgbm_wape": 0.0722,
+          "lgbm_bias": -4.37
+        },
+        "EXPO": {
+          "n": 168,
+          "naive_wape": 0.0835,
+          "lgbm_wape": 0.0681,
+          "lgbm_bias": 0.25
+        },
+        "FIC": {
+          "n": 168,
+          "naive_wape": 0.0891,
+          "lgbm_wape": 0.0647,
+          "lgbm_bias": -8.55
+        },
+        "GGICO": {
+          "n": 168,
+          "naive_wape": 0.0823,
+          "lgbm_wape": 0.0728,
+          "lgbm_bias": 7.25
+        },
+        "GOLD_SOUQ": {
+          "n": 168,
+          "naive_wape": 0.0865,
+          "lgbm_wape": 0.0656,
+          "lgbm_bias": -1.8
+        },
+        "IBN_BATTUTA": {
+          "n": 168,
+          "naive_wape": 0.0806,
+          "lgbm_wape": 0.0612,
+          "lgbm_bias": -0.24
+        },
+        "JABAL_ALI": {
+          "n": 168,
+          "naive_wape": 0.0861,
+          "lgbm_wape": 0.0695,
+          "lgbm_bias": -3.27
+        },
+        "JUMEIRAH_GOLF_ESTATES": {
+          "n": 168,
+          "naive_wape": 0.1019,
+          "lgbm_wape": 0.0685,
+          "lgbm_bias": 0.37
+        },
+        "MALL_OF_THE_EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.0901,
+          "lgbm_wape": 0.0666,
+          "lgbm_bias": 3.59
+        },
+        "MASHREQ": {
+          "n": 168,
+          "naive_wape": 0.0895,
+          "lgbm_wape": 0.0719,
+          "lgbm_bias": -0.47
+        },
+        "MAX": {
+          "n": 168,
+          "naive_wape": 0.0982,
+          "lgbm_wape": 0.077,
+          "lgbm_bias": -3.96
+        },
+        "OUD_METHA": {
+          "n": 168,
+          "naive_wape": 0.0838,
+          "lgbm_wape": 0.0738,
+          "lgbm_bias": 1.0
+        },
+        "SALAH_AL_DIN": {
+          "n": 168,
+          "naive_wape": 0.0934,
+          "lgbm_wape": 0.0689,
+          "lgbm_bias": -5.82
+        },
+        "SHARAF_DG": {
+          "n": 168,
+          "naive_wape": 0.0924,
+          "lgbm_wape": 0.0772,
+          "lgbm_bias": -2.83
+        },
+        "SOBHA_REALTY": {
+          "n": 168,
+          "naive_wape": 0.0952,
+          "lgbm_wape": 0.0742,
+          "lgbm_bias": -5.03
+        },
+        "STADIUM": {
+          "n": 168,
+          "naive_wape": 0.0902,
+          "lgbm_wape": 0.0762,
+          "lgbm_bias": -1.77
+        },
+        "THE_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0886,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": 0.36
+        },
+        "UAE_EXCHANGE": {
+          "n": 168,
+          "naive_wape": 0.0868,
+          "lgbm_wape": 0.0689,
+          "lgbm_bias": 2.11
+        },
+        "UMM_AL_SHEIF": {
+          "n": 168,
+          "naive_wape": 0.0922,
+          "lgbm_wape": 0.0759,
+          "lgbm_bias": -0.26
+        },
+        "UNION": {
+          "n": 168,
+          "naive_wape": 0.0979,
+          "lgbm_wape": 0.0728,
+          "lgbm_bias": -8.18
+        },
+        "WTC": {
+          "n": 168,
+          "naive_wape": 0.1095,
+          "lgbm_wape": 0.0839,
+          "lgbm_bias": 6.45
+        }
+      },
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-14",
+      "split": "val",
+      "naive_mase": 0.9925983491348845,
+      "naive_smape": 0.08905803996794526,
+      "naive_mae": 39.352425876010784,
+      "naive_rmse": 69.43205454013277,
+      "naive_wape": 0.09057925963112619,
+      "naive_bias": 1.6695867026055706,
+      "profile_mase": 0.7631141229088577,
+      "profile_n": 8904,
+      "profile_coverage80": 0.6095013477088949,
+      "naive_mase_same_rows": 0.9925983491348845,
+      "profile_mae": 30.25432389937107,
+      "profile_rmse": 52.69377264797056,
+      "profile_wape": 0.06963774655416792,
+      "profile_bias": 0.19637241689128482,
+      "lgbm_mase": 0.7800723167400143,
+      "lgbm_smape": 0.07090332283854495,
+      "lgbm_coverage80": 0.793351302785265,
+      "lgbm_mae": 30.926646260488482,
+      "lgbm_rmse": 54.5379970202287,
+      "lgbm_wape": 0.07118526136037939,
+      "lgbm_bias": -0.49448331103540927,
+      "lgbm_below_p10": 0.11107367475292003,
+      "lgbm_below_p50": 0.5107816711590296,
+      "lgbm_below_p90": 0.9044249775381851,
+      "lgbm_mase_non_event_days": 0.7800723167400143,
+      "lgbm_wape_non_event_days": 0.07118526136037939,
+      "n_non_event_days": 8904,
+      "by_station": {
+        "ABU_BAKER_AL_SIDDIQUE": {
+          "n": 168,
+          "naive_wape": 0.1014,
+          "lgbm_wape": 0.0733,
+          "lgbm_bias": 2.1
+        },
+        "ABU_HAIL": {
+          "n": 168,
+          "naive_wape": 0.0964,
+          "lgbm_wape": 0.0693,
+          "lgbm_bias": -6.76
+        },
+        "ADCB": {
+          "n": 168,
+          "naive_wape": 0.0872,
+          "lgbm_wape": 0.0663,
+          "lgbm_bias": 3.51
+        },
+        "AIRPORT_TERMINAL_1": {
+          "n": 168,
+          "naive_wape": 0.0886,
+          "lgbm_wape": 0.0667,
+          "lgbm_bias": -2.38
+        },
+        "AIRPORT_TERMINAL_3": {
+          "n": 168,
+          "naive_wape": 0.0758,
+          "lgbm_wape": 0.066,
+          "lgbm_bias": -2.67
+        },
+        "AL_FURJAN": {
+          "n": 168,
+          "naive_wape": 0.0916,
+          "lgbm_wape": 0.0786,
+          "lgbm_bias": 0.33
+        },
+        "AL_GHUBAIBA": {
+          "n": 168,
+          "naive_wape": 0.0948,
+          "lgbm_wape": 0.0754,
+          "lgbm_bias": -1.93
+        },
+        "AL_JADAF": {
+          "n": 168,
+          "naive_wape": 0.0862,
+          "lgbm_wape": 0.069,
+          "lgbm_bias": -9.01
+        },
+        "AL_KHAIL": {
+          "n": 168,
+          "naive_wape": 0.1016,
+          "lgbm_wape": 0.0824,
+          "lgbm_bias": -4.41
+        },
+        "AL_NAHDA": {
+          "n": 168,
+          "naive_wape": 0.0887,
+          "lgbm_wape": 0.0758,
+          "lgbm_bias": 0.57
+        },
+        "AL_QIYADAH": {
+          "n": 168,
+          "naive_wape": 0.088,
+          "lgbm_wape": 0.0751,
+          "lgbm_bias": -0.1
+        },
+        "AL_QUSAIS": {
+          "n": 168,
+          "naive_wape": 0.0923,
+          "lgbm_wape": 0.0637,
+          "lgbm_bias": 0.68
+        },
+        "AL_RAS": {
+          "n": 168,
+          "naive_wape": 0.0913,
+          "lgbm_wape": 0.0667,
+          "lgbm_bias": -1.39
+        },
+        "AL_RIGGA": {
+          "n": 168,
+          "naive_wape": 0.0844,
+          "lgbm_wape": 0.0704,
+          "lgbm_bias": 4.57
+        },
+        "AL_SAFA": {
+          "n": 168,
+          "naive_wape": 0.0941,
+          "lgbm_wape": 0.0624,
+          "lgbm_bias": -3.37
+        },
+        "BANIYAS_SQUARE": {
+          "n": 168,
+          "naive_wape": 0.098,
+          "lgbm_wape": 0.0782,
+          "lgbm_bias": 3.71
+        },
+        "BBY": {
+          "n": 168,
+          "naive_wape": 0.0809,
+          "lgbm_wape": 0.0687,
+          "lgbm_bias": -0.97
+        },
+        "BKD": {
+          "n": 168,
+          "naive_wape": 0.0969,
+          "lgbm_wape": 0.0727,
+          "lgbm_bias": -12.57
+        },
+        "BURJUMAN": {
+          "n": 168,
+          "naive_wape": 0.0976,
+          "lgbm_wape": 0.0856,
+          "lgbm_bias": -11.55
+        },
+        "CENTREPOINT": {
+          "n": 168,
+          "naive_wape": 0.0912,
+          "lgbm_wape": 0.0652,
+          "lgbm_bias": 4.17
+        },
+        "CREEK": {
+          "n": 168,
+          "naive_wape": 0.1032,
+          "lgbm_wape": 0.074,
+          "lgbm_bias": -0.64
+        },
+        "DANUBE": {
+          "n": 168,
+          "naive_wape": 0.0898,
+          "lgbm_wape": 0.0754,
+          "lgbm_bias": -0.95
+        },
+        "DEIRA_CITY_CENTRE": {
+          "n": 168,
+          "naive_wape": 0.0927,
+          "lgbm_wape": 0.0742,
+          "lgbm_bias": 6.06
+        },
+        "DISCOVERY_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0794,
+          "lgbm_wape": 0.062,
+          "lgbm_bias": 2.54
+        },
+        "DMCC": {
+          "n": 168,
+          "naive_wape": 0.084,
+          "lgbm_wape": 0.0656,
+          "lgbm_bias": -2.02
+        },
+        "DUBAI_AIRPORT_FREE_ZONE": {
+          "n": 168,
+          "naive_wape": 0.0833,
+          "lgbm_wape": 0.0656,
+          "lgbm_bias": 5.03
+        },
+        "DUBAI_HEALTHCARE_CITY": {
+          "n": 168,
+          "naive_wape": 0.0887,
+          "lgbm_wape": 0.0621,
+          "lgbm_bias": -1.33
+        },
+        "DUBAI_INTERNET_CITY": {
+          "n": 168,
+          "naive_wape": 0.0884,
+          "lgbm_wape": 0.064,
+          "lgbm_bias": 1.45
+        },
+        "DUBAI_INVESTMENT_PARK": {
+          "n": 168,
+          "naive_wape": 0.092,
+          "lgbm_wape": 0.0674,
+          "lgbm_bias": 1.12
+        },
+        "EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.1029,
+          "lgbm_wape": 0.0695,
+          "lgbm_bias": -0.7
+        },
+        "EMT": {
+          "n": 168,
+          "naive_wape": 0.092,
+          "lgbm_wape": 0.0805,
+          "lgbm_bias": -3.26
+        },
+        "ENERGY": {
+          "n": 168,
+          "naive_wape": 0.0855,
+          "lgbm_wape": 0.0657,
+          "lgbm_bias": 2.2
+        },
+        "ETISALAT": {
+          "n": 168,
+          "naive_wape": 0.0877,
+          "lgbm_wape": 0.0644,
+          "lgbm_bias": 0.51
+        },
+        "EXPO": {
+          "n": 168,
+          "naive_wape": 0.0885,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": 3.15
+        },
+        "FIC": {
+          "n": 168,
+          "naive_wape": 0.0868,
+          "lgbm_wape": 0.0669,
+          "lgbm_bias": 4.16
+        },
+        "GGICO": {
+          "n": 168,
+          "naive_wape": 0.0883,
+          "lgbm_wape": 0.0761,
+          "lgbm_bias": 5.09
+        },
+        "GOLD_SOUQ": {
+          "n": 168,
+          "naive_wape": 0.0924,
+          "lgbm_wape": 0.0757,
+          "lgbm_bias": -1.85
+        },
+        "IBN_BATTUTA": {
+          "n": 168,
+          "naive_wape": 0.0858,
+          "lgbm_wape": 0.0727,
+          "lgbm_bias": 4.3
+        },
+        "JABAL_ALI": {
+          "n": 168,
+          "naive_wape": 0.085,
+          "lgbm_wape": 0.0674,
+          "lgbm_bias": -1.04
+        },
+        "JUMEIRAH_GOLF_ESTATES": {
+          "n": 168,
+          "naive_wape": 0.0924,
+          "lgbm_wape": 0.0759,
+          "lgbm_bias": 2.82
+        },
+        "MALL_OF_THE_EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.0812,
+          "lgbm_wape": 0.0626,
+          "lgbm_bias": -1.04
+        },
+        "MASHREQ": {
+          "n": 168,
+          "naive_wape": 0.0866,
+          "lgbm_wape": 0.0667,
+          "lgbm_bias": 2.32
+        },
+        "MAX": {
+          "n": 168,
+          "naive_wape": 0.0932,
+          "lgbm_wape": 0.0668,
+          "lgbm_bias": -2.73
+        },
+        "OUD_METHA": {
+          "n": 168,
+          "naive_wape": 0.0923,
+          "lgbm_wape": 0.0728,
+          "lgbm_bias": -4.41
+        },
+        "SALAH_AL_DIN": {
+          "n": 168,
+          "naive_wape": 0.0852,
+          "lgbm_wape": 0.0644,
+          "lgbm_bias": -2.9
+        },
+        "SHARAF_DG": {
+          "n": 168,
+          "naive_wape": 0.0871,
+          "lgbm_wape": 0.0725,
+          "lgbm_bias": -9.57
+        },
+        "SOBHA_REALTY": {
+          "n": 168,
+          "naive_wape": 0.1004,
+          "lgbm_wape": 0.0723,
+          "lgbm_bias": 0.03
+        },
+        "STADIUM": {
+          "n": 168,
+          "naive_wape": 0.0921,
+          "lgbm_wape": 0.0681,
+          "lgbm_bias": 0.82
+        },
+        "THE_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0876,
+          "lgbm_wape": 0.064,
+          "lgbm_bias": -1.2
+        },
+        "UAE_EXCHANGE": {
+          "n": 168,
+          "naive_wape": 0.09,
+          "lgbm_wape": 0.0807,
+          "lgbm_bias": 5.73
+        },
+        "UMM_AL_SHEIF": {
+          "n": 168,
+          "naive_wape": 0.1003,
+          "lgbm_wape": 0.0828,
+          "lgbm_bias": 2.04
+        },
+        "UNION": {
+          "n": 168,
+          "naive_wape": 0.0858,
+          "lgbm_wape": 0.0766,
+          "lgbm_bias": -1.89
+        },
+        "WTC": {
+          "n": 168,
+          "naive_wape": 0.0948,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": -2.56
+        }
+      },
+      "n": 8904
+    },
+    {
+      "fold_start": "2026-09-21",
+      "split": "test",
+      "naive_mase": 0.9707583955016034,
+      "naive_smape": 0.08867938631213816,
+      "naive_mae": 38.44586702605571,
+      "naive_rmse": 66.88293201399635,
+      "naive_wape": 0.0882153832277849,
+      "naive_bias": -1.3652291105121295,
+      "profile_mase": 0.7676410357169624,
+      "profile_n": 8904,
+      "profile_coverage80": 0.6309523809523809,
+      "naive_mase_same_rows": 0.9707583955016034,
+      "profile_mae": 30.401617250673855,
+      "profile_rmse": 53.03897810631766,
+      "profile_wape": 0.06975757146262426,
+      "profile_bias": -1.4319407008086253,
+      "lgbm_mase": 0.7790055106784367,
+      "lgbm_smape": 0.07101860990639121,
+      "lgbm_coverage80": 0.7926774483378257,
+      "lgbm_mae": 30.851695349626603,
+      "lgbm_rmse": 54.130441191608924,
+      "lgbm_wape": 0.07079029136343028,
+      "lgbm_bias": -2.3672201550166343,
+      "lgbm_below_p10": 0.10388589398023361,
+      "lgbm_below_p50": 0.5041554357592093,
+      "lgbm_below_p90": 0.8965633423180593,
+      "lgbm_mase_non_event_days": 0.7790055106784367,
+      "lgbm_wape_non_event_days": 0.07079029136343028,
+      "n_non_event_days": 8904,
+      "by_station": {
+        "ABU_BAKER_AL_SIDDIQUE": {
+          "n": 168,
+          "naive_wape": 0.0906,
+          "lgbm_wape": 0.0724,
+          "lgbm_bias": -3.14
+        },
+        "ABU_HAIL": {
+          "n": 168,
+          "naive_wape": 0.0932,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": -6.6
+        },
+        "ADCB": {
+          "n": 168,
+          "naive_wape": 0.087,
+          "lgbm_wape": 0.0665,
+          "lgbm_bias": 0.25
+        },
+        "AIRPORT_TERMINAL_1": {
+          "n": 168,
+          "naive_wape": 0.092,
+          "lgbm_wape": 0.0663,
+          "lgbm_bias": -1.67
+        },
+        "AIRPORT_TERMINAL_3": {
+          "n": 168,
+          "naive_wape": 0.094,
+          "lgbm_wape": 0.083,
+          "lgbm_bias": -5.08
+        },
+        "AL_FURJAN": {
+          "n": 168,
+          "naive_wape": 0.0871,
+          "lgbm_wape": 0.0681,
+          "lgbm_bias": -4.65
+        },
+        "AL_GHUBAIBA": {
+          "n": 168,
+          "naive_wape": 0.0891,
+          "lgbm_wape": 0.0663,
+          "lgbm_bias": -9.74
+        },
+        "AL_JADAF": {
+          "n": 168,
+          "naive_wape": 0.0689,
+          "lgbm_wape": 0.0586,
+          "lgbm_bias": -6.35
+        },
+        "AL_KHAIL": {
+          "n": 168,
+          "naive_wape": 0.0945,
+          "lgbm_wape": 0.0672,
+          "lgbm_bias": -1.44
+        },
+        "AL_NAHDA": {
+          "n": 168,
+          "naive_wape": 0.0948,
+          "lgbm_wape": 0.0789,
+          "lgbm_bias": -1.14
+        },
+        "AL_QIYADAH": {
+          "n": 168,
+          "naive_wape": 0.0862,
+          "lgbm_wape": 0.0692,
+          "lgbm_bias": -3.73
+        },
+        "AL_QUSAIS": {
+          "n": 168,
+          "naive_wape": 0.0889,
+          "lgbm_wape": 0.0678,
+          "lgbm_bias": -6.42
+        },
+        "AL_RAS": {
+          "n": 168,
+          "naive_wape": 0.0827,
+          "lgbm_wape": 0.0611,
+          "lgbm_bias": 1.87
+        },
+        "AL_RIGGA": {
+          "n": 168,
+          "naive_wape": 0.0895,
+          "lgbm_wape": 0.0781,
+          "lgbm_bias": -4.26
+        },
+        "AL_SAFA": {
+          "n": 168,
+          "naive_wape": 0.075,
+          "lgbm_wape": 0.0602,
+          "lgbm_bias": -4.91
+        },
+        "BANIYAS_SQUARE": {
+          "n": 168,
+          "naive_wape": 0.0845,
+          "lgbm_wape": 0.068,
+          "lgbm_bias": 2.77
+        },
+        "BBY": {
+          "n": 168,
+          "naive_wape": 0.0858,
+          "lgbm_wape": 0.0649,
+          "lgbm_bias": 1.31
+        },
+        "BKD": {
+          "n": 168,
+          "naive_wape": 0.0927,
+          "lgbm_wape": 0.0749,
+          "lgbm_bias": -21.86
+        },
+        "BURJUMAN": {
+          "n": 168,
+          "naive_wape": 0.0934,
+          "lgbm_wape": 0.0741,
+          "lgbm_bias": -12.62
+        },
+        "CENTREPOINT": {
+          "n": 168,
+          "naive_wape": 0.0829,
+          "lgbm_wape": 0.0712,
+          "lgbm_bias": -0.13
+        },
+        "CREEK": {
+          "n": 168,
+          "naive_wape": 0.0923,
+          "lgbm_wape": 0.0679,
+          "lgbm_bias": -6.33
+        },
+        "DANUBE": {
+          "n": 168,
+          "naive_wape": 0.077,
+          "lgbm_wape": 0.0652,
+          "lgbm_bias": -2.03
+        },
+        "DEIRA_CITY_CENTRE": {
+          "n": 168,
+          "naive_wape": 0.1047,
+          "lgbm_wape": 0.0785,
+          "lgbm_bias": 3.79
+        },
+        "DISCOVERY_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0783,
+          "lgbm_wape": 0.0697,
+          "lgbm_bias": -2.57
+        },
+        "DMCC": {
+          "n": 168,
+          "naive_wape": 0.0928,
+          "lgbm_wape": 0.0765,
+          "lgbm_bias": 2.02
+        },
+        "DUBAI_AIRPORT_FREE_ZONE": {
+          "n": 168,
+          "naive_wape": 0.0821,
+          "lgbm_wape": 0.0736,
+          "lgbm_bias": -4.13
+        },
+        "DUBAI_HEALTHCARE_CITY": {
+          "n": 168,
+          "naive_wape": 0.0852,
+          "lgbm_wape": 0.0703,
+          "lgbm_bias": -6.2
+        },
+        "DUBAI_INTERNET_CITY": {
+          "n": 168,
+          "naive_wape": 0.0796,
+          "lgbm_wape": 0.0592,
+          "lgbm_bias": 0.67
+        },
+        "DUBAI_INVESTMENT_PARK": {
+          "n": 168,
+          "naive_wape": 0.0955,
+          "lgbm_wape": 0.0794,
+          "lgbm_bias": -0.5
+        },
+        "EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.0864,
+          "lgbm_wape": 0.0675,
+          "lgbm_bias": 0.28
+        },
+        "EMT": {
+          "n": 168,
+          "naive_wape": 0.099,
+          "lgbm_wape": 0.0865,
+          "lgbm_bias": 5.22
+        },
+        "ENERGY": {
+          "n": 168,
+          "naive_wape": 0.0789,
+          "lgbm_wape": 0.0715,
+          "lgbm_bias": 3.67
+        },
+        "ETISALAT": {
+          "n": 168,
+          "naive_wape": 0.0929,
+          "lgbm_wape": 0.0666,
+          "lgbm_bias": 1.69
+        },
+        "EXPO": {
+          "n": 168,
+          "naive_wape": 0.0992,
+          "lgbm_wape": 0.0784,
+          "lgbm_bias": -2.97
+        },
+        "FIC": {
+          "n": 168,
+          "naive_wape": 0.0822,
+          "lgbm_wape": 0.0676,
+          "lgbm_bias": 4.32
+        },
+        "GGICO": {
+          "n": 168,
+          "naive_wape": 0.087,
+          "lgbm_wape": 0.0742,
+          "lgbm_bias": -2.19
+        },
+        "GOLD_SOUQ": {
+          "n": 168,
+          "naive_wape": 0.0916,
+          "lgbm_wape": 0.0819,
+          "lgbm_bias": -5.81
+        },
+        "IBN_BATTUTA": {
+          "n": 168,
+          "naive_wape": 0.0893,
+          "lgbm_wape": 0.0658,
+          "lgbm_bias": -0.04
+        },
+        "JABAL_ALI": {
+          "n": 168,
+          "naive_wape": 0.0864,
+          "lgbm_wape": 0.0735,
+          "lgbm_bias": -6.48
+        },
+        "JUMEIRAH_GOLF_ESTATES": {
+          "n": 168,
+          "naive_wape": 0.0878,
+          "lgbm_wape": 0.0639,
+          "lgbm_bias": 3.59
+        },
+        "MALL_OF_THE_EMIRATES": {
+          "n": 168,
+          "naive_wape": 0.0788,
+          "lgbm_wape": 0.0605,
+          "lgbm_bias": 0.3
+        },
+        "MASHREQ": {
+          "n": 168,
+          "naive_wape": 0.0858,
+          "lgbm_wape": 0.071,
+          "lgbm_bias": 4.91
+        },
+        "MAX": {
+          "n": 168,
+          "naive_wape": 0.0954,
+          "lgbm_wape": 0.0669,
+          "lgbm_bias": -1.82
+        },
+        "OUD_METHA": {
+          "n": 168,
+          "naive_wape": 0.087,
+          "lgbm_wape": 0.0654,
+          "lgbm_bias": 1.03
+        },
+        "SALAH_AL_DIN": {
+          "n": 168,
+          "naive_wape": 0.0831,
+          "lgbm_wape": 0.0789,
+          "lgbm_bias": -7.3
+        },
+        "SHARAF_DG": {
+          "n": 168,
+          "naive_wape": 0.0894,
+          "lgbm_wape": 0.0698,
+          "lgbm_bias": -3.54
+        },
+        "SOBHA_REALTY": {
+          "n": 168,
+          "naive_wape": 0.0858,
+          "lgbm_wape": 0.0709,
+          "lgbm_bias": -0.49
+        },
+        "STADIUM": {
+          "n": 168,
+          "naive_wape": 0.0883,
+          "lgbm_wape": 0.0667,
+          "lgbm_bias": -2.83
+        },
+        "THE_GARDENS": {
+          "n": 168,
+          "naive_wape": 0.0901,
+          "lgbm_wape": 0.0723,
+          "lgbm_bias": -3.46
+        },
+        "UAE_EXCHANGE": {
+          "n": 168,
+          "naive_wape": 0.0933,
+          "lgbm_wape": 0.0689,
+          "lgbm_bias": 2.53
+        },
+        "UMM_AL_SHEIF": {
+          "n": 168,
+          "naive_wape": 0.0968,
+          "lgbm_wape": 0.0796,
+          "lgbm_bias": 0.75
+        },
+        "UNION": {
+          "n": 168,
+          "naive_wape": 0.0833,
+          "lgbm_wape": 0.0687,
+          "lgbm_bias": -2.37
+        },
+        "WTC": {
+          "n": 168,
+          "naive_wape": 0.0957,
+          "lgbm_wape": 0.0766,
+          "lgbm_bias": -11.62
+        }
+      },
+      "n": 8904
+    }
+  ]
+}
