@@ -16,6 +16,19 @@ There are two ways in. Both end at a human.
 **a) A planner asks** — "Plan with AI agents" (workspace or kiosk) → `POST /agent/run` (or `/agent/run/stream`, which
 sends each message to the screen the moment it happens).
 
+**a′) A planner briefs the team in plain words** (since 1.16.0, decision #144) — AI plan → "Brief the team":
+
+```
+"Concert near Business Bay, Saturday 19:00–22:30, 17k people, no buses, keep Burj Khalifa calm"
+   └─► POST /agent/brief ─► Intake reads it (its model if available, else word rules) ─► code checks every field
+   └─► "Here is what I understood": station BBY · weekend · 19:00–22:30 · 17,000 · don't use shuttles · keep BKD calm
+         each field shows the words it came from; YOU edit or remove fields, then "Confirm and plan"
+   └─► the mission's first message: You → Intake "Your brief: … · you changed 1 field"
+```
+
+The model can only fill fields; a field whose quoted words are not in the brief is dropped (`agents/brief.py`,
+`tests/test_brief.py`). Nothing becomes a constraint until the human confirms it.
+
 **b) The day triggers itself** — the event chain (`POST /chain/start`, Alerts tab → "Event chain"):
 
 ```
@@ -32,11 +45,34 @@ Each event records who published it and which agents it triggered (`agents/chain
 
 | On screen | Endpoint | What runs |
 |---|---|---|
+| AI plan → Brief the team → Confirm and plan | `POST /agent/brief`, then `/agent/run/stream` | Intake reads the brief; you confirm; the mission starts from it |
 | AI plan / AI team → "Plan with AI agents" | `POST /agent/run/stream` | one planning mission, streamed live |
 | Alerts → Event chain → Start | `POST /chain/start` | Watcher → Supervisor → team → your inbox |
 | Event chain → Approve / Reject | `POST /chain/{id}/decide` | log → Messenger → Watcher → next alert or end of day |
 | Alerts → Duty shift | `POST /shift/next` | the same loop, driven step by step by the browser |
 | AI team → Ask the twin | `POST /agent/ask` | one question routed to one tool |
+
+**c) The loop with you in it** (since 1.16.0, decision #145) — the agents run as one loop and stop for you wherever a
+human decision matters:
+
+```
+        ┌──────────────────────────────────────────────────────────────────────┐
+        ▼                                                                      │
+ OBSERVE ──► PLAN (team + critic loop) ──► ⏸ YOU ──► ACT (logged first) ──► MONITOR
+ Watcher      ⏸ hotspot: "plan for BKD?"     approve · reject       with your plan in place:
+              ⏸ partial: "no plan clears it — reject with a reason   rain / train fault / bigger crowd
+                 accept · one more round ·     └─► Intake reads it ─► the team replans the same alert
+                 allow a measure · raise cap"                         ─► plan.checked ─► new alert if it no longer holds
+ Stops: the day ends · nothing over the line · the budget is used · you stop it
+```
+
+| You do | Endpoint | What the agents do next |
+|---|---|---|
+| Tick "Ask me during planning", Plan | `POST /agent/run` with `checkpoints` | the Supervisor stops at the hotspot and, if no plan clears it, again |
+| Answer a question | `POST /agent/run` with `answers` (or `/chain/{id}/answer`) | the team replays your answers and goes on |
+| Reject with a reason | `POST /agent/feedback` (or `/chain/{id}/decide` with `reason_codes`) | your reason becomes constraints; round 2 starts |
+| Conditions changed | `POST /chain/{id}/change` | the Watcher re-checks your approved plan and asks again where it fails |
+| — | `GET /memory` | your past rejections come back as suggestions (never applied) |
 
 ## 2. Inside one mission: who talks to whom
 
@@ -73,7 +109,7 @@ intake → forecast → diagnosis ─┬─ nothing over the line → conclude
 | Kind | Agents | Rule |
 |---|---|---|
 | Code (always) | supervisor, forecast, diagnosis, composer, simulation, critic, stress test, ranker, verifier, watcher | every number comes from here |
-| Model or code | intake, rail, station & crowd, venue, first & last mile, explainer, messenger, ask-the-twin | a model may add bundles inside the bounds and write texts; anything outside the menu or the bounds is dropped; any number in its text that is not a simulator figure restores the template |
+| Model or code | intake (also reads the planner's brief), rail, station & crowd, venue, first & last mile, explainer, messenger, ask-the-twin | a model may add bundles inside the bounds and write texts; anything outside the menu or the bounds is dropped; any number in its text that is not a simulator figure restores the template |
 
 **Today at the booth no model runs** — every agent uses its code rules, and the screen says so ("No language model in
 this run"). The model path was tested live with GPT-5 (number faithfulness 1.0, but 66 s per plan:

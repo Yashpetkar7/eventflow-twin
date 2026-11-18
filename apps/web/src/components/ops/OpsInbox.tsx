@@ -6,6 +6,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { api, ApiError, setAuthToken, type Inbox, type RiderNotice, type Station } from "@/lib/api";
 import { N, useFmt, useLocale } from "@/lib/i18n";
+import { useTwin } from "@/lib/store";
+import { CheckpointCard } from "../mission/Loop";
 
 type Busy = Record<string, "approve" | "reject" | "publish" | undefined>;
 
@@ -13,6 +15,7 @@ export function OpsInbox() {
   const t = useTranslations("ops");
   const td = t as unknown as (k: string, v?: Record<string, string | number>) => string;
   const f = useFmt();
+  const tl = useTranslations("loop");
   const { locale, setLocale } = useLocale();
   const [stations, setStations] = useState<Station[]>([]);
   const [inbox, setInbox] = useState<Inbox | null>(null);
@@ -28,7 +31,7 @@ export function OpsInbox() {
 
   const refresh = useCallback(() => api.inbox().then((x) => { setInbox(x); setErr(null); }, fail), []);
   useEffect(() => {
-    void api.stations().then(setStations, () => {});
+    void api.stations().then((st) => { setStations(st); useTwin.setState({ stations: st }); }, () => {});   // the question cards name stations from the store
     void api.authMe().then(setMe, () => setMe(null));
     void api.inbox().then(setInbox, fail);
     const id = setInterval(() => void refresh(), 20_000);                // new events and alerts appear by themselves
@@ -109,6 +112,24 @@ export function OpsInbox() {
         </section>
       )}
       {me && <p className="note" data-testid="ops-auth">{me.auth === "off" ? t("authOff") : me.user ? td("signedIn", { u: me.user.username, r: me.user.role }) : ""}{inbox ? " · " + (inbox.notifications ? t("notifyOn") : t("notifyOff")) : ""}</p>}
+
+      {(inbox?.questions?.length ?? 0) > 0 && (
+        <section className="card" data-testid="ops-questions">
+          <h2>{tl("questions")}</h2>
+          {inbox!.questions!.map((q) => (
+            <div key={q.chain_id}>
+              <p className="note" style={{ marginBottom: 2 }}><b><bdi>{q.event ?? ""}</bdi></b></p>
+              <CheckpointCard pause={{ checkpoint: q.checkpoint as "hotspot" | "partial", asked_by: "supervisor", params: q.params ?? {}, actions: q.actions as never[] }}
+                busy={!!busy[q.chain_id]} testid="ops-question"
+                onAnswer={async (a) => {
+                  setBusy((b) => ({ ...b, [q.chain_id]: "approve" }));
+                  try { await api.chainAnswer(q.chain_id, { answer: a, user: me?.user?.username ?? "duty-manager" }); await refresh(); }
+                  catch (e) { fail(e); } finally { setBusy((b) => ({ ...b, [q.chain_id]: undefined })); }
+                }} />
+            </div>
+          ))}
+        </section>
+      )}
 
       <section className="card" data-testid="ops-inbox">
         <div className="row" style={{ justifyContent: "space-between" }}>

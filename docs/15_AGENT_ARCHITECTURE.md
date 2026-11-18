@@ -250,3 +250,51 @@ need the planning service: they are not in the offline snapshot.
   step-free travellers, and the duty team's published notice — from the simulator with the approved plan's
   measures (`POST /travel/advice`, `GET /notices`). No language model; every figure names its simulator run.
 - Rule kept: nothing reaches riders unless a person approved the plan **and** pressed publish.
+
+## 10. The planner's brief: where the human starts (contract 1.16.0, decision #144)
+
+The human now appears at both ends of a mission: at the start with a brief, at the end with the approval.
+
+| Step | Who | What |
+|---|---|---|
+| Write | planner | plain words, English or Arabic, up to 1,000 characters |
+| Read | Intake (model, live or recorded) or word rules (`config/brief.yaml`) | `POST /agent/brief` → event, weather, comfort line, priority, constraints; each field with its quoted words and its reader |
+| Check | code (`agents/brief.py`) | corridor station ids, the 30-minute grid, API bounds; a model field without a quote found in the brief is dropped and listed (`dropped`); instruction-like text is logged (`findings`) |
+| Confirm | planner | edits or removes fields; a missing station must be chosen; "Confirm and plan" |
+| Run | the team | `AgentRunRequest.brief` → first event `human.brief` (agent `human`, kind `message`, to Intake, with the fields the planner changed); the brief's words reach Intake as goal and notes |
+
+What the brief can never do: change a forecast or simulation by itself, add a measure, or approve anything. It only
+proposes the scenario and the typed constraints the planner could already set by hand, and only the planner's click
+applies them. Tests: `tests/test_brief.py` (EN + AR rules, demo event by name, model quote check, out-of-bounds
+values, engines agree with a brief), `apps/web/tests/brief.spec.ts` (read → remove a field → confirm → scenario,
+constraints and first message; phone + Arabic, missing station blocks confirm).
+
+## 11. The agentic loop: the human wherever a decision matters (contract 1.16.0, decision #145)
+
+| Where | Who asks | The human's answers | What changes |
+|---|---|---|---|
+| Brief (§10) | — | confirm / edit / remove fields | the scenario and the typed constraints |
+| Checkpoint *hotspot* (after diagnosis) | Supervisor | confirm · focus on another station over the line · stop | which station the specialists are briefed on |
+| Checkpoint *partial* (rounds used up, goal not met) | Supervisor | accept · one more round (≤ 2) · allow a measure · raise the cost cap | the round budget, or the constraints (then the team plans again) |
+| Approval | Critic's recommendation | approve · reject · reject with a reason | applied measures (logged first), or the constraints for a replan |
+| During the day | Watcher | rain · train fault · crowd surge · crowd × 1.3 | the forecast; the approved plan is re-checked (`plan.checked`) |
+
+**Graph.** `pause` is a node with edges from the two routers (`route_after_diagnosis`, `route_after_supervisor`) and an edge to
+END. A paused mission concludes with `status: "paused"`, no options, and `pause: {checkpoint, asked_by, params, actions}` — every
+figure in `params` from the simulator (the best plan so far carries its run id).
+
+**Resumption by deterministic replay.** The human's answers travel in the request (`answers`, in order); each checkpoint consumes
+the next answer for it (`MissionCtx.next_answer`). Every agent step is deterministic code (with a model on, recorded answers keep it
+so), so the replayed mission reaches the same point and continues. Chosen over `interrupt()` + a checkpointer to keep the API
+stateless (any instance continues any chain; no graph-state store on the booth laptop). Plan ids include the answers, so a cached plan
+is never served for a different path.
+
+**Chain topics added.** `checkpoint.asked` (Supervisor → human), `checkpoint.answered` (human → Supervisor), `feedback.read` (Intake
+→ Supervisor, after `decision.made` with a reason), `conditions.changed` (human → Watcher), `plan.checked` (Watcher → human). The
+chain keeps `constraints`, `priority`, `answers`, `feedback_rounds`, `pause` and loop counters in its JSON state.
+
+**Guards.** An answer must fit the question (409 otherwise); *focus* only on a station over the line; *allow* only a ruled-out
+measure; *raise_cap* only upward; at most two extra rounds; at most `max_feedback_rounds` replans per alert; a reason that changes
+nothing is an ordinary rejection; instruction-like words are logged and never followed. Tests: `tests/test_loop.py` (both engines,
+every answer, the chain end to end, bounds, memory), `apps/web/tests/loop.spec.ts` (AI plan, event chain, duty inbox on a phone).
+

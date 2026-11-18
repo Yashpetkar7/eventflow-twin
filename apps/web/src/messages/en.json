@@ -489,7 +489,22 @@
       "revised": "{changes}{added, plural, =0 {} one { · # more plan for what is left} other { · # more plans for what is left}}",
       "revisedNone": "Nothing to resize{added, plural, =0 {} one { · # plan for what is left} other { · # plans for what is left}}",
       "to": "to {who}",
-      "recommend": "Recommends option {rank}: passes {p} of {n} checks"
+      "recommend": "Recommends option {rank}: passes {p} of {n} checks",
+      "humanBrief": "Your brief: {summary}{removed, plural, =0 {} one { · you changed # field} other { · you changed # fields}}",
+      "cpAsk": "Asks you: {what}",
+      "cpAnswer": "Your answer: {what}",
+      "cpHotspot": "plan for {station}?",
+      "cpPartial": "no plan clears {station} yet ({excess} riders over)",
+      "cpA": {
+        "confirm": "yes, plan for it",
+        "focus": "plan for {station} instead",
+        "stop": "don't plan now",
+        "accept": "show the best plans",
+        "more": "try one more round",
+        "allow": "allow a measure",
+        "raise_cap": "raise the cost cap"
+      },
+      "focus": "Focus moved to {station} (your choice)"
     },
     "watch": {
       "title": "Watcher · standing agent",
@@ -680,8 +695,16 @@
           "residual": "Every alert handled; some crowding remains for the duty manager",
           "step_limit": "Too many decisions asked: the rest goes to the duty manager",
           "other": "Chain ended"
-        }
-      }
+        },
+        "asked": "The team asks: {what}",
+        "answered": "Your answer: {what}",
+        "feedbackRead": "Read your reason: {n, plural, one {# change} other {# changes}} for the next round",
+        "changed": "Conditions changed: {what}",
+        "checkedHolds": "Your approved plan still holds",
+        "checkedBroken": "Your approved plan no longer holds: {over} station-hours over",
+        "rejectedReplan": "You rejected option {rank} with a reason: the team replans"
+      },
+      "loopOn": "Ask me at the checkpoints"
     },
     "live": "live",
     "recommend": {
@@ -777,5 +800,118 @@
     "footer": "Research prototype designed for RTA's priorities; not an RTA system and not endorsed by RTA. Demand is synthetic; check official RTA channels on the day.",
     "withPlan": "Includes the measures the duty team approved: {title}.",
     "waitMin": "{n} min wait"
+  },
+  "briefBox": {
+    "title": "Brief the team",
+    "lede": "Describe the event in your own words. The Intake agent reads it and shows what it understood; nothing runs until you confirm.",
+    "placeholder": "e.g. Concert near Business Bay on Saturday, 19:00–22:30, about 17,000 people. No buses, keep Burj Khalifa station calm.",
+    "label": "Your brief",
+    "examplesL": "Try an example",
+    "examples": [
+      "Concert near Business Bay on Saturday, 19:00–22:30, about 17,000 people. No buses, and keep Burj Khalifa station calm.",
+      "Football screening at Dubai Mall on Friday from 7 to 10:30pm, expecting 25,000 fans. Cheapest options, no robotaxis, keep stations under 80%.",
+      "Product launch at DIFC on a weekday, 18:00 to 21:00, 8,000 guests, hot weather. Don't close any stations."
+    ],
+    "read": "Read my brief",
+    "reading": "Reading…",
+    "understood": "Here is what I understood",
+    "checkHint": "Change or remove anything that is wrong. Fields marked “check” were not in your brief.",
+    "src": {
+      "model": "Read by the AI model ({model})",
+      "recorded": "AI model's recorded answer ({model})",
+      "rules": "Read by word rules: no AI model on this machine"
+    },
+    "srcShort": {
+      "model": "AI",
+      "rules": "rules"
+    },
+    "from": "from “{words}”",
+    "check": "check",
+    "notInBrief": "not in your brief",
+    "scenario": "Scenario",
+    "name": "Event",
+    "station": "Station",
+    "chooseStation": "Choose a station",
+    "when": "Time",
+    "day": "Day",
+    "crowd": "Crowd",
+    "people": "people",
+    "defaultCrowd": "{n} assumed",
+    "weather": "Weather",
+    "threshold": "Comfort line",
+    "priority": "Priority",
+    "forbid": "Don't use",
+    "protect": "Keep calm",
+    "costCap": "Cost cap",
+    "remove": "Remove {what}",
+    "notes": "Adjusted",
+    "dropped": "{n, plural, one {The checks removed # field the AI model could not quote from your brief.} other {The checks removed # fields the AI model could not quote from your brief.}}",
+    "findings": "Part of the brief reads like an instruction to the system. It was logged and is never followed.",
+    "confirm": "Confirm and plan",
+    "edit": "Edit the brief",
+    "needStation": "Choose the station first.",
+    "inUse": "Brief in use",
+    "change": "Change",
+    "summaryCustom": "{name} near {station}, {day}, {start}–{end}, about {n} people.",
+    "summaryEvent": "{name}, about {n} people.",
+    "summaryThr": " Keep every station under {thr} load.",
+    "weekday": "a weekday",
+    "weekend": "a weekend",
+    "error": "Could not read the brief: {msg}",
+    "safety": "Only what you confirm becomes the scenario and the constraints. Every number is then computed by the forecast and the simulator."
+  },
+  "loop": {
+    "askMe": "Ask me during planning",
+    "askMeNote": "The team stops twice to ask you: which hotspot to plan for, and what to do if no plan clears it.",
+    "askTitle": "The team asks you",
+    "askBy": "asked by the {who}",
+    "qHotspot": "The diagnosis found {station} over the comfort line at {hours}, about {gap} riders an hour too many. Plan for it?",
+    "aConfirm": "Yes, plan for {station}",
+    "aFocus": "Plan for {station} instead",
+    "aStop": "Don't plan now",
+    "qPartial": "After {rounds} rounds no plan clears {station}: the best one still leaves {excess} riders over the line. What now?",
+    "bestSoFar": "Best so far: {what} ({over} station-hours over).",
+    "aAccept": "Show me the best plans",
+    "aMore": "Try one more round",
+    "aAllow": "Allow {what}",
+    "aCap": "Raise the cost cap to {cap}",
+    "askNote": "The team waits for your answer. Your answer is logged in the mission and the team goes on from here.",
+    "whyTitle": "Why not? The team will replan with your reason.",
+    "code": {
+      "too_costly": "Too expensive",
+      "not_enough": "Not enough relief"
+    },
+    "avoidL": "Don't use these measures",
+    "protectL": "Keep these stations calm",
+    "memL": "You rejected before:",
+    "memItem": "{what} ({n}×)",
+    "wordsL": "Your own words",
+    "wordsPh": "Or say it in your own words, e.g. “the depot has no spare buses tonight”",
+    "replan": "Reject and replan",
+    "plainReject": "Just reject",
+    "cancel": "Cancel",
+    "whyNote": "Your reason only changes what you could set by hand: measures to avoid, stations to protect, a cost cap, the priority. It is logged with your decision.",
+    "fbTitle": "Round {round}: the team replanned with your feedback",
+    "chForbid": "won't use {what}",
+    "chProtect": "keeps {what} calm",
+    "chCap": "costs at most {cap}",
+    "chPrio": "priority: {what}",
+    "via": {
+      "reason": "from your reason",
+      "words": "from your words"
+    },
+    "nothing": "Your reason did not change anything the team can act on. Pick a reason chip or name a measure or station.",
+    "loopRow": "{plans} plans · {asks} questions · {answers} answers · {feedback} replans after your feedback · {changes} changes",
+    "inForce": "In force",
+    "change": {
+      "title": "Conditions changed?",
+      "sub": "Tell the Watcher. It re-checks the day with your approved plan in place and asks the team again where it no longer holds.",
+      "rain": "Heavy rain",
+      "train_fault": "Train fault",
+      "crowd_surge": "Crowd surge",
+      "bigger": "Crowd 30% bigger"
+    },
+    "questions": "Questions from the team",
+    "noQuestions": "No questions waiting."
   }
 }

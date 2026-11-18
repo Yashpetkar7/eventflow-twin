@@ -129,6 +129,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agent/brief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Brief
+         * @description The planner's brief (1.16.0, decision #144): plain words → an event and constraints for the planner to confirm.
+         *     Read by the Intake agent's model when one is available (live or recorded), else by the word rules in
+         *     config/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here.
+         */
+        post: operations["agent_brief_agent_brief_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent Feedback
+         * @description A rejection's reason (1.16.0, decision #145) → the constraints and priority for the next round. Reason chips
+         *     map to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model
+         *     with its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here.
+         */
+        post: operations["agent_feedback_agent_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Agent Memory
+         * @description What the decision log remembers about this planner's rejections (today by default): measures they ruled out,
+         *     stations they protected, cost or relief. Suggestions only (1.16.0).
+         */
+        get: operations["agent_memory_memory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/agent/run": {
         parameters: {
             query?: never;
@@ -363,6 +428,49 @@ export interface paths {
          *     decision or the end of the day.
          */
         post: operations["chain_decide_chain__chain_id__decide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/{chain_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chain Answer
+         * @description The human's answer at a checkpoint (1.16.0, decision #145): published as `checkpoint.answered`, which triggers the
+         *     Supervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox.
+         */
+        post: operations["chain_answer_chain__chain_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chain/{chain_id}/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chain Change
+         * @description Conditions changed during the day (1.16.0): an incident (rain, heat, a train fault, a crowd surge) or a bigger or
+         *     smaller crowd. The forecast is rebuilt with it, `conditions.changed` triggers the Watcher, which re-checks the day
+         *     with the approved plan in place (`plan.checked`) and raises an alert where it no longer holds.
+         */
+        post: operations["chain_change_chain__chain_id__change_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -840,6 +948,18 @@ export interface components {
              */
             applied?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
             constraints?: components["schemas"]["Constraints"];
+            /** @description The planner's confirmed brief (sent only when one was used) */
+            brief?: components["schemas"]["ConfirmedBrief"] | null;
+            /**
+             * Checkpoints
+             * @description Where the team stops and asks the human (1.16.0)
+             */
+            checkpoints?: ("hotspot" | "partial")[];
+            /**
+             * Answers
+             * @description The human's answers so far, in order
+             */
+            answers?: components["schemas"]["CheckpointAnswer"][];
         };
         /**
          * AgentSpan
@@ -1018,6 +1138,125 @@ export interface components {
             note: string;
             source: components["schemas"]["Source"];
         };
+        /** BriefEvent */
+        BriefEvent: {
+            /**
+             * Event Id
+             * @description A demo event from /events when the brief names one (its venue, date and times are used)
+             */
+            event_id?: string | null;
+            /** Name */
+            name?: string | null;
+            /**
+             * Near Station
+             * @description Corridor station id; null = not in the brief (the planner must choose)
+             */
+            near_station?: string | null;
+            /**
+             * Start
+             * @description HH:MM on the 30-minute grid
+             */
+            start?: string | null;
+            /** End */
+            end?: string | null;
+            /** Weekend */
+            weekend?: boolean | null;
+            /** Date */
+            date?: string | null;
+            /**
+             * Attendance
+             * @description null = not in the brief (the default is shown and labelled)
+             */
+            attendance?: number | null;
+        };
+        /** BriefField */
+        BriefField: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "event" | "name" | "station" | "start" | "end" | "day" | "date" | "attendance" | "weather" | "threshold" | "priority" | "forbid" | "protect" | "cost_cap";
+            /** Value */
+            value: unknown;
+            /**
+             * Evidence
+             * @description The words of the brief this field was read from
+             */
+            evidence: string;
+            /**
+             * Source
+             * @description Read by the Intake agent's model, or by the word rules in config/brief.yaml
+             * @enum {string}
+             */
+            source: "model" | "rules";
+        };
+        /**
+         * BriefRequest
+         * @description The planner's brief in plain words (1.16.0, decision #144). Untrusted text: read, screened, never followed.
+         */
+        BriefRequest: {
+            /** Text */
+            text: string;
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+        };
+        /**
+         * BriefResponse
+         * @description A proposal: nothing is applied until the planner confirms it in the brief card.
+         */
+        BriefResponse: {
+            /** Text */
+            text: string;
+            /** Summary */
+            summary: string;
+            event: components["schemas"]["BriefEvent"];
+            /** Weather */
+            weather?: ("normal" | "hot" | "rain") | null;
+            /** Threshold */
+            threshold?: number | null;
+            /** Priority */
+            priority?: ("cost" | "balanced" | "impact") | null;
+            constraints: components["schemas"]["Constraints"];
+            /** Fields */
+            fields: components["schemas"]["BriefField"][];
+            /**
+             * Missing
+             * @description Fields a build-your-own event needs that the brief leaves out
+             */
+            missing: string[];
+            /**
+             * Notes
+             * @description Adjustments the reader made (time grid, defaults), in plain words
+             */
+            notes: string[];
+            /**
+             * Dropped
+             * @description Model fields removed by the code checks (no quote from the brief, out of bounds)
+             */
+            dropped?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Findings
+             * @description Instruction-like text (logged, never followed)
+             */
+            findings?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "model" | "recorded" | "rules";
+            /** Model */
+            model?: string | null;
+            /** Note */
+            note: string;
+        };
         /** Budget */
         Budget: {
             /** Steps */
@@ -1041,6 +1280,32 @@ export interface components {
             /** Exceeded */
             exceeded?: string[];
         };
+        /** ChainAnswerRequest */
+        ChainAnswerRequest: {
+            answer: components["schemas"]["CheckpointAnswer"];
+            /**
+             * User
+             * @default duty-manager
+             */
+            user: string;
+        };
+        /**
+         * ChainChangeRequest
+         * @description Conditions changed during the day (1.16.0): the Watcher re-checks the approved plan under them.
+         */
+        ChainChangeRequest: {
+            incident?: components["schemas"]["Incident"] | null;
+            /**
+             * Attendance X
+             * @description The crowd turns out this many times the forecast
+             */
+            attendance_x?: number | null;
+            /**
+             * User
+             * @default duty-manager
+             */
+            user: string;
+        };
         /** ChainDecideRequest */
         ChainDecideRequest: {
             /**
@@ -1059,6 +1324,17 @@ export interface components {
              * @default duty-manager
              */
             user: string;
+            /**
+             * Reason Codes
+             * @description A rejection's reasons: the team replans with them (1.16.0)
+             */
+            reason_codes?: ("too_costly" | "not_enough" | "avoid_measure" | "protect_station" | "other")[];
+            /** Reason */
+            reason?: string | null;
+            /** Avoid */
+            avoid?: ("extra_trains" | "shuttle_bus" | "robotaxi_staging" | "staggered_exit" | "wayfinding_redirect" | "station_metering" | "extended_hours")[];
+            /** Protect */
+            protect?: string[];
         };
         /** ChainEvent */
         ChainEvent: {
@@ -1068,7 +1344,7 @@ export interface components {
              * Topic
              * @enum {string}
              */
-            topic: "scenario.loaded" | "alert.raised" | "plan.ready" | "decision.made" | "drafts.ready" | "day.ended";
+            topic: "scenario.loaded" | "alert.raised" | "plan.ready" | "decision.made" | "drafts.ready" | "day.ended" | "checkpoint.asked" | "checkpoint.answered" | "feedback.read" | "conditions.changed" | "plan.checked";
             /**
              * Publisher
              * @description The agent (or the human) that published the event
@@ -1136,6 +1412,19 @@ export interface components {
              * @default 3
              */
             horizon_h: number;
+            /** @description The planner's constraints; rejections with a reason add to them */
+            constraints?: components["schemas"]["Constraints"];
+            /**
+             * Checkpoints
+             * @description Where the team stops and asks during each plan (1.16.0)
+             */
+            checkpoints?: ("hotspot" | "partial")[];
+            /**
+             * Max Feedback Rounds
+             * @description Replans after rejections with a reason, per alert, before the alert is set aside
+             * @default 3
+             */
+            max_feedback_rounds: number;
         };
         /**
          * ChainState
@@ -1151,7 +1440,7 @@ export interface components {
             status: "running" | "awaiting_human" | "ended";
             /**
              * Ended Reason
-             * @description clear · residual · step_limit · no_option · event_limit
+             * @description clear · residual · step_limit · no_option · event_limit · human_stop
              */
             ended_reason?: string | null;
             request: components["schemas"]["ChainStartRequest"];
@@ -1181,6 +1470,122 @@ export interface components {
             }[];
             /** Started */
             started: string;
+            /** @description The constraints now in force (start + rejections with a reason) */
+            constraints?: components["schemas"]["Constraints"];
+            /**
+             * Priority
+             * @description The priority now in force (start + rejections with a reason)
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            /**
+             * Answers
+             * @description The human's checkpoint answers for the plan being made
+             */
+            answers?: components["schemas"]["CheckpointAnswer"][];
+            /**
+             * Feedback Rounds
+             * @description Replans after a rejection with a reason, for the current alert
+             * @default 0
+             */
+            feedback_rounds: number;
+            /** @description Status 'awaiting_human' at a checkpoint: the question */
+            pause?: components["schemas"]["CheckpointPause"] | null;
+            /**
+             * Loop
+             * @description Loop counters: plans, checkpoints, feedback, changes, approvals, rejections
+             */
+            loop?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * CheckpointAnswer
+         * @description The human's answer at a checkpoint (1.16.0, decision #145). Answers are replayed in order: a mission run again
+         *     with the same request and answers takes the same path to the same point, then continues.
+         */
+        CheckpointAnswer: {
+            /**
+             * Checkpoint
+             * @enum {string}
+             */
+            checkpoint: "hotspot" | "partial";
+            /**
+             * Action
+             * @description hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again
+             * @enum {string}
+             */
+            action: "confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap";
+            /**
+             * Station
+             * @description focus: the station to plan for
+             */
+            station?: string | null;
+            /**
+             * Measure
+             * @description allow: the measure the planner allows again
+             */
+            measure?: ("extra_trains" | "shuttle_bus" | "robotaxi_staging" | "staggered_exit" | "wayfinding_redirect" | "station_metering" | "extended_hours") | null;
+            /**
+             * Cost Cap
+             * @description raise_cap: the new cost cap
+             */
+            cost_cap?: number | null;
+        };
+        /**
+         * CheckpointPause
+         * @description The team stopped and asks the human (Mission.status 'paused'). Every figure in `params` is the simulator's.
+         */
+        CheckpointPause: {
+            /**
+             * Checkpoint
+             * @enum {string}
+             */
+            checkpoint: "hotspot" | "partial";
+            /**
+             * Asked By
+             * @description The agent that asks (supervisor)
+             */
+            asked_by: string;
+            /**
+             * Params
+             * @description hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap
+             */
+            params?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Actions
+             * @description The answers that apply here
+             */
+            actions: ("confirm" | "focus" | "stop" | "accept" | "more" | "allow" | "raise_cap")[];
+        };
+        /**
+         * ConfirmedBrief
+         * @description What the planner confirmed in the brief card; the team logs it as the human's first message (1.16.0).
+         */
+        ConfirmedBrief: {
+            /** Text */
+            text: string;
+            /** Summary */
+            summary: string;
+            /**
+             * Source
+             * @default rules
+             * @enum {string}
+             */
+            source: "model" | "recorded" | "rules";
+            /**
+             * Fields
+             * @description The fields kept, e.g. 'station', 'forbid'
+             */
+            fields?: string[];
+            /**
+             * Removed
+             * @description Fields the planner removed or changed
+             */
+            removed?: string[];
         };
         /**
          * Constraints
@@ -1313,6 +1718,16 @@ export interface components {
             forecast_run_id?: string | null;
             /** Interventions */
             interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Reason Codes
+             * @description A rejection's reasons, when given (1.16.0)
+             */
+            reason_codes?: string[] | null;
+            /**
+             * Reason
+             * @description The planner's own words, when given (1.16.0)
+             */
+            reason?: string | null;
         };
         /** DecisionRequest */
         DecisionRequest: {
@@ -1337,6 +1752,16 @@ export interface components {
             forecast_run_id?: string | null;
             /** Interventions */
             interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Reason Codes
+             * @description Why it was rejected (1.16.0): too_costly · not_enough · avoid:<measure> · protect:<station> · other
+             */
+            reason_codes?: string[];
+            /**
+             * Reason
+             * @description The planner's own words (stored as data)
+             */
+            reason?: string | null;
         };
         /** DecisionResponse */
         DecisionResponse: {
@@ -1503,6 +1928,88 @@ export interface components {
              */
             line: string;
         };
+        /**
+         * FeedbackRequest
+         * @description Why the planner rejected an option (1.16.0, decision #145): read into constraints for the next round.
+         */
+        FeedbackRequest: {
+            /** Reason Codes */
+            reason_codes?: ("too_costly" | "not_enough" | "avoid_measure" | "protect_station" | "other")[];
+            /**
+             * Reason
+             * @description The planner's own words (untrusted: read, screened, never followed)
+             */
+            reason?: string | null;
+            /**
+             * Interventions
+             * @description The rejected option's measures
+             */
+            interventions?: (components["schemas"]["ExtraTrains"] | components["schemas"]["ShuttleBus"] | components["schemas"]["RobotaxiStaging"] | components["schemas"]["StaggeredExit"] | components["schemas"]["WayfindingRedirect"] | components["schemas"]["StationMetering"] | components["schemas"]["ExtendedHours"])[];
+            /**
+             * Cost Proxy
+             * @description The rejected option's added cost (cost_added, what the cost cap is checked against; for too_costly)
+             */
+            cost_proxy?: number | null;
+            /**
+             * Avoid
+             * @description avoid_measure: which measures
+             */
+            avoid?: ("extra_trains" | "shuttle_bus" | "robotaxi_staging" | "staggered_exit" | "wayfinding_redirect" | "station_metering" | "extended_hours")[];
+            /**
+             * Protect
+             * @description protect_station: which stations
+             */
+            protect?: string[];
+            /** @description The constraints the rejected option was planned with */
+            constraints?: components["schemas"]["Constraints"];
+            /**
+             * Priority
+             * @default balanced
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "ar";
+        };
+        /** FeedbackResponse */
+        FeedbackResponse: {
+            /** @description The constraints for the next round (the old ones plus what the reason adds) */
+            constraints: components["schemas"]["Constraints"];
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "cost" | "balanced" | "impact";
+            /**
+             * Changes
+             * @description What changed and why: {field, value, via: 'reason' | 'words'}
+             */
+            changes: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Findings
+             * @description Instruction-like text in the reason (logged, never followed)
+             */
+            findings?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Source
+             * @default rules
+             * @enum {string}
+             */
+            source: "model" | "recorded" | "rules";
+            /**
+             * Replan
+             * @description True when the reason changed something the team can act on
+             */
+            replan: boolean;
+        };
         /** ForecastRequest */
         ForecastRequest: {
             /**
@@ -1646,6 +2153,11 @@ export interface components {
             /** Items */
             items: components["schemas"]["InboxItem"][];
             /**
+             * Questions
+             * @description Chains waiting at a checkpoint (1.16.0)
+             */
+            questions?: components["schemas"]["InboxQuestion"][];
+            /**
              * Auth
              * @enum {string}
              */
@@ -1687,6 +2199,31 @@ export interface components {
             /** Options */
             options: number;
             /** Is Synthetic */
+            is_synthetic: boolean;
+        };
+        /**
+         * InboxQuestion
+         * @description A chain stopped at a checkpoint (1.16.0): the team asks before it goes on.
+         */
+        InboxQuestion: {
+            /** Chain Id */
+            chain_id: string;
+            /** Updated */
+            updated: string;
+            /** Event */
+            event?: string | null;
+            /** Checkpoint */
+            checkpoint: string;
+            /** Actions */
+            actions: string[];
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Is Synthetic
+             * @default true
+             */
             is_synthetic: boolean;
         };
         /**
@@ -1757,6 +2294,40 @@ export interface components {
             username: string;
             /** Password */
             password: string;
+        };
+        /** MemoryItem */
+        MemoryItem: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "avoid" | "protect" | "priority";
+            /** Value */
+            value: string;
+            /**
+             * Count
+             * @description How many logged rejections gave this reason
+             */
+            count: number;
+            /**
+             * Last
+             * @description Timestamp of the latest one
+             */
+            last: string;
+        };
+        /**
+         * MemoryResponse
+         * @description What the decision log remembers about this planner's rejections (1.16.0). Shown as suggestions, never applied.
+         */
+        MemoryResponse: {
+            /** User */
+            user: string;
+            /** Items */
+            items: components["schemas"]["MemoryItem"][];
+            /** Decisions Read */
+            decisions_read: number;
+            /** Note */
+            note: string;
         };
         /** MessageDraft */
         MessageDraft: {
@@ -1851,7 +2422,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "awaiting_human" | "no_action";
+            status: "awaiting_human" | "no_action" | "paused";
             /**
              * Engine
              * @enum {string}
@@ -1889,6 +2460,8 @@ export interface components {
              * @description One span per agent step, derived from the events (1.14.0, WP4)
              */
             spans?: components["schemas"]["AgentSpan"][] | null;
+            /** @description Status 'paused': the question the team asks the human (1.16.0) */
+            pause?: components["schemas"]["CheckpointPause"] | null;
         };
         /** Objective */
         Objective: {
@@ -3043,6 +3616,104 @@ export interface operations {
             };
         };
     };
+    agent_brief_agent_brief_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BriefRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BriefResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_feedback_agent_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agent_memory_memory_get: {
+        parameters: {
+            query?: {
+                user?: string;
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     agent_run_agent_run_post: {
         parameters: {
             query?: never;
@@ -3390,6 +4061,76 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ChainDecideRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_answer_chain__chain_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_change_chain__chain_id__change_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChainChangeRequest"];
             };
         };
         responses: {

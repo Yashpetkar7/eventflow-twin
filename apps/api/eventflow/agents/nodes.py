@@ -39,6 +39,10 @@ def _pct(lf: float | None) -> int | None:
 def intake(state: State) -> dict:
     ctx: MissionCtx = state["ctx"]
     ctx.step("intake")
+    b = getattr(ctx.req, "brief", None)
+    if b is not None:                                      # the planner's confirmed brief: the human speaks first (1.16.0)
+        ctx.event("human", "message", "human.brief", rnd=1, to=["intake"], summary=b.summary[:300], source=b.source,
+                  kept=list(b.fields), removed=list(b.removed))
     ctx.event("supervisor", "start", "supervisor.start", rnd=1, engine=ctx.engine)
     o = ctx.build_objective()
     c = o["constraints"]
@@ -83,6 +87,8 @@ def diagnosis(state: State) -> dict:
             d["peak_pct"] = max(d["peak_pct"], _pct(r["peak_lf"]))
     ctx.event("diagnosis", "decision", "diagnosis.hotspots", rnd=1, run_id=p.base["run_id"], worst=hot["station"], hours=hot["hours"],
               stations=sorted(bins.values(), key=lambda d: (-d["bins"], d["id"])))
+    if "hotspot" in ctx.checkpoints and _hotspot_gate(ctx, bins):
+        return {}                                    # paused for the human, or the human stopped the mission
     t = p.target
     ctx.event("supervisor", "message", "supervisor.brief", rnd=1, run_id=p.base["run_id"], to=list(SPECIALISTS), station=t["worst"],
               hours=t["hrs"], gap=t["size"]["why"]["gap"], nb=t["nb"], far=t["far"], threshold_pct=_pct(p.thr))
@@ -100,8 +106,37 @@ def diagnosis(state: State) -> dict:
     return {}
 
 
+def _hotspot_gate(ctx: MissionCtx, bins: dict) -> bool:
+    """Checkpoint 1 (1.16.0, decision #145): the supervisor asks the human whether to plan for the station the diagnosis
+    found, another over-threshold station, or nothing. True when the mission does not go on to the specialists."""
+    p = ctx.p
+    cands = sorted(bins.values(), key=lambda d: (-d["bins"], d["id"]))
+    ans = ctx.next_answer("hotspot")
+    if ans is None:
+        gap = round(p.target["size"]["why"]["gap"])
+        ctx.pause = {"checkpoint": "hotspot", "asked_by": "supervisor", "actions": ["confirm", "focus", "stop"] if len(cands) > 1 else ["confirm", "stop"],
+                     "params": {"station": p.hot["station"], "hours": p.hot["hours"], "gap": gap, "candidates": cands, "run_id": p.base["run_id"]}}
+        ctx.event("supervisor", "message", "checkpoint.ask", rnd=1, to=["human"], run_id=p.base["run_id"], checkpoint="hotspot",
+                  station=p.hot["station"], hours=p.hot["hours"], gap=gap, candidates=len(cands))
+        return True
+    ctx.event("human", "message", "checkpoint.answer", rnd=1, to=["supervisor"], checkpoint="hotspot", action=ans["action"],
+              station=ans.get("station"))
+    if ans["action"] == "stop":
+        p.hot = None
+        ctx.stop_reason = "human_stop"
+        return True
+    if ans["action"] == "focus" and ans.get("station") in bins and ans["station"] != p.hot["station"]:
+        p.focus = ans["station"]
+        hot = p.diagnose()
+        ctx.event("diagnosis", "decision", "diagnosis.focus", rnd=1, run_id=p.base["run_id"], worst=hot["station"], hours=hot["hours"])
+    return False
+
+
 def route_after_diagnosis(state: State) -> list[str] | str:
-    return list(SPECIALISTS) if state["ctx"].p.hot is not None else "conclude"
+    ctx = state["ctx"]
+    if ctx.pause is not None:
+        return "pause"
+    return list(SPECIALISTS) if ctx.p.hot is not None else "conclude"
 
 
 # ---------------------------------------------------------------- layer 3: specialists (parallel)
@@ -290,16 +325,68 @@ def supervisor(state: State) -> dict:
                   to=[o["to"] for o in ctx.objections] or ["composer"],
                   station=p.last_verdict.get("station"), excess=round(p.last_verdict["excess"]) if p.last_verdict.get("excess") is not None else None)
     else:
-        ctx.route = "ranker"
         why = ("goal_met" if ctx.critic_met else "budget" if over else "no_relief" if not p.pool else "max_rounds")
+        if why == "max_rounds" and "partial" in ctx.checkpoints and _partial_gate(ctx):
+            return {}                                # paused for the human, or one more round the human allowed
+        ctx.route = "ranker"
         ctx.stop_reason = why
         ctx.event("supervisor", "decision", "supervisor.rank", rnd=p.rounds, reason=why, budget=over)
     return {}
 
 
+MAX_EXTRA_ROUNDS = 2
+
+
+def _partial_gate(ctx: MissionCtx) -> bool:
+    """Checkpoint 2 (1.16.0, decision #145): no plan meets the goal and the rounds are used up. The supervisor asks the
+    human: accept the best plan so far, allow one more round, or change a constraint (allow a measure, raise the cost
+    cap; the caller applies those and runs the team again). True when the supervisor does not rank now."""
+    p = ctx.p
+    ans = ctx.next_answer("partial")
+    if ans is None:
+        best = sorted(p.pool, key=planner._effect)[0]
+        v = p.last_verdict
+        acts = ["accept"] + (["more"] if p.extra_rounds < MAX_EXTRA_ROUNDS else [])
+        acts += (["allow"] if ctx.constraints.get("forbid_types") else []) + (["raise_cap"] if ctx.constraints.get("cost_cap") is not None else [])
+        ctx.pause = {"checkpoint": "partial", "asked_by": "supervisor", "actions": acts,
+                     "params": {"rounds": p.rounds, "station": v.get("station"), "excess": round(v["excess"]) if v.get("excess") is not None else None,
+                                "best": {"interventions": best["ivs"], "over": best["res"]["summary"]["overcap_station_hours"],
+                                         "excess": round(best["res"]["summary"]["excess_pax"]), "run_id": best["res"]["run_id"]},
+                                "forbidden": list(ctx.constraints.get("forbid_types") or []), "cost_cap": ctx.constraints.get("cost_cap")}}
+        ctx.event("supervisor", "message", "checkpoint.ask", rnd=p.rounds, to=["human"], run_id=best["res"]["run_id"], checkpoint="partial",
+                  station=v.get("station"), excess=ctx.pause["params"]["excess"], rounds=p.rounds)
+        return True
+    ctx.event("human", "message", "checkpoint.answer", rnd=p.rounds, to=["supervisor"], checkpoint="partial", action=ans["action"])
+    if ans["action"] == "more" and p.extra_rounds < MAX_EXTRA_ROUNDS:
+        p.extra_rounds += 1
+        ctx.objections = p.prepare_replan()              # what the critic would have said had a round been left
+        for o in ctx.objections:
+            ctx.event("critic", "message", "critic.objection", rnd=p.rounds, to=[o["to"]], station=o["station"], hours=o["hours"],
+                      excess=o["excess"], gap=o["gap"], plan=o["plan"], own=o["own"])
+        ctx.route = "specialists"
+        ctx.event("supervisor", "decision", "supervisor.replan", rnd=p.rounds, next_round=p.rounds + 1,
+                  to=[o["to"] for o in ctx.objections] or ["composer"], station=p.last_verdict.get("station"),
+                  excess=round(p.last_verdict["excess"]) if p.last_verdict.get("excess") is not None else None, human=True)
+        return True
+    return False                                     # accept (or an answer that cannot apply here): rank what there is
+
+
 def route_after_supervisor(state: State) -> list[str] | str:
     """Replan: back to the specialists (each one checks whether the critic's objection names it), else rank."""
-    return list(SPECIALISTS) if state["ctx"].route == "specialists" else "ranker"
+    ctx = state["ctx"]
+    if ctx.pause is not None:
+        return "pause"
+    return list(SPECIALISTS) if ctx.route == "specialists" else "ranker"
+
+
+def pause_node(state: State) -> dict:
+    """The team stops at a checkpoint and hands the question to the human (the mission's status is 'paused')."""
+    ctx: MissionCtx = state["ctx"]
+    ctx.step("pause")
+    ctx.stop_reason = "paused"
+    ctx.explain_t0 = time.perf_counter()
+    ctx.result = conclude(ctx)
+    return {}
 
 
 def ranker(state: State) -> dict:
@@ -358,7 +445,7 @@ def verifier(state: State) -> dict:
 def conclude_node(state: State) -> dict:
     ctx: MissionCtx = state["ctx"]
     ctx.step("conclude")
-    if ctx.p.hot is None:
+    if ctx.p.hot is None and ctx.stop_reason != "human_stop":
         ctx.stop_reason = "no_action"
         ctx.explain_t0 = time.perf_counter()
     ctx.result = conclude(ctx)

@@ -2490,8 +2490,8 @@
       "agent": "supervisor",
       "layer": 1,
       "round": 1,
-      "start_ms": 4.5,
-      "end_ms": 6.4,
+      "start_ms": 5.6,
+      "end_ms": 7.6,
       "kind": "start",
       "keys": [
         "supervisor.start"
@@ -2505,8 +2505,8 @@
       "agent": "intake",
       "layer": 2,
       "round": 1,
-      "start_ms": 6.4,
-      "end_ms": 7.9,
+      "start_ms": 7.6,
+      "end_ms": 10.2,
       "kind": "decision",
       "keys": [
         "intake.objective"
@@ -2520,8 +2520,8 @@
       "agent": "forecast",
       "layer": 2,
       "round": 1,
-      "start_ms": 7.9,
-      "end_ms": 22.0,
+      "start_ms": 10.2,
+      "end_ms": 23.4,
       "kind": "tool",
       "keys": [
         "forecast.run"
@@ -2537,8 +2537,8 @@
       "agent": "diagnosis",
       "layer": 2,
       "round": 1,
-      "start_ms": 22.0,
-      "end_ms": 22.2,
+      "start_ms": 23.4,
+      "end_ms": 23.6,
       "kind": "tool",
       "keys": [
         "diagnosis.baseline",
@@ -2555,8 +2555,8 @@
       "agent": "supervisor",
       "layer": 1,
       "round": 1,
-      "start_ms": 22.2,
-      "end_ms": 22.8,
+      "start_ms": 23.6,
+      "end_ms": 24.2,
       "kind": "message",
       "keys": [
         "supervisor.brief"
@@ -2577,8 +2577,8 @@
       "agent": "diagnosis",
       "layer": 2,
       "round": 1,
-      "start_ms": 22.8,
-      "end_ms": 24.5,
+      "start_ms": 24.2,
+      "end_ms": 29.0,
       "kind": "tool",
       "keys": [
         "diagnosis.breakpoint",
@@ -2596,8 +2596,8 @@
       "agent": "rail",
       "layer": 3,
       "round": 1,
-      "start_ms": 24.5,
-      "end_ms": 24.6,
+      "start_ms": 29.0,
+      "end_ms": 29.1,
       "kind": "proposal",
       "keys": [
         "rail.proposed"
@@ -2613,8 +2613,8 @@
       "agent": "station_crowd",
       "layer": 3,
       "round": 1,
-      "start_ms": 24.6,
-      "end_ms": 94.5,
+      "start_ms": 29.1,
+      "end_ms": 102.3,
       "kind": "proposal",
       "keys": [
         "station_crowd.proposed"
@@ -2630,8 +2630,8 @@
       "agent": "venue",
       "layer": 3,
       "round": 1,
-      "start_ms": 94.5,
-      "end_ms": 94.5,
+      "start_ms": 102.3,
+      "end_ms": 102.3,
       "kind": "decision",
       "keys": [
         "venue.stagger"
@@ -2652,8 +2652,8 @@
       "agent": "last_mile",
       "layer": 3,
       "round": 1,
-      "start_ms": 23.9,
-      "end_ms": 95.3,
+      "start_ms": 27.7,
+      "end_ms": 103.0,
       "kind": "proposal",
       "keys": [
         "last_mile.proposed"
@@ -2669,8 +2669,8 @@
       "agent": "composer",
       "layer": 3,
       "round": 1,
-      "start_ms": 95.3,
-      "end_ms": 249.6,
+      "start_ms": 103.0,
+      "end_ms": 269.1,
       "kind": "decision",
       "keys": [
         "composer.bundles"
@@ -2686,8 +2686,8 @@
       "agent": "simulation",
       "layer": 4,
       "round": 1,
-      "start_ms": 249.6,
-      "end_ms": 250.5,
+      "start_ms": 269.1,
+      "end_ms": 269.6,
       "kind": "tool",
       "keys": [
         "simulation.result",
@@ -2721,8 +2721,8 @@
       "agent": "critic",
       "layer": 4,
       "round": 1,
-      "start_ms": 250.5,
-      "end_ms": 250.7,
+      "start_ms": 269.6,
+      "end_ms": 269.8,
       "kind": "decision",
       "keys": [
         "critic.verdict"
@@ -2738,8 +2738,8 @@
       "agent": "supervisor",
       "layer": 1,
       "round": 1,
-      "start_ms": 250.7,
-      "end_ms": 251.0,
+      "start_ms": 269.8,
+      "end_ms": 270.1,
       "kind": "decision",
       "keys": [
         "supervisor.rank"
@@ -2753,8 +2753,8 @@
       "agent": "ranker",
       "layer": 4,
       "round": 1,
-      "start_ms": 251.0,
-      "end_ms": 251.6,
+      "start_ms": 270.1,
+      "end_ms": 270.5,
       "kind": "decision",
       "keys": [
         "ranker.kept"
@@ -2775,8 +2775,8 @@
       "agent": "explainer",
       "layer": 5,
       "round": 1,
-      "start_ms": 251.6,
-      "end_ms": 543.8,
+      "start_ms": 270.5,
+      "end_ms": 538.1,
       "kind": "tool",
       "keys": [
         "explainer.wrote"
@@ -2790,8 +2790,8 @@
       "agent": "stress",
       "layer": 4,
       "round": 1,
-      "start_ms": 543.8,
-      "end_ms": 546.4,
+      "start_ms": 538.1,
+      "end_ms": 541.5,
       "kind": "tool",
       "keys": [
         "stress.result",
@@ -2807,8 +2807,8 @@
       "agent": "verifier",
       "layer": 5,
       "round": 1,
-      "start_ms": 546.4,
-      "end_ms": 546.7,
+      "start_ms": 541.5,
+      "end_ms": 541.9,
       "kind": "decision",
       "keys": [
         "verifier.checked"
@@ -2822,8 +2822,8 @@
       "agent": "critic",
       "layer": 4,
       "round": 1,
-      "start_ms": 546.7,
-      "end_ms": 546.7,
+      "start_ms": 541.9,
+      "end_ms": 541.9,
       "kind": "decision",
       "keys": [
         "critic.recommend"
@@ -2839,8 +2839,8 @@
       "agent": "human",
       "layer": 5,
       "round": 1,
-      "start_ms": 546.7,
-      "end_ms": 546.7,
+      "start_ms": 541.9,
+      "end_ms": 541.9,
       "kind": "handoff",
       "keys": [
         "human.awaiting"
@@ -2850,5 +2850,6 @@
       "to": [],
       "events": 1
     }
-  ]
+  ],
+  "pause": null
 }

@@ -3,6 +3,9 @@ import { useTranslations } from "next-intl";
 import { N, useFmt, useLocale } from "@/lib/i18n";
 import type { AgentPlanResponse, PlanOption, SimSummary } from "@/lib/api";
 import { hotHours, overStations, useTwin } from "@/lib/store";
+import { BriefCard } from "./mission/Brief";
+import { CheckpointCard, FeedbackBanner, ReasonForm } from "./mission/Loop";
+import { useState } from "react";
 
 const STEP_KEYS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 
@@ -32,6 +35,10 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
   // the critic's recommendation (contract 1.14.0, WP3): absent in older snapshots, then no badge
   const rec = useTwin((s) => (s.mission?.plan.plan_id === s.plan?.plan_id ? s.mission?.recommendation ?? null : null));
   const isRec = rec?.rank === o.rank;
+  const [why, setWhy] = useState(false);                  // the reason form behind Reject (the loop, decision #145)
+  const { locale } = useLocale();
+  const memory = useTwin((s) => s.memory);
+  const running = useTwin((s) => s.planStatus === "running");
   return (
     <article className={`opt${o.rank === 1 ? " top" : ""}${isRec ? " rec" : ""}${decision === "reject" ? " rejected" : ""}`}>
       <div className="rank">{t("rankL", { n: f.int(o.rank) })}</div>
@@ -65,10 +72,14 @@ function OptionCard({ o, base, verified, baseRoad }: { o: PlanOption; base: SimS
       {names && <div className="warnbox">{t("newHot", { stations: names })}</div>}
       {verified ? <div className="verify">✓ {t("verified", { n: f.int(o.figures ?? 0) })}</div> : <div className="warnbox">{t("notVerified")}</div>}
       <div className="note">{t("sources", { run: o.sources[0]?.run_id ?? "—" })}</div>
-      {decision === "reject" ? <div style={{ fontWeight: 600, fontSize: 13 }}>{t("rejected")}</div> : (
+      {decision === "reject" ? <div style={{ fontWeight: 600, fontSize: 13 }}>{t("rejected")}</div> : why ? (
+        <ReasonForm interventions={o.interventions} busy={running} memory={memory}
+          onSubmit={(r) => { setWhy(false); void useTwin.getState().rejectWithReason(o.rank, r, locale); }}
+          onPlainReject={() => { setWhy(false); void decide(o.rank, "reject"); }} onCancel={() => setWhy(false)} />
+      ) : (
         <div className="row">
           <button type="button" className="btn navy" style={{ flex: 1 }} onClick={() => void decide(o.rank, "approve")}>{t("approve")}</button>
-          <button type="button" className="btn ghost" onClick={() => void decide(o.rank, "reject")}>{t("reject")}</button>
+          <button type="button" className="btn ghost" onClick={() => { setWhy(true); void useTwin.getState().loadMemory(); }} data-testid="opt-reject">{t("reject")}</button>
         </div>
       )}
     </article>
@@ -142,11 +153,21 @@ export function AiTab() {
   const applied = useTwin((s) => s.applied.length);
   const ready = useTwin((s) => !!s.forecast && !s.loading);
   const run = useTwin((s) => s.runAgents);
+  const askMe = useTwin((s) => s.askMe);
+  const pause = useTwin((s) => s.pause);
+  const feedback = useTwin((s) => s.feedback);
+  const loopError = useTwin((s) => s.loopError);
+  const tl = useTranslations("loop");
   return (
     <>
+      <BriefCard />
       <div className="card">
+        <label className="loop-switch" data-testid="ask-me">
+          <input type="checkbox" checked={askMe} disabled={status === "running"} onChange={(e) => useTwin.getState().setAskMe(e.target.checked)} />
+          <span><b>{tl("askMe")}</b><small>{tl("askMeNote")}</small></span>
+        </label>
         <button type="button" className="btn red" style={{ width: "100%" }} disabled={status === "running" || !ready} onClick={() => void run(locale)}>{t("plan")}</button>
-        {(status === "running" || status === "ready") && (
+        {(status === "running" || status === "ready" || status === "paused") && (
           <ol className="agent-steps" aria-live="polite">
             {STEP_KEYS.map((i) => (
               <li key={i} className={i < step ? "done" : i === step ? "run" : ""}>
@@ -163,6 +184,9 @@ export function AiTab() {
         {plan && plan.planner === "deterministic-template" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planMode")}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
         {plan && plan.mode === "live" && <div className="note" style={{ marginTop: 6 }}><span className="badge sm navy">{plan.mode}</span> {t("planLive", { model: modelName(plan.planner) })}{plan.cached ? ` ${t("planCached")}` : ""}</div>}
       </div>
+      {status === "paused" && pause && <CheckpointCard pause={pause} onAnswer={(a) => void useTwin.getState().answerCheckpoint(a, locale)} />}
+      {feedback && status !== "running" && <FeedbackBanner round={feedback.round} changes={feedback.changes} />}
+      {loopError && <div className="warnbox" role="status" data-testid="loop-error">{loopError === "nothing" ? tl("nothing") : loopError}</div>}
       {status === "error" && <div className="warnbox" role="alert">{t("planError", { msg: planError ?? "" })}</div>}
       {decisionError && <div className="warnbox" role="alert">{t("decisionError", { msg: decisionError })}</div>}
       {status === "ready" && plan && plan.options.length === 0 && <div className="card empty">{t("noHot")}</div>}

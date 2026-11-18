@@ -49,10 +49,19 @@ export function planBody(runId: string, applied: unknown[], threshold: number, p
 
 /** The agent team's request: the plan request plus the planner's typed constraints (sent only when set, so the
  *  default request is byte-identical to the one the offline snapshot recorded). */
+/** The planner's confirmed brief (contract 1.16.0): its words go to the Intake agent as goal and notes (screened, never
+ *  followed), and the brief itself is logged as the human's first message. */
+export interface PlanBrief { goal: string; notes: string; confirmed: S["ConfirmedBrief"] }
+
+/** The loop (contract 1.16.0): where the team stops and asks, and the human's answers so far. */
+export interface LoopAsk { checkpoints: NonNullable<S["AgentRunRequest"]["checkpoints"]>; answers: S["CheckpointAnswer"][] }
+
 export function missionBody(runId: string, applied: unknown[], threshold: number, priority: Priority, locale: "en" | "ar", forecast: S["ForecastRequest"],
-  constraints?: S["Constraints"] | null): S["AgentRunRequest"] {
+  constraints?: S["Constraints"] | null, brief?: PlanBrief | null, loop?: LoopAsk | null): S["AgentRunRequest"] {
   const c = constraints && ((constraints.forbid_types?.length ?? 0) || (constraints.protect_stations?.length ?? 0) || constraints.cost_cap != null) ? { constraints } : {};
-  return { ...planBody(runId, applied, threshold, priority, locale, forecast), forecast, ...c } as S["AgentRunRequest"];
+  const b = brief ? { goal: brief.goal, notes: brief.notes, brief: brief.confirmed } : {};
+  const l = loop && (loop.checkpoints.length || loop.answers.length) ? { checkpoints: loop.checkpoints, answers: loop.answers } : {};
+  return { ...planBody(runId, applied, threshold, priority, locale, forecast), forecast, ...c, ...b, ...l } as S["AgentRunRequest"];
 }
 
 /** Scenario reference shared by the standing agents' requests (watcher, messenger, ask). */

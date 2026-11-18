@@ -67,6 +67,20 @@ class MissionCtx:
         self.recording: dict = {"mode": "code", "model": None, "recorded_at": None, "agents_from_model": [], "misses": 0}
         c = getattr(req, "constraints", None)
         self.constraints = c.model_dump() if hasattr(c, "model_dump") else (c or {"forbid_types": [], "protect_stations": [], "cost_cap": None})
+        # checkpoints (1.16.0): where the team stops and asks; the human's answers, consumed in order on every run
+        self.checkpoints: list[str] = list(getattr(req, "checkpoints", None) or [])
+        self.answers: list[dict] = [a.model_dump() if hasattr(a, "model_dump") else dict(a) for a in (getattr(req, "answers", None) or [])]
+        self._used: dict[str, int] = {}
+        self.pause: dict | None = None
+
+    def next_answer(self, checkpoint: str) -> dict | None:
+        """The human's next unused answer at this checkpoint, or None (the team must stop and ask)."""
+        n = self._used.get(checkpoint, 0)
+        mine = [a for a in self.answers if a["checkpoint"] == checkpoint]
+        if n >= len(mine):
+            return None
+        self._used[checkpoint] = n + 1
+        return mine[n]
 
     # ---------- events
     def now_ms(self) -> float:
@@ -288,6 +302,9 @@ def roster_view(engine: str, mermaid: str | None = None) -> dict:
 def conclude(ctx: MissionCtx) -> dict:
     """The mission answer: the plan (AgentPlanResponse shape) plus everything the agents found on the way."""
     p = ctx.p
+    if ctx.pause is not None:                                   # stopped at a checkpoint: no options yet, the question instead
+        p.options = []
+        p.top = []
     plan = p.assemble(write_cache=False)                      # missions never overwrite the classic planner's cache
     offered = {id(o) for o in getattr(p, "top", [])}
     rejected = [{"label": d["key"], "interventions": d["ivs"], "round": d["round"], "criteria": [],
@@ -307,15 +324,17 @@ def conclude(ctx: MissionCtx) -> dict:
     if rec is not None:
         ctx.event("critic", "decision", "critic.recommend", to=["human"], rank=rec["rank"], basis=rec["basis"], passed=rec["passed"],
                   applicable=rec["applicable"], failed=rec["failed"])
-    status = "awaiting_human" if plan["options"] else "no_action"
-    ctx.event("human" if status == "awaiting_human" else "supervisor", "handoff",
-              "human.awaiting" if status == "awaiting_human" else "supervisor.no_action", options=len(plan["options"]))
-    mission_id = make_run_id("mission", {"plan": plan["plan_id"], "constraints": ctx.constraints, "agents": agents_hash()})
+    status = "paused" if ctx.pause is not None else "awaiting_human" if plan["options"] else "no_action"
+    if status != "paused":
+        ctx.event("human" if status == "awaiting_human" else "supervisor", "handoff",
+                  "human.awaiting" if status == "awaiting_human" else "supervisor.no_action", options=len(plan["options"]))
+    mission_id = make_run_id("mission", {"plan": plan["plan_id"], "constraints": ctx.constraints, "agents": agents_hash(),
+                                         **({"checkpoints": ctx.checkpoints, "answers": ctx.answers} if ctx.checkpoints or ctx.answers else {})})
     return {"mission_id": mission_id, "status": status, "engine": ctx.engine, "objective": ctx.objective,
             "roster": roster_view(ctx.engine)["agents"], "counts": counts(), "events": ctx.events, "plan": plan,
             "rejected": rejected, "assessments": assessments, "budget": ctx.budget(), "recording": ctx.recording,
             "is_synthetic": plan["is_synthetic"], "stop_reason": ctx.stop_reason,
-            "recommended_rank": rec["rank"] if rec else None, "recommendation": rec, "spans": spans(ctx.events)}
+            "recommended_rank": rec["rank"] if rec else None, "recommendation": rec, "spans": spans(ctx.events), "pause": ctx.pause}
 
 
 def copy_texts(options: list[dict]) -> list[dict]:

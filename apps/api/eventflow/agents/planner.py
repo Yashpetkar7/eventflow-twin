@@ -214,8 +214,9 @@ def _km(a: dict, b: dict) -> float:
     return _haversine_km(a["lat"], a["lon"], b["lat"], b["lon"])
 
 
-def diagnose(base: dict) -> dict | None:
-    """Worst station = most over-threshold time, then highest peak. None when nothing is over the threshold."""
+def diagnose(base: dict, focus: str | None = None) -> dict | None:
+    """Worst station = most over-threshold time, then highest peak. None when nothing is over the threshold.
+    `focus`: the station the human chose at the hotspot checkpoint (used when it is over the threshold)."""
     by: dict[str, dict] = {}
     for r in base["hourly"]:
         d = by.setdefault(r["station_id"], {"bins": 0, "peak": 0.0, "hours": [], "peak_hour": r["hour"]})
@@ -227,7 +228,7 @@ def diagnose(base: dict) -> dict | None:
     hot = {s: d for s, d in by.items() if d["bins"] > 0}
     if not hot:
         return None
-    worst = max(hot, key=lambda s: (hot[s]["bins"], hot[s]["peak"]))
+    worst = focus if focus in hot else max(hot, key=lambda s: (hot[s]["bins"], hot[s]["peak"]))
     d = hot[worst]
     hours = sorted(d["hours"])
     window = sorted({h for x in hours for h in (x - 1, x, x + 1) if 0 <= h <= 23})
@@ -685,6 +686,13 @@ class PlanRun:
         self.dropped: list[dict] = []                   # tested and dropped: relieved nobody, or outside the menu's rules
         self.hot: dict | None = None
         self.details: dict[str, str] = {}
+        self.focus: str | None = None                   # the human's hotspot choice (checkpoint, 1.16.0)
+        self.extra_rounds = 0                           # rounds the human allowed beyond MAX_ROUNDS (checkpoint "more")
+        ans = [a.model_dump() if hasattr(a, "model_dump") else a for a in (getattr(req, "answers", None) or [])]
+        if ans:                                         # answers change the path: a different plan id (default ids stay stable)
+            key["answers"] = ans
+            self.plan_id = make_run_id("plan", key)
+            self.name = f"{self.plan_id}.json"
 
     # ---------- plumbing
     def cached(self) -> dict | None:
@@ -722,7 +730,7 @@ class PlanRun:
 
     def diagnose(self) -> dict | None:
         t0 = time.perf_counter()
-        self.hot = hot = diagnose(self.base)
+        self.hot = hot = diagnose(self.base, self.focus)
         self.log("planner", "diagnose", 1, t0, self.base["run_id"], station=hot["station"] if hot else None,
                  hours=hot["hours"] if hot else [], peak_lf=hot["peak_lf"] if hot else None)
         cfg = corridor()["interventions"]
@@ -834,7 +842,7 @@ class PlanRun:
         return bool(meeting)
 
     def can_replan(self, met: bool) -> bool:
-        return not met and bool(self.pool) and self.rounds < MAX_ROUNDS
+        return not met and bool(self.pool) and self.rounds < MAX_ROUNDS + self.extra_rounds
 
     # ---------- replanning as a conversation: critic objects -> specialists revise -> composer assembles
     def prepare_replan(self) -> list[dict]:

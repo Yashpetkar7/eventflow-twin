@@ -1,0 +1,68 @@
+# The planner's brief (apps/api/eventflow/agents/brief.py, decision #144): the words the rules reader looks for when no
+# language model is available. Nothing here changes a forecast or a simulation; it only proposes fields that the
+# planner confirms or removes before the team runs. Matching is case-insensitive; Arabic is matched as written.
+
+# Places that are not station names but sit next to one (only places at a corridor station are listed).
+places:
+  WTC: ["world trade centre", "world trade center", "trade centre", "trade center", "dwtc", "gitex", "مركز دبي التجاري", "المركز التجاري"]
+  EMT: ["emirates towers", "museum of the future", "متحف المستقبل", "أبراج الإمارات"]
+  FIC: ["financial centre", "financial center", "difc", "gate village", "المركز المالي"]
+  BKD: ["burj khalifa", "dubai mall", "burj park", "downtown", "dubai opera", "برج خليفة", "دبي مول", "وسط المدينة"]
+  BBY: ["business bay", "bay avenue", "الخليج التجاري"]
+  MAX: ["max station", "max metro", "jafiliya", "ماكس"]
+
+# A demo event from config/events.yaml when the brief names it.
+events:
+  gitex2025_d1: ["gitex"]
+  dfw2026_d1: ["future week", "dubai future week"]
+  downtown_night: ["downtown celebration", "celebration night"]
+
+# Words before a station that make it a station to protect, not the event's station.
+protect_words: ["keep", "protect", "spare", "don't overload", "do not overload", "not overload", "calm at", "avoid crowding at",
+                "حافظ على", "احم", "لا تزدحم"]
+
+# Measure words (the agents' menu). A measure is FORBIDDEN only when a negation comes before it in the same clause.
+measures:
+  extra_trains: ["extra trains", "more trains", "additional trains", "train frequency", "add trains", "قطارات إضافية", "زيادة القطارات"]
+  extended_hours: ["extended hours", "late service", "run late", "after midnight", "longer hours", "تمديد ساعات"]
+  station_metering: ["metering", "close the station", "closing the station", "station closure", "close stations", "closing stations",
+                     "entry control", "queue outside", "queues outside", "إغلاق المحطة", "تنظيم الدخول"]
+  wayfinding_redirect: ["redirect", "wayfinding", "divert", "send people to", "توجيه"]
+  staggered_exit: ["staggered exit", "stagger", "hold the crowd", "release in waves", "تدريج الخروج"]
+  shuttle_bus: ["shuttle", "buses", "bus", "حافلات", "حافلة", "باص"]
+  robotaxi_staging: ["robotaxi", "robo-taxi", "robotaxis", "autonomous taxi", "driverless", "تاكسي ذاتي"]
+negations: ["no", "not", "without", "avoid", "don't", "dont", "do not", "never", "can't", "cannot", "can not", "exclude",
+            "skip", "ban", "forbid", "except", "بدون", "لا", "دون", "بلا", "تجنب", "ممنوع"]
+
+weather:
+  hot: ["hot", "heat", "summer", "scorching", "humid", "حار", "حر", "صيف"]
+  rain: ["rain", "rainy", "storm", "wet", "مطر", "ممطر", "أمطار"]
+
+priority:
+  cost: ["cheap", "cheapest", "low cost", "low-cost", "tight budget", "budget is tight", "save money", "cost-effective",
+         "lowest cost", "اقتصادي", "أقل تكلفة"]
+  impact: ["whatever it takes", "maximum relief", "max impact", "maximum impact", "best result", "no matter the cost",
+           "at any cost", "safety first", "أقصى", "مهما كانت التكلفة"]
+  balanced: ["balanced", "balance", "متوازن"]
+
+# Words next to a number that make it the crowd size.
+people_words: ["people", "fans", "visitors", "attendees", "guests", "spectators", "runners", "crowd", "persons", "pax", "riders",
+               "شخص", "زائر", "متفرج", "مشجع"]
+crowd_words: ["attendance", "crowd of", "expect", "expected", "expecting", "capacity", "sold out", "حضور", "متوقع"]
+end_words: ["end", "ends", "ending", "finish", "finishes", "until", "till", "out at", "leave", "doors close", "ينتهي", "حتى"]
+
+weekdays:
+  0: ["monday", "mon", "الاثنين", "الإثنين"]
+  1: ["tuesday", "tue", "tues", "الثلاثاء"]
+  2: ["wednesday", "wed", "الأربعاء", "الاربعاء"]
+  3: ["thursday", "thu", "thurs", "الخميس"]
+  4: ["friday", "fri", "الجمعة"]
+  5: ["saturday", "السبت"]
+  6: ["sunday", "الأحد", "الاحد"]
+
+defaults:                     # used when the brief leaves a field out (the card says so)
+  attendance: 20000           # same as the build-your-own event's default (apps/web/src/lib/requests.ts)
+  duration_h: 3               # an end time 3 h after the start
+  earliest: "06:00"           # the build-your-own event's time grid (30-minute steps)
+  latest: "23:30"
+threshold_range: [0.70, 0.95] # the comfort-line slider's range, 5-point steps

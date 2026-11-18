@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EventFlow Twin API",
-    "version": "1.15.0"
+    "version": "1.16.0"
   },
   "paths": {
     "/healthz": {
@@ -202,6 +202,135 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AgentPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/brief": {
+      "post": {
+        "summary": "Agent Brief",
+        "description": "The planner's brief (1.16.0, decision #144): plain words → an event and constraints for the planner to confirm.\nRead by the Intake agent's model when one is available (live or recorded), else by the word rules in\nconfig/brief.yaml; both pass the same code checks. A proposal only: nothing is applied or simulated here.",
+        "operationId": "agent_brief_agent_brief_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BriefRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BriefResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/feedback": {
+      "post": {
+        "summary": "Agent Feedback",
+        "description": "A rejection's reason (1.16.0, decision #145) → the constraints and priority for the next round. Reason chips\nmap to typed constraints; the planner's own words go through the brief reader (word rules, or the Intake model\nwith its quote check). Only what the planner could set by hand can change; nothing is applied or simulated here.",
+        "operationId": "agent_feedback_agent_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory": {
+      "get": {
+        "summary": "Agent Memory",
+        "description": "What the decision log remembers about this planner's rejections (today by default): measures they ruled out,\nstations they protected, cost or relief. Suggestions only (1.16.0).",
+        "operationId": "agent_memory_memory_get",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "visitor",
+              "title": "User"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryResponse"
                 }
               }
             }
@@ -626,6 +755,106 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ChainDecideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chain/{chain_id}/answer": {
+      "post": {
+        "summary": "Chain Answer",
+        "description": "The human's answer at a checkpoint (1.16.0, decision #145): published as `checkpoint.answered`, which triggers the\nSupervisor; the team runs again with the answer and goes on to the next checkpoint or the approval inbox.",
+        "operationId": "chain_answer_chain__chain_id__answer_post",
+        "parameters": [
+          {
+            "name": "chain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Chain Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainAnswerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chain/{chain_id}/change": {
+      "post": {
+        "summary": "Chain Change",
+        "description": "Conditions changed during the day (1.16.0): an incident (rain, heat, a train fault, a crowd surge) or a bigger or\nsmaller crowd. The forecast is rebuilt with it, `conditions.changed` triggers the Watcher, which re-checks the day\nwith the approved plan in place (`plan.checked`) and raises an alert where it no longer holds.",
+        "operationId": "chain_change_chain__chain_id__change_post",
+        "parameters": [
+          {
+            "name": "chain_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Chain Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChainChangeRequest"
               }
             }
           }
@@ -1654,6 +1883,39 @@
           },
           "constraints": {
             "$ref": "#/components/schemas/Constraints"
+          },
+          "brief": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfirmedBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The planner's confirmed brief (sent only when one was used)"
+          },
+          "checkpoints": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "hotspot",
+                "partial"
+              ]
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Checkpoints",
+            "description": "Where the team stops and asks the human (1.16.0)"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/CheckpointAnswer"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Answers",
+            "description": "The human's answers so far, in order"
           }
         },
         "type": "object",
@@ -2213,6 +2475,318 @@
         ],
         "title": "BreakpointResponse"
       },
+      "BriefEvent": {
+        "properties": {
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id",
+            "description": "A demo event from /events when the brief names one (its venue, date and times are used)"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "near_station": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Near Station",
+            "description": "Corridor station id; null = not in the brief (the planner must choose)"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start",
+            "description": "HH:MM on the 30-minute grid"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "weekend": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weekend"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "attendance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance",
+            "description": "null = not in the brief (the default is shown and labelled)"
+          }
+        },
+        "type": "object",
+        "title": "BriefEvent"
+      },
+      "BriefField": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "event",
+              "name",
+              "station",
+              "start",
+              "end",
+              "day",
+              "date",
+              "attendance",
+              "weather",
+              "threshold",
+              "priority",
+              "forbid",
+              "protect",
+              "cost_cap"
+            ],
+            "title": "Field"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence",
+            "description": "The words of the brief this field was read from"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "rules"
+            ],
+            "title": "Source",
+            "description": "Read by the Intake agent's model, or by the word rules in config/brief.yaml"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "value",
+          "evidence",
+          "source"
+        ],
+        "title": "BriefField"
+      },
+      "BriefRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Text"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "BriefRequest",
+        "description": "The planner's brief in plain words (1.16.0, decision #144). Untrusted text: read, screened, never followed."
+      },
+      "BriefResponse": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "event": {
+            "$ref": "#/components/schemas/BriefEvent"
+          },
+          "weather": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "hot",
+                  "rain"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weather"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cost",
+                  "balanced",
+                  "impact"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/BriefField"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing",
+            "description": "Fields a build-your-own event needs that the brief leaves out"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes",
+            "description": "Adjustments the reader made (time grid, defaults), in plain words"
+          },
+          "dropped": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Dropped",
+            "description": "Model fields removed by the code checks (no quote from the brief, out of bounds)"
+          },
+          "findings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Findings",
+            "description": "Instruction-like text (logged, never followed)"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "recorded",
+              "rules"
+            ],
+            "title": "Source"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "summary",
+          "event",
+          "constraints",
+          "fields",
+          "missing",
+          "notes",
+          "source",
+          "note"
+        ],
+        "title": "BriefResponse",
+        "description": "A proposal: nothing is applied until the planner confirms it in the brief card."
+      },
       "Budget": {
         "properties": {
           "steps": {
@@ -2273,6 +2847,63 @@
         ],
         "title": "Budget"
       },
+      "ChainAnswerRequest": {
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/CheckpointAnswer"
+          },
+          "user": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[\\w .\\-]+$",
+            "title": "User",
+            "default": "duty-manager"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer"
+        ],
+        "title": "ChainAnswerRequest"
+      },
+      "ChainChangeRequest": {
+        "properties": {
+          "incident": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Incident"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attendance_x": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 2.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance X",
+            "description": "The crowd turns out this many times the forecast"
+          },
+          "user": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[\\w .\\-]+$",
+            "title": "User",
+            "default": "duty-manager"
+          }
+        },
+        "type": "object",
+        "title": "ChainChangeRequest",
+        "description": "Conditions changed during the day (1.16.0): the Watcher re-checks the approved plan under them."
+      },
       "ChainDecideRequest": {
         "properties": {
           "decision": {
@@ -2304,6 +2935,59 @@
             "title": "User",
             "description": "Anonymous label only",
             "default": "duty-manager"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "too_costly",
+                "not_enough",
+                "avoid_measure",
+                "protect_station",
+                "other"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Reason Codes",
+            "description": "A rejection's reasons: the team replans with them (1.16.0)"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "avoid": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "extra_trains",
+                "shuttle_bus",
+                "robotaxi_staging",
+                "staggered_exit",
+                "wayfinding_redirect",
+                "station_metering",
+                "extended_hours"
+              ]
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Avoid"
+          },
+          "protect": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Protect"
           }
         },
         "type": "object",
@@ -2326,7 +3010,12 @@
               "plan.ready",
               "decision.made",
               "drafts.ready",
-              "day.ended"
+              "day.ended",
+              "checkpoint.asked",
+              "checkpoint.answered",
+              "feedback.read",
+              "conditions.changed",
+              "plan.checked"
             ],
             "title": "Topic"
           },
@@ -2485,6 +3174,31 @@
             "minimum": 1.0,
             "title": "Horizon H",
             "default": 3
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints",
+            "description": "The planner's constraints; rejections with a reason add to them"
+          },
+          "checkpoints": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "hotspot",
+                "partial"
+              ]
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Checkpoints",
+            "description": "Where the team stops and asks during each plan (1.16.0)"
+          },
+          "max_feedback_rounds": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Max Feedback Rounds",
+            "description": "Replans after rejections with a reason, per alert, before the alert is set aside",
+            "default": 3
           }
         },
         "type": "object",
@@ -2518,7 +3232,7 @@
               }
             ],
             "title": "Ended Reason",
-            "description": "clear · residual · step_limit · no_option · event_limit"
+            "description": "clear · residual · step_limit · no_option · event_limit · human_stop"
           },
           "request": {
             "$ref": "#/components/schemas/ChainStartRequest"
@@ -2583,6 +3297,52 @@
           "started": {
             "type": "string",
             "title": "Started"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints",
+            "description": "The constraints now in force (start + rejections with a reason)"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "description": "The priority now in force (start + rejections with a reason)",
+            "default": "balanced"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/CheckpointAnswer"
+            },
+            "type": "array",
+            "title": "Answers",
+            "description": "The human's checkpoint answers for the plan being made"
+          },
+          "feedback_rounds": {
+            "type": "integer",
+            "title": "Feedback Rounds",
+            "description": "Replans after a rejection with a reason, for the current alert",
+            "default": 0
+          },
+          "pause": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckpointPause"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Status 'awaiting_human' at a checkpoint: the question"
+          },
+          "loop": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Loop",
+            "description": "Loop counters: plans, checkpoints, feedback, changes, approvals, rejections"
           }
         },
         "type": "object",
@@ -2599,6 +3359,184 @@
         ],
         "title": "ChainState",
         "description": "An event chain: agents triggered by each other's events until a human decision is needed."
+      },
+      "CheckpointAnswer": {
+        "properties": {
+          "checkpoint": {
+            "type": "string",
+            "enum": [
+              "hotspot",
+              "partial"
+            ],
+            "title": "Checkpoint"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "focus",
+              "stop",
+              "accept",
+              "more",
+              "allow",
+              "raise_cap"
+            ],
+            "title": "Action",
+            "description": "hotspot: confirm · focus (another over-threshold station) · stop. partial: accept (the best plan so far) · more (one more round, at most 2). allow / raise_cap change the constraints: the caller applies them and runs again"
+          },
+          "station": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station",
+            "description": "focus: the station to plan for"
+          },
+          "measure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "extra_trains",
+                  "shuttle_bus",
+                  "robotaxi_staging",
+                  "staggered_exit",
+                  "wayfinding_redirect",
+                  "station_metering",
+                  "extended_hours"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measure",
+            "description": "allow: the measure the planner allows again"
+          },
+          "cost_cap": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cap",
+            "description": "raise_cap: the new cost cap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "checkpoint",
+          "action"
+        ],
+        "title": "CheckpointAnswer",
+        "description": "The human's answer at a checkpoint (1.16.0, decision #145). Answers are replayed in order: a mission run again\nwith the same request and answers takes the same path to the same point, then continues."
+      },
+      "CheckpointPause": {
+        "properties": {
+          "checkpoint": {
+            "type": "string",
+            "enum": [
+              "hotspot",
+              "partial"
+            ],
+            "title": "Checkpoint"
+          },
+          "asked_by": {
+            "type": "string",
+            "title": "Asked By",
+            "description": "The agent that asks (supervisor)"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params",
+            "description": "hotspot: station, hours, gap, candidates[{id, bins, peak_pct}] · partial: best {interventions, over, excess, station}, rounds, forbidden, cost_cap"
+          },
+          "actions": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "confirm",
+                "focus",
+                "stop",
+                "accept",
+                "more",
+                "allow",
+                "raise_cap"
+              ]
+            },
+            "type": "array",
+            "title": "Actions",
+            "description": "The answers that apply here"
+          }
+        },
+        "type": "object",
+        "required": [
+          "checkpoint",
+          "asked_by",
+          "actions"
+        ],
+        "title": "CheckpointPause",
+        "description": "The team stopped and asks the human (Mission.status 'paused'). Every figure in `params` is the simulator's."
+      },
+      "ConfirmedBrief": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Text"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Summary"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "recorded",
+              "rules"
+            ],
+            "title": "Source",
+            "default": "rules"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Fields",
+            "description": "The fields kept, e.g. 'station', 'forbid'"
+          },
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Removed",
+            "description": "Fields the planner removed or changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "summary"
+        ],
+        "title": "ConfirmedBrief",
+        "description": "What the planner confirmed in the brief card; the team logs it as the human's first message (1.16.0)."
       },
       "Constraints": {
         "properties": {
@@ -2920,6 +3858,33 @@
             "type": "array",
             "maxItems": 24,
             "title": "Interventions"
+          },
+          "reason_codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Codes",
+            "description": "A rejection's reasons, when given (1.16.0)"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "The planner's own words, when given (1.16.0)"
           }
         },
         "type": "object",
@@ -3027,6 +3992,28 @@
             "type": "array",
             "maxItems": 24,
             "title": "Interventions"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Reason Codes",
+            "description": "Why it was rejected (1.16.0): too_costly · not_enough · avoid:<measure> · protect:<station> · other"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "The planner's own words (stored as data)"
           }
         },
         "type": "object",
@@ -3435,6 +4422,205 @@
         ],
         "title": "ExtraTrainsParams"
       },
+      "FeedbackRequest": {
+        "properties": {
+          "reason_codes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "too_costly",
+                "not_enough",
+                "avoid_measure",
+                "protect_station",
+                "other"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Reason Codes"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "The planner's own words (untrusted: read, screened, never followed)"
+          },
+          "interventions": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ExtraTrains"
+                },
+                {
+                  "$ref": "#/components/schemas/ShuttleBus"
+                },
+                {
+                  "$ref": "#/components/schemas/RobotaxiStaging"
+                },
+                {
+                  "$ref": "#/components/schemas/StaggeredExit"
+                },
+                {
+                  "$ref": "#/components/schemas/WayfindingRedirect"
+                },
+                {
+                  "$ref": "#/components/schemas/StationMetering"
+                },
+                {
+                  "$ref": "#/components/schemas/ExtendedHours"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "extended_hours": "#/components/schemas/ExtendedHours",
+                  "extra_trains": "#/components/schemas/ExtraTrains",
+                  "robotaxi_staging": "#/components/schemas/RobotaxiStaging",
+                  "shuttle_bus": "#/components/schemas/ShuttleBus",
+                  "staggered_exit": "#/components/schemas/StaggeredExit",
+                  "station_metering": "#/components/schemas/StationMetering",
+                  "wayfinding_redirect": "#/components/schemas/WayfindingRedirect"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 24,
+            "title": "Interventions",
+            "description": "The rejected option's measures"
+          },
+          "cost_proxy": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Proxy",
+            "description": "The rejected option's added cost (cost_added, what the cost cap is checked against; for too_costly)"
+          },
+          "avoid": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "extra_trains",
+                "shuttle_bus",
+                "robotaxi_staging",
+                "staggered_exit",
+                "wayfinding_redirect",
+                "station_metering",
+                "extended_hours"
+              ]
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Avoid",
+            "description": "avoid_measure: which measures"
+          },
+          "protect": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Protect",
+            "description": "protect_station: which stations"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints",
+            "description": "The constraints the rejected option was planned with"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority",
+            "default": "balanced"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "title": "FeedbackRequest",
+        "description": "Why the planner rejected an option (1.16.0, decision #145): read into constraints for the next round."
+      },
+      "FeedbackResponse": {
+        "properties": {
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints",
+            "description": "The constraints for the next round (the old ones plus what the reason adds)"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "balanced",
+              "impact"
+            ],
+            "title": "Priority"
+          },
+          "changes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "What changed and why: {field, value, via: 'reason' | 'words'}"
+          },
+          "findings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Findings",
+            "description": "Instruction-like text in the reason (logged, never followed)"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "recorded",
+              "rules"
+            ],
+            "title": "Source",
+            "default": "rules"
+          },
+          "replan": {
+            "type": "boolean",
+            "title": "Replan",
+            "description": "True when the reason changed something the team can act on"
+          }
+        },
+        "type": "object",
+        "required": [
+          "constraints",
+          "priority",
+          "changes",
+          "replan"
+        ],
+        "title": "FeedbackResponse"
+      },
       "ForecastRequest": {
         "properties": {
           "event_id": {
@@ -3813,6 +4999,14 @@
             "type": "array",
             "title": "Items"
           },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/InboxQuestion"
+            },
+            "type": "array",
+            "title": "Questions",
+            "description": "Chains waiting at a checkpoint (1.16.0)"
+          },
           "auth": {
             "type": "string",
             "enum": [
@@ -3959,6 +5153,59 @@
           "is_synthetic"
         ],
         "title": "InboxItem"
+      },
+      "InboxQuestion": {
+        "properties": {
+          "chain_id": {
+            "type": "string",
+            "title": "Chain Id"
+          },
+          "updated": {
+            "type": "string",
+            "title": "Updated"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          },
+          "checkpoint": {
+            "type": "string",
+            "title": "Checkpoint"
+          },
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Actions"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          },
+          "is_synthetic": {
+            "type": "boolean",
+            "title": "Is Synthetic",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "chain_id",
+          "updated",
+          "checkpoint",
+          "actions"
+        ],
+        "title": "InboxQuestion",
+        "description": "A chain stopped at a checkpoint (1.16.0): the team asks before it goes on."
       },
       "Incident": {
         "properties": {
@@ -4149,6 +5396,73 @@
           "password"
         ],
         "title": "LoginRequest"
+      },
+      "MemoryItem": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "avoid",
+              "protect",
+              "priority"
+            ],
+            "title": "Kind"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "How many logged rejections gave this reason"
+          },
+          "last": {
+            "type": "string",
+            "title": "Last",
+            "description": "Timestamp of the latest one"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "value",
+          "count",
+          "last"
+        ],
+        "title": "MemoryItem"
+      },
+      "MemoryResponse": {
+        "properties": {
+          "user": {
+            "type": "string",
+            "title": "User"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "decisions_read": {
+            "type": "integer",
+            "title": "Decisions Read"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "items",
+          "decisions_read",
+          "note"
+        ],
+        "title": "MemoryResponse",
+        "description": "What the decision log remembers about this planner's rejections (1.16.0). Shown as suggestions, never applied."
       },
       "MessageDraft": {
         "properties": {
@@ -4441,7 +5755,8 @@
             "type": "string",
             "enum": [
               "awaiting_human",
-              "no_action"
+              "no_action",
+              "paused"
             ],
             "title": "Status"
           },
@@ -4543,6 +5858,17 @@
             ],
             "title": "Spans",
             "description": "One span per agent step, derived from the events (1.14.0, WP4)"
+          },
+          "pause": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckpointPause"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Status 'paused': the question the team asks the human (1.16.0)"
           }
         },
         "type": "object",

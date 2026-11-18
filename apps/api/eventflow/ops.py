@@ -105,6 +105,25 @@ def parse_csv(text: str) -> tuple[list[dict], list[dict]]:
 
 
 # ---------------------------------------------------------------- inbox
+def _label(st: dict) -> str | None:
+    eid = st["request"]["forecast"].get("event_id")
+    return st["request"].get("label") or next((e["name"] for e in events() if e["id"] == eid), eid)
+
+
+def questions(limit: int = 50) -> list[dict]:
+    """Chains stopped at a checkpoint (1.16.0), newest first: the team's question and the answers that apply."""
+    out = []
+    for row in store().list("chains", limit=200):
+        st = store().get("chains", row["id"])
+        if not st or st.get("status") != "awaiting_human" or not st.get("pause"):
+            continue
+        out.append({"chain_id": st["chain_id"], "updated": row["updated"], "event": _label(st), "checkpoint": st["pause"]["checkpoint"],
+                    "actions": st["pause"]["actions"], "params": st["pause"]["params"], "is_synthetic": True})
+        if len(out) >= limit:
+            break
+    return out
+
+
 def inbox(limit: int = 50) -> list[dict]:
     """Chains waiting for a decision, newest first, in a form a phone can show."""
     out = []
@@ -190,6 +209,11 @@ def notify_chain(state: dict, since: int) -> list[str]:
                    f"Open the inbox to approve or reject (nothing is applied until you do).")
             if notify("decision_needed", txt, {"chain_id": state["chain_id"], "seq": e["seq"]}):
                 sent.append("decision_needed")
+        elif e["topic"] == "checkpoint.asked":
+            txt = (f"EventFlow: the AI team has a question about {label} ({e['payload'].get('checkpoint')}). "
+                   f"Open the inbox to answer; the team waits until you do.")
+            if notify("question_waiting", txt, {"chain_id": state["chain_id"], "seq": e["seq"]}):
+                sent.append("question_waiting")
         elif e["topic"] == "day.ended":
             txt = f"EventFlow: {label} — the chain ended ({e['payload'].get('reason')})."
             if notify("day_ended", txt, {"chain_id": state["chain_id"], "seq": e["seq"]}):
