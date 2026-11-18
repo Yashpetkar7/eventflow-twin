@@ -362,3 +362,12 @@
 .kask-doc figcaption { font-size: 13px; color: var(--ink-3); }
 .kask .krow { margin-top: auto; }
 .kbig .kask-a > p { font-size: 21px; }
+
+/* The team's question on the kiosk ("Ask me during planning"): big targets, readable from a standing distance */
+.kcard .loop-ask { box-shadow: none; border: 1.5px solid var(--navy); border-radius: 18px; padding: 16px 18px; }
+.kcard .loop-ask .loop-q { font-size: 18px; line-height: 1.4; }
+.kcard .loop-ask .loop-probes { font-size: 15.5px; gap: 6px; }
+.kcard .loop-ask .loop-probes code { display: none; }
+.kcard .loop-ask .loop-acts { display: grid; gap: 10px; }
+.kcard .loop-ask .loop-acts .btn, .kcard .loop-ask .loop-acts .pill { min-height: 58px; font-size: 17px; border-radius: 14px; width: 100%; }
+.kcard .loop-ask .note { font-size: 13.5px; }

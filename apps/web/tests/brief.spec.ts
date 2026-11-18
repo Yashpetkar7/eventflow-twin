@@ -10,7 +10,7 @@ type TwinWindow = Window & { __twin: { getState: () => Record<string, unknown> &
 
 async function open(page: Page) {
   await page.addInitScript(() => { try { sessionStorage.setItem("eft_welcome", "1"); } catch { /* ignore */ } });
-  await page.goto("/");
+  await page.goto("/?ask=0");   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as TwinWindow).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await page.getByRole("tab", { name: "AI plan" }).click();
 }

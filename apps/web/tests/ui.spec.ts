@@ -16,7 +16,7 @@ type TwinWindow = Window & { __twin: { getState: () => TwinState; setState: (s: 
 async function open(page: Page, url = "/") {
   // on a public link the first-visit welcome sheet covers the page: only the test that asks for it (?welcome=1) sees it
   await page.addInitScript(() => { try { if (!window.location.search.includes("welcome=1")) sessionStorage.setItem("eft_welcome", "1"); } catch { /* ignore */ } });
-  await page.goto(url);
+  await page.goto(`${url}${url.includes("?") ? "&" : "?"}ask=0`);   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as TwinWindow).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
 }
 const settle = (page: Page, ms = 3500) => page.waitForTimeout(ms);
@@ -336,14 +336,14 @@ test("public link: the welcome sheet offers the visitor story; the Report tab pr
   await expect(page.locator(".rail")).toBeHidden();
   await expect(page.locator(".tabpanel .score").first()).toBeVisible();
   await page.emulateMedia({ media: "screen" });
-  await page.goto("/?welcome=1");
+  await page.goto("/?welcome=1&ask=0");
   await page.getByTestId("welcome-story").click();
   await expect(page.getByTestId("kiosk")).toBeVisible({ timeout: 60_000 });    // the story button opens the visitor kiosk
 });
 
 test("API down: saved results keep the twin alive", async ({ page }) => {
   await page.route(`${API}/**`, (r) => r.abort());
-  await page.goto("/");
+  await page.goto("/?ask=0");
   await page.waitForFunction(() => (window as unknown as TwinWindow).__twin?.getState().ready, null, { timeout: 60_000 });
   await expect(apiBanner(page)).toContainText("not reachable");
   await expect(page.locator(".kpi").first()).toContainText("%");

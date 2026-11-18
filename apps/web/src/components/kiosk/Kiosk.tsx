@@ -24,6 +24,7 @@ import { SceneProgress } from "../SceneProgress";
 import { KioskTeam } from "../mission/KioskTeam";
 import { KioskMessage } from "../mission/Standing";
 import { KioskAsk } from "../assistant/KioskAsk";
+import { CheckpointCard } from "../mission/Loop";
 import { bump, busiest, closure, faultHour, ideaInterventions, IDEAS, PLAYBOOK_EVENT, playbook, QUIET_LF, readStats, riderAdvice, todayStats, type Idea } from "./logic";
 import { K, type KText } from "./strings";
 
@@ -116,6 +117,7 @@ export function Kiosk() {
   const error = useTwin((s) => s.error);
   const plan = useTwin((s) => s.plan);
   const planStatus = useTwin((s) => s.planStatus);
+  const pause = useTwin((s) => s.pause);                         // the team's question to the visitor ("Ask me during planning" is on by default)
   const planStep = useTwin((s) => s.planStep);
   const threshold = useTwin((s) => s.threshold);
   const time = useTwin((s) => s.time);
@@ -403,7 +405,7 @@ export function Kiosk() {
       const p = busiest(S().cur, ids);
       if (p && !tok.cancel) { revealedFor.current = S().forecast?.run_id ?? null; reveal(p.id); await until(() => revealedRef.current); await pause(4500); }
       if (tok.cancel) return;
-      setCap(T.jury[2]); setIdea(null); setMine(null); setChosen(null); setPhase("plan"); void S().runAgents(locale);
+      setCap(T.jury[2]); setIdea(null); setMine(null); setChosen(null); setPhase("plan"); void S().runAgents(locale, { ask: false });
       await until(() => S().planStatus === "ready" || S().planStatus === "error"); await pause(5500);
       if (tok.cancel || S().planStatus !== "ready" || !S().plan?.options.length) return;
       setCap(T.jury[3]); await pause(2500);
@@ -661,7 +663,10 @@ export function Kiosk() {
           {phase === "plan" && idea !== undefined && (
             <>
               <h1>{planStatus === "ready" ? T.s3Pick : T.s3Title}</h1>
-              {planStatus !== "ready" && planStatus !== "error" && (
+              {planStatus === "paused" && pause && (
+                <CheckpointCard pause={pause} testid="kiosk-checkpoint" onAnswer={(a) => void st.getState().answerCheckpoint(a, locale)} />
+              )}
+              {planStatus !== "ready" && planStatus !== "error" && planStatus !== "paused" && (
                 <>
                   <p className="ksub">{T.s3Sub}</p>
                   <div className="kplanrun">

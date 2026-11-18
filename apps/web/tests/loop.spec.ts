@@ -12,7 +12,7 @@ const API = `http://localhost:${process.env.EFT_API_PORT ?? 8000}`;
 
 async function open(page: Page) {
   await page.addInitScript(() => { try { sessionStorage.setItem("eft_welcome", "1"); localStorage.setItem("eventflow.locale", "en"); } catch { /* ignore */ } });
-  await page.goto("/");
+  await page.goto("/?ask=0");   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await page.evaluate(() => { const t = (window as unknown as W).__twin.getState(); t.selectEvent("downtown_night"); });
   await page.waitForFunction(() => !(window as unknown as W).__twin.getState().loading);

@@ -603,3 +603,8 @@ body.kiosk .railtabs { display: none; }
 .run-row-h { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .run-diff { border-block-start: 1px solid var(--line); padding-block-start: 6px; display: flex; flex-direction: column; gap: 4px; }
 .run-diff ul { margin: 0; padding-inline-start: 16px; }
+
+/* The "calm" checkpoint: what the team tested by itself, before it asks (contract 1.18.0) */
+.loop-probes { margin: 0; padding-inline-start: 16px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.loop-probes code { font-size: 10.5px; margin-inline-start: 6px; color: var(--ink-3); }
+.loop-probes li[data-crosses="false"] { color: var(--ink-3); }

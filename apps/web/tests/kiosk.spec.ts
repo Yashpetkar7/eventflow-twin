@@ -13,7 +13,7 @@ async function openKiosk(page: Page, q = "") {
   await page.addInitScript(() => { try { localStorage.clear(); } catch { /* ignore */ } });
   // The kiosk shows the realism scene by default (decision #102); EFT_SCENE=v1 runs the same checks on the corridor scene.
   const scene = process.env.EFT_SCENE ? `&scene=${process.env.EFT_SCENE}` : "";
-  await page.goto(`/?kiosk=1${q}${scene}`);
+  await page.goto(`/?kiosk=1${q}${scene}&ask=0`);   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
 }
 const idle = (page: Page) => page.waitForFunction(() => !(window as unknown as W).__twin.getState().loading);
@@ -147,7 +147,7 @@ test("kiosk: the realism scene at full quality is its default; under 50 fps it s
   type T = Window & { __twin: { getState: () => { tier: number }; setState: (p: object) => void } };
   const tier = () => page.evaluate(() => (window as unknown as T).__twin.getState().tier);
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto("/?kiosk=1&idle=600");
+  await page.goto("/?kiosk=1&idle=600&ask=0");
   await expect(page.getByTestId("scene-progress")).toBeVisible({ timeout: 30_000 });        // "Loading the 3D city…" while it streams in
   await page.waitForFunction(() => document.documentElement.dataset.sceneV2 === "16/16", null, { timeout: 120_000 });
   await expect(page.getByTestId("scene-progress")).toHaveCount(0);
@@ -155,10 +155,10 @@ test("kiosk: the realism scene at full quality is its default; under 50 fps it s
   await expect(page.locator(".kcred")).toContainText("Overture");                           // the realism datasets are credited
   await page.evaluate(() => (window as unknown as T).__twin.setState({ fpsOverride: 45 })); // a laptop that cannot hold 50 fps …
   await page.waitForFunction(() => (window as unknown as T).__twin.getState().tier === 1, null, { timeout: 30_000 });   // … gets the lighter level
-  await page.goto("/?kiosk=1&idle=600&quality=light");                                      // the booth can also ask for it
+  await page.goto("/?kiosk=1&idle=600&quality=light&ask=0");                                      // the booth can also ask for it
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   expect(await tier()).toBe(1);
-  await page.goto("/?kiosk=1&idle=600&scene=v1");
+  await page.goto("/?kiosk=1&idle=600&scene=v1&ask=0");
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await page.waitForTimeout(1500);
   expect(await page.evaluate(() => document.documentElement.dataset.sceneV2 ?? "off")).toBe("off");

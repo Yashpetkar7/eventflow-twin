@@ -14,7 +14,7 @@ const LAYERS: [keyof Layers, string][] = [["buildings", "Buildings"], ["landmark
 async function open(page: Page) {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.addInitScript(() => { try { sessionStorage.setItem("eft_welcome", "1"); } catch { /* ignore */ } });
-  await page.goto("/");
+  await page.goto("/?ask=0");   // ask=0: "Ask me during planning" is on by default (1.18.0); these tests plan in one tap unless they test the questions
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
 }
 

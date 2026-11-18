@@ -19,7 +19,7 @@ type W = Window & { __twin: { getState: () => S } };
 async function open(page: Page) {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.addInitScript(() => { try { sessionStorage.setItem("eft_welcome", "1"); localStorage.clear(); } catch { /* ignore */ } });
-  await page.goto("/?scene=v1");
+  await page.goto("/?scene=v1&ask=0");
   await page.waitForFunction(() => { const s = (window as unknown as W).__twin?.getState(); return s?.ready && (s.sceneReady || s.glFailed); }, null, { timeout: 90_000 });
   await set(page, { weather: "hot" });                                                       // World Trade Centre over the line
   await page.getByRole("tab", { name: "AI plan", exact: true }).click();

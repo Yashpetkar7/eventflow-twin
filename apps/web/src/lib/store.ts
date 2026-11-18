@@ -199,7 +199,7 @@ interface State {
   setCam: (c: CamMode) => void;
   recentre: () => void;
   focusLandmark: (key: string) => void;
-  runAgents: (locale: "en" | "ar", opts?: { loop?: boolean }) => Promise<void>;
+  runAgents: (locale: "en" | "ar", opts?: { loop?: boolean; ask?: boolean }) => Promise<void>;
   /** Stop the plan being made: the stream is aborted and nothing it would still send is shown. */
   cancelRun: () => void;
   /** The event chain's latest state from the API; its approved measures are applied to the twin when it runs on the rail's scenario. */
@@ -353,7 +353,7 @@ export const useTwin = create<State>((set, get) => {
     layers: { buildings: true, landmarks: true, trains: true, traffic: true, flows: true, labels: true },
     cam: "overview", lastCam: "overview", camNonce: 0,
     missionSkip: false, constraints: { forbid_types: [], protect_stations: [], cost_cap: null }, planBrief: null,
-    askMe: false, answers: [], pause: null, feedback: null, memory: null, loopError: null,
+    askMe: true, answers: [], pause: null, feedback: null, memory: null, loopError: null,
     kiosk: false, tourStep: null, sceneReady: false, glFailed: false, reducedMotion: false,
     focus: null, expanded: false, tier: MIN_TIER, fpsOverride: null,
 
@@ -398,7 +398,10 @@ export const useTwin = create<State>((set, get) => {
       runAbort?.abort();
       const ctl = (runAbort = new AbortController());
       set({ runCancelled: false, planStatus: "running", planStep: 0, plan: null, mission: null, missionShown: 0, missionLive: null, drafts: null, missionSkip: false, planError: null, decisions: {}, pause: null, loopError: null });
-      const ask: LoopAsk | null = s.kiosk ? null : { checkpoints: s.askMe ? ["hotspot", "partial"] : [], answers: s.answers };
+      // Where the team stops and asks (1.18.0: also "calm", when nothing is over the line). A guided show or tour passes
+      // ask: false so nothing waits for a tap; the kiosk sends no loop fields at all unless it is asking.
+      const asking = s.askMe && opts?.ask !== false;
+      const ask: LoopAsk | null = s.kiosk && !asking ? null : { checkpoints: asking ? ["hotspot", "partial", "calm"] : [], answers: s.answers };
       const mySeq = ++runSeq;
       const applied = mergeInterventions(s.applied.map((a) => a.ivs));
       lastPlan = { runId: s.forecast.run_id, applied, threshold: s.threshold, priority: s.priority, req: s.forecastReq, constraints: s.constraints, brief: s.planBrief };
@@ -528,6 +531,20 @@ export const useTwin = create<State>((set, get) => {
     answerCheckpoint: async (a, locale) => {
       const s = get();
       if (!s.pause || s.planStatus !== "paused") return;
+      if (a.action === "try_crowd" || a.action === "try_hot" || a.action === "try_line") {
+        // A harder scenario the team tested by itself (the "calm" checkpoint): it becomes the scenario, with its own
+        // forecast and simulation, and the team plans for it from the start.
+        const probes = ((s.pause.params as { probes?: { action: string; attendance?: number; threshold?: number }[] }).probes ?? []);
+        const q = probes.find((x) => x.action === a.action);
+        if (!q) return;
+        set({ answers: [], pause: null, planStatus: "idle", plan: null, mission: null, missionShown: 0 });
+        if (a.action === "try_line" && q.threshold != null) get().setThreshold(q.threshold);
+        else get().patchScenario(a.action === "try_crowd" ? { attendance: q.attendance ?? null } : { weather: "hot" });
+        await sleep(320);                                                // the scenario's own debounce, then its refresh
+        for (let i = 0; i < 400 && get().loading; i++) await sleep(50);
+        if (get().planStatus === "idle" && !get().error) await get().runAgents(locale);
+        return;
+      }
       if (a.action === "allow" || a.action === "raise_cap") {           // a constraint changed: the team plans again from the start with it
         const c = a.action === "allow" ? { ...s.constraints, forbid_types: (s.constraints.forbid_types ?? []).filter((t) => t !== a.measure) }
           : { ...s.constraints, cost_cap: a.cost_cap ?? s.constraints.cost_cap };

@@ -527,9 +527,17 @@
         "accept": "show the best plans",
         "more": "try one more round",
         "allow": "allow a measure",
-        "raise_cap": "raise the cost cap"
+        "raise_cap": "raise the cost cap",
+        "leave": "leave it, no plan is needed"
       },
-      "focus": "Focus moved to {station} (your choice)"
+      "focus": "Focus moved to {station} (your choice)",
+      "cpCalm": "nothing is over the line; test it harder?",
+      "probe": "Tested by itself: {what}, peak {peak}%, {over} station-hours over the line",
+      "probeCase": {
+        "crowd": "a bigger crowd",
+        "hot": "a hot day",
+        "line": "a stricter comfort line"
+      }
     },
     "watch": {
       "title": "Watcher · standing agent",
@@ -941,7 +949,21 @@
       "bigger": "Crowd 30% bigger"
     },
     "questions": "Questions from the team",
-    "noQuestions": "No questions waiting."
+    "noQuestions": "No questions waiting.",
+    "qCalm": "No station crosses the {thr}% comfort line. The busiest is {station} at {hour}, at {peak}%. I tested it harder myself:",
+    "probe": {
+      "crowd": "With {att} visitors (it first breaks at about {brk}; you have {now}): peak {peak}% at {station}, over the line for {over} station-hours.",
+      "hot": "On a hot day: peak {peak}% at {station}, over the line for {over} station-hours.",
+      "line": "With a stricter {line}% comfort line: {station} is over it for {over} station-hours.",
+      "holds": "On a hot day it still holds: peak {peak}%."
+    },
+    "aTry": {
+      "try_crowd": "Plan for {att} visitors",
+      "try_hot": "Plan for a hot day",
+      "try_line": "Plan with a {line}% line"
+    },
+    "aCalmAccept": "Leave it: no plan is needed",
+    "calmNote": "Your choice changes the scenario on screen. The team then plans for it from the start."
   },
   "logging": "Logging…",
   "cancelRun": "Stop planning",
@@ -1301,7 +1323,7 @@
         "title": "Ask about your trip",
         "source": "From the simulator and RTA's public pages. Synthetic demand: not live travel advice.",
         "back": "Other questions",
-      "done": "Back to my trip"
+        "done": "Back to my trip"
       }
     }
   },

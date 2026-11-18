@@ -52,7 +52,7 @@ export async function runTour(locale: "en" | "ar") {
   // 2 — the agents plan
   S.setState({ tab: "ai" });
   say(2);
-  await S.getState().runAgents(locale);
+  await S.getState().runAgents(locale, { ask: false });      // the guided demo plays by itself: nothing may wait for a tap
   await sleep(fast ? 400 : 2600);
   if (!alive()) return;
   // 3 — approval (logged as the guided demo, not as a visitor)
