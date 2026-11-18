@@ -416,3 +416,5 @@
 .kstep { display: flex; align-items: center; gap: 10px; } .kstep i { font-style: normal; font-size: 17px; font-weight: 600; min-width: 190px; text-align: center; }
 .kstep button { width: 60px; height: 60px; border-radius: 50%; border: 1.5px solid var(--navy); background: #fff; color: var(--navy); font-size: 30px; font-weight: 600; line-height: 1; }
 .kedit .krow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kai.typing .kai-opts, .kai.typing .kai-chips, .kai.typing .kai-prefs, .kai.typing .kai-hint { display: none; }   /* the keyboard is open: the answer stays, the buttons wait */
+.kai.typing .kai-ans > p:nth-child(n+3) { display: none; }

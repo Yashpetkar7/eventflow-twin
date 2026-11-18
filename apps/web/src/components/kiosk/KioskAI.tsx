@@ -142,7 +142,7 @@ export function KioskAI({ mode, station, hour, onClose, onApplied, onBrief }: {
   const ordered = [...stations].map((s) => s.id);
 
   return (
-    <section className="kai" data-testid="kai" data-mode={mode} data-status={brief ? "brief" : res?.status ?? (failed ? "failed" : busy ? "busy" : "idle")} data-intent={res?.intent ?? ""} aria-label={t(mode === "plan" ? "kai.titlePlan" : "kai.titleRide")}>
+    <section className={`kai${keys ? " typing" : ""}`} data-testid="kai" data-mode={mode} data-status={brief ? "brief" : res?.status ?? (failed ? "failed" : busy ? "busy" : "idle")} data-intent={res?.intent ?? ""} aria-label={t(mode === "plan" ? "kai.titlePlan" : "kai.titleRide")}>
       <header>
         <b>✦ {t(mode === "plan" ? "kai.titlePlan" : "kai.titleRide")}</b>
         <button type="button" className="kpill" onClick={onClose} data-testid="kai-close">✕ {t("kai.close")}</button>

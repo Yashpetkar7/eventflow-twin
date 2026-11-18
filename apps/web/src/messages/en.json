@@ -1291,7 +1291,7 @@
           "tryFewer": "{v_n} people → peak {peak_pct}%",
           "try_hot": "A hot day → peak {peak_pct}%",
           "try_rain": "A rainy day → peak {peak_pct}%",
-          "tryLine": "Comfort line {v_pct}% → peak {peak_pct}%"
+          "tryLine": "Comfort line {v_pct}%: the {peak_pct}% peak is then over it"
         },
         "suggest": "Today {station_st} peaks at {peak_pct}% against a comfort line of {thr_pct}%. I tested these for you; tap one to make it the scenario.",
         "suggestNone": "I have nothing harder to suggest inside the ranges the controls allow."
