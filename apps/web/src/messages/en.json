@@ -899,7 +899,7 @@
   },
   "loop": {
     "askMe": "Ask me during planning",
-    "askMeNote": "The team stops twice to ask you: which hotspot to plan for, and what to do if no plan clears it.",
+    "askMeNote": "The team stops to ask you: which hotspot to plan for, what to do if no plan clears it, and on a calm day which harder case to plan for.",
     "askTitle": "The team asks you",
     "askBy": "asked by the {who}",
     "qHotspot": "The diagnosis found {station} over the comfort line at {hours}, about {gap} riders an hour too many. Plan for it?",

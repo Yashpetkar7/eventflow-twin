@@ -272,8 +272,8 @@ comfort line the run ended before any checkpoint. Now there are three checkpoint
 
 | Checkpoint | When | What the human is offered |
 |---|---|---|
-| `hotspot` | a station is over the line | plan for it, plan for another station, or leave it |
-| `partial` | the best plan still leaves riders over the line | accept, raise the cap, or allow a measure that was held back |
+| `hotspot` | a station is over the line | "Yes, plan for it", plan for another crowded station instead, or "Don't plan now" |
+| `partial` | after the replans no plan clears the station | "Show me the best plans", "Try one more round", allow a measure that was held back, or raise the cost cap |
 | `calm` (new) | nothing is over the line | up to three harder scenarios the team already tested (break-point crowd, hot day, stricter line), or "leave it" |
 
 Each `calm` probe is a real forecast and simulation (its `run_id` is in the pause). Choosing one changes the scenario
