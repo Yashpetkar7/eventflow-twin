@@ -1027,7 +1027,7 @@ class TravelAdvice(BaseModel):
 
 
 # ---------- the assistant (contract 1.17.0, docs/18_ASSISTANT.md, decisions #147–#151) ----------
-ChatAudience = Literal["planner", "kiosk"]
+ChatAudience = Literal["planner", "kiosk", "sandbox"]
 ChatStatus = Literal["answered", "applied", "clarify", "refused", "insufficient_evidence"]
 PlanLifecycle = Literal["suggested", "simulated", "validated", "approved", "executed"]
 
@@ -1066,7 +1066,8 @@ class ChatRequest(_ScenarioRef):
     message: str | None = Field(None, max_length=500, description="The question or instruction (untrusted: read, screened, never followed)")
     intent: str | None = Field(None, max_length=40, description="A chip or button: the intent to run, no routing needed (e.g. 'compare', 'lens:safety')")
     args: dict | None = Field(None, description="Arguments of a chip or button (e.g. {'attendance': 60000})")
-    audience: ChatAudience = Field("planner", description="'kiosk' = visitor answers only: no plans, no scenario changes, no internals")
+    audience: ChatAudience = Field("planner", description="'kiosk' = visitor answers only: no plans, no scenario changes, no internals. "
+                                                           "'sandbox' (1.18.0) = the kiosk's planning game: scenario changes and what-ifs, no plan tables or internals")
     locale: Literal["en", "ar"] = "en"
     priority: Literal["cost", "balanced", "impact"] = "balanced"
     constraints: Constraints = Field(default_factory=Constraints)

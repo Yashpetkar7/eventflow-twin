@@ -1196,7 +1196,8 @@
       "accessible": "Step-free access?",
       "travel_options": "Other stations nearby?",
       "reach": "How do I get to another station?",
-      "busiest": "When is it busiest?"
+      "busiest": "When is it busiest?",
+      "suggest": "Suggest something to try"
     },
     "example": "Try: “Increase attendance to 60,000 and shorten the exit window to 45 minutes”",
     "a": {
@@ -1285,8 +1286,15 @@
           "value": "{v_n}",
           "minutes": "± {v_n} min",
           "confirm": "Yes, set {v_pct}%",
-          "cancel": "Leave it as it is"
-        }
+          "cancel": "Leave it as it is",
+          "tryCrowd": "{v_n} people → peak {peak_pct}%",
+          "tryFewer": "{v_n} people → peak {peak_pct}%",
+          "try_hot": "A hot day → peak {peak_pct}%",
+          "try_rain": "A rainy day → peak {peak_pct}%",
+          "tryLine": "Comfort line {v_pct}% → peak {peak_pct}%"
+        },
+        "suggest": "Today {station_st} peaks at {peak_pct}% against a comfort line of {thr_pct}%. I tested these for you; tap one to make it the scenario.",
+        "suggestNone": "I have nothing harder to suggest inside the ranges the controls allow."
       },
       "kiosk": {
         "help": "Tap a question below.",
@@ -1323,7 +1331,65 @@
         "title": "Ask about your trip",
         "source": "From the simulator and RTA's public pages. Synthetic demand: not live travel advice.",
         "back": "Other questions",
-        "done": "Back to my trip"
+        "done": "Back to my trip",
+        "plansNext": "The AI team's plans are on the planning screen: continue there and the team will test them for you.",
+        "pref": {
+          "quiet": "You asked for room: I preferred a quieter station.",
+          "short_walk": "You asked for a short walk: only nearby stations are suggested."
+        }
+      }
+    },
+    "kai": {
+      "open": "Ask the AI",
+      "titlePlan": "Plan with the AI",
+      "titleRide": "Ask about your trip",
+      "hintPlan": "Tell me what to change, or tap a suggestion. I run the forecast and the simulation again each time.",
+      "hintRide": "Tap a question or type your own. Tell me what matters to you and I will take it into account.",
+      "type": "Type",
+      "hideKeys": "Hide keyboard",
+      "placeholder": "Type here…",
+      "send": "Send",
+      "space": "space",
+      "del": "Delete",
+      "lang": "ع",
+      "close": "Close",
+      "undo": "Undo last change",
+      "again": "More suggestions",
+      "applied": "Done: the twin now shows this scenario.",
+      "failed": "I could not answer that. Please try again or ask the team at the stand.",
+      "prefs": "What matters to you",
+      "pref": {
+        "step_free": "Step-free",
+        "quiet": "Room to breathe",
+        "short_walk": "Short walk"
+      },
+      "describe": "Describe a new event",
+      "describeHint": "For example: a concert for sixty thousand near Burj Khalifa, ending at eleven at night, on a hot day.",
+      "understood": "This is what I understood. Nothing changes until you confirm.",
+      "near": "Near which station?",
+      "use": "Use this event",
+      "cancel": "Cancel",
+      "f": {
+        "event": "Event",
+        "station": "Near",
+        "attendance": "Crowd",
+        "time": "Time",
+        "weather": "Weather",
+        "threshold": "Comfort line",
+        "default": "default"
+      },
+      "phrasePlan": {
+        "p1": "Make it 60,000 people",
+        "p2": "Make it a hot day",
+        "p3": "Set the comfort line to 80%",
+        "p4": "Which station is busiest?",
+        "p5": "At what crowd size does it break?"
+      },
+      "phraseRide": {
+        "p1": "Which station should I use?",
+        "p2": "When should I leave?",
+        "p3": "Is it step-free?",
+        "p4": "How do I get to Dubai Mall?"
       }
     }
   },

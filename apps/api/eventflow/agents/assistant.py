@@ -40,7 +40,12 @@ from .brief import AR_DIGITS, _aliases, _find, _Reader, screen
 from .standing import _DENY, answer as legacy_answer
 
 PLANNER = ["peak", "overcrowded", "why_risk", "station_status", "best_plan", "compare", "lens", "whatif_attendance", "whatif_threshold",
-           "break_point", "if_hot", "if_rain", "road", "confidence", "evidence", "why_changed", "edit", "undo", "knowledge", "help"]
+           "break_point", "if_hot", "if_rain", "road", "confidence", "evidence", "why_changed", "edit", "undo", "suggest", "knowledge", "help"]
+# The kiosk's planning game ("I'm planning the event"): a visitor plays the planner on a sandbox scenario, so they may
+# change it in words and ask what-ifs. They do not get plan tables, confidence internals or the agents' tool runs: the
+# kiosk's own screens show the plans.
+SANDBOX = ["edit", "undo", "suggest", "whatif_attendance", "whatif_threshold", "peak", "overcrowded", "why_risk", "station_status",
+           "break_point", "if_hot", "if_rain", "knowledge", "help"]
 KIOSK = ["which_station", "quieter_station", "when_leave", "accessible", "travel_options", "reach", "busiest", "knowledge", "help"]
 LENSES = ["safety", "crowd", "wait", "cost", "accessibility", "emissions", "resources", "balanced"]
 STATION_INTENTS = {"why_risk", "station_status", "which_station", "quieter_station", "when_leave", "travel_options"}
@@ -83,6 +88,7 @@ ROUTES_PLANNER: list[tuple[str, str, dict]] = [
                     r"أي محطة|أكثر محطة|مزدحمة|الأكثر ازدحام", {}),
     ("peak", r"\bwhen\b|what time|peak|busiest (time|moment|hour)|متى|الذروة|أي ساعة", {}),
     ("station_status", r"how (busy|crowded|full)|status of|load at|كم الازدحام|ما حال", {}),
+    ("suggest", r"suggest|what should i (try|test)|ideas?\b|what else|surprise me|اقترح|اقتراح|أفكار", {}),
     ("help", r"^\s*(hi|hello|hey|help|what can you do|السلام عليكم|مرحبا|مساعدة)\b", {}),
 ]
 ROUTES_KIOSK: list[tuple[str, str, dict]] = [
@@ -768,15 +774,55 @@ def a_undo(t: Turn, a: dict) -> dict:
 
 
 def a_knowledge(t: Turn, a: dict, text: str = "") -> dict:
-    r = knowledge.search(text or a.get("query", ""), t.audience)
+    r = knowledge.search(text or a.get("query", ""), "planner" if t.audience == "planner" else "kiosk")
     t.tools.append({"tool": "retrieve", "run_id": f"corpus:{r['corpus_hash']}"})
     if r["insufficient"]:
-        return {"status": "insufficient_evidence", "blocks": [{"key": "kiosk.noAnswer" if t.audience == "kiosk" else "chat.noDocument", "params": {}}],
+        return {"status": "insufficient_evidence", "blocks": [{"key": "chat.noDocument" if t.audience == "planner" else "kiosk.noAnswer", "params": {}}],
                 "suggestions": ["help"]}
     for h in r["hits"]:
         t.evidence.append(knowledge.cite(h, t.locale))
     return {"blocks": [{"key": "chat.fromDocuments", "params": {"docs_n": len(r["hits"])}}], "passages": True,
             "suggestions": ["help"] if t.audience == "kiosk" else ["evidence", "confidence"]}
+
+
+def a_suggest(t: Turn, a: dict) -> dict:
+    """Scenarios worth trying next, each already forecast and simulated here (so the button shows what it will do):
+    the break-point crowd, a hot or rainy day, a stricter comfort line. One tap applies it as a scenario change."""
+    import math
+    cfg, cur = objectives.settings(), current_settings(t.req)
+    flat, base = _flat(cur, t.run), _headline(t.base())
+    options: list[dict] = []
+
+    def offer(label: str, change: dict, thr: float | None = None) -> None:
+        try:
+            new = apply_changes(cur, [{"field": k, "to": v} for k, v in change.items()])
+            run2 = t.deps.run_for(new["forecast"])
+        except Exception:
+            return
+        h = _headline(t.sim_of(run2, thr if thr is not None else new["threshold"]))
+        options.append({"label_key": label, "params": {"v_n": change.get("attendance", 0), "v_pct": _pct(change.get("threshold")) or 0,
+                                                       "peak_pct": _pct(h["peak"]), "over_x": h["over"]}, "intent": "edit", "args": change})
+    lo, hi = cfg["ranges"]["attendance"]
+    now = flat["attendance"]
+    if now:
+        bp = break_points(t.run, t.thr, t.corr)
+        t.note("breakpoint", bp["run_id"])
+        brk = bp["corridor_break_attendance"]
+        if brk and brk > now and math.ceil((brk + 1) / 1000) * 1000 <= hi:
+            offer("chat.opt.tryCrowd", {"attendance": int(math.ceil((brk + 1) / 1000) * 1000)})
+        elif brk and brk <= now and lo <= math.floor((brk - 1) / 1000) * 1000:
+            offer("chat.opt.tryFewer", {"attendance": int(math.floor((brk - 1) / 1000) * 1000)})        # the largest crowd the corridor still copes with
+        for w in ("hot", "rain"):
+            if flat["weather"] != w and len(options) < 3:
+                offer(f"chat.opt.try_{w}", {"weather": w})
+    line = math.floor(base["peak"] * 20 - 1e-9) / 20
+    tlo, thi = cfg["ranges"]["threshold"]
+    if tlo <= line < t.thr and line <= thi:
+        offer("chat.opt.tryLine", {"threshold": round(line, 2)}, line)
+    if not options:
+        return {"blocks": [{"key": "chat.suggestNone", "params": {}}], "suggestions": ["peak", "help"]}
+    return {"blocks": [{"key": "chat.suggest", "params": {"station_st": base["worst"], "peak_pct": _pct(base["peak"]), "thr_pct": _pct(t.thr)}}],
+            "options": options[:4], "suggestions": ["peak", "why_risk"]}
 
 
 def a_help(t: Turn, a: dict) -> dict:
@@ -793,17 +839,29 @@ def _rider(t: Turn, a: dict) -> tuple[str, int, dict]:
     hour = (a.get("hour") if a.get("hour") is not None else t.req.hour if t.req.hour is not None else t.focus_hour if t.focus_hour is not None
             else pk["hour"] if pk else t.event_hour())                # no hour given: the station's own busiest hour
     adv = travel_advice(t.detail(), st, int(hour), t.thr, t.applied, [])
+    prefs = t.ctx.get("prefs") or {}
+    if prefs.get("short_walk"):                                      # "I can't walk far": nearer stations only
+        limit = objectives.settings()["prefs"]["short_walk_min"]
+        adv = {**adv, "alternatives": [x for x in adv["alternatives"] if x["walk_min"] <= limit]}
+    if prefs.get("quiet") and adv["now"]["load"] is not None:        # "I'd rather have room": a clearly quieter station counts as better
+        gap = objectives.settings()["prefs"]["quiet_gap"]
+        adv = {**adv, "alternatives": sorted(({**x, "better": x["better"] or x["load"] <= adv["now"]["load"] - gap} for x in adv["alternatives"]),
+                                           key=lambda x: (not x["better"], x["load"], x["walk_min"]))}
+        if adv["status"] == "easy" and any(x["better"] for x in adv["alternatives"]):
+            adv = {**adv, "status": "busy"}                          # easy enough, but this rider asked for the quietest
     t.focus_station, t.focus_hour = st, int(hour)
     return st, int(hour), adv
 
 
 def _access_note(t: Turn) -> list[dict]:
-    if not (t.ctx.get("prefs") or {}).get("step_free"):
-        return []
+    prefs = t.ctx.get("prefs") or {}
+    used = [{"key": f"kiosk.pref.{k}", "params": {}} for k in ("quiet", "short_walk") if prefs.get(k)]
+    if not prefs.get("step_free"):
+        return used
     hit = knowledge.by_id("access.limits")
     if hit:
         t.evidence.append(knowledge.cite(hit, t.locale))
-    return [{"key": "kiosk.accessNote", "params": {}}]
+    return [*used, {"key": "kiosk.accessNote", "params": {}}]
 
 
 def k_which(t: Turn, a: dict) -> dict:
@@ -893,7 +951,7 @@ HANDLERS: dict[str, Callable] = {
     "compare": a_compare, "lens": a_lens, "whatif_attendance": a_whatif_attendance, "whatif_threshold": a_whatif_threshold,
     "break_point": a_legacy("break_point"), "if_hot": a_legacy("if_hot"), "if_rain": a_legacy("if_rain"), "road": a_legacy("road"),
     "confidence": a_confidence, "evidence": a_evidence, "why_changed": a_why_changed, "edit": a_edit, "undo": a_undo,
-    "knowledge": a_knowledge, "help": a_help,
+    "knowledge": a_knowledge, "help": a_help, "suggest": a_suggest,
     "which_station": k_which, "quieter_station": k_which, "when_leave": k_when, "accessible": k_accessible, "travel_options": k_options,
     "reach": k_reach, "busiest": k_busiest,
 }
@@ -962,7 +1020,7 @@ def clean_args(a: dict) -> dict:
 def chat(req, run: dict, deps: Deps) -> dict:
     """One turn. `run` is the forecast run of the scenario on screen (with `_spec`, its request, attached)."""
     t = Turn(req, run, deps)
-    allowed = KIOSK if req.audience == "kiosk" else PLANNER
+    allowed = KIOSK if req.audience == "kiosk" else SANDBOX if req.audience == "sandbox" else PLANNER
     text = clean(req.message or "")
     findings = [f for f in screen(req.message or "") if not any(x in f["pattern"] for x in EXEMPT_SCREEN)] if req.message else []
     intent, args, how = None, clean_args(_dump(req.args) if req.args else {}), "chip"
@@ -976,7 +1034,7 @@ def chat(req, run: dict, deps: Deps) -> dict:
         if re.search(_DENY, text):
             refused = "harm"
         else:
-            intent, found, how = classify(text, req.audience, {**t.ctx, "last_args": clean_args(t.ctx.get("last_args") or {})})
+            intent, found, how = classify(text, "kiosk" if req.audience == "kiosk" else "planner", {**t.ctx, "last_args": clean_args(t.ctx.get("last_args") or {})})
             args = {**found, **args}
             if intent is None and deps.route_model is not None:
                 m = deps.route_model(req.message[:300], allowed)
@@ -989,16 +1047,18 @@ def chat(req, run: dict, deps: Deps) -> dict:
     else:
         intent = "help"
     if intent is not None and intent not in allowed:
-        refused, intent = ("staff" if req.audience == "kiosk" else "scope"), None
+        plans = req.audience == "sandbox" and intent.split(":")[0] in ("best_plan", "compare", "lens")    # the kiosk's next screen shows the plans
+        refused, intent = ("plans" if plans else "staff" if req.audience in ("kiosk", "sandbox") else "scope"), None
     if req.audience == "kiosk" and intent == "knowledge" and re.search(PLANNER_ONLY, text):
         refused, intent = "staff", None
     if findings and intent in ("edit", "undo"):
         refused, intent = "injection", None                         # nothing is applied from a message that reads like an instruction to the system
 
     if intent is None:
-        res = {"status": "refused", "blocks": [{"key": {"harm": "chat.refuseHarm", "staff": "kiosk.staffOnly", "injection": "chat.refuseInjection"}.get(refused, "chat.refuse"),
+        res = {"status": "refused", "blocks": [{"key": {"harm": "chat.refuseHarm", "staff": "kiosk.staffOnly", "plans": "kiosk.plansNext", "injection": "chat.refuseInjection"}.get(refused, "chat.refuse"),
                                                "params": {}}],
-               "suggestions": ["which_station", "when_leave", "accessible"] if req.audience == "kiosk" else ["overcrowded", "best_plan", "confidence"]}
+               "suggestions": ["which_station", "when_leave", "accessible"] if req.audience == "kiosk" else
+                              ["suggest", "peak", "why_risk"] if req.audience == "sandbox" else ["overcrowded", "best_plan", "confidence"]}
     else:
         h = HANDLERS[intent]
         res = h(t, args, text) if intent in TAKES_TEXT else h(t, args)
@@ -1018,6 +1078,10 @@ def chat(req, run: dict, deps: Deps) -> dict:
     if res.get("undo"):
         ctx["undo"] = res["undo"]
     kiosk = req.audience == "kiosk"
+    if req.audience == "sandbox":                                    # the planning game: no tables, confidence internals or tool lists
+        res.pop("table", None)
+        res.pop("confidence", None)
+        t.tools = []
     return {"session_id": ctx["session_id"], "turn": ctx["turn"], "audience": req.audience, "intent": intent, "status": res.get("status", "answered"),
             "blocks": res["blocks"][:4] if kiosk else res["blocks"], "table": None if kiosk else res.get("table"),
             "evidence": [e for e in t.evidence if e["kind"] in ("document", "config")] if kiosk else t.evidence,
