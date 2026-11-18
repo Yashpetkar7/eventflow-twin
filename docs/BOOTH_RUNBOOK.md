@@ -229,3 +229,6 @@ checkpoints): repeat `node tests/kiosk_fps.mjs` on the final build.
 - Planner screens: tap a suggested scenario, type a change ("make it 60,000 people"), or **Describe a new event**. Nothing changes without a tap or a typed instruction.
 - On a plan card, **✎ Edit** lets a visitor change the AI's plan; it is simulated before **Approve my version** is enabled.
 - **Start again** resets the comfort line, priority and weather for the next visitor.
+- **Continue on my phone** shows a QR code of the public rider page. The visitor's phone needs mobile data; the booth laptop does not.
+- **Speak** appears on the kiosk keyboard only when the browser can recognise speech (on the device, or online when the laptop has a connection). The first tap asks for microphone permission: allow it once before opening, or open the kiosk with `?voice=0` to hide the button in a noisy hall.
+

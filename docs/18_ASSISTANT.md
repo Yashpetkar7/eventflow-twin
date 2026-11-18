@@ -1,6 +1,6 @@
 # 18. The assistant: conversation, scenario changes in plain words, cited knowledge, graded confidence
 
-Contract **1.18.0** (assistant 1.17.0, runs 1.18.0) · decisions **#147–#151, #153–#155** · built 18 Nov 2026 · owner of this stream: Krishna.
+Contract **1.18.0** (assistant 1.17.0, runs 1.18.0) · decisions **#147–#151, #153–#156** · built 18 Nov 2026 · owner of this stream: Krishna.
 
 This is the first slice of the "agentic decision-support" brief of 18 Nov. It adds one conversation engine behind
 `POST /agent/chat`, used by the command centre (a new **Ask** tab) and by the kiosk (visitor questions on the rider
@@ -294,4 +294,14 @@ off, and the guided demo and the 60-second kiosk show never wait.
 Audiences of `POST /agent/chat`: `planner` (everything), `sandbox` (the kiosk's planning game: scenario changes and
 what-ifs, no internals), `kiosk` (visitor answers only). Limits: the keyboard has no upper case or diacritics; typed
 Arabic is routed by word rules with the same held-out accuracy caveat as section 9; the QR handoff and voice are not built.
+
+## 16. Continue on a phone, and voice input (decision #156)
+
+- **Continue on my phone** ("I'm travelling", and after an approval): a QR code drawn in the page. It opens the public
+  rider page for the event, station and hour on screen. The link carries nothing about the visitor. The phone needs
+  its own connection; it shows the public site's simulator, not the plan approved on the kiosk.
+- **Speak** (on the kiosk keyboard, when the browser offers speech recognition): the words appear in the field; the
+  visitor checks them and taps Send. The screen says whether speech is processed on the device or by the browser's
+  online service. Offline without on-device recognition, or with `?voice=0`, the button is not shown.
+- Not measured: how well the browser hears in a hall, or in Arabic. Typing and tapping remain the primary way.
 
